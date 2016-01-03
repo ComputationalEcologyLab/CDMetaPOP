@@ -1,9 +1,0 @@
-,K,popmort_out,temperature_out,growdays_out,popmort_back,temperature_back,growdays_back,eggmort
-K,1,0,0,0,0,0,0,-0.5
-popmort_out,0,1,1,1,0,0,0,0
-temperature_out,0,1,1,1,0,0,0,0
-growdays_out,0,1,1,1,0,0,0,0
-popmort_back,0,0,0,0,1,1,1,0
-temperature_back,0,0,0,0,1,1,1,0
-growdays_back,0,0,0,0,1,1,1,0
-eggmort,-0.5,0,0,0,0,0,0,1
