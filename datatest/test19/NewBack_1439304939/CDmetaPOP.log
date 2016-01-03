@@ -1,0 +1,22 @@
+
+CDmetaPOP Release 2015.06.10-09:19:01MDT Version version 0.99.07
+
+Author(s): Erin L Landguth
+
+Session runtime inputs from: ../datatest/test19//Popvars_test19.csv
+
+
+DoUserInput(): 0:00:00.001000
+DoPreProcess(): 0:00:00.051000
+GetMetrics() Initial: 0:00:00.037000
+The file ind-1.csv has been created
+DoUpdate(): 0:00:00.031000
+DoCDClimate(): 0:00:00.013000
+DoMate(): 0:00:00.001000
+DoOffspring(): 0:00:00
+The file ind0.csv has been created
+Second DoUpdate(): 0:00:00.155000
+DoEmigration(): 0:00:00.026000
+DoOutMortality(): 0:00:00.002000
+The file ind0.csv has been created
+Third DoUpdate(): 0:00:00.147000
