@@ -196,7 +196,7 @@ def Do2LocusSelection(fitvals,genes,location):
 	# End::Do2LocusSelection()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p2,q1,q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,ToTMales,ToTFemales,BreedMales,BreedFemales,N_Age,MatureCount,ImmatureCount,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,sexans):
+def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p2,q1,q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,ToTMales,ToTFemales,BreedMales,BreedFemales,N_Age,MatureCount,ImmatureCount,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,sexans,SNPans):
 	'''
 	GetMetrics()
 	This function summarizes the genotypes and
@@ -404,7 +404,10 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	# Get allele frequency for total
 	if filledgrids != 0:
 		all_freq_tot = np.asarray(np.sum(genes_array_woNA,axis=0),dtype = 'float').reshape(total_alleles)
-		all_freq_tot = all_freq_tot/(2*filledgrids)
+		if SNPans == 'N':
+			all_freq_tot = all_freq_tot/(2*filledgrids)
+		else:
+			all_freq_tot = all_freq_tot/(filledgrids)
 	else:
 		all_freq_tot = np.zeros(total_alleles,float)
 	
@@ -414,7 +417,10 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 			# Cast genes as an numpy array as byte type
 			genes_array_subpop = np.asarray(tempgenesPop[isub],dtype='float')
 			all_freq_sub[isub].append(np.asarray(np.sum(genes_array_subpop,axis=0),dtype = 'float').reshape(total_alleles))
-			all_freq_sub[isub] = all_freq_sub[isub][0]/(2*Population[gen][isub+1])
+			if SNPans == 'N':
+				all_freq_sub[isub] = all_freq_sub[isub][0]/(2*Population[gen][isub+1])
+			else:
+				all_freq_sub[isub] = all_freq_sub[isub][0]/(Population[gen][isub+1])
 		else:
 			all_freq_sub[isub].append(np.zeros(total_alleles,float))
 			all_freq_sub[isub] = all_freq_sub[isub][0]
@@ -425,6 +431,7 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	all_freq_list[:,1] = all_freq_tot	
 	
 	#Calculate the number of homogenous alleles for total
+	# Note: this is not calculated for Ho
 	ho_count_tot = np.array(genes_array_woNA==2).sum()
 	# Calculate the number of homogenous alleles in each subpop
 	for isub in xrange(nosubpops):
@@ -497,14 +504,14 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	#End::GetMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst):
+def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,SNPans):
 	'''
 	InheritGenes()
 	Pass along gentic information to survived offspring from parents
 	Input: offspring [femalegenes,malegenes,NatalPop,EmiPop,ImmiPop,age,sex,size,infection,name]
 	Output: SubpopIN_Age0	[NatalPop,EmiPop,ImmiPop,age,sex,size,infection,name,genes]		
 	'''		
-	
+
 	# Create list for appending
 	Age0_keep = []
 	
@@ -832,22 +839,36 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 								print('The mutation model does not exist.')
 								sys.exit(-1)		
 					
+					# For SNPs only, randomly choose mother or father
+					if SNPans == 'Y':
+						snprand = rand()
+						if snprand < 0.5:
+							tempind = tempindmother
+						else:
+							tempind = tempindfather					
+					
 					# Now write to offspring genes array the selected alleles in locus j
 					for kspot in xrange(len(fathergenes[jspot])):
 						
-						# Need a storage temp for genes
-						# Hetero case 1 AB
-						if tempindfather[0] == kspot and tempindmother[0] != kspot:
-							offgenes[jspot].append(1)
-						# Homo case AA or BB
-						elif tempindfather[0] == kspot and tempindmother[0] == kspot:
-							offgenes[jspot].append(2)
-						# Hetero case 2 BA
-						elif tempindmother[0] == kspot and tempindfather[0] != kspot:
-							offgenes[jspot].append(1)
-						# Or nothing there at all
-						elif tempindmother[0] != kspot and tempindfather[0] != kspot:
-							offgenes[jspot].append(0)
+						if SNPans == 'N':
+							# Need a storage temp for genes
+							# Hetero case 1 AB
+							if tempindfather[0] == kspot and tempindmother[0] != kspot:
+								offgenes[jspot].append(1)
+							# Homo case AA or BB
+							elif tempindfather[0] == kspot and tempindmother[0] == kspot:
+								offgenes[jspot].append(2)
+							# Hetero case 2 BA
+							elif tempindmother[0] == kspot and tempindfather[0] != kspot:
+								offgenes[jspot].append(1)
+							# Or nothing there at all
+							elif tempindmother[0] != kspot and tempindfather[0] != kspot:
+								offgenes[jspot].append(0)
+						else:
+							if tempind[0] == kspot:
+								offgenes[jspot].append(1)
+							else:
+								offgenes[jspot].append(0)
 				
 				# If mtdna is turned on, then erase the last loci and force it to be mothergenes
 				if mtdna == 'Y' and jspot == loci-1:
@@ -856,7 +877,6 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					# Force last locus to be mothergenes
 					for imtdna in xrange(len(mothergenes[loci-1])):
 						offgenes[jspot] = mothergenes[loci-1][imtdna]
-				
 			
 			# If not in geneswap time, then initialize with allelst
 			else:
@@ -880,22 +900,30 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					#	0s = absence of allele
 					for k in xrange(len(allelst[sourcepop][j])):
 											
-						# Assignment of 2, the rest 0
-						if rand1 == rand2: 
-							if k < rand1 or k > rand1:
-								tempindall = 0
-							elif k == rand1:
-								tempindall = 2
-								
-						# Assignment of 1s, the rest 0
-						if rand1 != rand2:
-							if k < min(rand1,rand2) or k > max(rand1,rand2):
-								tempindall = 0
-							elif k == rand1 or k == rand2:
+						# For microsats
+						if SNPans == 'N':
+							# Assignment of 2, the rest 0
+							if rand1 == rand2: 
+								if k < rand1 or k > rand1:
+									tempindall = 0
+								elif k == rand1:
+									tempindall = 2
+									
+							# Assignment of 1s, the rest 0
+							if rand1 != rand2:
+								if k < min(rand1,rand2) or k > max(rand1,rand2):
+									tempindall = 0
+								elif k == rand1 or k == rand2:
+									tempindall = 1
+								else:
+									tempindall = 0
+						# For SNPs
+						else:
+							if k == rand1:
 								tempindall = 1
 							else:
 								tempindall = 0
-					
+								
 						# And to genes list
 						offgenes[j].append(tempindall)
 			
@@ -1358,7 +1386,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 	# End::DoUpdate()
 	
 # ---------------------------------------------------------------------------------------------------
-def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s):
+def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s,SNPans):
 
 	'''
 	Add in the Age 0 population.
@@ -1384,7 +1412,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 		# ----------------
 		# InheritGenes()
 		# ----------------
-		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst)	
+		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,SNPans)	
 		
 		# --------------------------------
 		# Apply spatial selection to Age0s (this might not be the right order)

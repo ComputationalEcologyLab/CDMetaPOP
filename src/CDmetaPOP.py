@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 0.99.07"
-appRele = "2015.06.10-09:19:01MDT"
+appVers = "version 1.01"
+appRele = "2015.12.29-09:19:01MST"
 authorNames = "Erin L Landguth"
 
 # ---------------
@@ -175,6 +175,7 @@ if __name__ == '__main__':
 		mutationans = batchVars['mutationtype'][ibatch]
 		loci = int(batchVars['loci'][ibatch])
 		alleles = int(batchVars['alleles'][ibatch])*np.ones(loci,int)
+		SNPans = batchVars['SNPanswer'][ibatch]
 		mtdna = batchVars['mtdna'][ibatch]
 		geneswap = int(batchVars['startGenes'][ibatch])
 		cdevolveans = batchVars['cdevolveans'][ibatch]
@@ -236,6 +237,17 @@ if __name__ == '__main__':
 		# ---------------------------------
 		# Some Error checking
 		# ---------------------------------
+				
+		# If SNP answer is Y 
+		if SNPans == 'Y':
+			# 4 alleles used
+			if alleles[0] != 4:
+				print('Warnign: SNP option specified and 4 ATCG locations is default.')
+				alleles = 4*np.ones(loci,int)
+			# cdevolve not opperating yet
+			if cdevolveans != 'N':
+				print('SNP option specified and CDEVOLVE (selection-driven loci) not currently implemented.')
+				sys.exit(-1)
 				
 		# Constant mortality checks
 		if not (constMortans == '1' or constMortans == '2'):
@@ -426,7 +438,7 @@ if __name__ == '__main__':
 			tupPreProcess = DoPreProcess(outdir,datadir,ibatch,ithmcrun,\
 			xyfilename,loci,alleles,\
 			0,logfHndl,cdevolveans,cdinfect,\
-			subpopemigration,subpopimmigration,sizeans,geneswap,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans)
+			subpopemigration,subpopimmigration,sizeans,geneswap,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans,SNPans)
 			
 			ithmcrundir = tupPreProcess[0]			
 			fitvals_pass = tupPreProcess[1]
@@ -498,7 +510,7 @@ if __name__ == '__main__':
 			# Timing events: start
 			start_time1 = datetime.datetime.now()
 			
-			GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,loci,alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans)
+			GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,loci,alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans,SNPans)
 			
 			# Print to log
 			stringout = 'GetMetrics() Initial: '+str(datetime.datetime.now() -start_time1) + ''
@@ -746,7 +758,7 @@ if __name__ == '__main__':
 				xgridpop,ygridpop,cdevolveans,fitvals,subpopimmigration,\
 				SelectionDeathsImm,DisperseDeathsImm,burningen,Str,\
 				StrSuccess,\
-				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,ithmcrundir,packpar1,noOffspring,Bearpairs,age_size_std,Femalepercent_egg,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd)
+				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,ithmcrundir,packpar1,noOffspring,Bearpairs,age_size_std,Femalepercent_egg,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,SNPans)
 				del(Bearpairs)
 				# Print to log
 				stringout = 'DoImmigration(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -777,7 +789,7 @@ if __name__ == '__main__':
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
 				
-				GetMetrics(SubpopIN,K,Track_N_Init_pop,Track_K,loci,alleles,gen+1,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans)
+				GetMetrics(SubpopIN,K,Track_N_Init_pop,Track_K,loci,alleles,gen+1,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans,SNPans)
 				
 				# Print to log
 				stringout = 'GetMetrics(): '+str(datetime.datetime.now() -start_time1) + ''

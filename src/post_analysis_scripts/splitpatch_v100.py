@@ -26,6 +26,19 @@ savename = "WCT_100Max_NInit_"
 # batch number - batchrun(batchno)mcrun{mcrun}
 batchno = 2
 
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
+savename = "NInit_WCT_50max_str0.001_"
+savename = "NInit_WCT_50max_str0.01_"
+savename = "NInit_WCT_50max_str0.05_"
+batchno = 2
+
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
+savename = "NInit_WCT_50max_str0.05_Riverine_"
+#savename = "NInit_WCT_50max_str0.05_ExBarr"
+#savename = "NInit_WCT_50max_str0.05_FutBarr"
+#savename = "NInit_WCT_50max_str0.05_ChangeBarr"
+# batch number - batchrun(batchno)mcrun{mcrun}
+batchno = 0
 
 # Direction location of patchvars.csv to get X,Y values
 xydir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/PatchVars_WCT1384.csv'
@@ -34,7 +47,7 @@ savedpi = 300
 qnorm = 1.959964 # For CIs, not in function 
 gen = 125 # Number of years 
 nthfile = range(0,gen,1)
-mcno = 3 # Number of MCs
+mcno = 2 # Number of MCs
 
 # List folders in this directory
 def listdirs(folder):

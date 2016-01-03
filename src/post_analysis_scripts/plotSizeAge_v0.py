@@ -48,14 +48,26 @@ outname = "sizeage_WCT_100Max_"
 # batch number - batchrun(batchno)mcrun{mcrun}
 batchno = 2
 
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
+#outname = "sizeage_WCT_50max_str0.001_"
+outname = "sizeage_WCT_50max_str0.01_"
+outname = "sizeage_WCT_50max_str0.05_"
+# batch number - batchrun(batchno)mcrun{mcrun}
+batchno = 2
+
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
+outname = "sizeage_WCT_50max_str0.05_Riverine_"
+outname = "sizeage_WCT_50max_str0.05_ExBarr"
+outname = "sizeage_WCT_50max_str0.05_FutBarr"
+outname = "sizeage_WCT_50max_str0.05_ChangeBarr"
+# batch number - batchrun(batchno)mcrun{mcrun}
+batchno = 3
+
 # Number of monte carlo runs - used to average
-mcruns = 3
+mcruns = 2
 
 # Generation to extract summary from
-gen = range(9,110,1)
-gen = [0,13,50,99]
-gen = [0,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,40,50,60,80,99]
-gen = range(0,130,5)
+#gen = range(0,130,5)
 gen = [100]
 #gen = [0,13,99]
 # Number of patches

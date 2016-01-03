@@ -27,13 +27,23 @@ def count_unique(keys):
 # User Input
 #-----------------
 # Directory location of output.csv
-dir = "D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_MovementDistances/"
+#dir = "D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_MovementDistances/"
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
 
 # Outputname 
-outname = "_WCT1384_Sample_Max_"
+#outname = "_WCT1384_Sample_Max_"
+outname = "CDist_WCT_50max_str0.001_"
+outname = "CDist_WCT_50max_str0.01_"
+outname = "Cdsit_WCT_50max_str0.05_"
+
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
+outname = "sizeage_WCT_50max_str0.05_Riverine_"
+outname = "sizeage_WCT_50max_str0.05_ExBarr"
+outname = "sizeage_WCT_50max_str0.05_FutBarr"
+outname = "sizeage_WCT_50max_str0.05_ChangeBarr"
 
 # batch number - batchrun(batchno)mcrun{mcrun}
-batchno = 2
+batchno = 3
 
 # Number of monte carlo runs - just run one MC
 mcrun = 0

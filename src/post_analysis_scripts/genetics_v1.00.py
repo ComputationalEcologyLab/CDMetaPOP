@@ -85,14 +85,32 @@ linemarks3 = ['b','g--','y-.','c.']
 #linemarks2 = ['k-.','b-.','r-.','g-.','y-.','c-.','m-.']
 #linemarks3 = ['k--','b--','r--','g--','y--','c--','m--']
 
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
+plottitle = ''
+savename = "_GeneticsSummary_strayrates_"
+label = ['0.001', '0.01', '0.05']
+batchno = 3
+linemarks1 = ['k','b','r','g','y','c','m']
+linemarks2 = ['k-.','b-.','r-.','g-.','y-.','c-.','m-.']
+linemarks3 = ['k--','b--','r--','g--','y--','c--','m--']
+
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
+savename = "_GeneticsSummary_landscapes_"
+label = ['Riverine', 'Ex-Barrier', 'Fut-Barrier','Remove-Barrier']
+batchno = 4
+linemarks1 = ['k','b','r','g','y','c','m']
+linemarks2 = ['k-.','b-.','r-.','g-.','y-.','c-.','m-.']
+linemarks3 = ['k--','b--','r--','g--','y--','c--','m--']
+
 savedpi = 300
 qnorm = 1.959964 # For CIs, not in function 
-gen = 130# Number of years 
+gen = 125# Number of years 
 startgenes = 25
 nthfile = range(startgenes,gen,1)
 #maxA = 17*11 # loci * alleles
-maxA = 18*9
-mcno = 3 # Number of MCs
+#maxA = 18*9
+maxA = 19*36
+mcno = 2 # Number of MCs
 
 
 
@@ -205,8 +223,8 @@ rateofloss_nonfisherian=[]
 equ1_Tot=[]
 equ1_1 = []
 N = 6317
-minY = 0.15
-maxY = 0.35
+minY = 0.50
+maxY = 0.70
 for i in range(len(nthfile)):
 	rateofloss_nonfisherian.append(He_m[0][0][0]*exp((-1./(2*N+1))*nthfile[i]))
 	equ1_Tot.append(He_m[0][0][0]*((1-(1./(2*N+1)))**nthfile[i]))
@@ -242,8 +260,8 @@ savefig(dir+savename+'HeHo.png',dpi=savedpi)
 
 # Plot Total AD vs. time
 figure()
-minY = 0.2
-maxY = 0.4
+minY = 0.4
+maxY = 0.5
 for ibatch in xrange(batchno):
 	
 	plot(nthfile,allD_m[ibatch][:,0][nthfile],linemarks3[ibatch],label=''+label[ibatch],linewidth=2)

@@ -616,7 +616,7 @@ def InitializeID(K,N):
 	#End::InitializeID()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeVars(K,id,Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen):
+def InitializeVars(K,id,Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,SNPans):
 	'''
 	InitializeVars()
 	This function initializes the age,sex,infection,genes of each individual based for the id variable
@@ -725,18 +725,27 @@ def InitializeVars(K,id,Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_s
 			#	0s = absence of allele
 			for k in xrange(alleles[j]):
 									
-				# Assignment of 2, the rest 0
-				if rand1 == rand2: 
-					if k < rand1 or k > rand1:
-						tempindall = 0
-					elif k == rand1:
-						tempindall = 2
+				# For microsats
+				if SNPans == 'N':
+					# Assignment of 2, the rest 0
+					if rand1 == rand2: 
+						if k < rand1 or k > rand1:
+							tempindall = 0
+						elif k == rand1:
+							tempindall = 2
 						
-				# Assignment of 1s, the rest 0
-				if rand1 != rand2:
-					if k < min(rand1,rand2) or k > max(rand1,rand2):
-						tempindall = 0
-					elif k == rand1 or k == rand2:
+					# Assignment of 1s, the rest 0
+					if rand1 != rand2:
+						if k < min(rand1,rand2) or k > max(rand1,rand2):
+							tempindall = 0
+						elif k == rand1 or k == rand2:
+							tempindall = 1
+						else:
+							tempindall = 0
+				
+				# For SNPs
+				else:
+					if k == rand1:
 						tempindall = 1
 					else:
 						tempindall = 0
@@ -1642,7 +1651,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,geneswap,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans):
+def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,geneswap,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans,SNPans):
 	'''
 	DoPreProcess()
 	This function does all the pre-processing work before
@@ -1812,7 +1821,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	# ------------------------------------------------------------------
 	
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,id_N,subpop_N = InitializeVars(K,id,Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen)
+	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,SNPans)
 	
 	# ----------------------------------------------
 	# Store class variable SubpopIN_Init

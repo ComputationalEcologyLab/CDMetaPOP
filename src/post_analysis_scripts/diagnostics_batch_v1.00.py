@@ -83,15 +83,28 @@ linemarks3 = ['b','g--','y-.','c.']
 #linemarks = ['k--','b-o','r-','g-^','ys-']
 #batchno = 3
 
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
+plottitle = ''
+savename = "_Diagnostics_strayrates_"
+label = ['0.001', '0.01', '0.05']
+linemarks = ['k--','b-o','r-','g-^','ys-']
+batchno = 3
+
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
+savename = "_Diagnostics_landscapes_"
+label = ['Riverine', 'Ex-Barrier', 'Fut-Barrier','Remove-Barrier']
+batchno = 4
+linemarks = ['k--','b-o','r-','g-^','ys-']
+
 
 outdir = dir
 
 savedpi = 300
 qnorm = 1.959964 # For CIs, not in function 
-gen = 130 # Number of years 
+gen = 125 # Number of years 
 nthfile = range(0,gen,1)
 #nthfile = np.asarraty([0,1,2,3,4,5,10,19])
-mcno = 3 # Number of MCs
+mcno = 2 # Number of MCs
 plottime = np.asarray([100])
 plotagesize = 'N' # Plot the time specific age/size information?
 #label = ['0%','25%','50%','75%','100%']
@@ -366,7 +379,7 @@ title(plottitle,fontsize=21)
 #axis([-0.1,gen,np.min(N_init_pop_m),np.max(N_init_pop_m)])
 #axis([-0.1,gen,50000,150000])
 #axis([-0.01,130,40000,120000])
-axis([-0.01,130,0,110000])
+axis([-0.01,130,0,140000])
 legend(loc=0)
 savefig(dir+savename+'NInit_pop.png',dpi=savedpi)
 

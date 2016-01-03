@@ -1,4 +1,8 @@
-Changes v1.0-20151002T16:53:00MDT (ell)
+Changes v1.01-20151229T15:42:00 MST (ell)
+0) Add SNP option. Needed because program looks for mother/father allele to pass on to offspring. If 1 ATCG given, then randomly choose this for the offspring. SNPs will be lociX4 for ATCG option. 
+1) Published to GITHUB
+
+Changes v1.0-20151002T16:53:00MDT (ell) * Version sent to reviewers.
 0) Add in migration ground patch field. Can also use matrices to do this, but adding flexibility. 
 1) Add in ClassVars to the PatchVars file, so that different class initialization can be conducted at the patch level.
 

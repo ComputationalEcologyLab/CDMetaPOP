@@ -20,12 +20,25 @@ except ImportError:
 # ---------
 # User info
 # ---------
-dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_MovementDistances/'
+#dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_MovementDistances/'
 plottitle = ""
 savename = "_RSI_movethreshold_"
 label = ['25% Max', '50% Max', '100% Max']
 linemarks = ['k--','b-o','r-.','g-^','ys-']
 batchno = 3
+
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
+plottitle = ""
+savename = "_RSI_strayrates_"
+label = ['0.001', '0.01', '0.05']
+linemarks = ['k--','b-o','r-.','g-^','ys-']
+batchno = 3
+
+dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
+savename = "_RSI_landscapes_"
+label = ['Riverine', 'Ex-Barrier', 'Fut-Barrier','Remove-Barrier']
+batchno = 4
+linemarks = ['k--','b-o','r-','g-^','ys-']
 
 outdir = dir
 
@@ -34,7 +47,7 @@ qnorm = 1.959964 # For CIs, not in function
 gen = 125 # Number of years 
 nthfile = range(0,gen,1)
 #nthfile = np.asarraty([0,1,2,3,4,5,10,19])
-mcno = 3 # Number of MCs
+mcno = 2 # Number of MCs
 
 # List folders in this directory
 def listdirs(folder):
