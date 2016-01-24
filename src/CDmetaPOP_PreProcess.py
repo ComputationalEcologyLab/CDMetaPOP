@@ -1735,7 +1735,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 		backgrowdays_sd.append(xy[i+1][26])
 		pop_capture_out.append(xy[i+1][27])
 		pop_capture_back_pass.append(xy[i+1][28])
-		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat':
+		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray':
 			fitvals.append([xy[i+1][29],xy[i+1][30],xy[i+1][31]])
 		elif cdevolveans == 'G':
 			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34]])
@@ -1819,7 +1819,6 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
-	
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,id_N,subpop_N = InitializeVars(K,id,Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
 	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,SNPans)
 	

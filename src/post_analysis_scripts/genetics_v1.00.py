@@ -7,6 +7,7 @@
 # genetics_v098: For plotting He/Ho/Alleles for current version.
 # genetics_v099: For current version and add in multiple batches
 # v1.00: For current version and added AD plots
+# Added F plots. 
 # ----------------------------------------------------------------------------- 
 
 # Load modules
@@ -180,6 +181,8 @@ alleles = np.asarray(alleles)
 He = np.asarray(He)
 Ho = np.asarray(Ho)
 allD = (alleles - 1) / (maxA - 1.)
+# 1 - Ho/He
+F = 1. - (Ho/He)
 
 # --------------------------------------------
 # Get mean over Monte Carlosfor each batch run
@@ -213,6 +216,12 @@ allD_sd = np.std(allD[:][:],axis=1)
 error = qnorm*allD_sd/(mcno)
 allD_l = allD_m-error
 allD_r = 	allD_m+error
+
+F_m = np.nansum(F[:][:],axis=1)/mcno
+F_sd = np.std(F[:][:],axis=1)	
+error = qnorm*F_sd/(mcno)
+F_l = F_m-error
+F_r = 	F_m+error
 
 # --------------------------------------------------------
 # Plotting
@@ -256,6 +265,34 @@ for tick in ax.xaxis.get_major_ticks():
 for tick in ax.yaxis.get_major_ticks():
 	tick.label1.set_fontsize(fontsize)
 savefig(dir+savename+'HeHo.png',dpi=savedpi)
+
+# Plot Total F vs. time
+figure()
+for ibatch in xrange(batchno):
+	#plot(nthfile,He_m[ibatch][:,0][nthfile],linemarks1[ibatch],label='Expected Batch '+label[ibatch],ms=10)
+	plot(nthfile,F_m[ibatch][:,0][nthfile],linemarks1[ibatch],label='He (-- Ho)'+label[ibatch],ms=10)
+	#plot(time,HeTot_Left,'-.r',ms=10)
+	#plot(time,HeTot_Right,'-.k',ms=10)
+	#plot(nthfile,Ho_m[ibatch][:,0][nthfile],linemarks2[ibatch],label=''+label[ibatch],ms=10)
+	#plot(nthfile,Ho_m[ibatch][:,0][nthfile],linemarks2[ibatch],label='',linewidth=2)
+	#plot(time,HoTot_Left,'-.k',ms=10)
+	#plot(time,HoTot_Right,'-.k',ms=10)
+	#plot(nthfile,equ1_Tot,'-k',ms=10,label='Equation 1')
+	#plot(allD_m[ibatch][:,0][nthfile],linemarks3[ibatch],label='Allelic Diversity Batch '+label[ibatch],ms=10)
+		
+xlabel('generations',fontsize=18)
+ylabel('F',fontsize=18)
+axis([startgenes,gen,minY,maxY])
+title(plottitle)
+legend(loc=3)
+# Updating fontsize on axes
+fontsize=16
+ax = gca()
+for tick in ax.xaxis.get_major_ticks():
+	tick.label1.set_fontsize(fontsize)
+for tick in ax.yaxis.get_major_ticks():
+	tick.label1.set_fontsize(fontsize)
+savefig(dir+savename+'F.png',dpi=savedpi)
 
 
 # Plot Total AD vs. time

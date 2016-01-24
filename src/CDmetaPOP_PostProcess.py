@@ -514,7 +514,7 @@ def DoGridOut_genalex(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				for ithloci in xrange(loci):
 				
 					# Loop through each allele spot at that locus
-					for ithallele in xrange(2):
+					for ithallele in xrange(len(GenFormgenes[ipop][ispot][ithloci])):
 					
 						outputfile.write(str(GenFormgenes[ipop][ispot][ithloci][ithallele])+',')
 					
@@ -675,7 +675,7 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 			for ispot in xrange(patchN[ipop]):
 			
 				# Loop through each allele spot at that locus
-				for ithallele in xrange(2):
+				for ithallele in xrange(len(GenFormgenes[ipop][ispot][ithloci])):
 			
 					outputfile.write(str(ispot+1)+' ')
 					outputfile.write(str(subpop_cdpop[ipop][ispot])+' ')
@@ -698,7 +698,7 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 	# End::DoGridOut_structure()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
+def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal,SNPans):
 	'''
 	DoGridOut_genalex()
 	Output ind.csv in genalex genotype format	
@@ -848,7 +848,7 @@ def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				for ithloci in xrange(loci):
 					templociname = ''
 					# Loop through each allele spot at that locus
-					for ithallele in xrange(2):
+					for ithallele in xrange(len(GenFormgenes[ipop][ispot][ithloci])):
 						# Add 100
 						templociname = templociname + str(GenFormgenes[ipop][ispot][ithloci][ithallele]+100)
 						
@@ -1498,7 +1498,7 @@ subpopemigration,subpopimmigration,FAvgMate,MAvgMate,FSDMate,\
 MSDMate,SelectionDeathsEmi,SelectionDeathsImm,\
 DisperseDeathsEmi,DisperseDeathsImm,Female_BreedEvents,\
 gridformat,MgSuccess,AdultNoMg,\
-StrSuccess,EggDeaths,K_track,N_Init,N_Emigration,N_EmiMortality,N_Immigration,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,N_Init_Age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,MatureCount,ImmatureCount,N_back_age,N_out_age,outputans,gen,CaptureCount_Back,CaptureCount_ClassBack,CaptureCount_Out,CaptureCount_ClassOut,size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,N_Init_Class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd):
+StrSuccess,EggDeaths,K_track,N_Init,N_Emigration,N_EmiMortality,N_Immigration,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,N_Init_Age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,MatureCount,ImmatureCount,N_back_age,N_out_age,outputans,gen,CaptureCount_Back,CaptureCount_ClassBack,CaptureCount_Out,CaptureCount_ClassOut,size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,N_Init_Class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,SNPans):
 	'''
 	DoPostProcess()
 	Create Distance Matrices - Geographic, Genetic, and Cost
@@ -1533,7 +1533,7 @@ StrSuccess,EggDeaths,K_track,N_Init,N_Emigration,N_EmiMortality,N_Immigration,N_
 	
 	# GENEPOP format
 	elif gridformat == 'genepop':
-		DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,K_track)
+		DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,K_track,SNPans)
 			
 	# -------------------------------------------------
 	# output for each gen and patch vars

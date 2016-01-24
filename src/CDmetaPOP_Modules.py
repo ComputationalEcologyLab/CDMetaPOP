@@ -1215,7 +1215,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
 							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
 						# aa - use bb
-						elif Indgenes[0][1] == 0:
+						elif Indgenes[0][1] == 2:
 							genespot = 5
 							growans = fitvals[int(Indloc)-1][genespot][0]
 							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])

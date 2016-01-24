@@ -213,40 +213,73 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			# Get individual, easier for indexing
 			outpool = SubpopIN[isub][iind]
 			originalpop = outpool['NatalPop']
-			emipop = outpool['EmiPop']			
+			emipop = outpool['EmiPop']
+			outpool_genes = literal_eval(outpool['genes'])			
 						
 			# -----------------------------------
 			# Check for strayer first
 			# -----------------------------------
-			# Check for patch stray probability
-			Str_Patch = ProbPatch[int(originalpop)-1] # index 1 minus
+			# No genotype tied to stray rate
+			if cdevolveans != 'stray':
 			
-			# Check for age/size stray
-			indexofProb = outpool[sizecall]
-			# If size control then get size nearest to values in age file
-			if sizecall == 'size':
-				closestval = min(size_mean[isub], key=lambda x:abs(x-indexofProb))
-				Find = np.where(np.asarray(size_mean[isub])==closestval)[0][0]
-			else:
-				Find = indexofProb
-			# Check for ages over last age
-			if Find > len(ProbAge[isub]) - 1:
-				Find = len(ProbAge[isub]) - 1 # Make last age
-			Str_Class = ProbAge[isub][Find]
+				# Check for patch stray probability
+				Str_Patch = ProbPatch[int(originalpop)-1] # index 1 minus
+				
+				# Check for age/size stray
+				indexofProb = outpool[sizecall]
+				# If size control then get size nearest to values in age file
+				if sizecall == 'size':
+					closestval = min(size_mean[isub], key=lambda x:abs(x-indexofProb))
+					Find = np.where(np.asarray(size_mean[isub])==closestval)[0][0]
+				else:
+					Find = indexofProb
+				# Check for ages over last age
+				if Find > len(ProbAge[isub]) - 1:
+					Find = len(ProbAge[isub]) - 1 # Make last age
+				Str_Class = ProbAge[isub][Find]
 
-			# Then multiply these together
-			indProb = Str_Patch * Str_Class
+				# Then multiply these together
+				indProb = Str_Patch * Str_Class
+					
+			# If genotype tied to stray rate
+			else:
+				if outpool_genes[0][0] == 2: #AA
+					indProb = float(fitvals[isub][0][0])
+				elif outpool_genes[0][0] == 1 and outpool_genes[0][1] == 1: #As
+					indProb = float(fitvals[isub][1][0])
+				elif outpool_genes[0][1] == 2: #aa
+					indProb = float(fitvals[isub][2][0])
+				else: #Something else
+					# Check for patch stray probability
+					Str_Patch = ProbPatch[int(originalpop)-1] # index 1 minus
+					
+					# Check for age/size stray
+					indexofProb = outpool[sizecall]
+					# If size control then get size nearest to values in age file
+					if sizecall == 'size':
+						closestval = min(size_mean[isub], key=lambda x:abs(x-indexofProb))
+						Find = np.where(np.asarray(size_mean[isub])==closestval)[0][0]
+					else:
+						Find = indexofProb
+					# Check for ages over last age
+					if Find > len(ProbAge[isub]) - 1:
+						Find = len(ProbAge[isub]) - 1 # Make last age
+					Str_Class = ProbAge[isub][Find]
+
+					# Then multiply these together
+					indProb = Str_Patch * Str_Class
 			
+			# Decide if strayer?
 			randProb = rand()	# Get a random number			
 			# Flip the coin for patch stray
 			if randProb < indProb:			
 								
 				# Then stray
 				indProbans = 'Yes'
-							
+						
 			# Patch stray not a success
 			else:
-				indProbans = 'No'					
+				indProbans = 'No'
 			
 			# --------------------------
 			# Straying occurred
