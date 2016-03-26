@@ -880,11 +880,11 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 			
 			# If not in geneswap time, then initialize with allelst
 			else:
-				
 				# Get genes - For each loci:
 				sourcepop = int(offspring[i]['NatalPop'])-1
 				offgenes = [] # Storage
-				
+				# First check to see if there is more than one file that can be used for this patch and then randomly choose which one to initialize this individuals
+				thisgenefile = randint(len(allelst[sourcepop]))
 				# Loop through each locus
 				for j in xrange(loci):
 									
@@ -892,13 +892,13 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					offgenes.append([])
 					
 					# Take a random draw from the w_choice function at jth locus
-					rand1 = w_choice_general(allelst[sourcepop][j])[0]
-					rand2 = w_choice_general(allelst[sourcepop][j])[0]
+					rand1 = w_choice_general(allelst[sourcepop][thisgenefile][j])[0]
+					rand2 = w_choice_general(allelst[sourcepop][thisgenefile][j])[0]
 										
 					# 	1s = heterozygous at that locus
 					#	2s = homozygous at that locus
 					#	0s = absence of allele
-					for k in xrange(len(allelst[sourcepop][j])):
+					for k in xrange(len(allelst[sourcepop][thisgenefile][j])):
 											
 						# For microsats
 						if SNPans == 'N':

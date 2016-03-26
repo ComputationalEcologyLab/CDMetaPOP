@@ -30,88 +30,24 @@ except ImportError:
 # ---------
 # User info
 # ---------
-dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151112/FirstBlock_Wind/"
-plottitle = ""
-savename = "_Diagnostics_"
-label = ['No Selection','Gene Selection','All Selection']
-batchno = 3
-linemarks = ['k--','b-o','r-','g-^','ys-']
-#dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151112/SecondBlock_Wind/"
-#label = ['All Zone Gene Selection','INLA Zone Gene Selection','CLMT Zone Gene Selection','GYGT Zone Gene Selection']
-#batchno = 4
-#linemarks = ['b-o','g-^','ys-','m-*']
-#dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151112/ThirdBlock_Wind/"
-#label = ['All Area Gene Selection','Non-wilderness Area Gene Selection']
-#batchno = 2 
-#linemarks = ['b-o','c-x','ys-']
-
-# No Wind Runs
-dir = "D:/projects/WBP2/runs/data_cdmetapop_20151003/FirstBatch/"
-plottitle = ""
-savename = "_Diagnostics_"
-label = ['No mortality','Resistant gene in all zones','All mortality without resistance']
-batchno = 3
-#linemarks = ['k--','b-','r-.','g-','y-']
-#dir = "D:/projects/WBP2/runs/data_cdmetapop_20151003/SecondandThirdBatch/"
-dir = "D:/projects/WBP2/runs/data_cdmetapop_20151003/SecondBatch_2/"
-label = ['Resistant gene in all zones','Resistant gene in INLA zone','Resistant gene in CLMT zone','Resistant gene in non-wilderness'] 
-#batchno = 4
-#linemarks = ['b-','g','y-.','c.']
-
-# Wind Runs
-#dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151217/FirstBatch/"
-plottitle = ""
-#savename = "_Diagnostics_"
-#label = ['No mortality','Resistant gene in all zones','All mortality without resistance']
-#batchno = 3
-#linemarks1 = ['k','b','r','g','y','c','m']
-#linemarks2 = ['k--','b--','r--','g-.','y-.','c-.','m-.']
-#linemarks3 = ['k--','b-','r-.','g--','y--','c--','m--']
-#['k--','b-','r','g-','y-']
-dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151217/SecondBatch/"
-label = ['Resistant gene in all zones','Resistant gene in INLA zone','Resistant gene in CLMT zone','Resistant gene in non-wilderness'] 
-batchno = 4
-linemarks1 = ['b','g','y','c']
-linemarks2 = ['b--','g--','y--','c--']
-linemarks3 = ['b','g--','y-.','c.']
-
-
-#dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_MovementDistances/'
-#plottitle = ''
-#savename = "_Diagnostics_movethreshold_"
-#label = ['25% Max', '50% Max', '100% Max']
-#linemarks = ['k--','b-o','r-','g-^','ys-']
-#batchno = 3
-
-dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
+dir = "D:/projects/CDmetaPOP/Seattle/Sampling/RivExFutBarr_100max_Straypt01_randomgenes/"
 plottitle = ''
 savename = "_Diagnostics_strayrates_"
-label = ['0.001', '0.01', '0.05']
-linemarks = ['k--','b-o','r-','g-^','ys-']
+label = ['100years', '200years', '300years']
 batchno = 3
-
-dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
-savename = "_Diagnostics_landscapes_"
-label = ['Riverine', 'Ex-Barrier', 'Fut-Barrier','Remove-Barrier']
-batchno = 4
 linemarks = ['k--','b-o','r-','g-^','ys-']
-
 
 outdir = dir
 
 savedpi = 300
 qnorm = 1.959964 # For CIs, not in function 
-gen = 125 # Number of years 
+gen = 325 # Number of years 
 nthfile = range(0,gen,1)
 #nthfile = np.asarraty([0,1,2,3,4,5,10,19])
 mcno = 2 # Number of MCs
 plottime = np.asarray([100])
 plotagesize = 'N' # Plot the time specific age/size information?
 #label = ['0%','25%','50%','75%','100%']
-
-
-
-
 
 # List folders in this directory
 def listdirs(folder):

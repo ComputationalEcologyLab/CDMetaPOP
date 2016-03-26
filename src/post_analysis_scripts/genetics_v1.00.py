@@ -25,79 +25,13 @@ except ImportError:
 # ---------
 # User info
 # ---------
-
-dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151112/FirstBlock_Wind/"
-plottitle = ""
-savename = "_GeneticsSummary_"
-label = ['No Selection','Gene Selection','All Selection']
-batchno = 3
-linemarks1 = ['k','b','r','g','y','c','m']
-linemarks2 = ['k-.','b-.','r-.','g-.','y-.','c-.','m-.']
-linemarks3 = ['k--','b--','r--','g--','y--','c--','m--']
-dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151112/SecondBlock_Wind/"
-label = ['All Zone Gene Selection','INLA Zone Gene Selection','CLMT Zone Gene Selection','GYGT Zone Gene Selection']
-batchno = 4
-linemarks1 = ['b','g','y','m']
-linemarks2 = ['b-.','g-.','y-.','m-.']
-linemarks3 = ['b--','g--','y--','m--']
-
-# No Wind Runs
-dir = "D:/projects/WBP2/runs/data_cdmetapop_20151003/FirstBatch/"
-plottitle = ""
-savename = "_GeneticsSummary_"
-label = ['No mortality','Resistant gene in all zones','All mortality without resistance']
-batchno = 3
-linemarks1 = ['k','b','r','g','y','c','m']
-linemarks2 = ['k--','b--','r--','g-.','y-.','c-.','m-.']
-linemarks3 = ['k--','b-','r-.','g--','y--','c--','m--']
-#['k--','b-','r','g-','y-']
-dir = "D:/projects/WBP2/runs/data_cdmetapop_20151003/SecondandThirdBatch/"
-dir = "D:/projects/WBP2/runs/data_cdmetapop_20151003/SecondBatch_2/"
-label = ['Resistant gene in all zones','Resistant gene in INLA zone','Resistant gene in CLMT zone','Resistant gene in non-wilderness'] 
-batchno = 4
-linemarks1 = ['b','g','y','c']
-linemarks2 = ['b--','g--','y--','c--']
-linemarks3 = ['b','g--','y-.','c.']
-
-# Wind Runs
-#dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151217/FirstBatch/"
-#plottitle = ""
-#savename = "_GeneticsSummary_"
-#label = ['No mortality','Resistant gene in all zones','All mortality without resistance']
-#batchno = 3
-#linemarks1 = ['k','b','r','g','y','c','m']
-#linemarks2 = ['k--','b--','r--','g-.','y-.','c-.','m-.']
-#linemarks3 = ['k--','b-','r-.','g--','y--','c--','m--']
-#['k--','b-','r','g-','y-']
-dir = "D:/projects/WBP2/runs/datawind_cdmetapop_20151217/SecondBatch/"
-label = ['Resistant gene in all zones','Resistant gene in INLA zone','Resistant gene in CLMT zone','Resistant gene in non-wilderness'] 
-batchno = 4
-linemarks1 = ['b','g','y','c']
-linemarks2 = ['b--','g--','y--','c--']
-linemarks3 = ['b','g--','y-.','c.']
-
-
-#dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_MovementDistances/'
-#plottitle = ''
-#savename = "_GeneticsSummary_movethreshold_"
-#label = ['25% Max', '50% Max', '100% Max']
-#batchno = 3
-#linemarks1 = ['k','b','r','g','y','c','m']
-#linemarks2 = ['k-.','b-.','r-.','g-.','y-.','c-.','m-.']
-#linemarks3 = ['k--','b--','r--','g--','y--','c--','m--']
-
-dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
-plottitle = ''
-savename = "_GeneticsSummary_strayrates_"
-label = ['0.001', '0.01', '0.05']
-batchno = 3
-linemarks1 = ['k','b','r','g','y','c','m']
-linemarks2 = ['k-.','b-.','r-.','g-.','y-.','c-.','m-.']
-linemarks3 = ['k--','b--','r--','g--','y--','c--','m--']
-
-dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
+dir = "D:/projects/CDmetaPOP/Seattle/Sampling/RivExFutBarr_100max_Straypt01_randomgenes/WCT1384_RivExFutBarr_100max_Straypt01_randomgenes_Riv300years/"
+dir  = "D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/"
 savename = "_GeneticsSummary_landscapes_"
-label = ['Riverine', 'Ex-Barrier', 'Fut-Barrier','Remove-Barrier']
+#label = ['100years', '200years', '300years']
+label = ['300years']
+label = ['Riverine', 'Ex-Barrier', 'Fut-Barrier', 'Remove-Barrier']
+plottitle = ''
 batchno = 4
 linemarks1 = ['k','b','r','g','y','c','m']
 linemarks2 = ['k-.','b-.','r-.','g-.','y-.','c-.','m-.']
@@ -112,7 +46,12 @@ nthfile = range(startgenes,gen,1)
 #maxA = 18*9
 maxA = 19*36
 mcno = 2 # Number of MCs
-
+minY_AD = 0.4
+maxY_AD = 0.5
+minY_H = 0.50
+maxY_H = 0.7
+minY_F = 0.0
+maxY_F = 0.2
 
 
 
@@ -232,8 +171,6 @@ rateofloss_nonfisherian=[]
 equ1_Tot=[]
 equ1_1 = []
 N = 6317
-minY = 0.50
-maxY = 0.70
 for i in range(len(nthfile)):
 	rateofloss_nonfisherian.append(He_m[0][0][0]*exp((-1./(2*N+1))*nthfile[i]))
 	equ1_Tot.append(He_m[0][0][0]*((1-(1./(2*N+1)))**nthfile[i]))
@@ -254,7 +191,7 @@ for ibatch in xrange(batchno):
 		
 xlabel('generations',fontsize=18)
 ylabel('Heterozygosity',fontsize=18)
-axis([startgenes,gen,minY,maxY])
+axis([startgenes,gen,minY_H,maxY_H])
 title(plottitle)
 legend(loc=3)
 # Updating fontsize on axes
@@ -270,7 +207,7 @@ savefig(dir+savename+'HeHo.png',dpi=savedpi)
 figure()
 for ibatch in xrange(batchno):
 	#plot(nthfile,He_m[ibatch][:,0][nthfile],linemarks1[ibatch],label='Expected Batch '+label[ibatch],ms=10)
-	plot(nthfile,F_m[ibatch][:,0][nthfile],linemarks1[ibatch],label='He (-- Ho)'+label[ibatch],ms=10)
+	plot(nthfile,F_m[ibatch][:,0][nthfile],linemarks1[ibatch],label='F'+label[ibatch],ms=10)
 	#plot(time,HeTot_Left,'-.r',ms=10)
 	#plot(time,HeTot_Right,'-.k',ms=10)
 	#plot(nthfile,Ho_m[ibatch][:,0][nthfile],linemarks2[ibatch],label=''+label[ibatch],ms=10)
@@ -282,7 +219,7 @@ for ibatch in xrange(batchno):
 		
 xlabel('generations',fontsize=18)
 ylabel('F',fontsize=18)
-axis([startgenes,gen,minY,maxY])
+axis([startgenes,gen,minY_F,maxY_F])
 title(plottitle)
 legend(loc=3)
 # Updating fontsize on axes
@@ -297,15 +234,13 @@ savefig(dir+savename+'F.png',dpi=savedpi)
 
 # Plot Total AD vs. time
 figure()
-minY = 0.4
-maxY = 0.5
 for ibatch in xrange(batchno):
 	
 	plot(nthfile,allD_m[ibatch][:,0][nthfile],linemarks3[ibatch],label=''+label[ibatch],linewidth=2)
 		
 xlabel('generations',fontsize=18)
 ylabel('Allelic Diversity',fontsize=18)
-axis([startgenes,gen,minY,maxY])
+axis([startgenes,gen,minY_AD,maxY_AD])
 title(plottitle)
 legend(loc=3)
 # Updating fontsize on axes

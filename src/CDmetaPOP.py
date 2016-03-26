@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.01"
-appRele = "2015.12.29-09:19:01MST"
+appVers = "version 1.02"
+appRele = "2016.03.23-10:23:01MDT"
 authorNames = "Erin L Landguth"
 
 # ---------------
@@ -495,6 +495,10 @@ if __name__ == '__main__':
 			natal = tupPreProcess[52]
 			cor_mat = tupPreProcess[53]
 			migrate = tupPreProcess[54]
+			N0_pass = tupPreProcess[55]
+			allefreqfiles_pass = tupPreProcess[56]
+			classvarsfiles_pass = tupPreProcess[57]
+			
 			# Grab first one only
 			K = K_mu # Initialize K with mu
 						
@@ -579,7 +583,7 @@ if __name__ == '__main__':
 						matemoveparA,matemoveparB,matemoveparC,FdispmoveOutparA,\
 						FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,\
 						FdispmoveBackparA,\
-						FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans)	
+						FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,		allefreqfiles_pass,classvarsfiles_pass)	
 
 						cdmatrix_mate = tupClimate[0]
 						cdmatrix_FOut = tupClimate[1]
@@ -632,7 +636,16 @@ if __name__ == '__main__':
 						FdispBackno = tupClimate[48]
 						MdispBackno = tupClimate[49]
 						Strno = tupClimate[50]
-				
+						tempN0 = tupClimate[51]
+						tempAllelefile = tupClimate[52]
+						tempClassVarsfile = tupClimate[53]
+					
+						# ----------------------------------------
+						# Introduce new individuals
+						# ----------------------------------------
+						if (gen != 0 and len(N0_pass[0].split('|')) > 1):
+							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,SNPans,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N0,natal)			
+							
 				# -------------------------------------------
 				# Update stochastic parameters each year here
 				# -------------------------------------------
