@@ -1,4 +1,17 @@
-Changes v1.02-20150323T10:21:00 PDT (ell)
+Changes v1.04-20160422T15:37:00 MDT (ell)
+0) For next version: Begin adding in sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex. Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are females. 
+
+Changes v1.03-20160413T12:08:00 MDT (ell)
+-2) For sampling work: In indSample.csv files tracking E individuals and ID column is not consistent. Fix consistency throughout. E.g, E2_F102_P3_Y10_U150 - would be an emigrator to patch 2 from patch 102, originally born in patch 3 in year 10 unique 150 to birth patch. Maybe remove unique. 
+-1) Check when a new ClassVars files is introduced that the size_mean bins are updated at each patch. ClassVars must have the same number of bins. 
+a) GetMetrics() first call to size_mean binning.  This should not vary across patches, thus, use first ClassVars file for binning throughout. Note this in user manual that a second ClassVars file can be used for initialization purposes, however, the first one will be used for binning throughout the rest of the simulations. 
+b) DoUpdate() next call. Used in size-based capture probability. Again just use the first ClassVars file and do not vary across patches. Then in growInd() only used for known growth, just use first ClassVars here.
+c) DoEmigration() - Any size_mean[isub] converted to size_mean[0]
+d) DoMortality() -  Any size_mean[isub] converted to size_mean[0]
+e) DoImmigraton() - Any size_mean[isub] converted to size_mean[0]
+Note when a new ClassVars is introduced anywhere (in patch or through time with CDClimate) the first ClassVars file is alsways used for binning purposes throughout simulation program. Future versions should link individual to ClassVars file, the offspring inherit the ClassVars file from parents. 
+
+Changes v1.02-20160323T10:21:00 PDT (ell)
 0) Add a ';' option to the GenesInit column in the PatchVars file which allows multiple gene frequency files to initialize each patch. 
 1) Begin code to add a new population of individuals at given time using cdclimate module. So when multiple cdclimategen values are entered and if multiple N0 values are entered, this indicates a new introduced population. For now assume that the new population is indicated with a '|' for N0 in the PatchVars.csv file. A new ClassVars.csv can also be used to initialize these new introduced individuals. A new GenesInit allele frequency file can also be used with a '|'. THen any other parameter that is indicated with a '|' can also be used for the entire population at this time frame. Important to note that while you can control for multispecies and intilization now, the global parameters still operate on entire population, patch, individuals. Add a unique ID for these individuals. Check when N inserted into non natal grounds?
 

@@ -124,7 +124,7 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 				# Apply size level mortality
 				# ----------------------------
 				# Get age adjusted size classes
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keeppop['size'])
 				# Count up each unique 'sizes'
 				countages = count_unique(age_adjusted)		
@@ -135,9 +135,9 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 								
 					AgeClass = countages[0][iage]
 					# Check for cases in which age is over last age
-					if AgeClass > len(size_mean[isub])-1:
+					if AgeClass > len(size_mean[0])-1:
 						# Then make a temp age for indexing
-						indexforAgeClass = len(size_mean[isub])-1
+						indexforAgeClass = len(size_mean[0])-1
 					else:
 						indexforAgeClass = AgeClass
 					# Where are these size classes
@@ -182,9 +182,9 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 								
 					AgeClass = countages[0][iage]
 					# Check for cases in which age is over last age
-					if AgeClass > len(size_mean[isub])-1:
+					if AgeClass > len(size_mean[0])-1:
 						# Then make a temp age for indexing
-						indexforAgeClass = len(size_mean[isub])-1
+						indexforAgeClass = len(size_mean[0])-1
 					else: 
 						indexforAgeClass = AgeClass
 					
@@ -327,7 +327,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 			# Apply size level mortality
 			# ----------------------------
 			# Get age adjusted size classes
-			size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+			size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 			age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr['size'])
 			# Count up each unique 'sizes'
 			countsizes = count_unique(age_adjusted)
@@ -338,9 +338,9 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 							
 				SizeClass = countsizes[0][isize]
 				# Check for cases in which age is over last age
-				if SizeClass > len(size_mean[isub])-1:
+				if SizeClass > len(size_mean[0])-1:
 					# Then make a temp age for indexing
-					indexforSizeClass = len(size_mean[isub])-1
+					indexforSizeClass = len(size_mean[0])-1
 				else:
 					indexforSizeClass = SizeClass
 				# Where are these size classes
@@ -373,9 +373,9 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 				for iage in xrange(len(countages[0])):
 					AgeClass = countages[0][iage]
 					# Check for cases in which age is over last age
-					if AgeClass > len(size_mean[isub])-1:
+					if AgeClass > len(size_mean[0])-1:
 						# Then make a temp age for indexing
-						indexforAgeClass = len(size_mean[isub])-1
+						indexforAgeClass = len(size_mean[0])-1
 					else: 
 						indexforAgeClass = AgeClass
 					

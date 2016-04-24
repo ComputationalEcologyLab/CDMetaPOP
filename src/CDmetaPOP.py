@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.02"
-appRele = "2016.03.23-10:23:01MDT"
+appVers = "version 1.03"
+appRele = "2016.04.22-10:23:01MDT"
 authorNames = "Erin L Landguth"
 
 # ---------------
@@ -501,7 +501,7 @@ if __name__ == '__main__':
 			
 			# Grab first one only
 			K = K_mu # Initialize K with mu
-						
+			#pdb.set_trace() # check SubPopIN for XY chromosomes			
 			# Print to log
 			stringout = 'DoPreProcess(): '+str(datetime.datetime.now() -start_time1) + ''
 			logMsg(logfHndl,stringout)
@@ -639,13 +639,12 @@ if __name__ == '__main__':
 						tempN0 = tupClimate[51]
 						tempAllelefile = tupClimate[52]
 						tempClassVarsfile = tupClimate[53]
-					
+						
 						# ----------------------------------------
 						# Introduce new individuals
 						# ----------------------------------------
 						if (gen != 0 and len(N0_pass[0].split('|')) > 1):
-							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,SNPans,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N0,natal)			
-							
+							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,SNPans,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N0,natal,gen)			
 				# -------------------------------------------
 				# Update stochastic parameters each year here
 				# -------------------------------------------
@@ -667,8 +666,7 @@ if __name__ == '__main__':
 				# Print to log
 				stringout = 'DoCDClimate(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
-				print 'DoCDClimate(): ',str(datetime.datetime.now() -start_time1),''				
-								
+				print 'DoCDClimate(): ',str(datetime.datetime.now() -start_time1),''								
 				# ---------------------------------------
 				# Call DoMate()
 				# ---------------------------------------

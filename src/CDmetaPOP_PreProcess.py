@@ -613,7 +613,7 @@ def InitializeID(K,N):
 			randno = rand()
 			if randno <= probfill:
 				# Get name
-				name = 'R'+str(isub+1)+'_P'+str(isub+1)+'_Y-1_'+str(iind)
+				name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_P'+str(isub+1)+'_Y-1_U'+str(iind)
 				id.append(name)
 				subpop.append(isub+1)
 	id = np.asarray(id)
@@ -636,7 +636,7 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 	capture = []
 	recapture = []
 	layEggs = []
-	
+	#pdb.set_trace() # Initialize XY chromosomes. 
 	# Just loop through actual individuals, else this can take a long while - carful of indexing
 	for iind in xrange(len(subpop)):
 		
@@ -1857,7 +1857,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	unisubpops = len(Pop)
 	
 	# Organize type data in SubpopIN - here return this and also update dynamically.
-	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,20)),('capture',int),('recapture',int),('layeggs',float),('genes',(str,3*sum(alleles)+2*loci+2))]
+	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('genes',(str,3*sum(alleles)+2*loci+2))]
 	
 	# Get N here - N maybe slighlty different then specified due to random draws
 	N = []
@@ -1993,7 +1993,7 @@ def DoUserInput(fileans):
 	#End::DoUserInput()
 
 # -------------------------------------------------------------------------	
-def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,SNPans,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal):
+def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,SNPans,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen):
 	'''
 	AddIndividuals()
 	This function adds more individuals with given classvars 
@@ -2091,7 +2091,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 				
 				# Create ID for this individual
 				# Get name
-				name = 'R'+str(isub+1)+'_P'+str(isub+1)+'_Y'+str(age[indspot])+'_N'+str(iind)
+				name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_P'+str(isub+1)+'_Y'+str(gen)+'_UN'+str(iind)
 				
 				# Record individual to subpopulation
 				# ---------------------------------				

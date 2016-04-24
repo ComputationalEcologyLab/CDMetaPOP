@@ -92,8 +92,9 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# --------------------------
 				mother_name = Bearpairs[i][0]['name']
 				mother_name = mother_name.split('_')
-				name = 'Age0_Y'+str(gen)+'_P'+Bearpairs[i][0][sourcePop]+'_M'+mother_name[-1]+'_O'+str(j)
-
+				
+				#name = 'Age0_'+'F'+Bearpairs[i][0][sourcePop]+'_P'+Bearpairs[i][0][sourcePop]+'_Y'+str(gen)+'_'+mother_name[-1]+'O'+str(j)
+				name = 'Age0_'+'F'+Bearpairs[i][0][sourcePop]+'_P'+Bearpairs[i][0][sourcePop]+'_Y'+str(gen)+'_O'+str(j)
 				# Assign ID: 'Age0_Y{}_P{}_M{}_O{}
 				id = name
 				

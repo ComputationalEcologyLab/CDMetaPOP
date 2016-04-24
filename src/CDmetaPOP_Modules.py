@@ -312,8 +312,9 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 		
 		# Size class counting		
 		# Switch here for size or age control
-		if sizecall == 'Y':
-			size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+		# Note that first size classes used for binning
+		if sizecall == 'Y': 
+			size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 			age_adjusted = np.searchsorted(size_mean_middles, SubpopIN[isub]['size'])
 		else:
 			# Count up each uniages
@@ -991,7 +992,7 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 				tempage = classno-1 # use last age class
 			else:
 				tempage = SubpopIN[isub][iind]['age']
-			newsize = size_mean[tempage]
+			newsize = size_mean[tempage] # Note if multiple ClassVars, this is just the first ClassVars given
 			SubpopIN[isub][iind]['size'] = newsize
 	# Error check
 	else:
@@ -1139,8 +1140,8 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 					
 			# Get the 'age' adjusted binning - used for capture probability
 			# -------------------------------------------------------------
-			if sizecall == 'Y':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+			if sizecall == 'Y': # Note bin with first classvars file
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN[isub]['size'])
 			else:
 				# Count up each uniages
@@ -1268,7 +1269,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 							size_2 = float(size_2)
 							size_3 = float(size_3)
 					
-					growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,isub,iind,growans,size_mean[isub],gridsample)
+					growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,isub,iind,growans,size_mean[0],gridsample)
 					
 				# --------------------------------------------
 				# Age, mature, egg lay frequency here - middle
@@ -1308,7 +1309,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 			# Get the new 'age' adjusted sizes for tracking N
 			# -----------------------------------------------
 			if sizecall == 'Y':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN[isub]['size'])
 			else:
 				# Count up each uniages
@@ -1469,7 +1470,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 		# Age tracking
 		# Switch here for size or age control
 		if sizecall == 'size':
-			size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+			size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 			age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])			
 		else:
 			# Count up each uniages

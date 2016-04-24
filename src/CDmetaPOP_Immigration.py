@@ -229,8 +229,8 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				indexofProb = outpool[sizecall]
 				# If size control then get size nearest to values in age file
 				if sizecall == 'size':
-					closestval = min(size_mean[isub], key=lambda x:abs(x-indexofProb))
-					Find = np.where(np.asarray(size_mean[isub])==closestval)[0][0]
+					closestval = min(size_mean[0], key=lambda x:abs(x-indexofProb))
+					Find = np.where(np.asarray(size_mean[0])==closestval)[0][0]
 				else:
 					Find = indexofProb
 				# Check for ages over last age
@@ -257,8 +257,8 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					indexofProb = outpool[sizecall]
 					# If size control then get size nearest to values in age file
 					if sizecall == 'size':
-						closestval = min(size_mean[isub], key=lambda x:abs(x-indexofProb))
-						Find = np.where(np.asarray(size_mean[isub])==closestval)[0][0]
+						closestval = min(size_mean[0], key=lambda x:abs(x-indexofProb))
+						Find = np.where(np.asarray(size_mean[0])==closestval)[0][0]
 					else:
 						Find = indexofProb
 					# Check for ages over last age
@@ -352,7 +352,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					outpool_name = outpool['name']
 					outpool_name = outpool_name.split('_')
 					
-					name = 'S'+str(straypop)+'_'+str(emipop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]
+					name = 'S'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 					
 					recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
 								
@@ -428,7 +428,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					immipop = outpool['EmiPop']
 					outpool_name = outpool['name']
 					outpool_name = outpool_name.split('_')
-					name = 'R'+str(immipop)+'_'+str(emipop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]
+					name = 'R'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 					
 					recd = (originalpop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
 								
@@ -513,7 +513,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						outpool_name = outpool['name']
 						outpool_name = outpool_name.split('_')
 						
-						name = 'I'+str(immipop)+'_'+str(emipop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]
+						name = 'I'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 						
 						recd = (originalpop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
 									
@@ -593,7 +593,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 								outpool_name = outpool['name']
 								outpool_name = outpool_name.split('_')
 								
-								name = 'Z'+str(straypop)+'_'+str(emipop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]
+								name = 'Z'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 								
 								recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
 											
@@ -670,7 +670,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 								outpool_name = outpool['name']
 								outpool_name = outpool_name.split('_')
 								
-								name = 'Z'+str(straypop)+'_'+str(emipop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]
+								name = 'Z'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 								
 								recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
 											
@@ -740,7 +740,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				Popoffspring = sum(offspring_patch)
 				
 				# Get fry sizes - initialize assume first size
-				mu,sigma = size_mean[isub][0],size_std[isub][0]			
+				mu,sigma = size_mean[0][0],size_std[0][0]			
 				# Case here for sigma == 0
 				if sigma != 0:
 					lower, upper = 0,np.inf
@@ -768,7 +768,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			# -----------------------------------
 			# Switch here for size or age control
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, tempSizePatch)
 				# Count up each unique 'sizes'
 				countages = count_unique(age_adjusted)
@@ -821,8 +821,8 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					Ageclass = iage
 					
 					# Special case when age is greater than last age class only used for indexing now
-					if Ageclass > len(size_mean[isub])-1:
-						indexforAgeclass = len(size_mean[isub]) - 1
+					if Ageclass > len(size_mean[0])-1:
+						indexforAgeclass = len(size_mean[0]) - 1
 					else:
 						indexforAgeclass = Ageclass
 					
@@ -932,7 +932,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				Popoffspring = sum(offspring_patch)
 				
 				# Get fry sizes - initialize assume first size
-				mu,sigma = size_mean[isub][0],size_std[isub][0]			
+				mu,sigma = size_mean[0][0],size_std[0][0]			
 				# Case here for sigma == 0
 				if sigma != 0:
 					lower, upper = 0,np.inf
@@ -964,7 +964,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			# -----------------------------------
 			# Switch here for size or age control
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, tempSizePatch)
 				# Count up each unique 'sizes'
 				countages = count_unique(age_adjusted)
@@ -1050,7 +1050,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			
 			# Get size adjusted age for tracking		
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr['size'])
 			else: # age call
 				# Count up each uniages

@@ -176,9 +176,11 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				# Check for age/size migration
 				indexofProb = outpool[sizecall]
 				# If size control then get size nearest to values in age file
-				if sizecall == 'size':
-					closestval = min(size_mean[isub], key=lambda x:abs(x-indexofProb))
-					Find = np.where(np.asarray(size_mean[isub])==closestval)[0][0]
+				if sizecall == 'size': # Here is multiple ClassVars, use first one
+					#closestval = min(size_mean[isub], key=lambda x:abs(x-indexofProb))
+					closestval = min(size_mean[0], key=lambda x:abs(x-indexofProb))
+					#Find = np.where(np.asarray(size_mean[isub])==closestval)[0][0]
+					Find = np.where(np.asarray(size_mean[0])==closestval)[0][0]
 				else:
 					Find = indexofProb
 				# Check for ages over last age
@@ -266,9 +268,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					outpool_name = outpool['name']
 					outpool_name = outpool_name.split('_')
 					if 'Age0' in outpool_name:
-						name = 'E'+str(tosubpop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+str(iind)
+						name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					else:
-						name = 'E'+str(tosubpop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]				
+						name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 					# Record string name of OriginalSubpop,ToSubpop,NAsubpop,EmiCD,ImmiCD,age,sex,size,infection,name,capture,layeggs,genes				
 					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
@@ -339,9 +341,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				outpool_name = outpool_name.split('_')
 				name = 'R'+str(originalpop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]
 				if 'Age0' in outpool_name:
-					name = 'R'+str(originalpop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+str(iind)
+					name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 				else:
-					name = 'R'+str(originalpop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]
+					name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 				# Record string name of OriginalSubpop,ToSubpop,NA,EmiCD,ImmiCD,age,sex,size,infection,name,capture,genes 
 				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
@@ -386,8 +388,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
 			
 			# Switch here for size or age control
-			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+			if sizecall == 'size': # Careful here and use first ClassVars
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
 				# Count up each unique 'sizes'
 				countages = count_unique(age_adjusted)
@@ -420,8 +422,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					Ageclass = iage
 					
 					# Special case when age is greater than last age class only used for indexing now
-					if Ageclass > len(size_mean[isub])-1:
-						indexforAgeclass = len(size_mean[isub]) - 1
+					if Ageclass > len(size_mean[0])-1:
+						indexforAgeclass = len(size_mean[0]) - 1
 					else:
 						indexforAgeclass = Ageclass
 					
@@ -482,7 +484,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			
 			# Trace class size - call size call again		
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])
 			else: # age call
 				# Count up each uniages
@@ -531,7 +533,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			
 			# Get size adjusted age for tracking		
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])
 			else: # age call
 				# Count up each uniages
@@ -572,7 +574,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			
 			# Switch here for size or age control
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
 				# Count up each unique 'sizes'
 				countages = count_unique(age_adjusted)
@@ -612,9 +614,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						Nage_index = np.where(SubpopIN_arr['age']==Ageclass)[0]
 											
 					# Special case: if last age class, no survivros
-					if Ageclass > len(size_mean[isub])-1:
+					if Ageclass > len(size_mean[0])-1:
 						mortreturn = Nage # Then mortality all this age class
-						indexforAgeclass = len(size_mean[isub]) - 1
+						indexforAgeclass = len(size_mean[0]) - 1
 					else: 
 						indexforAgeclass = Ageclass
 						# Number in next age class
@@ -658,7 +660,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			
 			# Trace class size - call size call again		
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[isub])[1:] - np.diff(np.asarray(size_mean[isub]).astype('f'))/2
+				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])
 			else: # age call
 				# Count up each uniages
