@@ -211,7 +211,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				if sum(probarray) != 0.0:
 					
 					# CDEVOLVE
-					if (cdevolveans == '1' or cdevolveans == '1_mat') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):		
+					if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):		
 												
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)
@@ -267,10 +267,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					tosubpop = str(iteminlist+1)
 					outpool_name = outpool['name']
 					outpool_name = outpool_name.split('_')
-					if 'Age0' in outpool_name:
-						name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
-					else:
-						name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
+					name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 					# Record string name of OriginalSubpop,ToSubpop,NAsubpop,EmiCD,ImmiCD,age,sex,size,infection,name,capture,layeggs,genes				
 					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
@@ -297,7 +294,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			else:
 								
 				# CDEVOLVE - 1 locus
-				if (cdevolveans == '1' or cdevolveans == '1_mat') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+				if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):
 											
 					# for option 3 in which has to be mature
 					if cdevolveans == '1_mat' and outpool['mature'] == 0:
@@ -339,11 +336,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				# If it is an adult: 2 checks, ID is not new and index spots are the same
 				outpool_name = outpool['name']
 				outpool_name = outpool_name.split('_')
-				name = 'R'+str(originalpop)+'_'+outpool_name[1]+'_'+outpool_name[2]+'_'+outpool_name[3]
-				if 'Age0' in outpool_name:
-					name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
-				else:
-					name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
+				if len(outpool_name) != 5:
+					pdb.set_trace()
+				name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 				# Record string name of OriginalSubpop,ToSubpop,NA,EmiCD,ImmiCD,age,sex,size,infection,name,capture,genes 
 				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])

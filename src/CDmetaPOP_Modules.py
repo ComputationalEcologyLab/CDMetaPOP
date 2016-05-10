@@ -1195,7 +1195,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 							size_2 = float(size_2)
 							size_3 = float(size_3)
 					# If MG linked
-					if cdevolveans == 'MG_link':
+					elif cdevolveans == 'MG_link':
 						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
 						# AA - use BB
 						if Indgenes[0][0] == 2:
@@ -1231,7 +1231,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 							size_1 = float(size_1)
 							size_2 = float(size_2)
 							size_3 = float(size_3)
-					# If just Locus B
+					# If just Locus B (Growth)
 					elif cdevolveans == 'G':
 						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
 						# BB
@@ -1268,7 +1268,80 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 							size_1 = float(size_1)
 							size_2 = float(size_2)
 							size_3 = float(size_3)
-					
+					# If 1_G independent
+					elif cdevolveans == '1_G_ind':
+						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
+						# BB
+						if Indgenes[1][0] == 2:
+							genespot = 3
+							growans = fitvals[int(Indloc)-1][genespot][0]
+							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
+						# Bb
+						elif Indgenes[1][0] == 1 and Indgenes[1][1] == 1:
+							genespot = 4
+							growans = fitvals[int(Indloc)-1][genespot][0]
+							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+						# bb
+						elif Indgenes[1][1] == 2:
+							genespot = 5
+							growans = fitvals[int(Indloc)-1][genespot][0]
+							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+						else:
+							growans = growans
+							sizeLoo = float(sizeLoo)
+							sizeR0 = float(sizeR0)
+							size_1 = float(size_1)
+							size_2 = float(size_2)
+							size_3 = float(size_3)
+					# If 1_G linked
+					elif cdevolveans == '1_G_link':
+						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
+						# AA - use BB
+						if Indgenes[0][0] == 2:
+							genespot = 3
+							growans = fitvals[int(Indloc)-1][genespot][0]
+							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
+						# Aa - use Bb
+						elif Indgenes[0][0] == 1 and Indgenes[0][1] == 1:
+							genespot = 4
+							growans = fitvals[int(Indloc)-1][genespot][0]
+							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+						# aa - use bb
+						elif Indgenes[0][1] == 2:
+							genespot = 5
+							growans = fitvals[int(Indloc)-1][genespot][0]
+							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+						else:
+							growans = growans
+							sizeLoo = float(sizeLoo)
+							sizeR0 = float(sizeR0)
+							size_1 = float(size_1)
+							size_2 = float(size_2)
+							size_3 = float(size_3)
 					growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,isub,iind,growans,size_mean[0],gridsample)
 					
 				# --------------------------------------------
@@ -1418,7 +1491,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 		# --------------------------------
 		# Apply spatial selection to Age0s (this might not be the right order)
 		# --------------------------------
-		if (cdevolveans == '1' or cdevolveans == '1_mat') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+		if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
 			SubpopIN_Age0_keep = []
 			for iind in xrange(len(SubpopIN_Age0_temp)):
 				outpool = SubpopIN_Age0_temp[iind]

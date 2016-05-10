@@ -246,7 +246,7 @@ if __name__ == '__main__':
 				alleles = 4*np.ones(loci,int)
 			# cdevolve not opperating yet
 			if cdevolveans != 'N':
-				print('SNP option specified and CDEVOLVE (selection-driven loci) not currently implemented.')
+				print('SNP option specified and CDEVOLVE (selection-driven loci) not currently implemented. Use SNPans as N and 2 alleles per loci as proxy.')
 				sys.exit(-1)
 				
 		# Constant mortality checks
@@ -255,13 +255,13 @@ if __name__ == '__main__':
 			sys.exit(-1)
 		
 		# Check on cdevolve answer input
-		if not (cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == 'N' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'stray'):
-			print('CDEVOLVE answer either N, 1, 2, M, G, MG_ind, MG_link, 1_mat, 2_mat or stray.')
+		if not (cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == 'N' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'stray' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link'):
+			print('CDEVOLVE answer either N, 1, 2, M, G, MG_ind, MG_link, 1_mat, 2_mat, stray, 1_G_ind, or 1_G_link.')
 			sys.exit(-1)
 			
 		# For mature and size ans
-		if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and sizeans == 'N':
-			print('CDEVOLVE answer is M and size answer must be Y.')
+		if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'G' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and sizeans == 'N':
+			print('CDEVOLVE answer is M or G and size answer must be Y.')
 			sys.exit(-1)
 		
 		# If cdevolve is turned on must have 2 alleles
@@ -271,7 +271,7 @@ if __name__ == '__main__':
 		if loci <= 1:
 			print('Currently, CDmetaPOP needs more than 1 locus to run.')
 			sys.exit(-1)
-		if cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat':
+		if cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link':
 			if not (timecdevolve != 'Out' or timecdevolve != 'Back' or timecdevolve != 'Both'):
 				print('CDEVOLVE timing must be specified (e.g., Out, Back or Both).')
 				sys.exit(-1)

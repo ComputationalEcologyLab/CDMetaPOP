@@ -296,7 +296,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				if sum(probarray) != 0.0:
 					
 					# CDEVOLVE
-					if (cdevolveans == '1' or cdevolveans == '1_mat') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+					if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
 						
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)
@@ -385,7 +385,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				# -------------------------------------------------
 				if originalpop == emipop:
 					# CDEVOLVE
-					if (cdevolveans == '1' or cdevolveans == '1_mat') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+					if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
 												
 						# for option 3 in which has to be mature
 						if cdevolveans == '1_mat' and outpool['mature'] == 0:
@@ -457,7 +457,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					if sum(probarray) != 0.0:
 						
 						# CDEVOLVE
-						if (cdevolveans == '1' or cdevolveans == '1_mat') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+						if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
 													
 							# Then it makes it back to original pop
 							iteminlist = int(originalpop)-1
@@ -549,7 +549,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 								iteminlist = w_choice_item(probarray)						
 								
 								# CDEVOLVE
-								if (cdevolveans == '1' or cdevolveans == '1_mat') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both') :
+								if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both') :
 									
 									# for option 3 in which has to be mature
 									if cdevolveans == '1_mat' and outpool['mature'] == 0:
@@ -626,7 +626,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 								iteminlist = w_choice_item(probarray)						
 								
 								# CDEVOLVE
-								if (cdevolveans == '1' or cdevolveans == '1_mat') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both') :
+								if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both') :
 									
 									# for option 3 in which has to be mature
 									if cdevolveans == '1_mat' and outpool['mature'] == 0:
@@ -1085,13 +1085,13 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	# Get the survived SubpopIN_Age0
 	# ------------------------------
 	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std)
-	
+
 	# Get dtype for offspring - first check to see if any Bearpairs exist.
 	if Bearpairs[0][0] != -9999:	
-		offdtype = [('Mother',(str,len(Bearpairs[0][0]['genes']))),('Father',(str,len(Bearpairs[0][0]['genes']))),('NatalPop',(str,10)),('EmiPop',(str,2)),('ImmiPop',(str,2)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,20)),('capture',int),('recapture',int),('layeggs',float)]
+		offdtype = [('Mother',(str,len(Bearpairs[0][0]['genes']))),('Father',(str,len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float)]
 	else:
-		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,10)),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,20)),('capture',int),('recapture',int),('layeggs',float)]
-	
+		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float)]
+
 	offspring = np.asarray(offspring,dtype=offdtype) # Convert to array with dytpe
 	
 	# Update the Wright Fisher case for sex here

@@ -1,7 +1,11 @@
+Changes v1.04-20160510T10:39:00 MDT (ell)
+0) Add option 1_G_ind and 1_G_link to cdevolveans. Locus A will use the spatial selection module and Locus B will use the growth parameters. Either run these selection processes independently or associated. 
+
 Changes v1.04-20160422T15:37:00 MDT (ell)
-0) For next version: Begin adding in sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex. Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are females. 
+0) For next version: Begin adding in sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex. Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are females. ***Not done yet. 
 
 Changes v1.03-20160413T12:08:00 MDT (ell)
+-3) Check equal clutch module with new renaming. Offspring naming may not be unique, so update. 
 -2) For sampling work: In indSample.csv files tracking E individuals and ID column is not consistent. Fix consistency throughout. E.g, E2_F102_P3_Y10_U150 - would be an emigrator to patch 2 from patch 102, originally born in patch 3 in year 10 unique 150 to birth patch. Maybe remove unique. 
 -1) Check when a new ClassVars files is introduced that the size_mean bins are updated at each patch. ClassVars must have the same number of bins. 
 a) GetMetrics() first call to size_mean binning.  This should not vary across patches, thus, use first ClassVars file for binning throughout. Note this in user manual that a second ClassVars file can be used for initialization purposes, however, the first one will be used for binning throughout the rest of the simulations. 

@@ -1167,26 +1167,27 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		if len(fitvals) > 0:
 			tempfitvals.append([])
 			for i in xrange(len(fitvals[isub])):
-				if cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat':
-					if len(fitvals[isub][i].split('|')) > 1:
-						tempfitvals[isub].append(fitvals[isub][i].split('|')[icdtime])
-					else:
-						tempfitvals[isub].append(fitvals[isub][i])
-				else: # For other options option in which parameters split by ;
-					if len(fitvals[isub][i].split('|')) > 1:
+				if len(fitvals[isub][i].split('|')) > 1: # More than one time
+					if len(fitvals[isub][i].split('|')[icdtime].split(';')) > 1: # G or M parameters []
 						tempfitvals[isub].append(fitvals[isub][i].split('|')[icdtime].split(';'))
-					else:
-						tempfitvals[isub].append(fitvals[isub][i].split(';'))	
+					else: # just fitness values 1 or 2
+						tempfitvals[isub].append(fitvals[isub][i].split('|')[icdtime])
+				else: # Just one value
+					if len(fitvals[isub][i].split(';')) > 1: # G or M parameters []
+						tempfitvals[isub].append(fitvals[isub][i].split(';'))
+					else: # just fitness values
+						tempfitvals[isub].append(fitvals[isub][i])
+					
 			# Error checks
 			if cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link':
 				if len(tempfitvals[isub][0]) != 4 or len(tempfitvals[isub][1]) != 4 or len(tempfitvals[isub][2]) != 4:
-					print('CDEVOLVE answer is M, 4 parameter values must be entered for size maturation curves, see user manual.')
+					print('CDEVOLVE answer is M, 4 parameter values must be entered for size maturation curves (2 for male and 2 for female), see user manual.')
 					sys.exit(-1)
 			if cdevolveans == 'G':
 				if len(tempfitvals[isub][0]) != 6 or len(tempfitvals[isub][1]) != 6 or len(tempfitvals[isub][2]) != 6:
 					print('CDEVOLVE answer is G, 5 parameter values must be entered for growth equation, see user manual.')
 					sys.exit(-1)
-			if cdevolveans == 'MG_ind' or cdevolveans == 'MG_link':
+			if cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link':
 				if len(tempfitvals[isub][3]) != 6 or len(tempfitvals[isub][4]) != 6 or len(tempfitvals[isub][5]) != 6:
 					print('CDEVOLVE answer is G, 5 parameter values must be entered for growth equation, see user manual.')
 					sys.exit(-1)					
@@ -1762,13 +1763,14 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 		backgrowdays_sd.append(xy[i+1][26])
 		pop_capture_out.append(xy[i+1][27])
 		pop_capture_back_pass.append(xy[i+1][28])
+		
 		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray':
 			fitvals.append([xy[i+1][29],xy[i+1][30],xy[i+1][31]])
 		elif cdevolveans == 'G':
 			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34]])
 		elif cdevolveans == '2' or cdevolveans == '2_mat':
 			fitvals.append([xy[i+1][35],xy[i+1][36],xy[i+1][37],xy[i+1][38],xy[i+1][39],xy[i+1][40],xy[i+1][41],xy[i+1][42],xy[i+1][43]])
-		elif cdevolveans == 'MG_ind' or cdevolveans == 'MG_link':
+		elif cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link':
 			fitvals.append([xy[i+1][29],xy[i+1][30],xy[i+1][31],xy[i+1][32],xy[i+1][33],xy[i+1][34]])
 			
 	# Delete x variable

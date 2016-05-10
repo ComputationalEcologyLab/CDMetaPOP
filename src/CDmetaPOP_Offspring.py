@@ -43,7 +43,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 		if len(noOffspring) != len(Bearpairs):
 			print('Offspring mismatch with Bearpairs.')
 			sys.exit(-1)
-			
+		count = 0	
 		# Loop through each mate pair
 		for i in xrange(len(Bearpairs)):
 			
@@ -92,9 +92,13 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# --------------------------
 				mother_name = Bearpairs[i][0]['name']
 				mother_name = mother_name.split('_')
+				name = 'Age0_'+'F'+Bearpairs[i][0][sourcePop]+'_P'+Bearpairs[i][0][sourcePop]+'_Y'+str(gen)+'_UO'+str(count)
 				
-				#name = 'Age0_'+'F'+Bearpairs[i][0][sourcePop]+'_P'+Bearpairs[i][0][sourcePop]+'_Y'+str(gen)+'_'+mother_name[-1]+'O'+str(j)
-				name = 'Age0_'+'F'+Bearpairs[i][0][sourcePop]+'_P'+Bearpairs[i][0][sourcePop]+'_Y'+str(gen)+'_O'+str(j)
+				# Unique ID is needed for sorting later, however, this unique name can get large, check length and reset.
+				check = name.split('_')[-1]
+				if len(check) > 80:
+					print('Too many offspring, recheck fecundity values.')
+					sys.exit(-1)
 				# Assign ID: 'Age0_Y{}_P{}_M{}_O{}
 				id = name
 				
@@ -160,7 +164,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,capture,recapture,layeggs]
 				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,0,0,0)
 				offspring.append(recd)
-							
+			count = count + 1 # For unique naming tracking				
 	# If there was not a pairing
 	else:
 		offspring.append([])
@@ -345,7 +349,7 @@ def DoOffspringConstant(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean
 		
 		# If females did mate up, then assign random drawn number
 		else:
-		
+			
 			# If size control then use parameters for length age_mu and CV
 			if sizecall == 'size':
 				if egg_mean_ans == 'linear':
@@ -392,7 +396,7 @@ def DoClutch(Bearpairs,dtype,noOffspring):
 		mothers = Bearpairs[:,0]
 		mothers = np.asarray(mothers,dtype=dtype)
 		unimo = count_unique(mothers['name'])
-
+		
 		noOffspring = np.asarray(noOffspring)
 		
 		# Loop over unique mothers
