@@ -139,6 +139,8 @@ if __name__ == '__main__':
 		mreplace = batchVars['Mreplace'][ibatch]
 		selfing = batchVars['selfans'][ibatch]
 		sexans = batchVars['sexans'][ibatch]
+		assortmateModel_pass = batchVars['AssortativeMate_Model'][ibatch]
+		assortmateC_pass = batchVars['AssortativeMate_Factor'][ibatch]
 		FdispmoveOutno = batchVars['FdispmoveOutno'][ibatch]
 		FdispmoveOutparA = batchVars['FdispmoveOutparA'][ibatch]
 		FdispmoveOutparB = batchVars['FdispmoveOutparB'][ibatch]
@@ -175,7 +177,6 @@ if __name__ == '__main__':
 		mutationans = batchVars['mutationtype'][ibatch]
 		loci = int(batchVars['loci'][ibatch])
 		alleles = int(batchVars['alleles'][ibatch])*np.ones(loci,int)
-		SNPans = batchVars['SNPanswer'][ibatch]
 		mtdna = batchVars['mtdna'][ibatch]
 		geneswap = int(batchVars['startGenes'][ibatch])
 		cdevolveans = batchVars['cdevolveans'][ibatch]
@@ -237,17 +238,6 @@ if __name__ == '__main__':
 		# ---------------------------------
 		# Some Error checking
 		# ---------------------------------
-				
-		# If SNP answer is Y 
-		if SNPans == 'Y':
-			# 4 alleles used
-			if alleles[0] != 4:
-				print('Warnign: SNP option specified and 4 ATCG locations is default.')
-				alleles = 4*np.ones(loci,int)
-			# cdevolve not opperating yet
-			if cdevolveans != 'N':
-				print('SNP option specified and CDEVOLVE (selection-driven loci) not currently implemented. Use SNPans as N and 2 alleles per loci as proxy.')
-				sys.exit(-1)
 				
 		# Constant mortality checks
 		if not (constMortans == '1' or constMortans == '2'):
@@ -353,6 +343,12 @@ if __name__ == '__main__':
 			Track_BreedFemales = []
 			Track_BreedMales = []
 			Track_BreedEvents = []
+			Track_AAaaMates = []
+			Track_AAAAMates =[]
+			Track_aaaaMates = []
+			Track_AAAaMates = []
+			Track_aaAaMates = []
+			Track_AaAaMates = []
 			
 			# DoOffspring
 			Track_Births = []
@@ -438,7 +434,7 @@ if __name__ == '__main__':
 			tupPreProcess = DoPreProcess(outdir,datadir,ibatch,ithmcrun,\
 			xyfilename,loci,alleles,\
 			0,logfHndl,cdevolveans,cdinfect,\
-			subpopemigration,subpopimmigration,sizeans,geneswap,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans,SNPans)
+			subpopemigration,subpopimmigration,sizeans,geneswap,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans)
 			
 			ithmcrundir = tupPreProcess[0]			
 			fitvals_pass = tupPreProcess[1]
@@ -498,6 +494,7 @@ if __name__ == '__main__':
 			N0_pass = tupPreProcess[55]
 			allefreqfiles_pass = tupPreProcess[56]
 			classvarsfiles_pass = tupPreProcess[57]
+			#assortmateC = tupPreProcess[58]
 			
 			# Grab first one only
 			K = K_mu # Initialize K with mu
@@ -514,7 +511,7 @@ if __name__ == '__main__':
 			# Timing events: start
 			start_time1 = datetime.datetime.now()
 			
-			GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,loci,alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans,SNPans)
+			GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,loci,alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans)
 			
 			# Print to log
 			stringout = 'GetMetrics() Initial: '+str(datetime.datetime.now() -start_time1) + ''
@@ -576,14 +573,14 @@ if __name__ == '__main__':
 				start_time1 = datetime.datetime.now()
 				
 				# Check gen time equal to cdclimgentime
-				for icdtime in xrange(len(cdclimgentime)):
+				for icdtime in xrange(len(cdclimgentime)): 
 					if gen == int(cdclimgentime[icdtime]):
 						tupClimate = DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,\
 						dispBackcdmatfile,straycdmatfile,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,matemovethreshval,FdispmoveOutthreshval,MdispmoveOutthreshval,FdispmoveBackthreshval,MdispmoveBackthreshval,StrBackthreshval,\
 						matemoveparA,matemoveparB,matemoveparC,FdispmoveOutparA,\
 						FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,\
 						FdispmoveBackparA,\
-						FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,		allefreqfiles_pass,classvarsfiles_pass)	
+						FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,		allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass)	
 
 						cdmatrix_mate = tupClimate[0]
 						cdmatrix_FOut = tupClimate[1]
@@ -639,12 +636,14 @@ if __name__ == '__main__':
 						tempN0 = tupClimate[51]
 						tempAllelefile = tupClimate[52]
 						tempClassVarsfile = tupClimate[53]
+						assortmateModel = tupClimate[54]
+						assortmateC = tupClimate[55]
 						
 						# ----------------------------------------
 						# Introduce new individuals
 						# ----------------------------------------
 						if (gen != 0 and len(N0_pass[0].split('|')) > 1):
-							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,SNPans,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N0,natal,gen)			
+							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N0,natal,gen)			
 				# -------------------------------------------
 				# Update stochastic parameters each year here
 				# -------------------------------------------
@@ -677,7 +676,7 @@ if __name__ == '__main__':
 				Bearpairs = DoMate(SubpopIN,K,\
 				freplace,mreplace,mateno,thresh_mate,\
 				cdmatrix_mate,Track_MateDistCD,xgridpop,\
-				ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,dtype,mate_ScaleMax,mate_ScaleMin,matemoveparA,matemoveparB,matemoveparC,Femalepercent_egg,eggFreq,sexans,selfing)
+				ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,dtype,mate_ScaleMax,mate_ScaleMin,matemoveparA,matemoveparB,matemoveparC,Femalepercent_egg,eggFreq,sexans,selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,sizeans,age_size_mean,assortmateModel)
 				
 				# Print to log
 				stringout = 'DoMate(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -769,7 +768,7 @@ if __name__ == '__main__':
 				xgridpop,ygridpop,cdevolveans,fitvals,subpopimmigration,\
 				SelectionDeathsImm,DisperseDeathsImm,burningen,Str,\
 				StrSuccess,\
-				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,ithmcrundir,packpar1,noOffspring,Bearpairs,age_size_std,Femalepercent_egg,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,SNPans)
+				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,ithmcrundir,packpar1,noOffspring,Bearpairs,age_size_std,Femalepercent_egg,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd)
 				del(Bearpairs)
 				# Print to log
 				stringout = 'DoImmigration(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -800,7 +799,7 @@ if __name__ == '__main__':
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
 				
-				GetMetrics(SubpopIN,K,Track_N_Init_pop,Track_K,loci,alleles,gen+1,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans,SNPans)
+				GetMetrics(SubpopIN,K,Track_N_Init_pop,Track_K,loci,alleles,gen+1,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans)
 				
 				# Print to log
 				stringout = 'GetMetrics(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -837,7 +836,7 @@ if __name__ == '__main__':
 			DisperseDeathsEmi,DisperseDeathsImm,\
 			Track_BreedEvents,gridformat,\
 			MgSuccess,AdultNoMg,StrSuccess,\
-			Track_EggDeaths,Track_K,Track_N_Init_pop,N_Emigration_pop,N_EmiMortality,N_Immigration_pop,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,Track_N_Init_age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,Track_MatureCount,Track_ImmatureCount,Track_N_back_age,Track_N_out_age,outputans,gen,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,age_size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,SNPans)
+			Track_EggDeaths,Track_K,Track_N_Init_pop,N_Emigration_pop,N_EmiMortality,N_Immigration_pop,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,Track_N_Init_age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,Track_MatureCount,Track_ImmatureCount,Track_N_back_age,Track_N_out_age,outputans,gen,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,age_size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates)
 			
 			# Print to log
 			stringout = 'DoPostProcess(): '+str(datetime.datetime.now() -start_time1) + ''

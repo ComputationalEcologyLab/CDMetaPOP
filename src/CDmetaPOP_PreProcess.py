@@ -406,7 +406,6 @@ def InitializeGenes(datadir,allefreqfilename,loci,alleles):
 					inputfile = open(datadir+fileans[i_splitpatch],'rU')
 				else:
 					print("CDmetaPOP InitializeGenes() error: open failed, could not open %s"%(fileans[i_splitpatch]))
-					pdb.set_trace()
 					sys.exit(-1)
 					
 				# Read lines from the file
@@ -485,6 +484,7 @@ def InitializeAge(K,agefilename,datadir):
 	age_sigma = []
 	age_cap_out = []
 	age_cap_back = []
+	#assortmateC = []
 	
 	lencheck = []
 	
@@ -540,6 +540,9 @@ def InitializeAge(K,agefilename,datadir):
 		age_sigma.append([])
 		age_cap_out.append([])
 		age_cap_back.append([])
+		#assortmateC.append([])
+		#for i in xrange(3): # Add three spots for AA, Aa, and aa
+		#	assortmateC[isub].append([])
 		for i in xrange(len(xage)-1):	
 			ageclass[isub].append(int(xage[i+1][0]))
 			age_size_mean[isub].append(float(xage[i+1][1]))
@@ -561,7 +564,10 @@ def InitializeAge(K,agefilename,datadir):
 			age_mu[isub].append(float(xage[i+1][17]))
 			age_sigma[isub].append(float(xage[i+1][18]))
 			age_cap_out[isub].append(xage[i+1][19])
-			age_cap_back[isub].append(xage[i+1][20])		
+			age_cap_back[isub].append(xage[i+1][20])	
+			#assortmateC[isub][0].append(float(xage[i+1][21]))
+			#assortmateC[isub][1].append(float(xage[i+1][22]))
+			#assortmateC[isub][2].append(float(xage[i+1][23]))
 		
 		# Get age distribution list
 		for i in xrange(len(ageno[isub])):
@@ -622,7 +628,7 @@ def InitializeID(K,N):
 	#End::InitializeID()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,SNPans,addans):
+def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,addans):
 	'''
 	InitializeVars()
 	This function initializes the age,sex,infection,genes of each individual based for the id variable
@@ -636,6 +642,7 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 	capture = []
 	recapture = []
 	layEggs = []
+	hindex = []
 	#pdb.set_trace() # Initialize XY chromosomes. 
 	# Just loop through actual individuals, else this can take a long while - carful of indexing
 	for iind in xrange(len(subpop)):
@@ -733,34 +740,36 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 			#	0s = absence of allele
 			for k in xrange(alleles[j]):
 									
-				# For microsats
-				if SNPans == 'N':
-					# Assignment of 2, the rest 0
-					if rand1 == rand2: 
-						if k < rand1 or k > rand1:
-							tempindall = 0
-						elif k == rand1:
-							tempindall = 2
-						
-					# Assignment of 1s, the rest 0
-					if rand1 != rand2:
-						if k < min(rand1,rand2) or k > max(rand1,rand2):
-							tempindall = 0
-						elif k == rand1 or k == rand2:
-							tempindall = 1
-						else:
-							tempindall = 0
-				
-				# For SNPs
-				else:
-					if k == rand1:
+				# Assignment of 2, the rest 0
+				if rand1 == rand2: 
+					if k < rand1 or k > rand1:
+						tempindall = 0
+					elif k == rand1:
+						tempindall = 2
+					
+				# Assignment of 1s, the rest 0
+				if rand1 != rand2:
+					if k < min(rand1,rand2) or k > max(rand1,rand2):
+						tempindall = 0
+					elif k == rand1 or k == rand2:
 						tempindall = 1
 					else:
 						tempindall = 0
-			
+							
 				# And to genes list
 				genes[iind][j].append(tempindall)
-	
+		
+		# ---------------------------------------------
+		# Get AA / aa p value for genetag
+		# ---------------------------------------------
+		if genes[iind][0][0] == 2:
+			hindex.append(1.0)
+		elif genes[iind][0][1] == 2:
+			hindex.append(0.0)
+		elif genes[iind][0][0] == 1 and genes[iind][0][1] == 1:
+			hindex.append(0.5)
+		else:
+			hindex.append(-9999)
 		# ---------------------------------------------
 		# Set maturity Y or N and get egg lay last year
 		# ---------------------------------------------		
@@ -857,7 +866,7 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 			layEggs.append(0)
 	
 	# Return Vars
-	return age,sex,size,infection,genes,mature,capture,layEggs,recapture
+	return age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex
 	#End::InitializeVars()
 	
 # ---------------------------------------------------------------------------------------------------	 
@@ -897,7 +906,7 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,matemovethresh,FdispmoveOutthresh,MdispmoveOutthresh,FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,matemovethresh,FdispmoveOutthresh,MdispmoveOutthresh,FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
@@ -1026,7 +1035,15 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	if isinstance(StrBackparC, (list,tuple)):
 		StrBackparC = float(StrBackparC[icdtime])
 	else:
-		StrBackparC = float(StrBackparC)		
+		StrBackparC = float(StrBackparC)
+	if isinstance(assortmateModel_pass, (list,tuple)):
+		assortmateModel = str(assortmateModel_pass[icdtime])
+	else:
+		assortmateModel = str(assortmateModel_pass)
+	if isinstance(assortmateC_pass, (list,tuple)):
+		assortmateC = float(assortmateC_pass[icdtime])
+	else:
+		assortmateC = float(assortmateC_pass)		
 	# Patch based parameters
 	tempStr = []
 	tempMg = []
@@ -1302,7 +1319,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	tupClimate = matecdmatrix,FdispOutcdmatrix,MdispOutcdmatrix,FdispBackcdmatrix,MdispBackcdmatrix,\
 	StrBackcdmatrix,matemovethresh,\
 	FdispmoveOutthresh,MdispmoveOutthresh,\
-	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile 	
+	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC	
 	return tupClimate
 	#End::DoCDClimate()
 
@@ -1679,7 +1696,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,geneswap,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans,SNPans):
+def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,geneswap,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans):
 	'''
 	DoPreProcess()
 	This function does all the pre-processing work before
@@ -1838,6 +1855,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_percmort_back_sd = tupAgeFile[17]
 	size_percmort_out_sd = tupAgeFile[18]
 	size_percmort_back_sd = tupAgeFile[19]
+	#assortmateC = tupAgeFile[20]
 		
 	# --------------------------------------------
 	# Initialize genetic structure - distribution 
@@ -1845,10 +1863,10 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	allelst = InitializeGenes(datadir,allefreqfiles,loci,alleles)
 	
 	# ------------------------------------------------------------------
-	# Initialize rest of variables: age,sex,infection,genes,size,mature
+	# Initialize rest of variables: age,sex,infection,genes,size,mature...
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,SNPans,'N')
+	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
+	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'N')
 	
 	# ----------------------------------------------
 	# Store class variable SubpopIN_Init
@@ -1859,7 +1877,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	unisubpops = len(Pop)
 	
 	# Organize type data in SubpopIN - here return this and also update dynamically.
-	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('genes',(str,3*sum(alleles)+2*loci+2))]
+	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('genes',(str,3*sum(alleles)+2*loci+2))]
 	
 	# Get N here - N maybe slighlty different then specified due to random draws
 	N = []
@@ -1906,13 +1924,13 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 				# Update the Wright Fisher case for sex here
 				if Femalepercent[isub][0] == 'WrightFisher':				
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],repr(genes[indspot]))
 					SubpopIN[isub].append(recd)
 				
 				# Not special Wright Fisher case
 				else:			
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature, newmature
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],repr(genes[indspot]))
 					SubpopIN[isub].append(recd)
 		# Convert to array with dytpe		
 		SubpopIN[isub] = np.asarray(SubpopIN[isub],dtype=dtype)
@@ -1949,6 +1967,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	del(capture)
 	del(recapture)
 	del(layEggs)
+	del(hindex)
 	
 	# Return this functions variables
 	tupPreProcess = ithmcrundir,\
@@ -1995,7 +2014,7 @@ def DoUserInput(fileans):
 	#End::DoUserInput()
 
 # -------------------------------------------------------------------------	
-def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,SNPans,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen):
+def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen):
 	'''
 	AddIndividuals()
 	This function adds more individuals with given classvars 
@@ -2038,6 +2057,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	age_percmort_back_sd = tupAgeFile[17]
 	size_percmort_out_sd = tupAgeFile[18]
 	size_percmort_back_sd = tupAgeFile[19]
+	#assortmateC = tupAgeFile[20]
 	
 	# --------------------------------------------
 	# Initialize genetic structure - distribution 
@@ -2047,8 +2067,8 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,SNPans,'Y')
+	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
+	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'Y')
 	
 	# ---------------------------------------------
 	# Store class variable SubpopIN_add
@@ -2100,14 +2120,13 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 				# Update the Wright Fisher case for sex here
 				if Femalepercent[isub][0] == 'WrightFisher':				
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],repr(genes[indspot]))
-					SubpopIN_add.append(recd)
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],repr(genes[indspot]))
 				
 				# Not special Wright Fisher case
 				else:			
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature, newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],repr(genes[indspot]))
-					SubpopIN_add.append(recd)
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],repr(genes[indspot]))
+				SubpopIN_add.append(recd)
 		
 		# Convert to array with dytpe		
 		SubpopIN_add = np.asarray(SubpopIN_add,dtype=dtype)

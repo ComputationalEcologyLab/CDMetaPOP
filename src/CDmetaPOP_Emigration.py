@@ -270,7 +270,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 					# Record string name of OriginalSubpop,ToSubpop,NAsubpop,EmiCD,ImmiCD,age,sex,size,infection,name,capture,layeggs,genes				
-					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
+					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['genes'])
 								
 					# Record outpool disperse information
 					SubpopIN_keep[int(tosubpop)-1].append(recd)
@@ -341,7 +341,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 				# Record string name of OriginalSubpop,ToSubpop,NA,EmiCD,ImmiCD,age,sex,size,infection,name,capture,genes 
-				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['genes'])
+				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['genes'])
 							
 				# Record outpool disperse information
 				SubpopIN_keep[int(originalpop)-1].append(recd)

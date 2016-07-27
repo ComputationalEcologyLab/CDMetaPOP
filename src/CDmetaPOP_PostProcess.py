@@ -100,7 +100,7 @@ ithmcrundir,nthfile,logfHndl):
 		tempgenes = []
 		for k in xrange(len(x)-1):
 			# Get list from read in file
-			tempgenes.append(x[k+1][14:int(14+sum(alleles))])
+			tempgenes.append(x[k+1][15:int(15+sum(alleles))])
 			# Create spot in genes
 			genes.append([])
 			for j in xrange(sum(alleles)):
@@ -272,7 +272,7 @@ def DoGridOut_general(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(14+sum(alleles[0:jspot])):int(14+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(15+sum(alleles[0:jspot])):int(15+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -457,7 +457,7 @@ def DoGridOut_genalex(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(14+sum(alleles[0:jspot])):int(14+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(15+sum(alleles[0:jspot])):int(15+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -636,7 +636,7 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(14+sum(alleles[0:jspot])):int(14+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(15+sum(alleles[0:jspot])):int(15+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -698,7 +698,7 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 	# End::DoGridOut_structure()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal,SNPans):
+def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 	'''
 	DoGridOut_genalex()
 	Output ind.csv in genalex genotype format	
@@ -798,7 +798,7 @@ def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal,SNPans):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(14+sum(alleles[0:jspot])):int(14+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(15+sum(alleles[0:jspot])):int(15+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -883,7 +883,7 @@ def DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gr
 		sys.exit(-1)
 	
 	# Write out the titles - Add Titles from xypoints
-	title = ['Subpopulation','XCOORD','YCOORD','ID','sex','age','size','mature','newmature','layeggs','capture','recapture','infection','CDist']
+	title = ['Subpopulation','XCOORD','YCOORD','ID','sex','age','size','mature','newmature','layeggs','capture','recapture','infection','CDist','Hindex']
 	
 	# Write out the title from xy points
 	for i in xrange(len(title)):
@@ -930,6 +930,7 @@ def DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gr
 				outputfile.write(str(Ind['EmiCD'])+',')
 			elif gridsample == 'Initial' or gridsample == 'Middle':
 				outputfile.write(str(Ind['ImmiCD'])+',')
+			outputfile.write(str(Ind['hindex'])+',')
 			outputfile.write(repr(Ind_genes).strip('[]')+'\n')	
 																
 	if gridsample == 'Initial' or 'Middle':
@@ -1116,7 +1117,7 @@ def DoOut_AllTimeClass(K_track,ithmcrundir,logfHndl,N_Init_Age,N_back_age,Packin
 	outputfile.close()
 	# End::DoOut_Class()
 # ---------------------------------------------------------------------------------------------------	
-def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,BreedFemales,BreedMales,Female_BreedEvents,Births,EggDeaths,SelectionDeathsEmi,DisperseDeathsEmi,PackingDeathsEmi,N_Emigration,PopDeathsOUT,N_EmiMortality,SelectionDeathsImm,DisperseDeathsImm,PackingDeathsImm,N_Immigration,PopDeathsIN,N_ImmiMortality,Alleles,He,Ho,p1,p2,q1,q2,MateDistCD,MateDistCDstd,F_EmiDist,F_EmiDist_sd,M_EmiDist,M_EmiDist_sd,F_HomeDist,F_HomeDist_sd,M_HomeDist,M_HomeDist_sd,F_StrayDist,F_StrayDist_sd,M_StrayDist,M_StrayDist_sd,Infected,subpopemigration,subpopimmigration,MgSuccess,AdultNoMg,StrSuccess,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,MatureCount,ImmatureCount,Capture_Back,Capture_Out,N_beforePack_Immi_pop,SelectionDeathsImm_Age0s,F_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist,M_ZtrayDist_sd):
+def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,BreedFemales,BreedMales,Female_BreedEvents,Births,EggDeaths,SelectionDeathsEmi,DisperseDeathsEmi,PackingDeathsEmi,N_Emigration,PopDeathsOUT,N_EmiMortality,SelectionDeathsImm,DisperseDeathsImm,PackingDeathsImm,N_Immigration,PopDeathsIN,N_ImmiMortality,Alleles,He,Ho,p1,p2,q1,q2,MateDistCD,MateDistCDstd,F_EmiDist,F_EmiDist_sd,M_EmiDist,M_EmiDist_sd,F_HomeDist,F_HomeDist_sd,M_HomeDist,M_HomeDist_sd,F_StrayDist,F_StrayDist_sd,M_StrayDist,M_StrayDist_sd,Infected,subpopemigration,subpopimmigration,MgSuccess,AdultNoMg,StrSuccess,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,MatureCount,ImmatureCount,Capture_Back,Capture_Out,N_beforePack_Immi_pop,SelectionDeathsImm_Age0s,F_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist,M_ZtrayDist_sd,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates):
 
 	'''
 	OutputPatch.csv file created
@@ -1137,7 +1138,7 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 	
 	# Write out the titles
 	# Add Titles from xypoints
-	outputtitle = ['Year','K','GrowthRate','N_Initial','PopSizes_Mean','PopSizes_Std','N_Females','N_Males','N_BreedFemales','N_BreedMales','MatureCount','ImmatureCount','EggLayEvents','Births','EggDeaths','Capture_Back','SelectionDeaths_Emigration','MoveDeaths_Emigration','PackingDeaths_Emigration','N_Emigration','Deaths_EmiMort','N_EmiMortality','Capture_Out','SelectionDeaths_Immigration','MoveDeaths_Immigration','N_beforePacking_AddAge0s','PackingDeaths_Immigration','SelectionDeaths_Age0s_Immigration','N_Immigration','Deaths_ImmiMort','N_ImmiMortality','Alleles','He','Ho','p1','p2','q1','q2','MateDist','MateDist_SD','Female_EmigrationDist','Female_EmigrationDist_SD','Male_EmigrationDist','Male_EmigrationDist_SD','Female_FromHomeDist','Female_FromHomeDist_SD','Male_FromHomeDist','Male_FromHomeDist_SD','Female_StrayerDist','Female_StrayerDist_SD','Male_StrayerDist','Male_StrayerDist_SD','Female_HomeAttemptStrayDist','Female_HomeAttemptStrayDist_SD','Male_HomeAttemptStrayDist','Male_HomeAttemptStrayDist_SD','Infected','Residors','Strayers_1','Strayers_2','Immigrators']
+	outputtitle = ['Year','K','GrowthRate','N_Initial','PopSizes_Mean','PopSizes_Std','N_Females','N_Males','N_BreedFemales','N_BreedMales','MatureCount','ImmatureCount','EggLayEvents','Births','EggDeaths','Capture_Back','SelectionDeaths_Emigration','MoveDeaths_Emigration','PackingDeaths_Emigration','N_Emigration','Deaths_EmiMort','N_EmiMortality','Capture_Out','SelectionDeaths_Immigration','MoveDeaths_Immigration','N_beforePacking_AddAge0s','PackingDeaths_Immigration','SelectionDeaths_Age0s_Immigration','N_Immigration','Deaths_ImmiMort','N_ImmiMortality','Alleles','He','Ho','p1','p2','q1','q2','MateDist','MateDist_SD','Female_EmigrationDist','Female_EmigrationDist_SD','Male_EmigrationDist','Male_EmigrationDist_SD','Female_FromHomeDist','Female_FromHomeDist_SD','Male_FromHomeDist','Male_FromHomeDist_SD','Female_StrayerDist','Female_StrayerDist_SD','Male_StrayerDist','Male_StrayerDist_SD','Female_HomeAttemptStrayDist','Female_HomeAttemptStrayDist_SD','Male_HomeAttemptStrayDist','Male_HomeAttemptStrayDist_SD','Infected','Residors','Strayers_1','Strayers_2','Immigrators','AA_aa_Mates','AA_AA_Mates','aa_aa_Mates','AA_Aa_Mates','aa_Aa_Mates','Aa_Aa_Mates']
 	
 	# Write out the title
 	for i in xrange(len(outputtitle)-1):
@@ -1277,6 +1278,13 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 		outputfile.write(',')
 		for j in xrange(nosubpops):
 			outputfile.write(str(Immigrators[i+1][j])+'|')
+		outputfile.write(',')
+		outputfile.write(str(Track_AAaaMates[i])+',')
+		outputfile.write(str(Track_AAAAMates[i])+',')
+		outputfile.write(str(Track_aaaaMates[i])+',')
+		outputfile.write(str(Track_AAAaMates[i])+',')
+		outputfile.write(str(Track_aaAaMates[i])+',')
+		outputfile.write(str(Track_AaAaMates[i])+',')		
 		outputfile.write('\n')		
 		
 	# Logging message
@@ -1498,7 +1506,7 @@ subpopemigration,subpopimmigration,FAvgMate,MAvgMate,FSDMate,\
 MSDMate,SelectionDeathsEmi,SelectionDeathsImm,\
 DisperseDeathsEmi,DisperseDeathsImm,Female_BreedEvents,\
 gridformat,MgSuccess,AdultNoMg,\
-StrSuccess,EggDeaths,K_track,N_Init,N_Emigration,N_EmiMortality,N_Immigration,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,N_Init_Age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,MatureCount,ImmatureCount,N_back_age,N_out_age,outputans,gen,CaptureCount_Back,CaptureCount_ClassBack,CaptureCount_Out,CaptureCount_ClassOut,size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,N_Init_Class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,SNPans):
+StrSuccess,EggDeaths,K_track,N_Init,N_Emigration,N_EmiMortality,N_Immigration,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,N_Init_Age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,MatureCount,ImmatureCount,N_back_age,N_out_age,outputans,gen,CaptureCount_Back,CaptureCount_ClassBack,CaptureCount_Out,CaptureCount_ClassOut,size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,N_Init_Class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates):
 	'''
 	DoPostProcess()
 	Create Distance Matrices - Geographic, Genetic, and Cost
@@ -1533,12 +1541,12 @@ StrSuccess,EggDeaths,K_track,N_Init,N_Emigration,N_EmiMortality,N_Immigration,N_
 	
 	# GENEPOP format
 	elif gridformat == 'genepop':
-		DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,K_track,SNPans)
+		DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,K_track)
 			
 	# -------------------------------------------------
 	# output for each gen and patch vars
 	# -------------------------------------------------
-	DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,BreedFemales,BreedMales,Female_BreedEvents,Births,EggDeaths,SelectionDeathsEmi,DisperseDeathsEmi,PackingDeathsEmi,N_Emigration,PopDeathsOUT,N_EmiMortality,SelectionDeathsImm,DisperseDeathsImm,PackingDeathsImm,N_Immigration,PopDeathsIN,N_ImmiMortality,Alleles,He,Ho,p1,p2,q1,q2,MateDistCD,MateDistCDstd,F_EmiDist,F_EmiDist_sd,M_EmiDist,M_EmiDist_sd,F_HomeDist,F_HomeDist_sd,M_HomeDist,M_HomeDist_sd,F_StrayDist,F_StrayDist_sd,M_StrayDist,M_StrayDist_sd,Infected,subpopemigration,subpopimmigration,MgSuccess,AdultNoMg,StrSuccess,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,MatureCount,ImmatureCount,CaptureCount_Back,CaptureCount_Out,N_beforePack_Immi_pop,SelectionDeathsImm_Age0s,F_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist,M_ZtrayDist_sd)	
+	DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,BreedFemales,BreedMales,Female_BreedEvents,Births,EggDeaths,SelectionDeathsEmi,DisperseDeathsEmi,PackingDeathsEmi,N_Emigration,PopDeathsOUT,N_EmiMortality,SelectionDeathsImm,DisperseDeathsImm,PackingDeathsImm,N_Immigration,PopDeathsIN,N_ImmiMortality,Alleles,He,Ho,p1,p2,q1,q2,MateDistCD,MateDistCDstd,F_EmiDist,F_EmiDist_sd,M_EmiDist,M_EmiDist_sd,F_HomeDist,F_HomeDist_sd,M_HomeDist,M_HomeDist_sd,F_StrayDist,F_StrayDist_sd,M_StrayDist,M_StrayDist_sd,Infected,subpopemigration,subpopimmigration,MgSuccess,AdultNoMg,StrSuccess,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,MatureCount,ImmatureCount,CaptureCount_Back,CaptureCount_Out,N_beforePack_Immi_pop,SelectionDeathsImm_Age0s,F_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist,M_ZtrayDist_sd,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates)	
 	
 	# -------------------------------------------------
 	# output for each generation and class vars

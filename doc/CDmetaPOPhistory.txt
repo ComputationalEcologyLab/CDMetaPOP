@@ -1,8 +1,28 @@
+Changes v1.05-20160606T16:04:00 MDT (ell)
+-1) Begin working with UMontreal compute staff for multi-processing. Create doc. 
+0) Tag AA and aa individuals, create preferential mating between AA and aa, and calculate percent admixture of Aa. 
+a) First create a tag field in the class structure data type: this is the hybrid index or hindex. If AA, then 1.0, if aa then 0.0, if Aa then 0.5, else -9999. Add hindex to Age0Pop class for calculating offspring hindex.
+b) Next create an assortive mating parameter in the PopVars file (consider ClassVars for future): 
+i) From M'Gonigle and Fitzjohn Evolution 2010 paper, code in the self-prefernce model. In this model a female prefers males of her own genotype by an equal factor (c) over all other males in her patch, discriminating
+equally against any other genotype. The probability that a female of genotype i mates with a male of genotype j is then given by Equation 2 in paper. phi_i,j = c^Kronecker'sDelta * fj, where fj deontes the freq of genotype j males in the females sample of N, and Kronecker's Delta is 1 when i = j and zero otherwise. phi_i,j are standardized across all males. If 'Self', then strict self mating. If 'Random', then random mating. c = [1, infinitiy]
+ii) PopVars file: add Assortative mating model choice: 1- Random mating, 2-Strict self preference, 3 - Self-preference model, 4 - Dominant preference model, 5 - linear model.
+iii) Move c factor to the ClasVars file: For AA, Aa, and aa genotypes split up by size.
+iv) Move C factor back to PopVars file. 
+v) Update linear, self and dominant to use fj of hindex type instead of dominant female_hindex type.  
+
+c) Added tracking metrics to output.csv file Track_AAAAMates, Track_AAAaMates, Track_aaaaMates...file.
+
+****Still to do: Backcross calculation.
+
+1) Move faster InheritGenes() module from CDPOP over to MetaPOP
+a) Remove SNPans, not sure this was correct anyways.
+b) Check speed up tests: old run 6:46, new run 5:48
+
 Changes v1.04-20160510T10:39:00 MDT (ell)
 0) Add option 1_G_ind and 1_G_link to cdevolveans. Locus A will use the spatial selection module and Locus B will use the growth parameters. Either run these selection processes independently or associated. 
 
 Changes v1.04-20160422T15:37:00 MDT (ell)
-0) For next version: Begin adding in sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex. Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are females. ***Not done yet. 
+0) For next version: Begin adding in sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex. Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are females. ***Not done yet***and paused this work.  
 
 Changes v1.03-20160413T12:08:00 MDT (ell)
 -3) Check equal clutch module with new renaming. Offspring naming may not be unique, so update. 
