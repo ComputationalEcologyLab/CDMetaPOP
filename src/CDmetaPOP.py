@@ -185,7 +185,7 @@ if __name__ == '__main__':
 		cdinfect = batchVars['cdinfect'][ibatch]
 		transmissionprob = float(batchVars['transmissionprob'][ibatch])
 		growans = batchVars['growth_option'][ibatch]
-		sizeLoo = float(batchVars['growth_Loo'][ibatch])
+		sizeLoo = batchVars['growth_Loo'][ibatch]
 		sizeR0 = float(batchVars['growth_R0'][ibatch])
 		size_eqn_1 = float(batchVars['growth_temp_max'][ibatch])
 		size_eqn_2 = float(batchVars['growth_temp_CV'][ibatch])

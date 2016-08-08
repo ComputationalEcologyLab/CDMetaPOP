@@ -1,3 +1,11 @@
+Changes v1.06020160727T09:39:00MDT (ell)
+0) Pull and start working on growth ~ f(hindex)
+a) Start with a simple scaling of L00 = (Loo,max - Loo,min) * HIndex
+b) Add to PopVars a new model option for growth: 'temperature_hindex'
+c) Add 2 more parameters to PopVars: Loo_max and Loo_min -> If temperature_hindex is entered in the growth_option field, then 2 numbers are entered in the growth_Loo field separated by a ; min;max
+d) Update code for this model
+e) Add to user manual
+
 Changes v1.05-20160606T16:04:00 MDT (ell)
 -1) Begin working with UMontreal compute staff for multi-processing. Create doc. 
 0) Tag AA and aa individuals, create preferential mating between AA and aa, and calculate percent admixture of Aa. 
@@ -16,7 +24,7 @@ c) Added tracking metrics to output.csv file Track_AAAAMates, Track_AAAaMates, T
 
 1) Move faster InheritGenes() module from CDPOP over to MetaPOP
 a) Remove SNPans, not sure this was correct anyways.
-b) Check speed up tests: old run 6:46, new run 5:48
+b) Check speed up tests: old run 6:46, new run 5:48.
 
 Changes v1.04-20160510T10:39:00 MDT (ell)
 0) Add option 1_G_ind and 1_G_link to cdevolveans. Locus A will use the spatial selection module and Locus B will use the growth parameters. Either run these selection processes independently or associated. 

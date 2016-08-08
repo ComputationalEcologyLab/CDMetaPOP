@@ -723,7 +723,7 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 	
 	# Grow based on von Bertalanffy
 	if growans == 'vonB':
-		newsize = sizeLoo * (1. - np.exp(-sizeR0*(SubpopIN[isub][iind]['age']+1)))
+		newsize = float(sizeLoo) * (1. - np.exp(-sizeR0*(SubpopIN[isub][iind]['age']+1)))
 		if newsize <= 0.:
 			print('Warning: von Bertalanffy growth producing negative values.')
 			sys.exit(-1)
@@ -736,7 +736,7 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 							
 			int_R = -sizeR0 * ((scipy.stats.norm(size_1,size_2*size_1).pdf(tempval)) / (scipy.stats.norm(size_1,size_2*size_1).pdf(size_1)))
 			
-			L_inc = sizeLoo * (1. - np.exp(int_R * (SubpopIN[isub][iind]['age']+1-size_3))) * ((scipy.stats.norm(size_1,size_2*size_1).pdf(tempval)) / (scipy.stats.norm(size_1,size_2*size_1).pdf(size_1)))
+			L_inc = float(sizeLoo) * (1. - np.exp(int_R * (SubpopIN[isub][iind]['age']+1-size_3))) * ((scipy.stats.norm(size_1,size_2*size_1).pdf(tempval)) / (scipy.stats.norm(size_1,size_2*size_1).pdf(size_1)))
 			# Get the incremental growth
 			L_inc_age = L_inc * np.exp((SubpopIN[isub][iind]['age']+1) * int_R)
 			# Update the new size for this individual		
@@ -745,6 +745,34 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 				print('Warning: temperature growth producing negative values.')
 				sys.exit(-1)
 			SubpopIN[isub][iind]['size'] = newsize				
+	# Grow based on temperature model but hindex too
+	elif growans == 'temperature_hindex':
+		if sizevals[int(Indloc) - 1] != 'N':			
+			tempval = float(sizevals[int(Indloc) - 1])
+			grow = float(size_4[int(Indloc) - 1])
+							
+			int_R = -sizeR0 * ((scipy.stats.norm(size_1,size_2*size_1).pdf(tempval)) / (scipy.stats.norm(size_1,size_2*size_1).pdf(size_1)))
+			
+			# Get the Loo for this HIndex
+			Indhindex = SubpopIN[isub][iind]['hindex']
+			bothLoo = sizeLoo.split(';')
+			if len(bothLoo) != 2: # Error check to make sure user entered correctly
+				print('Growth option temperature_hindex specified; growth_Loo should have minimum and maximum Loo values given separated by ;. See user manual.')
+				sys.exit(-1)
+			sizeLoo_min = float(bothLoo[0])
+			sizeLoo_max = float(bothLoo[1])
+			sizeLoo_hindex = Indhindex * (sizeLoo_max - sizeLoo_min) + sizeLoo_min
+			
+			L_inc = float(sizeLoo_hindex) * (1. - np.exp(int_R * (SubpopIN[isub][iind]['age']+1-size_3))) * ((scipy.stats.norm(size_1,size_2*size_1).pdf(tempval)) / (scipy.stats.norm(size_1,size_2*size_1).pdf(size_1)))
+			# Get the incremental growth
+			L_inc_age = L_inc * np.exp((SubpopIN[isub][iind]['age']+1) * int_R)
+			# Update the new size for this individual		
+			newsize = SubpopIN[isub][iind]['size'] + (L_inc_age * (grow/365.))
+			if newsize <= 0.:
+				print('Warning: temperature growth producing negative values.')
+				sys.exit(-1)
+			SubpopIN[isub][iind]['size'] = newsize
+	
 	# Grow based on bioenergetics
 	elif growans == 'bioenergetics':
 		print('Bioenergetics equation is not currently implemented.')
@@ -928,7 +956,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						if Indgenes[1][0] == 2:
 							genespot = 3
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -937,7 +965,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[1][0] == 1 and Indgenes[1][1] == 1:
 							genespot = 4
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -946,14 +974,14 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[1][1] == 2:
 							genespot = 5
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
 							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
 						else:
 							growans = growans
-							sizeLoo = float(sizeLoo)
+							sizeLoo = sizeLoo
 							sizeR0 = float(sizeR0)
 							size_1 = float(size_1)
 							size_2 = float(size_2)
@@ -965,7 +993,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						if Indgenes[0][0] == 2:
 							genespot = 3
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -974,7 +1002,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[0][0] == 1 and Indgenes[0][1] == 1:
 							genespot = 4
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -983,14 +1011,14 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[0][1] == 2:
 							genespot = 5
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
 							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
 						else:
 							growans = growans
-							sizeLoo = float(sizeLoo)
+							sizeLoo = sizeLoo
 							sizeR0 = float(sizeR0)
 							size_1 = float(size_1)
 							size_2 = float(size_2)
@@ -1002,7 +1030,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						if Indgenes[1][0] == 2:
 							genespot = 0
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -1011,7 +1039,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[1][0] == 1 and Indgenes[1][1] == 1:
 							genespot = 1
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -1020,14 +1048,14 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[1][1] == 2:
 							genespot = 2
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
 							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
 						else:
 							growans = growans
-							sizeLoo = float(sizeLoo)
+							sizeLoo = sizeLoo
 							sizeR0 = float(sizeR0)
 							size_1 = float(size_1)
 							size_2 = float(size_2)
@@ -1039,7 +1067,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						if Indgenes[1][0] == 2:
 							genespot = 3
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -1048,7 +1076,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[1][0] == 1 and Indgenes[1][1] == 1:
 							genespot = 4
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -1057,14 +1085,14 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[1][1] == 2:
 							genespot = 5
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
 							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
 						else:
 							growans = growans
-							sizeLoo = float(sizeLoo)
+							sizeLoo = sizeLoo
 							sizeR0 = float(sizeR0)
 							size_1 = float(size_1)
 							size_2 = float(size_2)
@@ -1076,7 +1104,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						if Indgenes[0][0] == 2:
 							genespot = 3
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -1085,7 +1113,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[0][0] == 1 and Indgenes[0][1] == 1:
 							genespot = 4
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
@@ -1094,14 +1122,14 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						elif Indgenes[0][1] == 2:
 							genespot = 5
 							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = float(fitvals[int(Indloc)-1][genespot][1])
+							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
 							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
 							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
 							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
 						else:
 							growans = growans
-							sizeLoo = float(sizeLoo)
+							sizeLoo = sizeLoo
 							sizeR0 = float(sizeR0)
 							size_1 = float(size_1)
 							size_2 = float(size_2)
