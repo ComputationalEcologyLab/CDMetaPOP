@@ -1,3 +1,12 @@
+Changes v1.0720160815T14:55:00 (ell, Nadya, and Sam Gunselman)
+0) Link HIndex to Fitness. Similar to CDPOP module for Heterozygosity and Fitness, have user supply paramters for an equation. Use Gaussian equation:
+Fitness  = exp (- (Temperature - (min_temp + (max_temp - min_temp) * HINDEX))**2 / (2 * s**2))
+and have user enter min_temp;max_temp;standard_deviation - 3 paramters used in this equation. 
+a) Create a cdevolveans that refers to survival as a function of hindex and Gaussian function: 'HIndex_min;max;s', e.g., 'HIndex_8;10;0.5'
+b) Read in PopVars and add checks.
+c) Create new module DoHindexSelection. Add to DoEmigration and DImmigration.
+d) Add to user manual and commit to github.  
+
 Changes v1.06020160727T09:39:00MDT (ell)
 0) Pull and start working on growth ~ f(hindex)
 a) Start with a simple scaling of L00 = (Loo,max - Loo,min) * HIndex

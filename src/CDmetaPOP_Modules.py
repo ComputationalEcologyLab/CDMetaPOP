@@ -92,6 +92,29 @@ def w_choice_general(lst):
 	#End::w_choice_general()
 
 # ---------------------------------------------------------------------------------------------------	
+def DoHindexSelection(cdevolveans,hindex,X):
+	'''
+	DoHindexSelection()
+	This function calculates individual differential mortality, based on the individuals Hindex, temperature or environment at location based on a Gaussian.
+	'''
+	
+	# Get parameters
+	pars = cdevolveans.split('_')[1].split(';')
+	min_temp = float(pars[0])
+	max_temp = float(pars[1])
+	C = float(pars[2])
+	
+	# Get fitness value
+	fitness = np.exp(-((X - (min_temp + (max_temp-min_temp)*hindex))**2/(2.*C**2)))
+	
+	# Get mortality value
+	differentialmortality = 1. - fitness		
+	
+	return differentialmortality
+	
+	# End::DoHindexSelection()
+	
+# ---------------------------------------------------------------------------------------------------	
 def Do1LocusSelection(fitvals,genes,location):
 	'''
 	Do1LocusSelection()
@@ -692,8 +715,9 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 			offpop = offspring[i]['NatalPop']
 			name = offspring[i]['name']
 			
-			offgenes = offgenes.tolist()
-			offgenes = [offgenes[x:x+(len(offgenes)/loci)] for x in xrange(0, len(offgenes), (len(offgenes)/loci))]
+			if not isinstance(offgenes,list): # Make sure this is in list format and split up for each loci list of lists
+				offgenes = offgenes.tolist()
+				offgenes = [offgenes[x:x+(len(offgenes)/loci)] for x in xrange(0, len(offgenes), (len(offgenes)/loci))]
 			
 			recd = (offpop,offpop,offpop,0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],name,0,0,0,hindex,repr(offgenes))
 					

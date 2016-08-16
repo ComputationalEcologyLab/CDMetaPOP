@@ -15,8 +15,7 @@ except ImportError:
 # Python specific functions
 import pdb, random, copy, os, sys
 from ast import literal_eval 
-from CDmetaPOP_Modules import Do1LocusSelection
-from CDmetaPOP_Modules import Do2LocusSelection
+from CDmetaPOP_Modules import Do1LocusSelection,Do2LocusSelection,DHindexSelection
 
 # ----------------------------------------------------------
 # Global symbols, if any :))
@@ -127,7 +126,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate):
 def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,\
 Fxycdmatrix,Mxycdmatrix,gen,\
 cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,\
-burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate):
+burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals):
 
 	'''
 	DoEmigration()
@@ -256,6 +255,25 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 							ProbSuccess[gen].append(1)
 							continue
 							
+					# CDEVOLVE - Hindex
+					elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+						
+						# Select the w_choice item
+						iteminlist = w_choice_item(probarray)
+
+						# Call Hindex selection model
+						differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[iteminlist])
+												
+						# Then flip the coin to see if outpool survives its location
+						randcheck = rand()
+						dispersingto = iteminlist
+						# If outpool did not survive: break from loop, move to next outpool
+						if randcheck < differentialmortality:
+							SelectionDeaths[gen][dispersingto].append(1)
+							DisperseDeaths[gen][dispersingto].append(0)
+							ProbSuccess[gen].append(1)
+							continue
+					
 					# If not cdevolve or if cdevolve but it is in burn in gen
 					else:
 						
@@ -323,6 +341,22 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						# Call 2-locus selection model
 						differentialmortality = Do2LocusSelection(fitvals,literal_eval(outpool['genes'])[0:2],int(originalpop)-1)
 										
+					# Then flip the coin to see if outpool survives its location
+					randcheck = rand()
+					dispersingto = int(originalpop)-1
+					# If outpool did not survive: break from loop, move to next outpool
+					if randcheck < differentialmortality:
+						SelectionDeaths[gen][dispersingto].append(1)
+						DisperseDeaths[gen][dispersingto].append(0)
+						ProbSuccess[gen].append(0)
+						continue				
+				
+				# CDEVOLVE - Hindex
+				elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+
+					# Call Hindex selection model
+					differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[int(originalpop)-1])
+											
 					# Then flip the coin to see if outpool survives its location
 					randcheck = rand()
 					dispersingto = int(originalpop)-1
@@ -826,7 +860,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 	# End::CalculateDispersalMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,ygridcopy,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Fthreshold,Mthreshold,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate):
+def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,ygridcopy,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Fthreshold,Mthreshold,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals):
 	'''
 	DoEmigration()
 	Disperse the individuals to patch locations
@@ -847,7 +881,7 @@ def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,
 	SubpopIN = Emigration(SubpopIN,K,Fdispmoveno,\
 	Mdispmoveno,\
 	Fxycdmatrix,Mxycdmatrix,gen,\
-	cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate)
+	cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals)
 	
 	# Calculate Dispersal Metrics for movers out
 	CalculateDispersalMetrics(SubpopIN,xgridcopy,ygridcopy,\

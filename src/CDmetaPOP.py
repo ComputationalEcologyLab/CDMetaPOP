@@ -245,8 +245,8 @@ if __name__ == '__main__':
 			sys.exit(-1)
 		
 		# Check on cdevolve answer input
-		if not (cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == 'N' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'stray' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link'):
-			print('CDEVOLVE answer either N, 1, 2, M, G, MG_ind, MG_link, 1_mat, 2_mat, stray, 1_G_ind, or 1_G_link.')
+		if not (cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == 'N' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'stray' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans.split('_')[0] == 'Hindex'):
+			print('CDEVOLVE answer either N, 1, 2, M, G, MG_ind, MG_link, 1_mat, 2_mat, stray, 1_G_ind, 1_G_link or Hindex.')
 			sys.exit(-1)
 			
 		# For mature and size ans
@@ -254,14 +254,20 @@ if __name__ == '__main__':
 			print('CDEVOLVE answer is M or G and size answer must be Y.')
 			sys.exit(-1)
 		
+		# For Hindex answer
+		if cdevolveans.split('_')[0] == 'Hindex':
+			if len(cdevolveans.split('_')[1].split(';')) != 3:
+				print('CDEOLVE answer is Hindex and 3 parameters for the Gaussian function must be specified, see user manual and example files.')			
+		
 		# If cdevolve is turned on must have 2 alleles
 		if cdevolveans != 'N' and alleles[0] != 2:
-			print('Warning: More than 2 alleles per locus specified. CDEVOLVE only considers first 2 alleles in selection models.')
+			print('Warning: More than 2 alleles per locus specified. CDEVOLVE only considers first 2 alleles in selection models (except Hindex scenario).')
+			
 		# Must have more than 1 loci
 		if loci <= 1:
 			print('Currently, CDmetaPOP needs more than 1 locus to run.')
 			sys.exit(-1)
-		if cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link':
+		if cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans.split('_')[0] == 'Hindex':
 			if not (timecdevolve != 'Out' or timecdevolve != 'Back' or timecdevolve != 'Both'):
 				print('CDEVOLVE timing must be specified (e.g., Out, Back or Both).')
 				sys.exit(-1)
@@ -725,7 +731,7 @@ if __name__ == '__main__':
 				MdispOutno,cdmatrix_FOut,cdmatrix_MOut,gen,xgridpop,ygridpop,F_EmiDist,M_EmiDist,cdevolveans,fitvals,F_EmiDist_sd,M_EmiDist_sd,subpopemigration,\
 				SelectionDeathsEmi,DisperseDeathsEmi,\
 				burningen,Mg,\
-				MgSuccess,AdultNoMg,sum(alleles),age_Mg,thresh_FOut,thresh_MOut,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,FdispOut_ScaleMax,FdispOut_ScaleMin,MdispOut_ScaleMax,MdispOut_ScaleMin,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,packans,PackingDeathsEmiAge,ithmcrundir,packpar1,timecdevolve,age_percmort_out,migrate)
+				MgSuccess,AdultNoMg,sum(alleles),age_Mg,thresh_FOut,thresh_MOut,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,FdispOut_ScaleMax,FdispOut_ScaleMin,MdispOut_ScaleMax,MdispOut_ScaleMin,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,packans,PackingDeathsEmiAge,ithmcrundir,packpar1,timecdevolve,age_percmort_out,migrate,outsizevals)
 				
 				# Print to log
 				stringout = 'DoEmigration(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -768,7 +774,7 @@ if __name__ == '__main__':
 				xgridpop,ygridpop,cdevolveans,fitvals,subpopimmigration,\
 				SelectionDeathsImm,DisperseDeathsImm,burningen,Str,\
 				StrSuccess,\
-				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,ithmcrundir,packpar1,noOffspring,Bearpairs,age_size_std,Femalepercent_egg,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd)
+				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,ithmcrundir,packpar1,noOffspring,Bearpairs,age_size_std,Femalepercent_egg,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,backsizevals)
 				del(Bearpairs)
 				# Print to log
 				stringout = 'DoImmigration(): '+str(datetime.datetime.now() -start_time1) + ''

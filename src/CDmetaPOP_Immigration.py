@@ -18,8 +18,8 @@ from ast import literal_eval
 from scipy.stats import truncnorm
 from CDmetaPOP_Offspring import DoOffspringVars
 from CDmetaPOP_Modules import AddAge0s
-from CDmetaPOP_Modules import Do1LocusSelection
-from CDmetaPOP_Modules import Do2LocusSelection
+from CDmetaPOP_Modules import Do1LocusSelection, Do2LocusSelection, DoHindexSelection
+
 
 # ----------------------------------------------------------
 # Global symbols, if any :))
@@ -179,7 +179,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal):
 def Immigration(SubpopIN,K,N0,natal,Fxycdmatrix,Mxycdmatrix,gen,\
 cdevolveans,fitvals,subpopmigration,SelectionDeaths,DisperseDeaths,\
 burningen,ProbPatch,ProbSuccess,\
-cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_pop,N_beforePack_age,SelectionDeathsImm_Age0s):
+cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_pop,N_beforePack_age,SelectionDeathsImm_Age0s,patchvals):
 	
 	'''
 	Immigration()
@@ -341,6 +341,25 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 							ProbSuccess[gen].append(1)
 							continue
 							
+					# CDEVOLVE - Hindex
+					elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+						
+						# Select the w_choice item
+						iteminlist = w_choice_item(probarray)
+
+						# Call Hindex selection model
+						differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[iteminlist])
+												
+						# Then flip the coin to see if outpool survives its location
+						randcheck = rand()
+						dispersingto = iteminlist
+						# If outpool did not survive: break from loop, move to next outpool
+						if randcheck < differentialmortality:
+							SelectionDeaths[gen][dispersingto].append(1)
+							DisperseDeaths[gen][dispersingto].append(0)
+							ProbSuccess[gen].append(1)
+							continue					
+					
 					# If not cdevolve or if cdevolve but it is in burn in gen
 					else:
 						
@@ -424,6 +443,22 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 							ProbSuccess[gen].append(0)
 							continue
 					 
+					# CDEVOLVE - Hindex
+					elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+
+						# Call Hindex selection model
+						differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[int(originalpop)-1])
+												
+						# Then flip the coin to see if outpool survives its location
+						randcheck = rand()
+						dispersingto = int(originalpop)-1
+						# If outpool did not survive: break from loop, move to next outpool
+						if randcheck < differentialmortality:
+							SelectionDeaths[gen][dispersingto].append(1)
+							DisperseDeaths[gen][dispersingto].append(0)
+							ProbSuccess[gen].append(0)
+							continue				
+					
 					# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,infection,capture,name
 					immipop = outpool['EmiPop']
 					outpool_name = outpool['name']
@@ -502,7 +537,27 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 								ProbSuccess[gen].append(0)
 								continue
 								
-						# If not cdevolve or if cdevolve but it is in burn in gen
+						# CDEVOLVE - Hindex
+						elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+
+							# Then it makes it back to original pop
+							iteminlist = int(originalpop)-1
+							
+							# Call Hindex selection model
+							differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[iteminlist])
+													
+							# Then flip the coin to see if outpool survives its location
+							randcheck = rand()
+							dispersingto = iteminlist
+							# If outpool did not survive: break from loop, move to next outpool
+							if randcheck < differentialmortality:
+								SelectionDeaths[gen][dispersingto].append(1)
+								DisperseDeaths[gen][dispersingto].append(0)
+								ProbSuccess[gen].append(0)
+								continue				
+					
+
+						#If not cdevolve or if cdevolve but it is in burn in gen
 						else:
 														
 							# Then it makes it back to original pop
@@ -588,6 +643,23 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 										ProbSuccess[gen].append(1)
 										continue
 																
+								# CDEVOLVE - Hindex
+								elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+
+									# Call Hindex selection model
+									differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[iteminlist])
+															
+									# Then flip the coin to see if outpool survives its location
+									randcheck = rand()
+									dispersingto = iteminlist
+									# If outpool did not survive: break from loop, move to next outpool
+									if randcheck < differentialmortality:
+										SelectionDeaths[gen][dispersingto].append(1)
+										DisperseDeaths[gen][dispersingto].append(0)
+										ProbSuccess[gen].append(1)
+										continue				
+				
+								
 								# Record string name of OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-tofill in DoCalc,age,sex,capture,name
 								straypop = str(iteminlist+1)
 								outpool_name = outpool['name']
@@ -665,6 +737,22 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 										ProbSuccess[gen].append(1)
 										continue
 																
+								# CDEVOLVE - Hindex
+								elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+
+									# Call Hindex selection model
+									differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[iteminlist])
+															
+									# Then flip the coin to see if outpool survives its location
+									randcheck = rand()
+									dispersingto = iteminlist
+									# If outpool did not survive: break from loop, move to next outpool
+									if randcheck < differentialmortality:
+										SelectionDeaths[gen][dispersingto].append(1)
+										DisperseDeaths[gen][dispersingto].append(0)
+										ProbSuccess[gen].append(1)
+										continue				
+				
 								# Record string name of OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-tofill in DoCalc,age,sex,capture,name
 								straypop = str(iteminlist+1)
 								outpool_name = outpool['name']
@@ -1290,7 +1378,7 @@ def DoImmigration(SubpopIN,K,N0,natal,Fdispmoveno,Mdispmoveno,\
 Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,\
 ygridcopy,cdevolveans,fitvals,subpopmigration,\
 SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,\
-StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd):
+StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals):
 
 	'''
 	DoImmigration()
@@ -1313,7 +1401,7 @@ StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population
 	Fxycdmatrix,Mxycdmatrix,gen,\
 	cdevolveans,fitvals,subpopmigration,\
 	SelectionDeaths,DisperseDeaths,\
-	burningen,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s)
+	burningen,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,patchvals)
 	
 	# Calculate Dispersal Metrics for strayers 'S' 
 	tempStrayN = CalculateDispersalMetrics(SubpopIN,xgridcopy,ygridcopy,\
