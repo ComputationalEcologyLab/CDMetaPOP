@@ -17,9 +17,7 @@ import pdb, random, copy, os, sys
 from ast import literal_eval 
 from scipy.stats import truncnorm
 from CDmetaPOP_Offspring import DoOffspringVars
-from CDmetaPOP_Modules import AddAge0s
-from CDmetaPOP_Modules import Do1LocusSelection, Do2LocusSelection, DoHindexSelection
-
+from CDmetaPOP_Modules import *
 
 # ----------------------------------------------------------
 # Global symbols, if any :))

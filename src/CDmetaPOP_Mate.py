@@ -73,8 +73,8 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecal
 	# Extract the subpopulation this female is in
 	femalepop = females[intfemale][sourcePop]
 	
-	# Get this females genes/hindex for assortive mating potential
-	female_hindex = females[intfemale]['hindex']
+	# Get this females genes/hindex for assortive mating potential - round to nearest 10th
+	female_hindex = np.around(females[intfemale]['hindex'],1)	
 		
 	# Extract each male patch probability that female can mate with - careful of indexing
 	probarray = xycdmatrix[int(femalepop)-1]
@@ -113,7 +113,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecal
 				# Strict self mating option (that is, AA with AA, Aa with Aa, and aa with aa, but using Hindex
 				if assortmateModel == '2':
 					# Get the males hindex 
-					males_hindex = patchmales['hindex']
+					males_hindex = np.around(patchmales['hindex'],1)
 					
 					# Check for matching males
 					males_self = np.where(female_hindex == males_hindex)[0]
@@ -132,7 +132,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecal
 				# Self-preference mating option
 				elif assortmateModel == '3':
 					# Get the males Hindex and frequency of each
-					males_hindex = patchmales['hindex']
+					males_hindex = np.around(patchmales['hindex'],1)
 					males_hindex_count = count_unique(males_hindex)
 					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
 					
@@ -149,9 +149,8 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecal
 					
 				# Dominant-preference mating
 				elif assortmateModel == '4':
-					
 					# Get the males Hindex and frequency of each
-					males_hindex = patchmales['hindex']
+					males_hindex = np.around(patchmales['hindex'],1)
 					males_hindex_count = count_unique(males_hindex)
 					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
 					
@@ -176,9 +175,9 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecal
 					patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]				
 					
 				# Linear hindex preference mating
-				elif assortmateModel == '5':					
+				elif assortmateModel == '5':
 					# Get the males Hindex and frequency of each
-					males_hindex = patchmales['hindex']
+					males_hindex = np.around(patchmales['hindex'],1)
 					males_hindex_count = count_unique(males_hindex)
 					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
 										

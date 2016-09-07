@@ -24,20 +24,9 @@ except ImportError:
 from scipy.stats import truncnorm
 from scipy.linalg import eigh, cholesky
 from scipy.stats import norm
-	
-# CDPOP functions
-try:
-	from CDmetaPOP_Mate import *
-	from CDmetaPOP_Offspring import *
-	from CDmetaPOP_Mortality import *
-	from CDmetaPOP_Immigration import *
-	from CDmetaPOP_Emigration import *
-	#
-except ImportError:
-	raise ImportError, "CDmetaPOP Modules missing."
-	
+		
 # General python imports
-import os,sys
+import os,sys,random
 from ast import literal_eval 
 
 # ---------------------------------------------------------------------------------------------------

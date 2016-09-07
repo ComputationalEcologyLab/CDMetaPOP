@@ -43,8 +43,13 @@ try:
 	from CDmetaPOP_Modules import * 
 	from CDmetaPOP_PostProcess import *
 	from CDmetaPOP_PreProcess import *
+	from CDmetaPOP_Mate import *
+	from CDmetaPOP_Emigration import *
+	from CDmetaPOP_Immigration import *
+	from CDmetaPOP_Offspring import *
+	from CDmetaPOP_Mortality import *
 except ImportError:
-	raise ImportError, "CDmetaPOP_Modules required."	
+	raise ImportError, "CDmetaPOP Modules required."	
 				
 #------------------------------------------------------------
 # Begin main file execution
