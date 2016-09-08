@@ -1,5 +1,6 @@
 Changes v1.0720160906T15:51:00MDT (ell)
 0) Add precision of 1 decimal to the assortative mating preference option.
+1) During pre-gene exchange, inherit hindex and first locus only. This is for scenarios that are using hindex growth option and assortative mating with hindex to settle population dyanmics for '2 speices' together.
 
 Changes v1.0720160815T14:55:00 (ell, Nadya, and Sam Gunselman)
 0) Link HIndex to Fitness. Similar to CDPOP module for Heterozygosity and Fitness, have user supply paramters for an equation. Use Gaussian equation:

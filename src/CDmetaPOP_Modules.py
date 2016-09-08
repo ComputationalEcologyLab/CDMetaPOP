@@ -522,7 +522,7 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	#End::GetMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst):
+def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel):
 	'''
 	InheritGenes()
 	Pass along gentic information to survived offspring from parents
@@ -660,7 +660,8 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 				
 			# If not in geneswap time, then initialize with allelst
 			# -----------------------------------------------------
-			else:
+			else:				
+				
 				# Get genes - For each loci:
 				sourcepop = int(offspring[i]['NatalPop'])-1
 				offgenes = [] # Storage
@@ -699,7 +700,18 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 														
 						# And to genes list
 						offgenes[j].append(tempindall)
-			
+				
+				# Special case for assortative mating option 2 (strict) and when hindex is being used - inherit the parents first locus, so that AA gives to AA and aa gives to aa, etc. 
+				if assortmateModel == '2':
+					mothergenes=literal_eval(offspring[i]['Mother'])
+					offgenes[0] = mothergenes[0]
+				
+				# mtDNA is turned on
+				# ------------------
+				if mtdna == 'Y':
+					# Force last locus to be mothergenes
+					offgenes[-1] = mothergenes[-1]
+				
 				# Calculate hybrid index
 				if offgenes[0][0] == 2:
 					hindex = 1.0
@@ -1276,7 +1288,7 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 	# End::DoUpdate()
 	
 # ---------------------------------------------------------------------------------------------------
-def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s):
+def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s,assortmateModel):
 
 	'''
 	Add in the Age 0 population.
@@ -1302,7 +1314,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 		# ----------------
 		# InheritGenes()
 		# ----------------
-		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst)	
+		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel)	
 		
 		# --------------------------------
 		# Apply spatial selection to Age0s (this might not be the right order)
