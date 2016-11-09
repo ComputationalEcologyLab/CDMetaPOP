@@ -1,3 +1,44 @@
+Changes v1.08.20161027T17:03MDT (ell)
+0) Add the option to include multiple ClassVars files. Individuals get intialized based on allele frequency files, so depending on how the files are entered, then corresponding ClassVars gets assigned. e.g., 
+Genes Initialize: 
+genes/allelefrequencyA.csv;genes/allelefrequencyB.csv
+Then in the Class Vars column:
+classvars/ClassVars_A.csv;classvars/ClassVars_B.csv
+so, files are separated by ';' semicolons. The allele frequency files should have the first locus defining HIndex, which in turn defines the individuals 'species'. For example, allelefrequencyA.csv files has
+L0A0	1
+L0A1	0
+L0A2	0
+L0A3	0
+L0A4	0
+and then allelefrequencyB.csv would have
+L0A0	0
+L0A1	1
+L0A2	0
+L0A3	0
+L0A4	0
+Then, ClassVarsA files would be used for individuals that have an HIndex = 1.0, and ClassVarsB file would be used for individuals that have an HIndex = 0.0.
+***Begin coding in this format and structure. 
+***Different size bins? Careful in code, look for size binning. 
+a) Note that the output summary file will still be for the first ClassVars bins, this will be reported in the output files. ***Check files
+b) Tag which ClassVars file used for each individual: added 'classfile' key to SubpopIN class. This will be an index value for the PATCH, so a user will have to look up from the ind.csv file, which patch an individual is in and then go to the patchvars file and match the file in the ClassVars field. 
+c) Note that the classfile field together with the original birth patch will stick with individual. So that individual will always have the associated ClassVars parameters and they will not change if they stray to a new natalpop. So the 'classfile' field will be designated P{N}_CV{M}, where N is the number of patches counting from 0 and M is the number of original classvars files counting from 0 in that patch. P1_CV1 would be the second patch and second classvars file in that patch. 
+d) If multiple classfiles, now take min and max and 'rebin' sizes. This will be used for the packing algorithm now. ***Need to go back through and check all of the tracking numbers for ages and adjust for this rebinning. ****Fixed. 
+Given multiple ClassVars files with different size classes: e.g.
+BT:  75, 137, 204, 273, 399, 402, 460, 514
+DV: 40, 60, 80, 100, 120, 150, 180, 210
+Then, simply take the min and max and re-bin, e.g., 
+size_bin: 40, 107, 175, 243, 310, 378, 446, 514
+e) Logistic mortality is not up to date with age_percmort and different values. 
+f) DoMortality (constant mortality) now looks up individuals classfile.
+g) Offspring sorted by parent classfile and correct size mean given: however, hindex has not been assigned yet to each offspring. Therefore, the classfile for each offspring could change. ****Fixed. Issue: hindex temp assignment before mutation is allowed. Mutation could change the hindex and thus the classfile assignment. Note this for now*** I think this is OK. An offspring will either inherit it's mothers or fathers classfile no matter what the hindex...this gets sorted out. 
+h) Careful check on packing in DoImmigration, okay.
+i) Decided not to pass the selected classvars and sizes into AddAge0s, this should not be a problem
+
+1) Added mature_defaultAge parameter. Before it was '6' hard coded, now user has the option and flexibility. 
+2) Add in the cdevolve time implement option for Out, Back, Eggs. Remove 'Both' option. User can specifiy time for all 3 or any combination by placing ';' between, eg, Out;Back;Eggs or Eggs;Back. 
+3) Found an error when tracking age/size deaths for the differnt cases in the DoMortality module, fixed.
+
+
 Changes v1.0720160906T15:51:00MDT (ell)
 0) Add precision of 1 decimal to the assortative mating preference option.
 1) During pre-gene exchange, inherit hindex and first locus only. This is for scenarios that are using hindex growth option and assortative mating with hindex to settle population dyanmics for '2 speices' together.

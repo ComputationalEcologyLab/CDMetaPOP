@@ -45,11 +45,40 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 			sys.exit(-1)
 		count = 0	
 		# Loop through each mate pair
+		# ----------------------------
 		for i in xrange(len(Bearpairs)):
 			
+			# ------------------------------------------------
+			# Get parent's information for multiple classfiles
+			# ------------------------------------------------
+			mothers_file = Bearpairs[i][0]['classfile']
+			mothers_natalP = int(mothers_file.split('_')[0].split('P')[1])
+			mothers_theseclasspars = int(mothers_file.split('_')[1].split('CV')[1])
+			
+			fathers_file = Bearpairs[i][1]['classfile']
+			fathers_natalP = int(fathers_file.split('_')[0].split('P')[1])
+			fathers_theseclasspars = int(fathers_file.split('_')[1].split('CV')[1])
+			
 			# And then loop through each offspring from that mate pair
+			# --------------------------------------------------------
 			for j in xrange(noOffspring[i]):
+				
+				# ------------------------
+				# Mother's patch location
+				# ------------------------
 				patchindex = int(Bearpairs[i][0][sourcePop])-1
+				
+				# ------------------------
+				# Get classfile assignment
+				# ------------------------
+				randno = rand() # Random number 
+				if randno < 0.5:
+					natalP = fathers_natalP
+					theseclasspars = fathers_theseclasspars
+				else:
+					natalP = mothers_natalP
+					theseclasspars = mothers_theseclasspars			
+				
 				# --------------------------
 				# Assign sex here
 				# --------------------------			
@@ -105,7 +134,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# --------------------------
 				# Assign size here
 				# --------------------------
-				mu,sigma = size_mean[patchindex][0],size_std[patchindex][0]			
+				mu,sigma = size_mean[natalP][theseclasspars][0],size_std[natalP][theseclasspars][0]			
 				# Case here for sigma == 0
 				if sigma != 0:
 					lower, upper = 0,np.inf
@@ -120,7 +149,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				if sizecall == 'age':			
 					if offsex == 0: # Female check 
 						if Fmat_set == 'N': # Use prob value
-							matval = F_mature[patchindex][0]
+							matval = F_mature[natalP][theseclasspars][0]
 						else: # Use set age
 							if int(Fmat_set) == 0: # Age of offspring is 0
 								matval = 1.0
@@ -128,7 +157,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 								matval = 0.0
 					else: # Male check
 						if Mmat_set == 'N': # Use prob value in agevars
-							matval = M_mature[patchindex][0]
+							matval = M_mature[natalP][theseclasspars][0]
 						else: # Use set age
 							if int(Mmat_set) == 0: # Age of offspring is 0
 								matval = 1.0
@@ -161,8 +190,8 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# --------------------------
 				# REcord information
 				# --------------------------			
-				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,capture,recapture,layeggs,Mothers Hindex, Fathers Hindex]
-				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,0,0,0,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'])
+				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,capture,recapture,layeggs,Mothers Hindex, Fathers Hindex, ClassVars File]
+				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,0,0,0,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars))
 				offspring.append(recd)
 			count = count + 1 # For unique naming tracking				
 	# If there was not a pairing
@@ -205,11 +234,13 @@ def DoOffspringRandom(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_a
 			else: # Use the AgeVars given mu and sigma
 				# Grab the age or size of the female
 				ageF = Bearpairs[i][0]['age']
-				natalF = int(Bearpairs[i][0]['NatalPop']) - 1
+				# Get the original ClassVars file location.
+				natalP = int(Bearpairs[i][0]['classfile'].split('_')[0].split('P')[1])
+				theseclasspars = int(Bearpairs[i][0]['classfile'].split('_')[1].split('CV')[1])
 				# If age is greater than last age
-				if ageF > len(age_mu[natalF]) - 1:
-					ageF = len(age_mu[natalF]) - 1
-				litter_mu = age_mu[natalF][ageF]
+				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
+					ageF = len(age_mu[natalP][theseclasspars]) - 1
+				litter_mu = age_mu[natalP][theseclasspars][ageF]
 				
 			if litter_mu <= 0.:				
 				littersamp = 0
@@ -242,6 +273,7 @@ def DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_
 		# If females did mate up, then assign random drawn number
 		else:
 		
+			
 			# If size control then use parameters for length age_mu and CV
 			if sizecall == 'size':
 				if egg_mean_ans == 'linear':
@@ -254,20 +286,22 @@ def DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_
 					print('Egg mean answer not an option, enter exp or linear.')
 					sys.exit(-1)				
 			else: # Use the AgeVars given mu and sigma
-				# Grab the age or size of the female
+				# Grab the age of the female
 				ageF = Bearpairs[i][0]['age']
-				natalF = int(Bearpairs[i][0]['NatalPop']) - 1
+				# Get the original ClassVars file location.
+				natalP = int(Bearpairs[i][0]['classfile'].split('_')[0].split('P')[1])
+				theseclasspars = int(Bearpairs[i][0]['classfile'].split('_')[1].split('CV')[1])
 				# If age is greater than last age
-				if ageF > len(age_mu[natalF]) - 1:
-					ageF = len(age_mu[natalF]) - 1
-				litter_mu = age_mu[natalF][ageF]
+				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
+					ageF = len(age_mu[natalP][theseclasspars]) - 1
+				litter_mu = age_mu[natalP][theseclasspars][ageF]
 			
 			if litter_mu <= 0.:				
 				littersamp = 0
 			else:
 				# Set the litter size
 				littersamp = int(poisson(litter_mu))
-		
+			
 		# Append Offspring number to end of Pairs [F,M,#offspring]	
 		noOffspring.append(littersamp)			
 		
@@ -306,16 +340,22 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 				else:
 					print('Egg mean answer not an option, enter exp or linear.')
 					sys.exit(-1)
-				litter_sigma = np.mean(age_sigma[natalF])
+				
+				# Get the original ClassVars file location.
+				natalP = int(Bearpairs[i][0]['classfile'].split('_')[0].split('P')[1])
+				theseclasspars = int(Bearpairs[i][0]['classfile'].split('_')[1].split('CV')[1])
+				litter_sigma = np.mean(age_sigma[natalP][theseclasspars])
 			else: # Use the AgeVars given mu and sigma
 				# Grab the age or size of the female
 				ageF = Bearpairs[i][0]['age']
-				natalF = int(Bearpairs[i][0]['NatalPop']) - 1
+				# Get the original ClassVars file location.
+				natalP = int(Bearpairs[i][0]['classfile'].split('_')[0].split('P')[1])
+				theseclasspars = int(Bearpairs[i][0]['classfile'].split('_')[1].split('CV')[1])
 				# If age is greater than last age
-				if ageF > len(age_mu[natalF]) - 1:
-					ageF = len(age_mu[natalF]) - 1
-				litter_mu = age_mu[natalF][ageF]
-				litter_sigma = age_sigma[natalF][ageF]
+				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
+					ageF = len(age_mu[natalP][theseclasspars]) - 1
+				litter_mu = age_mu[natalP][theseclasspars][ageF]
+				litter_sigma = age_sigma[natalP][theseclasspars][ageF]
 				
 			if litter_mu <= 0.:				
 				littersamp = 0
@@ -364,11 +404,13 @@ def DoOffspringConstant(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean
 			else: # Use the AgeVars given mu and sigma
 				# Grab the age or size of the female
 				ageF = Bearpairs[i][0]['age']
-				natalF = int(Bearpairs[i][0]['NatalPop']) - 1
+				# Get the original ClassVars file location.
+				natalP = int(Bearpairs[i][0]['classfile'].split('_')[0].split('P')[1])
+				theseclasspars = int(Bearpairs[i][0]['classfile'].split('_')[1].split('CV')[1])
 				# If age is greater than last age
-				if ageF > len(age_mu[natalF]) - 1:
-					ageF = len(age_mu[natalF]) - 1
-				litter_mu = age_mu[natalF][ageF]
+				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
+					ageF = len(age_mu[natalP][theseclasspars]) - 1
+				litter_mu = age_mu[natalP][theseclasspars][ageF]
 				
 			if litter_mu <= 0.:				
 				littersamp = 0
@@ -487,7 +529,8 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,Mm
 	
 	# -------------------------------------
 	# Call DoEggMortality()
-	# -------------------------------------		
+	# -------------------------------------	
+	
 	noOffspring = DoEggMortality(Bearpairs,eggmort_patch,EggDeaths,gen,K,eggmort_back,noOffspring,Births)
 	
 	# Check if there were 0 litter size events, delete those Bearpairs

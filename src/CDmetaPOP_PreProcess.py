@@ -26,7 +26,7 @@ from scipy.linalg import eigh, cholesky
 from scipy.stats import norm
 		
 # General python imports
-import os,sys,random
+import os,sys,random,pdb
 from ast import literal_eval 
 
 # ---------------------------------------------------------------------------------------------------
@@ -385,7 +385,6 @@ def InitializeGenes(datadir,allefreqfilename,loci,alleles):
 				
 		# Then loop through each file
 		for i_splitpatch in xrange(len(fileans)):
-			#allelst[ifile].append([]) # add a spot for this patch 				
 			# If genetic structure intialized by a file...
 			if fileans[i_splitpatch] != 'random':
 				
@@ -472,42 +471,14 @@ def InitializeAge(K,agefilename,datadir):
 	F_mature = []
 	age_sigma = []
 	age_cap_out = []
-	age_cap_back = []
-	#assortmateC = []
-	
-	lencheck = []
+	age_cap_back = []	
+	lencheck = [] # temp error check
 	
 	# Then loop through each file
-	for isub in xrange(len(K)):
+	for isub in xrange(len(agefilename)):
 		
-		# Check statements
-		if os.path.exists(datadir+agefilename[isub]):
-			# Open file for reading
-			inputfile = open(datadir+agefilename[isub],'rU')
-		else:
-			print("CDmetaPOP InitializeAge() error: open failed, could not open %s"%(datadir+agefilename[isub]))
-			sys.exit(-1)
-		
-		# Read lines from the file
-		lines = inputfile.readlines()
-		
-		#Close the file
-		inputfile.close()
-		
-		# Create an empty matrix to append to
-		xage = []
-
-		# Split up each line in file and append to empty matrix, x
-		for i in lines:
-			thisline = i.strip('\n').strip('\r').strip(' ').split('\r')
-			for j in xrange(len(thisline)):
-				xage.append(thisline[j].split(','))
-		lencheck.append(len(xage)-1)	
-		# Delete lines from earlier
-		del(lines)
-		
-		# Store all information in a list [age,probability]
-		agelst.append([]) # [age,probability] for age distribution
+		# Add spots for this patch
+		agelst.append([])
 		ageclass.append([])
 		ageno.append([])
 		Femalepercent.append([])
@@ -529,61 +500,117 @@ def InitializeAge(K,agefilename,datadir):
 		age_sigma.append([])
 		age_cap_out.append([])
 		age_cap_back.append([])
-		#assortmateC.append([])
-		#for i in xrange(3): # Add three spots for AA, Aa, and aa
-		#	assortmateC[isub].append([])
-		for i in xrange(len(xage)-1):	
-			ageclass[isub].append(int(xage[i+1][0]))
-			age_size_mean[isub].append(float(xage[i+1][1]))
-			age_size_std[isub].append(float(xage[i+1][2]))
-			ageno[isub].append(float(xage[i+1][3]))
-			Femalepercent[isub].append(xage[i+1][4])
-			age_percmort_out[isub].append(xage[i+1][5])
-			age_percmort_back[isub].append(xage[i+1][7])
-			size_percmort_out[isub].append(xage[i+1][9])
-			size_percmort_back[isub].append(xage[i+1][11])
-			age_percmort_out_sd[isub].append(float(xage[i+1][6]))
-			age_percmort_back_sd[isub].append(float(xage[i+1][8]))
-			size_percmort_out_sd[isub].append(float(xage[i+1][10]))
-			size_percmort_back_sd[isub].append(float(xage[i+1][12]))
-			age_Mg[isub].append(float(xage[i+1][13]))
-			age_S[isub].append(float(xage[i+1][14]))
-			M_mature[isub].append(float(xage[i+1][15]))
-			F_mature[isub].append(float(xage[i+1][16]))
-			age_mu[isub].append(float(xage[i+1][17]))
-			age_sigma[isub].append(float(xage[i+1][18]))
-			age_cap_out[isub].append(xage[i+1][19])
-			age_cap_back[isub].append(xage[i+1][20])	
-			#assortmateC[isub][0].append(float(xage[i+1][21]))
-			#assortmateC[isub][1].append(float(xage[i+1][22]))
-			#assortmateC[isub][2].append(float(xage[i+1][23]))
+		lencheck.append([])
 		
-		# Get age distribution list
-		for i in xrange(len(ageno[isub])):
-			agelst[isub].append([ageclass[isub][i],ageno[isub][i]/sum(ageno[isub])])
+		fileans = agefilename[isub]
+		fileans = fileans.split(';') # For spatial separation use this deliminator check
 		
-		# Error checks here: if number of classes does not equal mortality age classes
-		if len(agelst[isub]) != len(age_percmort_out[isub]) != len(age_percmort_back[isub]):
-			print('Agedistribution data not fully entered correctly.')
-			sys.exit(-1)
-		# Error probabilties in age list....finish error checks
-		if len(age_Mg[isub]) != len(age_S[isub]):
-			print('Age distribution file in the wrong format.')
-			sys.exit(-1)
-		# Error check on Femalepercent
-		if 'WrightFisher' in Femalepercent[isub]:
-			if Femalepercent[isub][1:] != Femalepercent[isub][-1:]:
-				print('Wright Fisher specified in Female Percent in Agevars.csv file. All age classes must be WrightFisher.')
+		# The loop through each file
+		for i_splitpatch in xrange(len(fileans)):
+		
+			# Add spot for this file
+			agelst[isub].append([]) # [age,probability] for age distribution
+			ageclass[isub].append([])
+			ageno[isub].append([])
+			Femalepercent[isub].append([])
+			age_percmort_out[isub].append([])
+			age_percmort_back[isub].append([])
+			size_percmort_out[isub].append([])
+			size_percmort_back[isub].append([])
+			age_percmort_out_sd[isub].append([])
+			age_percmort_back_sd[isub].append([])
+			size_percmort_out_sd[isub].append([])
+			size_percmort_back_sd[isub].append([])
+			age_Mg[isub].append([])
+			age_S[isub].append([])
+			age_mu[isub].append([])
+			age_size_mean[isub].append([])
+			age_size_std[isub].append([])
+			M_mature[isub].append([])
+			F_mature[isub].append([])
+			age_sigma[isub].append([])
+			age_cap_out[isub].append([])
+			age_cap_back[isub].append([])
+			lencheck[isub].append([])
+			
+			# Check statements
+			if os.path.exists(datadir+fileans[i_splitpatch]):
+				# Open file for reading
+				inputfile = open(datadir+fileans[i_splitpatch],'rU')
+			else:
+				print("CDmetaPOP InitializeAge() error: open failed, could not open %s"%(datadir+afileans[i_splitpatch]))
 				sys.exit(-1)
-		
-		# Deletes
-		del(xage)
+			
+			# Read lines from the file
+			lines = inputfile.readlines()
+			
+			#Close the file
+			inputfile.close()
+			
+			# Create an empty matrix to append to
+			xage = []
+
+			# Split up each line in file and append to empty matrix, x
+			for i in lines:
+				thisline = i.strip('\n').strip('\r').strip(' ').split('\r')
+				for j in xrange(len(thisline)):
+					xage.append(thisline[j].split(','))
+			lencheck[isub][i_splitpatch].append(len(xage)-1)	
+			# Delete lines from earlier
+			del(lines)
+			
+			# Loop through file appending values
+			for i in xrange(len(xage)-1):	
+				ageclass[isub][i_splitpatch].append(int(xage[i+1][0]))
+				age_size_mean[isub][i_splitpatch].append(float(xage[i+1][1]))
+				age_size_std[isub][i_splitpatch].append(float(xage[i+1][2]))
+				ageno[isub][i_splitpatch].append(float(xage[i+1][3]))
+				Femalepercent[isub][i_splitpatch].append(xage[i+1][4])
+				age_percmort_out[isub][i_splitpatch].append(xage[i+1][5])
+				age_percmort_back[isub][i_splitpatch].append(xage[i+1][7])
+				size_percmort_out[isub][i_splitpatch].append(xage[i+1][9])
+				size_percmort_back[isub][i_splitpatch].append(xage[i+1][11])
+				age_percmort_out_sd[isub][i_splitpatch].append(float(xage[i+1][6]))
+				age_percmort_back_sd[isub][i_splitpatch].append(float(xage[i+1][8]))
+				size_percmort_out_sd[isub][i_splitpatch].append(float(xage[i+1][10]))
+				size_percmort_back_sd[isub][i_splitpatch].append(float(xage[i+1][12]))
+				age_Mg[isub][i_splitpatch].append(float(xage[i+1][13]))
+				age_S[isub][i_splitpatch].append(float(xage[i+1][14]))
+				M_mature[isub][i_splitpatch].append(float(xage[i+1][15]))
+				F_mature[isub][i_splitpatch].append(float(xage[i+1][16]))
+				age_mu[isub][i_splitpatch].append(float(xage[i+1][17]))
+				age_sigma[isub][i_splitpatch].append(float(xage[i+1][18]))
+				age_cap_out[isub][i_splitpatch].append(xage[i+1][19])
+				age_cap_back[isub][i_splitpatch].append(xage[i+1][20])	
+			
+			# Get age distribution list
+			for i in xrange(len(ageno[isub][i_splitpatch])):
+				agelst[isub][i_splitpatch].append([ageclass[isub][i_splitpatch][i],ageno[isub][i_splitpatch][i]/sum(ageno[isub][i_splitpatch])])
+			
+			# Error checks here: if number of classes does not equal mortality age classes
+			if len(agelst[isub][i_splitpatch]) != len(age_percmort_out[isub][i_splitpatch]) != len(age_percmort_back[isub][i_splitpatch]):
+				print('Agedistribution data not fully entered correctly.')
+				sys.exit(-1)
+			# Error probabilties in age list....finish error checks
+			if len(age_Mg[isub][i_splitpatch]) != len(age_S[isub][i_splitpatch]):
+				print('Age distribution file in the wrong format.')
+				sys.exit(-1)
+			# Error check on Femalepercent
+			if 'WrightFisher' in Femalepercent[isub][i_splitpatch]:
+				if Femalepercent[isub][i_splitpatch][1:] != Femalepercent[isub][i_splitpatch][-1:]:
+					print('Wright Fisher specified in Female Percent in Agevars.csv file. All age classes must be WrightFisher.')
+					sys.exit(-1)
+			
+			# Deletes
+			del(xage)
 	
 	# Error check, all patches must have the same length of classes
-	if sum(lencheck) / float(len(lencheck)) != lencheck[0]:
+	check = sum(sum(sum(lencheck,[]),[]))
+	check = np.mod(check,len(agelst[0][0]))
+	if check != 0:
 		print('ClassVars all must have the same number of classes.')
 		sys.exit(-1)
-		
+	del(lencheck)	
 	# Return variables
 	tupAgeFile = agelst,age_percmort_out,age_percmort_back,age_Mg,age_S,\
 	Femalepercent,age_mu,age_size_mean,age_size_std,M_mature,F_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd
@@ -632,6 +659,8 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 	recapture = []
 	layEggs = []
 	hindex = []
+	whichClassFile = []
+	
 	#pdb.set_trace() # Initialize XY chromosomes. 
 	# Just loop through actual individuals, else this can take a long while - carful of indexing
 	for iind in xrange(len(subpop)):
@@ -641,78 +670,11 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 		# ----------------
 		isub = int(subpop[iind]) - 1
 		
-		# --------------
-		# Select the age
-		# --------------
-		agetemp = w_choice_general(agelst[isub])[0]
-		age.append(agetemp)
-		
-		# ---------------------------------
-		# Set Size here
-		# ---------------------------------
-		# Set the size - add in Todd & Ng method
-		mu,sigma = age_size_mean[isub][agetemp],age_size_std[isub][agetemp]			
-		# Case here for sigma == 0
-		if sigma != 0:
-			lower, upper = 0,np.inf
-			sizesamp  = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)			
-		else:
-			sizesamp = mu
-		size.append(sizesamp)
-		
-		# ------------------------------
-		# Check for size control
-		# ------------------------------		
-		if sizeans == 'Y':
-			# Get size adjusted age
-			size_mean_middles = np.asarray(age_size_mean[isub])[1:] - np.diff(np.asarray(age_size_mean[isub]).astype('f'))/2
-			age_adjusted = np.searchsorted(size_mean_middles, sizesamp)
-		else:
-			age_adjusted = agetemp
-		
-		# ------------------------------
-		# Sex set
-		# ------------------------------
-		# Case for Wright Fisher or not
-		if Femalepercent[isub][age_adjusted] != 'WrightFisher':
-			# Select the sex
-			randsex = int(100*rand())				
-			# If that random number is less than Femalepercent, assign it to be a female
-			if randsex < int(Femalepercent[isub][age_adjusted]):
-				offsex = 0				
-			# If the random number is greater than the Femalepercent, assign it to be a male
-			else:
-				offsex = 1					
-			sex.append(offsex)
-		# Special case for WrightFisher
-		else: 
-			offsex = int(2*rand())
-			sex.append(offsex) # temporary fill
-		
-		# ------------------------
-		# Set the infection status
-		# ------------------------
-		if cdinfect == 'Y':
-			# Append a random number 0 or 1
-			infection.append(int(2*rand()))
-		else:
-			infection.append(0)	
-			
-		# -------------------
-		# Capture probability
-		# -------------------
-		if addans == 'N':
-			capture.append(0)
-			recapture.append(0)
-		else: # For adding individuals 
-			capture.append(1)
-			recapture.append(0)
-		
 		# --------------------------
 		# Get genes - For each loci:
 		# --------------------------		
 		genes.append([]) # And store genes information
-		# First check to see if there is more than one file that can be used for this patch and then randomly choose which one to initialize this individuals
+		# First check to see if there is more than one file that can be used for this patch and then randomly choose which one to initialize this individual; make sure this file is stored for ClassVars selection later
 		thisgenefile = randint(len(allelst[isub]))
 		for j in xrange(loci):
 							
@@ -758,14 +720,87 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 		elif genes[iind][0][0] == 1 and genes[iind][0][1] == 1:
 			hindex.append(0.5)
 		else:
-			hindex.append(-9999)
+			hindex.append(-9999)		
+		
+		# -------------------------
+		# Store classvars file used
+		# -------------------------
+		# First make sure to grab the correct ClassVars file - Then check cases
+		if len(allelst[isub]) == len(agelst[isub]):
+			thisfile = thisgenefile # match files
+		elif len(allelst[isub]) > len(agelst[isub]):
+			if len(agelst[isub]) == 1:
+				thisfile = 0 # only 1 class file use it
+			else:
+				thisfile = randint(len(agelst[isub])) # not ideal, but eg 3 genes and 2 classvars, randomly pick a class vars
+		else:
+			thisfile = randint(len(agelst[isub])) # not ideal, but eg 2 genes and 3 classvars, randomly pick a classvars
+		# Append the original patch and class vars file location for indexing to later.
+		whichClassFile.append('P'+str(isub)+'_CV'+str(thisfile))
+		# ---------------
+		# Get age
+		# ---------------		
+		agetemp = w_choice_general(agelst[isub][thisfile])[0]
+		age.append(agetemp)
+		
+		# ---------------------------------
+		# Set Size here
+		# ---------------------------------
+		# Set the size - add in Todd & Ng method
+		mu,sigma = age_size_mean[isub][thisfile][agetemp],age_size_std[isub][thisfile][agetemp]			
+		# Case here for sigma == 0
+		if sigma != 0:
+			lower, upper = 0,np.inf
+			sizesamp  = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)			
+		else:
+			sizesamp = mu
+		size.append(sizesamp)
+		
+		# ------------------------------
+		# Sex set
+		# ------------------------------
+		# Case for Wright Fisher or not
+		if Femalepercent[isub][thisfile][agetemp] != 'WrightFisher':
+			# Select the sex
+			randsex = int(100*rand())				
+			# If that random number is less than Femalepercent, assign it to be a female
+			if randsex < int(Femalepercent[isub][thisfile][agetemp]):
+				offsex = 0				
+			# If the random number is greater than the Femalepercent, assign it to be a male
+			else:
+				offsex = 1					
+			sex.append(offsex)
+		# Special case for WrightFisher
+		else: 
+			offsex = int(2*rand())
+			sex.append(offsex) # temporary fill
+		
+		# ------------------------
+		# Set the infection status
+		# ------------------------
+		if cdinfect == 'Y':
+			# Append a random number 0 or 1
+			infection.append(int(2*rand()))
+		else:
+			infection.append(0)	
+			
+		# -------------------
+		# Capture probability
+		# -------------------
+		if addans == 'N':
+			capture.append(0)
+			recapture.append(0)
+		else: # For adding individuals 
+			capture.append(1)
+			recapture.append(0)
+		
 		# ---------------------------------------------
 		# Set maturity Y or N and get egg lay last year
 		# ---------------------------------------------		
 		if sizeans == 'N': # Age control
 			if offsex == 0: # Female
 				if Fmat_set == 'N': # Use prob value
-					matval = F_mature[isub][agetemp]
+					matval = F_mature[isub][thisfile][agetemp]
 				else: # Use set age
 					if agetemp >= int(Fmat_set): # Age check
 						matval = 1.0
@@ -773,7 +808,7 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 						matval = 0.0				
 			else: # Male			
 				if Mmat_set == 'N': # Use prob value
-					matval = M_mature[isub][agetemp]
+					matval = M_mature[isub][thisfile][agetemp]
 				else: # Use set age
 					if agetemp >= int(Mmat_set): # Age check
 						matval = 1.0
@@ -855,7 +890,7 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 			layEggs.append(0)
 	
 	# Return Vars
-	return age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex
+	return age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile
 	#End::InitializeVars()
 	
 # ---------------------------------------------------------------------------------------------------	 
@@ -1165,9 +1200,9 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		else:
 			tempAllelefile.append(allefreqfiles_pass[isub])
 			
-		if len(classvarsfiles_pass[isub].split('|')) > 1:
+		if len(classvarsfiles_pass[isub].split('|')) > 1: # More than one time value
 			tempClassVarsfile.append(classvarsfiles_pass[isub].split('|')[icdtime])
-		else:
+		else: # No bar split, just one value
 			tempClassVarsfile.append(classvarsfiles_pass[isub])
 		
 		if len(fitvals) > 0:
@@ -1595,76 +1630,83 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 		age_percmort_back.append([])
 		size_percmort_out.append([])
 		size_percmort_back.append([])
-		for iage in xrange(len(age_percmort_back_mu[isub])):		
-			# age mort back ----------------
-			mu = age_percmort_back_mu[isub][iage]
-			sigma = age_percmort_back_sd[isub][iage]
-			if mu != 'N':
-				mu = float(mu)
-				# Case here for sigma == 0
-				if sigma != 0:
-					# Call a truncated normal here
-					lower, upper = 0,100
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-					age_percmort_back[isub].append(round(X/100.,3))
+		# Split up for patch values
+		for ifile in xrange(len(age_percmort_back_mu[isub])):
+			age_percmort_out[isub].append([])
+			age_percmort_back[isub].append([])
+			size_percmort_out[isub].append([])
+			size_percmort_back[isub].append([])
+			# Then loop through each class value
+			for iage in xrange(len(age_percmort_back_mu[isub][ifile])):		
+				# age mort back ----------------
+				mu = age_percmort_back_mu[isub][ifile][iage]
+				sigma = age_percmort_back_sd[isub][ifile][iage]
+				if mu != 'N':
+					mu = float(mu)
+					# Case here for sigma == 0
+					if sigma != 0:
+						# Call a truncated normal here
+						lower, upper = 0,100
+						X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+						age_percmort_back[isub][ifile].append(round(X/100.,3))
+					else:
+						age_percmort_back[isub][ifile].append(round(mu/100.,3))
+					if age_percmort_back[isub][ifile][iage] < 0:
+						age_percmort_back[isub][ifile][iage] = 0
 				else:
-					age_percmort_back[isub].append(round(mu/100.,3))
-				if age_percmort_back[isub][iage] < 0:
-					age_percmort_back[isub][iage] = 0
-			else:
-				age_percmort_back[isub].append(mu)
-			# age mort out ----------------
-			mu = age_percmort_out_mu[isub][iage]
-			sigma = age_percmort_out_sd[isub][iage]
-			if mu != 'N':
-				mu = float(mu)
-				# Case here for sigma == 0
-				if sigma != 0:
-					# Call a truncated normal here
-					lower, upper = 0,100
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-					age_percmort_out[isub].append(round(X/100.,3))
+					age_percmort_back[isub][ifile].append(mu)
+				# age mort out ----------------
+				mu = age_percmort_out_mu[isub][ifile][iage]
+				sigma = age_percmort_out_sd[isub][ifile][iage]
+				if mu != 'N':
+					mu = float(mu)
+					# Case here for sigma == 0
+					if sigma != 0:
+						# Call a truncated normal here
+						lower, upper = 0,100
+						X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+						age_percmort_out[isub][ifile].append(round(X/100.,3))
+					else:
+						age_percmort_out[isub][ifile].append(round(mu/100.,3))
+					if age_percmort_out[isub][ifile][iage] < 0:
+						age_percmort_out[isub][ifile][iage] = 0
 				else:
-					age_percmort_out[isub].append(round(mu/100.,3))
-				if age_percmort_out[isub][iage] < 0:
-					age_percmort_out[isub][iage] = 0
-			else:
-				age_percmort_out[isub].append(mu)
-			# size mort back  ----------------
-			mu = size_percmort_back_mu[isub][iage]
-			sigma = size_percmort_back_sd[isub][iage]
-			if mu != 'N':
-				mu = float(mu)
-				# Case here for sigma == 0
-				if sigma != 0:
-					# Call a truncated normal here
-					lower, upper = 0,100
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-					size_percmort_back[isub].append(round(X/100.,3))
+					age_percmort_out[isub][ifile].append(mu)
+				# size mort back  ----------------
+				mu = size_percmort_back_mu[isub][ifile][iage]
+				sigma = size_percmort_back_sd[isub][ifile][iage]
+				if mu != 'N':
+					mu = float(mu)
+					# Case here for sigma == 0
+					if sigma != 0:
+						# Call a truncated normal here
+						lower, upper = 0,100
+						X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+						size_percmort_back[isub][ifile].append(round(X/100.,3))
+					else:
+						size_percmort_back[isub][ifile].append(round(mu/100.,3))
+					if size_percmort_back[isub][ifile][iage] < 0:
+						size_percmort_back[isub][ifile][iage] = 0
 				else:
-					size_percmort_back[isub].append(round(mu/100.,3))
-				if size_percmort_back[isub][iage] < 0:
-					size_percmort_back[isub][iage] = 0
-			else:
-				size_percmort_back[isub].append(mu)
-			# size mort out ----------------
-			mu = size_percmort_out_mu[isub][iage]
-			sigma = size_percmort_out_sd[isub][iage]
-			if mu != 'N':
-				mu = float(mu)
-				# Case here for sigma == 0
-				if sigma != 0:
-					# Call a truncated normal here
-					lower, upper = 0,100
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-					size_percmort_out[isub].append(round(X/100.,3))
+					size_percmort_back[isub][ifile].append(mu)
+				# size mort out ----------------
+				mu = size_percmort_out_mu[isub][ifile][iage]
+				sigma = size_percmort_out_sd[isub][ifile][iage]
+				if mu != 'N':
+					mu = float(mu)
+					# Case here for sigma == 0
+					if sigma != 0:
+						# Call a truncated normal here
+						lower, upper = 0,100
+						X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+						size_percmort_out[isub][ifile].append(round(X/100.,3))
+					else:
+						size_percmort_out[isub][ifile].append(round(mu/100.,3))
+					if size_percmort_out[isub][ifile][iage] < 0:
+						size_percmort_out[isub][ifile][iage] = 0
 				else:
-					size_percmort_out[isub].append(round(mu/100.,3))
-				if size_percmort_out[isub][iage] < 0:
-					size_percmort_out[isub][iage] = 0
-			else:
-				size_percmort_out[isub].append(mu)
-		
+					size_percmort_out[isub][ifile].append(mu)
+			
 	# ----------------------------------
 	# For one numbers
 	# ----------------------------------
@@ -1792,7 +1834,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 		cor_mat = np.asarray(np.asarray(cor_mat)[1:,1:],dtype='float')
 		
 	# -----------------------------------------------------------------------
-	# Extract variables needed for initialization that very with cdclimategen
+	# Extract variables needed for initialization that vary with cdclimategen
 	# -----------------------------------------------------------------------	
 	# Get K for the first generation, but return K_temp to be read into CDClimate module, also get first capture probability back.
 	# one check on N0 > 0 and natal
@@ -1820,6 +1862,11 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	# --------------------------------
 	id,subpop = InitializeID(K,N0)
 	
+	# --------------------------------------------
+	# Initialize genetic structure - distribution 
+	# --------------------------------------------
+	allelst = InitializeGenes(datadir,allefreqfiles,loci,alleles)
+	
 	# ------------------------------------------------
 	# Initialize age structure - file and distribution
 	# ------------------------------------------------ 	
@@ -1844,17 +1891,11 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_percmort_back_sd = tupAgeFile[17]
 	size_percmort_out_sd = tupAgeFile[18]
 	size_percmort_back_sd = tupAgeFile[19]
-	#assortmateC = tupAgeFile[20]
-		
-	# --------------------------------------------
-	# Initialize genetic structure - distribution 
-	# --------------------------------------------
-	allelst = InitializeGenes(datadir,allefreqfiles,loci,alleles)
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature...
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
+	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
 	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'N')
 	
 	# ----------------------------------------------
@@ -1866,7 +1907,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	unisubpops = len(Pop)
 	
 	# Organize type data in SubpopIN - here return this and also update dynamically.
-	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('genes',(str,3*sum(alleles)+2*loci+2))]
+	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('genes',(str,3*sum(alleles)+2*loci+2))]
 	
 	# Get N here - N maybe slighlty different then specified due to random draws
 	N = []
@@ -1875,6 +1916,10 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	
 	# Set class variable by list of populations
 	for isub in xrange(unisubpops):
+		# Stick error statement here for multiple files of genes and classvars
+		if len(allelst[isub]) != len(agelst[isub]):
+			print('Warning: Number of gene files and ClassVars files specified for patch, '+str(isub)+'are not the same. Will continue with initialization using files given using first files.')	
+	
 		# Storage variables
 		subpopemigration[0].append([0])
 		subpopimmigration[0].append([0])
@@ -1913,13 +1958,13 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 				# Update the Wright Fisher case for sex here
 				if Femalepercent[isub][0] == 'WrightFisher':				
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],repr(genes[indspot]))
 					SubpopIN[isub].append(recd)
 				
 				# Not special Wright Fisher case
 				else:			
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature, newmature
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],repr(genes[indspot]))
 					SubpopIN[isub].append(recd)
 		# Convert to array with dytpe		
 		SubpopIN[isub] = np.asarray(SubpopIN[isub],dtype=dtype)
@@ -1957,6 +2002,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	del(recapture)
 	del(layEggs)
 	del(hindex)
+	del(whichClassFile)
 	
 	# Return this functions variables
 	tupPreProcess = ithmcrundir,\
@@ -2022,6 +2068,11 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	# --------------------------------
 	id,subpop = InitializeID(tempN0,tempN0)
 	
+	# --------------------------------------------
+	# Initialize genetic structure - distribution 
+	# --------------------------------------------
+	allelst = InitializeGenes(datadir,tempAllelefile,loci,alleles)
+	
 	# ------------------------------------------------
 	# Initialize age structure - file and distribution
 	# ------------------------------------------------
@@ -2046,17 +2097,11 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	age_percmort_back_sd = tupAgeFile[17]
 	size_percmort_out_sd = tupAgeFile[18]
 	size_percmort_back_sd = tupAgeFile[19]
-	#assortmateC = tupAgeFile[20]
-	
-	# --------------------------------------------
-	# Initialize genetic structure - distribution 
-	# --------------------------------------------
-	allelst = InitializeGenes(datadir,tempAllelefile,loci,alleles)
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
+	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
 	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'Y')
 	
 	# ---------------------------------------------
@@ -2109,12 +2154,12 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 				# Update the Wright Fisher case for sex here
 				if Femalepercent[isub][0] == 'WrightFisher':				
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],repr(genes[indspot]))
 				
 				# Not special Wright Fisher case
 				else:			
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature, newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],repr(genes[indspot]))
 				SubpopIN_add.append(recd)
 		
 		# Convert to array with dytpe		

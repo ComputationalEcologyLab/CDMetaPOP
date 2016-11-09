@@ -211,6 +211,7 @@ if __name__ == '__main__':
 		packans = batchVars['popmodel'][ibatch]
 		packpar1 = float(batchVars['popmodel_par1'][ibatch])
 		cor_mat_ans = batchVars['correlation_matrix'][ibatch]
+		defaultAgeMature = batchVars['mature_defaultAge'][ibatch]
 				
 		# Grab the nthfile list range specific to user input, list or sequence
 		if not isinstance(nthfile_out, (list,tuple)):
@@ -267,13 +268,13 @@ if __name__ == '__main__':
 		# If cdevolve is turned on must have 2 alleles
 		if cdevolveans != 'N' and alleles[0] != 2:
 			print('Warning: More than 2 alleles per locus specified. CDEVOLVE only considers first 2 alleles in selection models (except Hindex scenario).')
-			
+		
 		# Must have more than 1 loci
 		if loci <= 1:
 			print('Currently, CDmetaPOP needs more than 1 locus to run.')
 			sys.exit(-1)
 		if cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans.split('_')[0] == 'Hindex':
-			if not (timecdevolve != 'Out' or timecdevolve != 'Back' or timecdevolve != 'Both'):
+			if ((timecdevolve.find('Eggs') == -1) and (timecdevolve.find('Out') == -1) and (timecdevolve.find('Back') == -1)):
 				print('CDEVOLVE timing must be specified (e.g., Out, Back or Both).')
 				sys.exit(-1)
 			
@@ -505,7 +506,6 @@ if __name__ == '__main__':
 			N0_pass = tupPreProcess[55]
 			allefreqfiles_pass = tupPreProcess[56]
 			classvarsfiles_pass = tupPreProcess[57]
-			#assortmateC = tupPreProcess[58]
 			
 			# Grab first one only
 			K = K_mu # Initialize K with mu
@@ -544,7 +544,7 @@ if __name__ == '__main__':
 			# Timing events: start
 			start_time1 = datetime.datetime.now()
 			
-			DoUpdate(SubpopIN_init,K,xgridpop,ygridpop,-1,nthfile,ithmcrundir,loci,alleles,logfHndl,'Initial','N','N',[],burningen,[],[],[],[],[],[])
+			DoUpdate(SubpopIN_init,K,xgridpop,ygridpop,-1,nthfile,ithmcrundir,loci,alleles,logfHndl,'Initial','N','N',defaultAgeMature,[],burningen,[],[],[],[],[],[])
 			
 			# Print to log
 			stringout = 'DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -687,13 +687,13 @@ if __name__ == '__main__':
 				Bearpairs = DoMate(SubpopIN,K,\
 				freplace,mreplace,mateno,thresh_mate,\
 				cdmatrix_mate,Track_MateDistCD,xgridpop,\
-				ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,dtype,mate_ScaleMax,mate_ScaleMin,matemoveparA,matemoveparB,matemoveparC,Femalepercent_egg,eggFreq,sexans,selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,sizeans,age_size_mean,assortmateModel)
+				ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,dtype,mate_ScaleMax,mate_ScaleMin,matemoveparA,matemoveparB,matemoveparC,Femalepercent_egg,eggFreq,sexans,selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,assortmateModel)
 				
 				# Print to log
 				stringout = 'DoMate(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
-				print 'DoMate(): ',str(datetime.datetime.now() -start_time1),''							
-				
+				print 'DoMate(): ',str(datetime.datetime.now() -start_time1),''
+								
 				# ---------------------------------------
 				# Call DoOffspring()
 				# ---------------------------------------
@@ -718,12 +718,12 @@ if __name__ == '__main__':
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
 				
-				SubpopIN = DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,'Middle',growans,cdevolveans,fitvals,burningen,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,sizeans,age_size_mean,Track_N_back_age,eggFreq,backsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,backgrowdays,sourcePop,sizeans,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set)
+				SubpopIN = DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,'Middle',growans,cdevolveans,defaultAgeMature,fitvals,burningen,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,sizeans,age_size_mean,Track_N_back_age,eggFreq,backsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,backgrowdays,sourcePop,sizeans,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set)
 												
 				# Print to log
 				stringout = 'Second DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
-				print 'Second DoUpdate(): ',str(datetime.datetime.now() -start_time1),''					
+				print 'Second DoUpdate(): ',str(datetime.datetime.now() -start_time1),''
 				
 				# ------------------------------------------
 				# Call DoEmigration()
@@ -742,7 +742,7 @@ if __name__ == '__main__':
 				stringout = 'DoEmigration(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
 				print 'DoEmigration(): ',str(datetime.datetime.now() -start_time1),''					
-								
+							
 				# ----------------------------------------
 				# Call DoMortality()
 				# ----------------------------------------			
@@ -762,8 +762,8 @@ if __name__ == '__main__':
 				# ----------------------------------------------------
 				start_time1 = datetime.datetime.now() # Timing events: start
 				
-				SubpopIN = DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,'N',[],burningen,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,'EmiPop')
-				
+				SubpopIN = DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,'N',defaultAgeMature,[],burningen,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,'EmiPop')
+					
 				# Print to log
 				stringout = 'Third DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
@@ -785,7 +785,6 @@ if __name__ == '__main__':
 				stringout = 'DoImmigration(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
 				print 'DoImmigration(): ',str(datetime.datetime.now() -start_time1),''					
-				
 				# ------------------------------------------
 				# Call DoMortality()
 				# ------------------------------------------

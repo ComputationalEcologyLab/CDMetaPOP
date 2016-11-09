@@ -162,6 +162,10 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			outpool = SubpopIN[isub][iind]
 			originalpop = outpool[sourcePop]
 			
+			# Get this individuals original ClassVars file and bins for indexing
+			natalP = int(SubpopIN[isub][iind]['classfile'].split('_')[0].split('P')[1])
+			theseclasspars = int(SubpopIN[isub][iind]['classfile'].split('_')[1].split('CV')[1])
+			
 			# If setmigration is turned on
 			if setmigrate[isub] == 'Y' and 'I' in outpool['name']:
 				indProbans = 'Yes'
@@ -175,17 +179,16 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				# Check for age/size migration
 				indexofProb = outpool[sizecall]
 				# If size control then get size nearest to values in age file
-				if sizecall == 'size': # Here is multiple ClassVars, use first one
-					#closestval = min(size_mean[isub], key=lambda x:abs(x-indexofProb))
-					closestval = min(size_mean[0], key=lambda x:abs(x-indexofProb))
-					#Find = np.where(np.asarray(size_mean[isub])==closestval)[0][0]
-					Find = np.where(np.asarray(size_mean[0])==closestval)[0][0]
+				# Index to the correct age file of this original individual
+				if sizecall == 'size': 
+					closestval = min(size_mean[natalP][theseclasspars], key=lambda x:abs(x-indexofProb)) #Closest size
+					Find = np.where(np.asarray(size_mean[natalP][theseclasspars])==closestval)[0][0] #Index
 				else:
 					Find = indexofProb
 				# Check for ages over last age
-				if Find > len(ProbAge[isub]) - 1:
-					Find = len(ProbAge[isub]) - 1 # Make last age					
-				Mg_Class = ProbAge[isub][Find]
+				if Find > len(ProbAge[natalP][theseclasspars]) - 1:
+					Find = len(ProbAge[natalP][theseclasspars]) - 1 # Make last age					
+				Mg_Class = ProbAge[natalP][theseclasspars][Find]
 				
 				# Then multiply these together
 				indProb = Mg_Patch * Mg_Class
@@ -198,7 +201,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				# Patch migration not a success
 				else:
 					indProbans = 'No'					
-			
+				
 			# Then check migration success
 			if indProbans == 'Yes':
 				
@@ -210,7 +213,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				if sum(probarray) != 0.0:
 					
 					# CDEVOLVE
-					if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):		
+					if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen) and (timecdevolve.find('Out') != -1):		
 												
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)
@@ -233,7 +236,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 							continue
 													
 					# CDEVOLVE - 2 loci
-					elif (cdevolveans == '2' or cdevolveans == '2_mat') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+					elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
 						
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)
@@ -256,7 +259,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 							continue
 							
 					# CDEVOLVE - Hindex
-					elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+					elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
 						
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)
@@ -288,7 +291,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 					# Record string name of OriginalSubpop,ToSubpop,NAsubpop,EmiCD,ImmiCD,age,sex,size,infection,name,capture,layeggs,genes				
-					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['genes'])
+					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],outpool['genes'])
 								
 					# Record outpool disperse information
 					SubpopIN_keep[int(tosubpop)-1].append(recd)
@@ -312,7 +315,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			else:
 								
 				# CDEVOLVE - 1 locus
-				if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+				if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
 											
 					# for option 3 in which has to be mature
 					if cdevolveans == '1_mat' and outpool['mature'] == 0:
@@ -332,7 +335,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						continue
 												
 				# CDEVOLVE - 2 loci
-				elif (cdevolveans == '2' or cdevolveans == '2_mat') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+				elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
 					
 					# for option 3 in which has to be mature
 					if cdevolveans == '2_mat' and outpool['mature'] == 0:
@@ -352,7 +355,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						continue				
 				
 				# CDEVOLVE - Hindex
-				elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+				elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
 
 					# Call Hindex selection model
 					differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[int(originalpop)-1])
@@ -375,7 +378,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 				# Record string name of OriginalSubpop,ToSubpop,NA,EmiCD,ImmiCD,age,sex,size,infection,name,capture,genes 
-				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['genes'])
+				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],outpool['genes'])
 							
 				# Record outpool disperse information
 				SubpopIN_keep[int(originalpop)-1].append(recd)
@@ -397,19 +400,30 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 	# ----------------------------------------------
 	# SubpopIN - sort/rank/pack by Kage options
 	# ----------------------------------------------	
+	# If multiple ClassVars are given then bin min to max
+	if sizecall == 'size':
+		bin_min = min(sum(sum(size_mean,[]),[]))
+		bin_max = max(sum(sum(size_mean,[]),[]))
+		size_bin = [bin_min]
+		for ibin in xrange(len(size_mean[0][0])-1):
+			size_bin.append(size_bin[ibin]+(bin_max - bin_min)/(len(size_mean[0][0])-1))
+		# Get the middles for finding closest values
+		size_mean_middles = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2	
 	
-	# Loop through each subpop, sort, and grab Kage
+	# Temp lists and tracking updates
 	SubpopIN_keepK = []
 	Population.append([]) #Add spot for next generation
 	PackingDeathsAge.append([])
 	PopulationAge.append([])
-	PackingDeathsAge[gen] = [[] for x in xrange(0,len(size_mean[0]))]
-	PopulationAge[gen] = [[] for x in xrange(0,len(size_mean[0]))]	
+	# Age tracking numbers will be for the first size bin given
+	PackingDeathsAge[gen] = [[] for x in xrange(0,len(size_bin))]
+	PopulationAge[gen] = [[] for x in xrange(0,len(size_bin))]	
 	
 	# -------------------
 	# Packing is selected
 	# -------------------
-	if packans == 'packing':	
+	if packans == 'packing':
+
 		# Loop through each subpopulation
 		for isub in xrange(len(K)):
 					
@@ -418,20 +432,18 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			
 			# Switch here for size or age control
 			if sizecall == 'size': # Careful here and use first ClassVars
-				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
 				# Count up each unique 'sizes'
 				countages = count_unique(age_adjusted)
 			else:
 				# Count up each uniages
 				countages = count_unique(SubpopIN_arr['age'])
-			
+						
 			# K,N for this population
 			Kpop = K[isub]
 			Npop = sum(countages[1])
 			if Npop == 0 or Kpop == 0:
 				# Append all information to temp SubpopKeep variable
-				#Nage_samp_ind = np.arange(len(SubpopIN_arr))
 				Nage_samp_ind = np.arange(0)					
 			else:		
 				# Check here on numbers
@@ -441,6 +453,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					# Get K_scaling for population
 					Kscale = np.log(float(Kpop)/Npop) / (1. - (Npop/float(Kpop)))
 				
+				# -------------------------
+				# Age loop
+				# -------------------------
 				# Loop through each age class - here recursive, start with largest class first
 				Nage_samp_ind = [] 
 				Kage_hab_adj = 0.
@@ -451,8 +466,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					Ageclass = iage
 					
 					# Special case when age is greater than last age class only used for indexing now
-					if Ageclass > len(size_mean[0])-1:
-						indexforAgeclass = len(size_mean[0]) - 1
+					if Ageclass > len(size_bin)-1:
+						indexforAgeclass = len(size_bin) - 1
 					else:
 						indexforAgeclass = Ageclass
 					
@@ -487,10 +502,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						PackingDeathsAge[gen][indexforAgeclass].append(0)
 					else:
 						# Grab a random draw of Kage from numbers - or sort by size and grab the top size classes?
-						Kage = int(round(Kage))
-						Kused = Kage
-						Nage_samp_ind.append(random.sample(Nage_index,Kage))
-						PackingDeathsAge[gen][indexforAgeclass].append(Nage-Kage)
+						Kused = int(round(Kage))
+						Nage_samp_ind.append(random.sample(Nage_index,Kused))
+						PackingDeathsAge[gen][indexforAgeclass].append(Nage-Kused)
 					
 					# The adjust the habitat or reallocation for next class
 					if Kage == 0:
@@ -511,9 +525,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
 			PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind)
 			
-			# Trace class size - call size call again		
+			# Track class size - get age adjusted again. 		
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])
 			else: # age call
 				# Count up each uniages
@@ -562,7 +575,6 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			
 			# Get size adjusted age for tracking		
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])
 			else: # age call
 				# Count up each uniages
@@ -595,6 +607,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 	# -------------------------------------------- 
 	elif packans == 'logistic':		
 		
+		print('Logistic growth is not updated yet with new version.')
+		sys.exit(-1)
+		
 		# Loop through each patch
 		for isub in xrange(len(K)):
 			
@@ -603,7 +618,6 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			
 			# Switch here for size or age control
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
 				# Count up each unique 'sizes'
 				countages = count_unique(age_adjusted)
@@ -643,9 +657,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						Nage_index = np.where(SubpopIN_arr['age']==Ageclass)[0]
 											
 					# Special case: if last age class, no survivros
-					if Ageclass > len(size_mean[0])-1:
+					if Ageclass > len(size_bin)-1:
 						mortreturn = Nage # Then mortality all this age class
-						indexforAgeclass = len(size_mean[0]) - 1
+						indexforAgeclass = len(size_bin) - 1
 					else: 
 						indexforAgeclass = Ageclass
 						# Number in next age class

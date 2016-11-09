@@ -49,14 +49,21 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 	AgeDeaths.append([])
 	SizeDeaths.append([])
 	
-	# Add spots for Age tracking
-	for iage in xrange(len(age_percmort[0])):
+	# For age/size tracking
+	bin_min = min(sum(sum(size_mean,[]),[]))
+	bin_max = max(sum(sum(size_mean,[]),[]))
+	size_bin = [bin_min]
+	for ibin in xrange(len(size_mean[0][0])-1):
+		size_bin.append(size_bin[ibin]+(bin_max - bin_min)/(len(size_mean[0][0])-1))
+	# Get the middles for finding closest values
+	size_mean_middles_bin = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2
+	for iage in xrange(len(size_bin)):
 		AgeDeaths[gen].append([])
 		SizeDeaths[gen].append([])
 	
 	# Loop through each patch
-	for isub in xrange(len(K)):		
-	
+	for isub in xrange(len(K)):	
+		
 		# Get each SubpopIN pop as array
 		SubpopIN_arr = SubpopIN[isub]
 		
@@ -65,37 +72,55 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 		
 		# If wished entire patch gone
 		if pop_percmort[isub] == 'E' and Npop != 0:
+			# First get the age/size death tracking numbers			
+			age_adjusted_tracking_index = np.searchsorted(size_mean_middles_bin, SubpopIN_arr['size'])
+			countages = count_unique(age_adjusted_tracking_index)
+			for thiscount in countages[0]:
+				SizeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+			# For age...
+			age_tracking_index = SubpopIN_arr['age']
+			countages = count_unique(age_tracking_index)
+			for thiscount in countages[0]:
+				# Special case when more age/size groups then bins
+				if thiscount >= len(size_bin):
+					# Group in the last bin
+					AgeDeaths[gen][len(size_bin)-1].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+				else:
+					AgeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+				
+			# The delete all
 			deleteall = np.asarray(range(0,Npop,1))
 			SubpopIN_arr = np.delete(SubpopIN_arr,deleteall)
 			SubpopIN_keep.append(SubpopIN_arr)
+			# Store new N 
+			Population[gen].append(0)
+			PopDeaths[gen].append(Npop)
+		
+		# Stop if nobody in this patch
+		elif pop_percmort[isub] != 'E' and Npop == 0:
+			# Get tracking numbers
+			SubpopIN_keep.append(SubpopIN_arr)
+			# Store new N 
 			Population[gen].append(0)
 			PopDeaths[gen].append(0)
 			for iage in xrange(len(age_percmort[isub])):
 				AgeDeaths[gen][iage].append(0)	
 				SizeDeaths[gen][iage].append(0)
-		
-		# Stop if nobody in this patch or wished skipped
-		elif pop_percmort[isub] != 'E' and Npop == 0:
-			# Get tracking numbers
-			SubpopIN_keep.append(SubpopIN_arr)
-			Population[gen].append(0)
-			PopDeaths[gen].append(0)
-			for iage in xrange(len(age_percmort[isub])):
-				AgeDeaths[gen][iage].append(0)	
-				SizeDeaths[gen][iage].append(0)		
-		
+			
 		# Other case
 		elif pop_percmort[isub] == 'E' and Npop == 0:
 			# Get tracking numbers
 			SubpopIN_keep.append(SubpopIN_arr)
+			# Store new N 
 			Population[gen].append(0)
 			PopDeaths[gen].append(0)
 			for iage in xrange(len(age_percmort[isub])):
 				AgeDeaths[gen][iage].append(0)	
-				SizeDeaths[gen][iage].append(0)			
-		
+				SizeDeaths[gen][iage].append(0)
+					
 		# Keep going if individuals in this patch
 		else:
+			
 			# ----------------------------
 			# Apply patch level mortality
 			# ----------------------------
@@ -117,117 +142,154 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 				# Grab the survived offspring location
 				else:
 					SubpopIN_keeppop = SubpopIN_arr[sample_survivors]	
-			
+		
 			# Only keep going if any survived
+			# -------------------------------
 			if Nsurvivors != 0:
 				# ----------------------------
 				# Apply size level mortality
 				# ----------------------------
-				# Get age adjusted size classes
-				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
-				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keeppop['size'])
-				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)		
-				
-				# Loop through age getting Nage in pop
-				Nsize_samp_ind = []		
-				for iage in xrange(len(countages[0])):
-								
-					AgeClass = countages[0][iage]
-					# Check for cases in which age is over last age
-					if AgeClass > len(size_mean[0])-1:
-						# Then make a temp age for indexing
-						indexforAgeClass = len(size_mean[0])-1
-					else:
-						indexforAgeClass = AgeClass
-					# Where are these size classes
-					Nage_index = np.where(age_adjusted==AgeClass)[0]
+				# First check for multiple classfiles, split up 
+				countfiles = count_unique(SubpopIN_keeppop['classfile'])
+				# Storage for keeping individuals
+				Nsize_samp_ind = []
+				# Then for each unique file type
+				for ifile in xrange(len(countfiles[0])):
+					# Get this files unique patch and file pointer
+					thistype = countfiles[0][ifile]							
+					natalP = int(thistype.split('_')[0].split('P')[1])
+					theseclasspars = int(thistype.split('_')[1].split('CV')[1])
+					# The size breaks
+					size_mean_middles = np.asarray(size_mean[natalP][theseclasspars])[1:] - np.diff(np.asarray(size_mean[natalP][theseclasspars]).astype('f'))/2
+					# All individuals information - careful to index into keeppop
+					thistype_index = np.where(SubpopIN_keeppop['classfile']==thistype)[0]
+					SubpopIN_keeppop_thistype = SubpopIN_keeppop[thistype_index]
+					# 'Age_adjusted'
+					age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keeppop_thistype['size'])
 					
-					# Number in this size class
-					Nage = len(Nage_index)
-					# Percentage mortality for the age class
-					MortAge = size_percmort[isub][indexforAgeClass]
+					# Count up each unique 'sizes'
+					countages = count_unique(age_adjusted)
 					
-					# Make sure want to consider this mort percent
-					if MortAge == 'N' or MortAge == 0.0:
-						# Keep them all
-						Nsize_samp_ind = Nsize_samp_ind + Nage_index.tolist()
-						tempmort = 0				
-					# Get a random number for the length of Nage and check survival
-					elif MortAge > 0.0: # If there is a possible mort event
-						randnos = np.random.sample(Nage) # Create list of rand nos
-						tempmort = 0 # tracker
-						for thisone in xrange(Nage): # Loop through each spot
-							if randnos[thisone] > MortAge: # Survives
-								# Then store index of survivor
-								Nsize_samp_ind = Nsize_samp_ind + [Nage_index[thisone]]
-							else: # mortality occured	
-								tempmort = tempmort + 1
-										
-					# Add spots to tracking
-					SizeDeaths[gen][indexforAgeClass].append(tempmort)
-				
+					# Loop through age getting Nage in pop		
+					for iage in xrange(len(countages[0])):
+									
+						AgeClass = countages[0][iage]
+						# Check for cases in which age is over last age
+						if AgeClass > len(size_mean[natalP][theseclasspars])-1:
+							# Then make a temp age for indexing
+							indexforAgeClass = len(size_mean[natalP][theseclasspars])-1
+						else:
+							indexforAgeClass = AgeClass
+						# Where are these size classes
+						Nage_index = np.where(age_adjusted==AgeClass)[0]
+						
+						# Number in this size class
+						Nage = len(Nage_index)
+						# Percentage mortality for the age class
+						MortAge = size_percmort[natalP][theseclasspars][indexforAgeClass]
+						
+						# Make sure want to consider this mort percent
+						if MortAge == 'N' or MortAge == 0.0:
+							# Keep them all - careful here to index back to original array
+							Nsize_samp_ind = Nsize_samp_ind + thistype_index[Nage_index].tolist()
+							tempmort = 0				
+						# Get a random number for the length of Nage and check survival
+						elif MortAge > 0.0: # If there is a possible mort event
+							randnos = np.random.sample(Nage) # Create list of rand nos
+							for thisone in xrange(Nage): # Loop through each spot
+								if randnos[thisone] > MortAge: # Survives
+									# Then store index of survivor
+									Nsize_samp_ind = Nsize_samp_ind + [thistype_index[Nage_index[thisone]]]
+								else: # mortality occured, store index of mortality for tracking	
+									age_adjusted_tracking_index = np.searchsorted(size_mean_middles_bin, SubpopIN_keeppop[thistype_index[Nage_index[thisone]]]['size'])
+									SizeDeaths[gen][age_adjusted_tracking_index].append(1)
+						
 				# Get left over in this patch
 				SubpopIN_keeppop = SubpopIN_keeppop[Nsize_samp_ind]
-			
+				
 				# ----------------------------
 				# Apply age level mortality
 				# ----------------------------
-				# Count up each uniages
-				countages = count_unique(SubpopIN_keeppop['age'])
+				# Storage for keeping individuals
+				Nage_samp_ind = []
 				
-				# Loop through age getting Nage in pop
-				Nage_samp_ind = []		
-				for iage in xrange(len(countages[0])):
-								
-					AgeClass = countages[0][iage]
-					# Check for cases in which age is over last age
-					if AgeClass > len(size_mean[0])-1:
-						# Then make a temp age for indexing
-						indexforAgeClass = len(size_mean[0])-1
-					else: 
-						indexforAgeClass = AgeClass
-					
-					# Find all with this age
-					Nage_index = np.where(SubpopIN_keeppop['age']==AgeClass)[0]		
-					
-					# Number in this age class
-					Nage = len(Nage_index)
-					# Percentage mortality for the age class
-					MortAge = age_percmort[isub][indexforAgeClass]
-					
-					# Make sure want to consider this mort percent
-					if MortAge == 'N' or MortAge == 0.0:
-						# Keep them all
-						Nage_samp_ind = Nage_samp_ind + Nage_index.tolist()
-						tempmort = 0
-					
-					# Get a random number for the length of Nage and check survival
-					elif MortAge > 0.0: # If there is a possible mort event
-						randnos = np.random.sample(Nage) # Create list of rand nos
-						tempmort = 0 # tracker
-						for thisone in xrange(Nage): # Loop through each spot
-							if randnos[thisone] > MortAge: # Survives
-								# Then store index of survivor
-								Nage_samp_ind = Nage_samp_ind + [Nage_index[thisone]]
-							else: # mortality occured	
-								tempmort = tempmort + 1
-										
-					# Add spots to tracking
-					AgeDeaths[gen][indexforAgeClass].append(tempmort)
+				# Note same countfiles as above size mortality
 				
+				# The for each unique file type
+				for ifile in xrange(len(countfiles[0])):
+					# Get this files unique patch and file pointer
+					thistype = countfiles[0][ifile]
+					natalP = int(thistype.split('_')[0].split('P')[1])
+					theseclasspars = int(thistype.split('_')[1].split('CV')[1])
+					# All individuals information - careful to index into keeppop
+					thistype_index = np.where(SubpopIN_keeppop['classfile']==thistype)[0]
+					SubpopIN_keeppop_thistype = SubpopIN_keeppop[thistype_index]
+					# 'Age_adjusted'
+					age_adjusted = SubpopIN_keeppop_thistype['age']
+				
+					# Count up each uniages
+					countages = count_unique(age_adjusted)
+				
+					# Loop through age getting Nage in pop						
+					for iage in xrange(len(countages[0])):
+									
+						AgeClass = countages[0][iage]
+						# Check for cases in which age is over last age
+						if AgeClass > len(size_mean[natalP][theseclasspars])-1:
+							# Then make a temp age for indexing
+							indexforAgeClass = len(size_mean[natalP][theseclasspars])-1
+						else: 
+							indexforAgeClass = AgeClass
+						
+						# Find all with this age
+						Nage_index = np.where(age_adjusted==AgeClass)[0]		
+						
+						# Number in this age class
+						Nage = len(Nage_index)
+						# Percentage mortality for the age class
+						MortAge = age_percmort[natalP][theseclasspars][indexforAgeClass]
+						
+						# Make sure want to consider this mort percent
+						if MortAge == 'N' or MortAge == 0.0:
+							# Keep them all  - careful here to index back to original array
+							Nage_samp_ind = Nage_samp_ind + thistype_index[Nage_index].tolist()
+							tempmort = 0
+						
+						# Get a random number for the length of Nage and check survival
+						elif MortAge > 0.0: # If there is a possible mort event
+							randnos = np.random.sample(Nage) # Create list of rand nos
+							for thisone in xrange(Nage): # Loop through each spot
+								if randnos[thisone] > MortAge: # Survives
+									# Then store index of survivor
+									Nage_samp_ind = Nage_samp_ind + [thistype_index[Nage_index[thisone]]]
+								else: # mortality occured, add tracking spot	
+									AgeDeaths[gen][indexforAgeClass].append(1)
+							
 				# Grab the survived offspring location
 				SubpopIN_keeppop = SubpopIN_keeppop[Nage_samp_ind]		
 				
 			# If no one survived from patch level mortality
+			# ---------------------------------------------
 			else:
-				for iage in xrange(len(age_percmort[isub])):
-					AgeDeaths[gen][iage].append(0)	
-					SizeDeaths[gen][iage].append(0)	
-			
+				# Get the ones that died and age_adjusted for tracking
+				age_adjusted_tracking_index = np.searchsorted(size_mean_middles_bin, SubpopIN_arr['size'])
+				countages = count_unique(age_adjusted_tracking_index)
+				for thiscount in countages[0]:
+					SizeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+				# For age...
+				age_tracking_index = SubpopIN_arr['age']
+				countages = count_unique(age_tracking_index)
+				for thiscount in countages[0]:
+					# Special case when more age/size groups then bins
+					if thiscount >= len(size_bin):
+						# Group in the last bin
+						AgeDeaths[gen][len(size_bin)-1].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+					else:
+						AgeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+						
 			# Append all information to temp SubpopKeep variable
 			SubpopIN_keep.append(SubpopIN_keeppop)
-			
+
 			# Store new N 
 			Population[gen].append(len(SubpopIN_keep[isub]))
 			# And track age deaths
@@ -240,8 +302,9 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 	# Add Population total
 	Population[gen].insert(0,sum(Population[gen]))	
 	PopDeaths[gen].insert(0,sum(PopDeaths[gen]))
-	# Sum the AgeDeaths/sizeDeaths
-	for iage in xrange(len(age_percmort[0])):
+	
+	# Sum the AgeDeaths/sizeDeaths - in the size_bin classes if multiple files
+	for iage in xrange(len(size_bin)):
 		AgeDeaths[gen][iage] = int(sum(AgeDeaths[gen][iage]))
 		SizeDeaths[gen][iage] = int(sum(SizeDeaths[gen][iage]))
 	
@@ -265,8 +328,15 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 	PopDeaths.append([])
 	AgeDeaths.append([])
 	SizeDeaths.append([])
-	# Add spots for Age tracking
-	for iage in xrange(len(age_percmort[0])):
+	# For age/size tracking
+	bin_min = min(sum(sum(size_mean,[]),[]))
+	bin_max = max(sum(sum(size_mean,[]),[]))
+	size_bin = [bin_min]
+	for ibin in xrange(len(size_mean[0][0])-1):
+		size_bin.append(size_bin[ibin]+(bin_max - bin_min)/(len(size_mean[0][0])-1))
+	# Get the middles for finding closest values
+	size_mean_middles_bin = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2
+	for iage in xrange(len(size_bin)):
 		AgeDeaths[gen].append([])
 		SizeDeaths[gen].append([])
 	
@@ -281,35 +351,51 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 		
 		# Stop if nobody in this patch
 		if pop_percmort[isub] == 'E' and Npop != 0:
+			# First get the age/size death tracking numbers			
+			age_adjusted_tracking_index = np.searchsorted(size_mean_middles_bin, SubpopIN_arr['size'])
+			countages = count_unique(age_adjusted_tracking_index)
+			for thiscount in countages[0]:
+				SizeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+			# For age...
+			age_tracking_index = SubpopIN_arr['age']
+			countages = count_unique(age_tracking_index)
+			for thiscount in countages[0]:
+				# Special case when more age/size groups then bins
+				if thiscount >= len(size_bin):
+					# Group in the last bin
+					AgeDeaths[gen][len(size_bin)-1].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+				else:
+					AgeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
+			# The delete all
 			deleteall = np.asarray(range(0,Npop,1))
 			SubpopIN_keeppop = np.delete(SubpopIN_arr,deleteall)
 			SubpopIN_keep.append(SubpopIN_keeppop)
+			# Store new N 
 			Population[gen].append(0)
-			PopDeaths[gen].append(0)
-			for iage in xrange(len(age_percmort[isub])):
-				AgeDeaths[gen][iage].append(0)	
-				SizeDeaths[gen][iage].append(0)		
-
+			PopDeaths[gen].append(Npop)
+			
 		# If wished entire patch gone
 		elif pop_percmort[isub] != 'E' and Npop == 0:
 			# Get tracking numbers
 			SubpopIN_keep.append(SubpopIN_arr)
+			# Store new N 
 			Population[gen].append(0)
 			PopDeaths[gen].append(0)
 			for iage in xrange(len(age_percmort[isub])):
 				AgeDeaths[gen][iage].append(0)	
-				SizeDeaths[gen][iage].append(0)	
-									
+				SizeDeaths[gen][iage].append(0)
+							
 		# Other case
 		elif pop_percmort[isub] == 'E' and Npop == 0:
 			# Get tracking numbers
 			SubpopIN_keep.append(SubpopIN_arr)
+			# Store new N 
 			Population[gen].append(0)
 			PopDeaths[gen].append(0)
 			for iage in xrange(len(age_percmort[isub])):
 				AgeDeaths[gen][iage].append(0)	
-				SizeDeaths[gen][iage].append(0)	
-		
+				SizeDeaths[gen][iage].append(0)
+			
 		# Keep going if individuals in this patch
 		else:
 			# ----------------------------
@@ -323,114 +409,127 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 			else:
 				MortPatch_use = MortPatch
 							
-			# ----------------------------
-			# Apply size level mortality
-			# ----------------------------
-			# Get age adjusted size classes
-			size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
-			age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr['size'])
-			# Count up each unique 'sizes'
-			countsizes = count_unique(age_adjusted)
+			# ------------------------------
+			# Check for multiply class types
+			# ------------------------------
+			countfiles = count_unique(SubpopIN_arr['classfile'])
 			
-			# Loop through age getting Nage in pop
-			N_samp_ind = []		
-			for isize in xrange(len(countsizes[0])):
+			# Storage for keeping individuals
+			N_samp_ind = []
+			# Then for each unique file type in this patch
+			for ifile in xrange(len(countfiles[0])):
+				# Get this files unique patch and file pointer
+				thistype = countfiles[0][ifile]							
+				natalP = int(thistype.split('_')[0].split('P')[1])
+				theseclasspars = int(thistype.split('_')[1].split('CV')[1])	
+			
+				# ----------------------------
+				# Apply size level mortality
+				# ----------------------------
+				# The size breaks
+				size_mean_middles = np.asarray(size_mean[natalP][theseclasspars])[1:] - np.diff(np.asarray(size_mean[natalP][theseclasspars]).astype('f'))/2
+				# All individuals information - careful to index into arr
+				thistype_index = np.where(SubpopIN_arr['classfile']==thistype)[0]
+				SubpopIN_keep_thistype = SubpopIN_arr[thistype_index]
+				# 'Age_adjusted'
+				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keep_thistype['size'])
+					
+				# Count up each unique 'sizes'
+				countsizes = count_unique(age_adjusted)
+				
+				# Loop through size/age getting Nage in pop
+				for isize in xrange(len(countsizes[0])):
 							
-				SizeClass = countsizes[0][isize]
-				# Check for cases in which age is over last age
-				if SizeClass > len(size_mean[0])-1:
-					# Then make a temp age for indexing
-					indexforSizeClass = len(size_mean[0])-1
-				else:
-					indexforSizeClass = SizeClass
-				# Where are these size classes
-				Nsize_index = np.where(age_adjusted==SizeClass)[0]
-				
-				# Number in this size class
-				Nsize = len(Nsize_index)
-				# Percentage mortality for the size class
-				MortSize = size_percmort[isub][indexforSizeClass]
-				# If 'N', then ignore this perc
-				if MortSize == 'N':
-					MortSize_use = 1.0
-				else:
-					MortSize_use = MortSize
-				
-				# --------------------------------------------
-				# Apply age level mortality to this size class
-				# --------------------------------------------
-				
-				# Just this size group in this patch
-				SubpopIN_arr_sizeclass = SubpopIN_arr[Nsize_index]
-				
-				# Get ages in this size class
-				countages = count_unique(SubpopIN_arr_sizeclass['age'])
-				
-				# Tracking mortality in this size class
-				tempmort_size = 0
-				
-				# Loop through the ages getting Nage in this size class in this patch...
-				for iage in xrange(len(countages[0])):
-					AgeClass = countages[0][iage]
+					SizeClass = countsizes[0][isize]
 					# Check for cases in which age is over last age
-					if AgeClass > len(size_mean[0])-1:
+					if SizeClass > len(size_mean[natalP][theseclasspars])-1:
 						# Then make a temp age for indexing
-						indexforAgeClass = len(size_mean[0])-1
-					else: 
-						indexforAgeClass = AgeClass
-					
-					# Find all with this age
-					Nage_index = np.where(SubpopIN_arr_sizeclass['age']==AgeClass)[0]
-
-					# But becareful to link back to index for size group
-					Nsize_age_index = Nsize_index[Nage_index] # This index will link back to SubpopIN_arr or patch level
-					
-					# Number in this age class that is in the size class
-					Nage = len(Nage_index)
-					# Percentage mortality for the age class
-					MortAge = age_percmort[isub][indexforAgeClass]
-					# If 'N' then ignore
-					if MortAge == 'N':
-						MortAge_use = 1.0
+						indexforSizeClass = len(size_mean[natalP][theseclasspars])-1
 					else:
-						MortAge_use = MortAge						
-					
-					# Then apply mortality for all perc - check on N cases
-					# ----------------------------------------------------
-					if MortAge == 'N' and MortPatch == 'N' and MortSize == 'N':
-						MortAll = 0.0
-					else:
-						MortAll = MortPatch_use * MortSize_use * MortAge_use
-					
-					# If no mortality here
-					if MortAll == 0.0:
-						# Keep them all
-						N_samp_ind = N_samp_ind + Nsize_age_index.tolist()
-						tempmort_age = 0
-					# Else apply mortality
-					else:
-						randnos = np.random.sample(Nage) # Create list of rand nos
-						
-						tempmort_age = 0 # tracker
-						for thisone in xrange(Nage): # Loop through each spot
-							if randnos[thisone] > MortAll: # Survives
-								# Then store index of survivor
-								N_samp_ind = N_samp_ind + [Nsize_age_index[thisone]]
-							else: # mortality occured	
-								tempmort_age = tempmort_age + 1
-						
-					# Add spots to tracking
-					AgeDeaths[gen][indexforAgeClass].append(tempmort_age)
-					tempmort_size = tempmort_size + tempmort_age
-				# End::Age loop
+						indexforSizeClass = SizeClass
 				
-				# Add spots to tracking size
-				SizeDeaths[gen][indexforSizeClass].append(tempmort_size)
-			# End::Size Loop
-		
+					# Where are these size classes
+					Nsize_index = np.where(age_adjusted==SizeClass)[0]
+					
+					# Number in this size class
+					Nsize = len(Nsize_index)
+					# Percentage mortality for the size class
+					MortSize = size_percmort[natalP][theseclasspars][indexforSizeClass]
+					# If 'N', then ignore this perc
+					if MortSize == 'N':
+						MortSize_use = 1.0
+					else:
+						MortSize_use = MortSize
+					
+					# --------------------------------------------
+					# Apply age level mortality to this size class
+					# --------------------------------------------
+					
+					# Just this size group in this patch
+					SubpopIN_arr_sizeclass = SubpopIN_arr[Nsize_index]
+				
+					# Get ages in this size class
+					countages = count_unique(SubpopIN_arr_sizeclass['age'])
+				
+					# Loop through the ages getting Nage in this size class in this patch...
+					for iage in xrange(len(countages[0])):
+						AgeClass = countages[0][iage]
+						# Check for cases in which age is over last age
+						if AgeClass > len(size_mean[natalP][theseclasspars])-1:
+							# Then make a temp age for indexing
+							indexforAgeClass = len(size_mean[natalP][theseclasspars])-1
+						else: 
+							indexforAgeClass = AgeClass
+						
+						# Find all with this age
+						Nage_index = np.where(SubpopIN_arr_sizeclass['age']==AgeClass)[0]
+
+						# But be careful to link back to index for size group and then class file group
+						
+						Nsize_age_index = thistype_index[Nsize_index[Nage_index]] # This index will link back to SubpopIN_arr or patch level
+						
+						# Number in this age class that is in the size class
+						Nage = len(Nage_index)
+						# Percentage mortality for the age class
+						MortAge = age_percmort[natalP][theseclasspars][indexforAgeClass]
+						# If 'N' then ignore
+						if MortAge == 'N':
+							MortAge_use = 1.0
+						else:
+							MortAge_use = MortAge						
+						
+						# Then apply mortality for all perc - check on N cases
+						# ----------------------------------------------------
+						if MortAge == 'N' and MortPatch == 'N' and MortSize == 'N':
+							MortAll = 0.0
+						else:
+							MortAll = MortPatch_use * MortSize_use * MortAge_use
+						
+						# If no mortality here
+						if MortAll == 0.0:
+							# Keep them all
+							N_samp_ind = N_samp_ind + Nsize_age_index.tolist()
+							tempmort_age = 0
+						# Else apply mortality
+						else:
+							randnos = np.random.sample(Nage) # Create list of rand nos
+							for thisone in xrange(Nage): # Loop through each spot
+								if randnos[thisone] > MortAll: # Survives
+									# Then store index of survivor
+									N_samp_ind = N_samp_ind + [Nsize_age_index[thisone]]
+									
+								else: # mortality occured, add tracking spots
+									age_adjusted_tracking_index = np.searchsorted(size_mean_middles_bin, SubpopIN_arr[Nsize_age_index[thisone]]['size'])
+									SizeDeaths[gen][age_adjusted_tracking_index].append(1)
+									AgeDeaths[gen][indexforAgeClass].append(1)
+									
+					# End::Age loop
+				# End::Size Loop
+			# End class file loop
+			
 			# Append all information to temp SubpopKeep variable
 			SubpopIN_keep.append(SubpopIN_arr[N_samp_ind])
-			
+				
 			# Store new N 
 			Population[gen].append(len(SubpopIN_keep[isub]))
 			# And track age deaths
@@ -441,7 +540,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 	Population[gen].insert(0,sum(Population[gen]))	
 	PopDeaths[gen].insert(0,sum(PopDeaths[gen]))
 	# Sum the AgeDeaths/sizeDeaths
-	for iage in xrange(len(age_percmort[0])):
+	for iage in xrange(len(size_bin)):
 		AgeDeaths[gen][iage] = int(sum(AgeDeaths[gen][iage]))
 		SizeDeaths[gen][iage] = int(sum(SizeDeaths[gen][iage]))
 	
@@ -487,21 +586,21 @@ def DoMortality(SubpopIN,K,PopDeaths,pop_percmort,age_percmort,gen,Population,Ag
 		SizeDeaths.append([])
 		Population.append([])
 		# Add spots for Age tracking
-		for iage in xrange(len(age_percmort[0])):
+		for iage in xrange(len(size_mean[0][0])):
 			AgeDeaths[gen].append([])
 			SizeDeaths[gen].append([])
 		# Loop through each patch
 		for isub in xrange(len(K)):
 			PopDeaths[gen].append(0)
 			Population[gen].append(len(SubpopIN[isub]))
-			for iage in xrange(len(age_percmort[isub])):
+			for iage in xrange(len(size_mean[0][0])):
 				AgeDeaths[gen][iage].append(0)	
 				SizeDeaths[gen][iage].append(0)
 		# Add Population total	
 		PopDeaths[gen].insert(0,sum(PopDeaths[gen]))
 		Population[gen].insert(0,sum(Population[gen]))
 		# Sum the AgeDeaths/sizeDeaths
-		for iage in xrange(len(age_percmort[0])):
+		for iage in xrange(len(size_mean[0][0])):
 			AgeDeaths[gen][iage] = int(sum(AgeDeaths[gen][iage]))
 			SizeDeaths[gen][iage] = int(sum(SizeDeaths[gen][iage]))
 	

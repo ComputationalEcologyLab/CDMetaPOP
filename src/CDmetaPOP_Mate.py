@@ -52,7 +52,7 @@ def w_choice_item(lst):
 	#End::w_choice_item()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecall,size_mean,assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,count=None):
+def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,count=None):
 	'''
 	DoSexualYY() and DoSexualNY()
 	This function is the mating function for: 
@@ -222,7 +222,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecal
 	# End::DoSexual()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoSexualNN(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecall,size_mean,assortmate,nomales,xycdmatrix,females,\
+def DoSexualNN(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmate,nomales,xycdmatrix,females,\
 males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,count=None):
 	'''
 	DoSexualNN()
@@ -299,7 +299,7 @@ males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,count=None):
 	# End::DoSexualNN()		
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,dtype,ScaleMax,ScaleMin,A,B,C,Femalepercent,eggFreq,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,sizecall,size_mean,assortmateModel):
+def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,dtype,ScaleMax,ScaleMin,A,B,C,Femalepercent,eggFreq,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel):
 
 	'''
 	DoMate()
@@ -397,7 +397,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			while count < looptime:
 						
 				# Get probability function of user defined input number
-				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],sizecall,size_mean,assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,count)
+				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,count)
 												
 				# Update count
 				count = count + 1
@@ -410,7 +410,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			while count < looptime:
 				
 				# Get probability function of user defined input number
-				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],sizecall,size_mean,assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing)
+				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing)
 							
 				# Update count
 				count = count + 1
@@ -431,7 +431,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			while count < looptime:
 							
 				# Get probability function of user defined input number
-				Bearpairs,tempmales = DoSexualNN(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],sizecall,size_mean,assortmateC,assortmateModel,nomales,xycdmatrix,females,tempmales,matemovethresh,Bearpairs,femalesmated,subpop,selfing,count)
+				Bearpairs,tempmales = DoSexualNN(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,nomales,xycdmatrix,females,tempmales,matemovethresh,Bearpairs,femalesmated,subpop,selfing,count)
 										
 				# Update count
 				count = count + 1

@@ -239,8 +239,16 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 			allele_numbers.append(j)
 	allele_numbers = np.asarray(allele_numbers)
 	
-	# Get length of classes
-	classno = len(size_mean[0])
+	# Get length of classes and size bins if more than one classfile
+	if sizecall == 'Y':
+		bin_min = min(sum(sum(size_mean,[]),[]))
+		bin_max = max(sum(sum(size_mean,[]),[]))
+		size_bin = [bin_min]
+		for ibin in xrange(len(size_mean[0][0])-1):
+			size_bin.append(size_bin[ibin]+(bin_max - bin_min)/(len(size_mean[0][0])-1))
+		# Get the middles for finding closest values
+		size_mean_middles = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2	
+	classno = len(size_mean[0][0])
 	
 	# Add spots for Age tracking
 	N_Age.append([])
@@ -337,7 +345,6 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 		# Switch here for size or age control
 		# Note that first size classes used for binning
 		if sizecall == 'Y': 
-			size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
 			age_adjusted = np.searchsorted(size_mean_middles, SubpopIN[isub]['size'])
 		else:
 			# Count up each uniages
@@ -723,7 +730,7 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					hindex = -9999
 			
 			
-			# Then record new offspring information to Subpop location [subpop-ofmother,subpop of mother,NASubpop,EmiCD,ImmiCD,age,sex,size,mataure,infection,name,capture,layeggs,hindex,genes]
+			# Then record new offspring information to Subpop location [subpop-ofmother,subpop of mother,NASubpop,EmiCD,ImmiCD,age,sex,size,mataure,infection,name,capture,layeggs,hindex,classfile,genes]
 			offpop = offspring[i]['NatalPop']
 			name = offspring[i]['name']
 			
@@ -731,7 +738,7 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 				offgenes = offgenes.tolist()
 				offgenes = [offgenes[x:x+(len(offgenes)/loci)] for x in xrange(0, len(offgenes), (len(offgenes)/loci))]
 			
-			recd = (offpop,offpop,offpop,0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],name,0,0,0,hindex,repr(offgenes))
+			recd = (offpop,offpop,offpop,0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],name,0,0,0,hindex,offspring[i]['classfile'],repr(offgenes))
 					
 			# Record offspring information to SubpopIN 
 			Age0_keep.append(recd)
@@ -816,12 +823,23 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 	# Grow based on known
 	elif growans == 'known':
 		if gridsample == 'N': # Only apply at 3rd DoUpdate
-			if SubpopIN[isub][iind]['age'] > (classno-1): # Age check
-				tempage = classno-1 # use last age class
+			# Get individuals classfile to use
+			natalP = int(SubpopIN[isub][iind]['classfile'].split('_')[0].split('P')[1])
+			theseclasspars = int(SubpopIN[isub][iind]['classfile'].split('_')[1].split('CV')[1])
+			# Get individuals current size
+			currentsize = SubpopIN[isub][iind]['size']
+			# Find size closest too
+			size_mean_middles = np.asarray(size_mean)[1:] - np.diff(np.asarray(size_mean).astype('f'))/2
+			closest_size_index = np.searchsorted(size_mean_middles, currentsize)
+			# Move individual to the next size class, first check last class case
+			if closest_size_index == len(size_mean)-1:
+				next_size_index = len(size_mean)-1
 			else:
-				tempage = SubpopIN[isub][iind]['age']
-			newsize = size_mean[tempage] # Note if multiple ClassVars, this is just the first ClassVars given
+				next_size_index = closest_size_index + 1
+			# Set new size
+			newsize = size_mean[next_size_index]
 			SubpopIN[isub][iind]['size'] = newsize
+			
 	# Error check
 	else:
 		print('Growth options include, vonB, temperature, or bioenergetics. Check that you have entered the correct formate in growth_option in Popvars.csv field.')
@@ -829,7 +847,7 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 	
 	#End::growInd()
 # ---------------------------------------------------------------------------------	
-def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,eggFreq,Mmat_set,Fmat_set,cdevolveans,fitvals,burningen,gen):
+def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,eggFreq,Mmat_set,Fmat_set,cdevolveans,fitvals,burningen,gen,defaultAgeMature):
 	'''
 	Age, mature, and check egg frequency interval here
 	'''
@@ -850,7 +868,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_sl
 		if sizeans == 'N': # Age control
 			if SubpopIN[isub][iind]['sex'] == 0: # Female
 				if Fmat_set == 'N': # Use prob value
-					matval = F_mature[isub][Indage]
+					matval = F_mature[Indage]
 				else: # Use set age
 					if Indage >= int(Fmat_set): # Age check
 						matval = 1.0
@@ -858,7 +876,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_sl
 						matval = 0.0				
 			else: # Male			
 				if Mmat_set == 'N': # Use prob value
-					matval = M_mature[isub][Indage]
+					matval = M_mature[Indage]
 				else: # Use set age
 					if Indage >= int(Mmat_set): # Age check
 						matval = 1.0
@@ -923,7 +941,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_sl
 			SubpopIN[isub][iind]['mature'] = 0 # Does not mature
 			
 	# Default check for if age == 6, then make mature
-	if SubpopIN[isub][iind]['age'] == 6:
+	if SubpopIN[isub][iind]['age'] == defaultAgeMature:
 		SubpopIN[isub][iind]['mature'] = 1# Becomes mature	
 	
 	# Check if mature female, then chance it lays eggs
@@ -937,7 +955,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_sl
 	#End::ageInd()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,fitvals = None,burningen = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,sizeans=None,M_mature=None,F_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None):
+def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,sizeans=None,M_mature=None,F_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None):
 	
 	'''
 	DoUpdate()
@@ -948,8 +966,8 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 	# --------------------------------------------------
 	# Tracking numbers for capturing (Middle and Sample and N)
 	if gridsample != 'Initial':
-		# Get number in class
-		classno = len(size_mean[0])
+		
+		classno = len(size_mean[0][0])
 		
 		# Patch tracking
 		NCap.append([])	
@@ -966,19 +984,16 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 		# Begin loop through subpopulations updating tasks at appropriate times
 		for isub in xrange(len(K)):
 					
-			# Get the 'age' adjusted binning - used for capture probability
-			# -------------------------------------------------------------
-			if sizecall == 'Y': # Note bin with first classvars file
-				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
-				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN[isub]['size'])
-			else:
-				# Count up each uniages
-				age_adjusted = SubpopIN[isub]['age']
-			
 			# Begin looping through individuals in subpop
 			# -------------------------------------------
 			for iind in xrange(len(SubpopIN[isub])):
 								
+				# -----------------------------------------------------
+				# Get this individuals original ClassVars file and bins
+				# -----------------------------------------------------				
+				natalP = int(SubpopIN[isub][iind]['classfile'].split('_')[0].split('P')[1])
+				theseclasspars = int(SubpopIN[isub][iind]['classfile'].split('_')[1].split('CV')[1])
+				
 				# -----------------------------
 				# Grow here - middle and sample
 				# -----------------------------
@@ -1170,26 +1185,31 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 							size_1 = float(size_1)
 							size_2 = float(size_2)
 							size_3 = float(size_3)
-					growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,isub,iind,growans,size_mean[0],gridsample)
-					
+					growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,isub,iind,growans,size_mean[natalP][theseclasspars],gridsample)
+										
 				# --------------------------------------------
 				# Age, mature, egg lay frequency here - middle
 				# --------------------------------------------
 				lastage = classno
 				if gridsample == 'Middle':
 					
-					ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,eggFreq,Mmat_set,Fmat_set,cdevolveans,fitvals,burningen,gen)
-										
+					ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature[natalP][theseclasspars],M_mature[natalP][theseclasspars],Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,eggFreq,Mmat_set,Fmat_set,cdevolveans,fitvals,burningen,gen,defaultAgeMature)
+									
 				# ---------------------------------
 				# Capture here - Middle and Sample
 				# ---------------------------------
-				# If above last age class
-				if age_adjusted[iind] >= lastage:
-					Indage = lastage - 1
+				# Get the age adjusted number for binning and indexing into Capture Age
+				if sizecall == 'Y':
+					size_mean_middles = np.asarray(size_mean[natalP][theseclasspars])[1:] - np.diff(np.asarray(size_mean[natalP][theseclasspars]).astype('f'))/2
+					age_adjusted = np.searchsorted(size_mean_middles, SubpopIN[isub][iind]['size'])
 				else:
-					Indage = age_adjusted[iind]
-				# Age adjusted capture probability
-				capval_age = ClasscapProb[isub][Indage]
+					age_adjusted = SubpopIN[isub][iind]['age']
+				# If above last age class
+				if age_adjusted >= lastage:
+					age_adjusted = lastage - 1
+				
+				# Age adjusted capture probability			
+				capval_age = ClasscapProb[natalP][theseclasspars][age_adjusted]
 				# Patch adjusted capture probability
 				capval_pop = PopcapProb[isub]
 				
@@ -1202,16 +1222,22 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 						if capval_age != 'N':					
 							capval_age = float(capval_age) # Convert to float
 							randcapno = rand()
-							#np.random.binomial(Npop,capval)
 							if randcapno < capval_age: # Successful capture	
 								SubpopIN[isub][iind]['capture'] = 1
 								SubpopIN[isub][iind]['recapture'] = SubpopIN[isub][iind]['recapture']+1
 			
-			# Get the new 'age' adjusted sizes for tracking N
-			# -----------------------------------------------
+			# -----------------------------------------------------------------
+			# For tracking age/size numbers, use min and max for multiple files
+			# -----------------------------------------------------------------
 			if sizecall == 'Y':
-				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
-				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN[isub]['size'])
+				bin_min = min(sum(sum(size_mean,[]),[]))
+				bin_max = max(sum(sum(size_mean,[]),[]))
+				size_bin = [bin_min]
+				for ibin in xrange(len(size_mean[0][0])-1):
+					size_bin.append(size_bin[ibin]+(bin_max - bin_min)/(len(size_mean[0][0])-1))
+				# Get the middles for finding closest values
+				size_mean_middles_bin = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2
+				age_adjusted = np.searchsorted(size_mean_middles_bin, SubpopIN[isub]['size'])
 			else:
 				# Count up each uniages
 				age_adjusted = SubpopIN[isub]['age']
@@ -1252,9 +1278,9 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 			else: # Add them to last class
 				Nclass[gen][iage].append(len(SubpopIN[isub][sizeindex]['size']))
 		
-	# --------------------------------------------------------
-	# Track numbers here for N and capture - Middle and Sample
-	# --------------------------------------------------------
+		# --------------------------------------------------------
+		# Track numbers here for N and capture - Middle and Sample
+		# --------------------------------------------------------
 		# Age tracking
 		for iage in xrange(len(CapClass[gen])):		
 			CapClass[gen][iage] = sum(CapClass[gen][iage])
@@ -1288,12 +1314,12 @@ def DoUpdate(SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,l
 	# End::DoUpdate()
 	
 # ---------------------------------------------------------------------------------------------------
-def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s,assortmateModel):
+def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s,assortmateModel,patchvals):
 
 	'''
 	Add in the Age 0 population.
 	'''
-	classno = len(size_mean[0])
+	classno = len(size_mean[0][0])
 	# Storage to keep
 	SubpopIN_keepK = []
 	# Add spot for next generation
@@ -1319,7 +1345,8 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 		# --------------------------------
 		# Apply spatial selection to Age0s (this might not be the right order)
 		# --------------------------------
-		if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and gen >= burningen and (timecdevolve == 'Back' or timecdevolve == 'Both'):
+		# 1-locus selection model
+		if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen) and (timecdevolve.find('Eggs') != -1):
 			SubpopIN_Age0_keep = []
 			for iind in xrange(len(SubpopIN_Age0_temp)):
 				outpool = SubpopIN_Age0_temp[iind]
@@ -1339,7 +1366,8 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 					SubpopIN_Age0_keep.append(outpool)
 			# dtype here
 			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)		
-		elif (cdevolveans == '2' or cdevolveans == '2_mat') and gen >= burningen and (timecdevolve == 'Out' or timecdevolve == 'Both'):
+		# 2-locus model
+		elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen) and (timecdevolve.find('Eggs') != -1):
 			SubpopIN_Age0_keep = []
 			for iind in xrange(len(SubpopIN_Age0_temp)):
 				outpool = SubpopIN_Age0_temp[iind]
@@ -1358,20 +1386,44 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 					SubpopIN_Age0_keep.append(outpool)			
 			# dtype here
 			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
+		# Hindex cdevolveans
+		elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve.find('Eggs') != -1):
+			SubpopIN_Age0_keep = []
+			for iind in xrange(len(SubpopIN_Age0_temp)):
+				outpool = SubpopIN_Age0_temp[iind]				
+				
+				# Call 2-locus selection model
+				differentialmortality =	DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[isub])
+							
+				# Then flip the coin to see if outpool survives its location
+				randcheck = rand()				
+				# If outpool did not survive: break from loop, move to next outpool
+				if randcheck < differentialmortality:
+					continue
+				else: # Record if survived
+					SubpopIN_Age0_keep.append(outpool)			
+			# dtype here
+			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
+					
 		else:
 			SubpopIN_Age0_keep = SubpopIN_Age0_temp
 					
 		# Append all information to temp SubpopKeep variable
-		SubpopIN_keepK.append(np.concatenate([SubpopIN_arr,SubpopIN_Age0_keep]))				
+		SubpopIN_keepK.append(np.concatenate([SubpopIN_arr,SubpopIN_Age0_keep]))			
 	
 		# Store new N
 		Population[gen].append(len(SubpopIN_keepK[isub]))
 		SelectionDeathsImm_Age0s[gen].append(len(SubpopIN_Age0_temp)-len(SubpopIN_Age0_keep))
-		
 		# Age tracking
 		# Switch here for size or age control
-		if sizecall == 'size':
-			size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
+		if sizecall == 'size': # Use min and max for tracking numbers.
+			bin_min = min(sum(sum(size_mean,[]),[]))
+			bin_max = max(sum(sum(size_mean,[]),[]))
+			size_bin = [bin_min]
+			for ibin in xrange(len(size_mean[0][0])-1):
+				size_bin.append(size_bin[ibin]+(bin_max - bin_min)/(len(size_mean[0][0])-1))
+			# Get the middles for finding closest values
+			size_mean_middles = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2
 			age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])			
 		else:
 			# Count up each uniages
@@ -1384,8 +1436,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 			
 		# Special case where age class is greater than lastage
 		sizeindex = np.where(age_adjusted > iage)[0]
-		PopulationAge[gen][iage].append(len(sizeindex))
-		
+		PopulationAge[gen][iage].append(len(sizeindex))		
 					
 	# Add total to N
 	Population[gen].insert(0,sum(Population[gen]))
