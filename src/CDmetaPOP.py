@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.03"
-appRele = "2016.04.22-10:23:01MDT"
+appVers = "version 1.08"
+appRele = "2016.11.11-09:49:01MST"
 authorNames = "Erin L Landguth"
 
 # ---------------
@@ -173,6 +173,7 @@ if __name__ == '__main__':
 		StrBackthreshval = batchVars['StrayBackthresh'][ibatch]
 		homeattempt = batchVars['HomeAttempt'][ibatch]
 		offno = batchVars['offno'][ibatch]
+		inheritans_classfiles = batchVars['offans_InheritClassVars'][ibatch]
 		equalClutch = batchVars['equalClutchSize'][ibatch]
 		eggFreq = float(batchVars['eggFrequency'][ibatch])
 		gendmatans = batchVars['gendmatans'][ibatch]
@@ -309,6 +310,16 @@ if __name__ == '__main__':
 			print('Egg frequency must be less than or equal to 1.')
 			sys.exit(-1)
 			
+		# Inherit answer can only be:
+		if not (inheritans_classfiles == 'random' or inheritans_classfiles == 'Hindex'):
+			print('Inherit answer for multiple class files is not correct: enter either random of Hindex.')
+			sys.exit(-1)
+			
+		# If inherit answer uses Hindex, mutation can't be on
+		if muterate != 0.0 and inheritans_classfiles == 'Hindex':
+			print('Currently, mutation is not operating with Hindex inheritance options.')
+			sys.exit(-1)
+		
 		# ---------------------------------------------	
 		# Begin Monte-Carlo Looping
 		# ---------------------------------------------
@@ -446,7 +457,7 @@ if __name__ == '__main__':
 			tupPreProcess = DoPreProcess(outdir,datadir,ibatch,ithmcrun,\
 			xyfilename,loci,alleles,\
 			0,logfHndl,cdevolveans,cdinfect,\
-			subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans)
+			subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans,inheritans_classfiles)
 			
 			ithmcrundir = tupPreProcess[0]			
 			fitvals_pass = tupPreProcess[1]
@@ -779,7 +790,7 @@ if __name__ == '__main__':
 				xgridpop,ygridpop,cdevolveans,fitvals,subpopimmigration,\
 				SelectionDeathsImm,DisperseDeathsImm,burningen,Str,\
 				StrSuccess,\
-				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,ithmcrundir,packpar1,noOffspring,Bearpairs,age_size_std,Femalepercent_egg,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,backsizevals,assortmateModel)
+				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,ithmcrundir,packpar1,noOffspring,Bearpairs,age_size_std,Femalepercent_egg,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,backsizevals,assortmateModel,inheritans_classfiles)
 				del(Bearpairs)
 				# Print to log
 				stringout = 'DoImmigration(): '+str(datetime.datetime.now() -start_time1) + ''

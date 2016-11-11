@@ -611,6 +611,7 @@ def InitializeAge(K,agefilename,datadir):
 		print('ClassVars all must have the same number of classes.')
 		sys.exit(-1)
 	del(lencheck)	
+	
 	# Return variables
 	tupAgeFile = agelst,age_percmort_out,age_percmort_back,age_Mg,age_S,\
 	Femalepercent,age_mu,age_size_mean,age_size_std,M_mature,F_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd
@@ -1727,7 +1728,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans):
+def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans,inheritans_classfiles):
 	'''
 	DoPreProcess()
 	This function does all the pre-processing work before
@@ -1898,6 +1899,17 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
 	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'N')
 	
+	# ------------------------------------
+	# For multiple files, error check here
+	# ------------------------------------
+	if inheritans_classfiles == 'Hindex':
+		# Assume first patch has all of the information
+		if allelst[0][0][0][0][1] != 1.0:
+			print('First allele frequency file must be Hindex = 1.0 for offspring inherit answer Hindex.')
+			sys.exit(-1)
+		if allelst[0][1][0][1][1] != 1.0:
+			print('Second allele frequency file must be Hindex = 0.0 for offspring inherit answer Hindex.')
+			sys.exit(-1)
 	# ----------------------------------------------
 	# Store class variable SubpopIN_Init
 	# ----------------------------------------------

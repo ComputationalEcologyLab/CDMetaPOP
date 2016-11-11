@@ -177,7 +177,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal):
 def Immigration(SubpopIN,K,N0,natal,Fxycdmatrix,Mxycdmatrix,gen,\
 cdevolveans,fitvals,subpopmigration,SelectionDeaths,DisperseDeaths,\
 burningen,ProbPatch,ProbSuccess,\
-cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_pop,N_beforePack_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel):
+cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_pop,N_beforePack_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles):
 	
 	'''
 	Immigration()
@@ -843,6 +843,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				# Get the offspring in patch
 				offspring_patch = noOffspring[mothers_patch_ind]
 				Popoffspring = sum(offspring_patch)
+				offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
 				
 				offspring_size = [] # sizes
 				#offspring_file = [] # files assigned
@@ -861,22 +862,29 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					fathers_theseclasspars = int(fathers_thisfile.split('_')[1].split('CV')[1])
 					
 					# Get random assignment for either mother or fathers classfile
+					# -------------------------------------------------------------
 					randnos = np.random.sample(theseoffspring) # Create a list of random numbers
 					# Copy and make a int for writing over classfile assignment
 					offspring_mu = copy.deepcopy(randnos)
 					offspring_sigma = copy.deepcopy(randnos)
-					#temp_offspring_files = np.asarray(copy.deepcopy(randnos),dtype=str)
-					
-					# Where the numbers are < 0.5, assign fathers class file information
-					offspring_mu[np.where(randnos < 0.5)[0]] = size_mean[fathers_natalP][fathers_theseclasspars][0]
-					offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]
-					#temp_offspring_files[np.where(randnos < 0.5)[0]] = fathers_thisfile
-					
-					# Else assign to mother
-					offspring_mu[np.where(randnos >= 0.5)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
-					offspring_sigma[np.where(randnos >= 0.5)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
-					#temp_offspring_files[np.where(randnos >= 0.5)[0]] = mothers_thisfile
-					
+					if inheritans_classfiles == 'random': # random assignment
+						# Where the numbers are < 0.5, assign fathers class file information
+						offspring_mu[np.where(randnos < 0.5)[0]] = size_mean[fathers_natalP][fathers_theseclasspars][0]
+						offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]
+												
+						# Else assign to mother
+						offspring_mu[np.where(randnos >= 0.5)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
+						offspring_sigma[np.where(randnos >= 0.5)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
+						#temp_offspring_files[np.where(randnos >= 0.5)[0]] = mothers_thisfile
+					else: # Hindex assignment
+						theseoffspring_hindex = offspring_patch_hindex[ifile]
+						# If rand nos less than hinex of offspring, make 1.0 Hindex file	
+						offspring_mu[np.where(randnos < theseoffspring_hindex)[0]] = size_mean[0][0][0]
+						offspring_sigma[np.where(randnos < theseoffspring_hindex)[0]] = size_std[0][0][0]
+						# Else, they are greater than hindex of offspring, make 0.0 Hindex file
+						offspring_mu[np.where(randnos >= theseoffspring_hindex)[0]] = size_mean[0][1][0]
+						offspring_sigma[np.where(randnos >= theseoffspring_hindex)[0]] = size_std[0][1][0]
+								
 					# Get sizes
 					# Case for when sigma = 0, temp replace
 					sigma0_index = np.where(offspring_sigma == 0)[0]
@@ -884,10 +892,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						# Temp replace those values
 						offspring_sigma[sigma0_index] = 0.0000001
 					sizesamp = np.random.normal(offspring_mu,offspring_sigma)
-					# Replace sigma 0 values with means
-					#if len(sigma0_index) != 0:
-					#	sizesamp[sigma0_index] = offspring_mu[sigma0_index]
-					
+										
 					# Check to see if negative values, set to 0
 					sizesamp[np.where(sizesamp < 0)[0]] = 0
 					
@@ -1098,18 +1103,28 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					fathers_theseclasspars = int(fathers_thisfile.split('_')[1].split('CV')[1])		
 					
 					# Get random assignment for either mother or fathers classfile
+					# -------------------------------------------------------------
 					randnos = np.random.sample(theseoffspring) # Create a list of random numbers
 					# Copy and make a int for writing over classfile assignment
 					offspring_mu = copy.deepcopy(randnos)
 					offspring_sigma = copy.deepcopy(randnos)
-					
-					# Where the numbers are < 0.5, assign fathers class file information
-					offspring_mu[np.where(randnos < 0.5)[0]] = size_mean[fathers_natalP][fathers_theseclasspars][0]
-					offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]
-					
-					# Else assign to mother
-					offspring_mu[np.where(randnos >= 0.5)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
-					offspring_sigma[np.where(randnos >= 0.5)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
+					if inheritans_classfiles == 'random': # random assignment
+						# Where the numbers are < 0.5, assign fathers class file information
+						offspring_mu[np.where(randnos < 0.5)[0]] = size_mean[fathers_natalP][fathers_theseclasspars][0]
+						offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]
+												
+						# Else assign to mother
+						offspring_mu[np.where(randnos >= 0.5)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
+						offspring_sigma[np.where(randnos >= 0.5)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
+						#temp_offspring_files[np.where(randnos >= 0.5)[0]] = mothers_thisfile
+					else: # Hindex assignment
+						theseoffspring_hindex = offspring_patch_hindex[ifile]
+						# If rand nos less than hinex of offspring, make 1.0 Hindex file	
+						offspring_mu[np.where(randnos < theseoffspring_hindex)[0]] = size_mean[0][0][0]
+						offspring_sigma[np.where(randnos < theseoffspring_hindex)[0]] = size_std[0][0][0]
+						# Else, they are greater than hindex of offspring, make 0.0 Hindex file
+						offspring_mu[np.where(randnos >= theseoffspring_hindex)[0]] = size_mean[0][1][0]
+						offspring_sigma[np.where(randnos >= theseoffspring_hindex)[0]] = size_std[0][1][0]
 					
 					# Get sizes
 					# Case for when sigma = 0, temp replace
@@ -1275,7 +1290,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	# ------------------------------
 	# Get the survived SubpopIN_Age0
 	# ------------------------------
-	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std)
+	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std,inheritans_classfiles)
 	
 	# Get dtype for offspring - first check to see if any Bearpairs exist.
 	if Bearpairs[0][0] != -9999:	
@@ -1481,7 +1496,7 @@ def DoImmigration(SubpopIN,K,N0,natal,Fdispmoveno,Mdispmoveno,\
 Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,\
 ygridcopy,cdevolveans,fitvals,subpopmigration,\
 SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,\
-StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,assortmateModel):
+StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,assortmateModel,inheritans_classfiles):
 
 	'''
 	DoImmigration()
@@ -1504,7 +1519,7 @@ StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population
 	Fxycdmatrix,Mxycdmatrix,gen,\
 	cdevolveans,fitvals,subpopmigration,\
 	SelectionDeaths,DisperseDeaths,\
-	burningen,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel)
+	burningen,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles)
 	
 	# Calculate Dispersal Metrics for strayers 'S' 
 	tempStrayN = CalculateDispersalMetrics(SubpopIN,xgridcopy,ygridcopy,\

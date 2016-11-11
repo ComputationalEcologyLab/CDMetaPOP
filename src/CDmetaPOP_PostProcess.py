@@ -100,7 +100,7 @@ ithmcrundir,nthfile,logfHndl):
 		tempgenes = []
 		for k in xrange(len(x)-1):
 			# Get list from read in file
-			tempgenes.append(x[k+1][15:int(15+sum(alleles))])
+			tempgenes.append(x[k+1][16:int(16+sum(alleles))])
 			# Create spot in genes
 			genes.append([])
 			for j in xrange(sum(alleles)):
@@ -272,7 +272,7 @@ def DoGridOut_general(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(15+sum(alleles[0:jspot])):int(15+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(16+sum(alleles[0:jspot])):int(16+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -457,7 +457,7 @@ def DoGridOut_genalex(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(15+sum(alleles[0:jspot])):int(15+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(16+sum(alleles[0:jspot])):int(16+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -636,7 +636,7 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(15+sum(alleles[0:jspot])):int(15+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(16+sum(alleles[0:jspot])):int(16+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -798,7 +798,7 @@ def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(15+sum(alleles[0:jspot])):int(15+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(16+sum(alleles[0:jspot])):int(16+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -883,7 +883,7 @@ def DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gr
 		sys.exit(-1)
 	
 	# Write out the titles - Add Titles from xypoints
-	title = ['Subpopulation','XCOORD','YCOORD','ID','sex','age','size','mature','newmature','layeggs','capture','recapture','infection','CDist','Hindex']
+	title = ['Subpopulation','XCOORD','YCOORD','ID','sex','age','size','mature','newmature','layeggs','capture','recapture','infection','CDist','Hindex','ClassFile']
 	
 	# Write out the title from xy points
 	for i in xrange(len(title)):
@@ -931,6 +931,7 @@ def DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gr
 			elif gridsample == 'Initial' or gridsample == 'Middle':
 				outputfile.write(str(Ind['ImmiCD'])+',')
 			outputfile.write(str(Ind['hindex'])+',')
+			outputfile.write(str(Ind['classfile'])+',')
 			outputfile.write(repr(Ind_genes).strip('[]')+'\n')	
 																
 	if gridsample == 'Initial' or 'Middle':

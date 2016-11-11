@@ -27,7 +27,7 @@ def count_unique(keys):
 	#End::count_unique()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std):
+def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std,inheritans_classfiles):
 	'''
 	DoOffspringVars()
 	This function assigns the age (0), sex, and size of each offspring.
@@ -47,10 +47,10 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 		# Loop through each mate pair
 		# ----------------------------
 		for i in xrange(len(Bearpairs)):
-			
-			# ------------------------------------------------
+			# -------------------------------------------------------
 			# Get parent's information for multiple classfiles
-			# ------------------------------------------------
+			# if inheritans_classfiles is random use this information
+			# -------------------------------------------------------
 			mothers_file = Bearpairs[i][0]['classfile']
 			mothers_natalP = int(mothers_file.split('_')[0].split('P')[1])
 			mothers_theseclasspars = int(mothers_file.split('_')[1].split('CV')[1])
@@ -58,6 +58,11 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 			fathers_file = Bearpairs[i][1]['classfile']
 			fathers_natalP = int(fathers_file.split('_')[0].split('P')[1])
 			fathers_theseclasspars = int(fathers_file.split('_')[1].split('CV')[1])
+			
+			# ---------------------
+			# Get Hindex
+			# ---------------------
+			offspring_hindex = Bearpairs[i][0]['hindex']/2. + Bearpairs[i][1]['hindex']/2.
 			
 			# And then loop through each offspring from that mate pair
 			# --------------------------------------------------------
@@ -71,13 +76,21 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# ------------------------
 				# Get classfile assignment
 				# ------------------------
-				randno = rand() # Random number 
-				if randno < 0.5:
-					natalP = fathers_natalP
-					theseclasspars = fathers_theseclasspars
-				else:
-					natalP = mothers_natalP
-					theseclasspars = mothers_theseclasspars			
+				randno = rand() # Random number
+				if inheritans_classfiles == 'random':
+					if randno < 0.5:
+						natalP = fathers_natalP
+						theseclasspars = fathers_theseclasspars
+					else:
+						natalP = mothers_natalP
+						theseclasspars = mothers_theseclasspars	
+				else: #Hindex draw
+					if randno <= offspring_hindex: # Use 1.0 files
+						natalP = 0
+						theseclasspars = 0
+					else: # Use 0.0 files
+						natalP = 0
+						theseclasspars = 1					
 				
 				# --------------------------
 				# Assign sex here

@@ -1,3 +1,9 @@
+Changes v1.08.20161111T09:49MST (ell)
+0) For the multiple class files, add option for how to inherit parents 'phenotype' classfiles. Add PopVars variable: 'offans_InheritClassVars' can be 'random' or 'Hindex'.
+a) If random, then keep code from last changes, adding checks and error statements. 
+b) If Hindex, then assume that the allele frequency files Hindex value are linked to the respecitive ClassVars file. Will have to store this and pass along. Will assume that the first patch has multiple allele frequency files with multiple ClassVars.
+1) Added ClassFile to ind.csv files. 
+
 Changes v1.08.20161027T17:03MDT (ell)
 0) Add the option to include multiple ClassVars files. Individuals get intialized based on allele frequency files, so depending on how the files are entered, then corresponding ClassVars gets assigned. e.g., 
 Genes Initialize: 
