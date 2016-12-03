@@ -978,7 +978,7 @@ def DoOut_AllTimeClass(K_track,ithmcrundir,logfHndl,N_Init_Age,N_back_age,Packin
 	# Write to file
 	for i in xrange(len(time)-1):		
 		outputfile.write(str(time[i])+',')	
-		for j in xrange(len(size_mean[0])): # Ages
+		for j in xrange(len(size_mean[0][0])): # Ages
 			outputfile.write(str(j)+'|')
 		outputfile.write(',')
 		for j in xrange(len(N_Init_Age[i])):
@@ -990,8 +990,8 @@ def DoOut_AllTimeClass(K_track,ithmcrundir,logfHndl,N_Init_Age,N_back_age,Packin
 		for j in xrange(len(AgeSizes_Std[i])):
 			outputfile.write(str(AgeSizes_Std[i][j])+'|')
 		outputfile.write(',')
-		for j in xrange(len(size_mean[0])): #Sizes
-			outputfile.write(str(size_mean[0][j])+'|')
+		for j in xrange(len(size_mean[0][0])): #Sizes
+			outputfile.write(str(size_mean[0][0][j])+'|')
 		outputfile.write(',')
 		for j in xrange(len(N_Init_Class[i])):
 			outputfile.write(str(N_Init_Class[i][j])+'|')
@@ -1045,7 +1045,7 @@ def DoOut_AllTimeClass(K_track,ithmcrundir,logfHndl,N_Init_Age,N_back_age,Packin
 	# For the tracking numbers that only have time counting
 	i = len(time)-1
 	outputfile.write(str(time[i])+',')
-	for j in xrange(len(size_mean[0])):
+	for j in xrange(len(size_mean[0][0])):
 		outputfile.write(str(j)+'|')
 	outputfile.write(',')
 	for j in xrange(len(N_Init_Age[i])):
@@ -1057,8 +1057,8 @@ def DoOut_AllTimeClass(K_track,ithmcrundir,logfHndl,N_Init_Age,N_back_age,Packin
 	for j in xrange(len(AgeSizes_Std[0])):
 		outputfile.write(str(AgeSizes_Std[i][j])+'|')
 	outputfile.write(',')
-	for j in xrange(len(size_mean[0])):
-		outputfile.write(str(size_mean[0][j])+'|')
+	for j in xrange(len(size_mean[0][0])):
+		outputfile.write(str(size_mean[0][0][j])+'|')
 	outputfile.write(',')
 	for j in xrange(len(N_Init_Class[i])):
 		outputfile.write(str(N_Init_Class[i][j])+'|')

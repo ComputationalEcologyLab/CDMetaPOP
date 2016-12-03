@@ -13,6 +13,7 @@
 # _batch_v0: Create general for standard and +- runs (5 total).
 # _batch_v1: Add in growth rate for patch mean Nt / Nt-1 - read in patch All time
 # _batch_v099: Update for recent version. 
+# _batch_v1.08: Update for recent version.
 # ----------------------------------------------------------------------------- 
 
 # Load modules

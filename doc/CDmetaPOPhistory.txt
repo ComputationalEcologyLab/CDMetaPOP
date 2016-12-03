@@ -1,3 +1,8 @@
+Changes v1.08.20161128T09:17:00MST (ell)
+0) summary_ClassAllTime.csv column headers off. Fixed.
+1) Updated some post_analysis scripts: create a population_batch script (report population total numbers, capture ratios)
+2) Error in Immigration with single sample indexing. Fixed. 
+
 Changes v1.08.20161111T09:49MST (ell)
 0) For the multiple class files, add option for how to inherit parents 'phenotype' classfiles. Add PopVars variable: 'offans_InheritClassVars' can be 'random' or 'Hindex'.
 a) If random, then keep code from last changes, adding checks and error statements. 

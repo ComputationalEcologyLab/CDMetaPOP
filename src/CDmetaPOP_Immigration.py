@@ -892,9 +892,13 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						# Temp replace those values
 						offspring_sigma[sigma0_index] = 0.0000001
 					sizesamp = np.random.normal(offspring_mu,offspring_sigma)
-										
+									
 					# Check to see if negative values, set to 0
-					sizesamp[np.where(sizesamp < 0)[0]] = 0
+					if len(sizesamp) > 1:
+						sizesamp[np.where(sizesamp < 0)[0]] = 0.
+					elif len(sizesamp) == 1:
+						if sizesamp < 0:
+							sizesamp = 0.
 					
 					# Append to list
 					offspring_size.append(sizesamp.tolist())

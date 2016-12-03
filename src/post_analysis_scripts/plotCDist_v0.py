@@ -27,25 +27,16 @@ def count_unique(keys):
 # User Input
 #-----------------
 # Directory location of output.csv
-#dir = "D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_MovementDistances/"
-dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_StrayRates/'
-
+dir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2/"
 # Outputname 
-#outname = "_WCT1384_Sample_Max_"
-outname = "CDist_WCT_50max_str0.001_"
-outname = "CDist_WCT_50max_str0.01_"
-outname = "Cdsit_WCT_50max_str0.05_"
-
-dir = 'D:/projects/CDmetaPOP/Seattle/Runs/dataWCT1384_v1.00_20151130/All_Landscapes/'
-outname = "sizeage_WCT_50max_str0.05_Riverine_"
-outname = "sizeage_WCT_50max_str0.05_ExBarr"
-outname = "sizeage_WCT_50max_str0.05_FutBarr"
-outname = "sizeage_WCT_50max_str0.05_ChangeBarr"
+outname = "_Diagnostics_WCT2016Nov22_noGenes2x2_OUT_"
+outdir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2/summary/"
+xlabel = 'Probability'
 
 # batch number - batchrun(batchno)mcrun{mcrun}
-batchno = 3
+batchno = 0
 
-# Number of monte carlo runs - just run one MC
+# Number of monte carlo runs
 mcrun = 0
 
 # Generations to look at
@@ -117,9 +108,9 @@ for igen in xrange(len(gen)):
 	if len(cdist_noAge0s) != 0:
 		P.figure(igen)
 		P.hist(cdist_noAge0s, histtype='bar')
-		P.xlabel("Cost")
+		P.xlabel(xlabel)
 		P.title("Year "+str(gen[igen])+"; N = "+str(N[igen])+ "; Age0s = "+str(Age0s[igen][0]))
-		P.savefig(dir+outname+'CostDistance_'+str(gen[igen])+'.png',dpi=200)
+		P.savefig(outdir+outname+'CostDistance_'+str(gen[igen])+'.png',dpi=200)
 		
 P.show()	
 	

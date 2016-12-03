@@ -538,7 +538,7 @@ def InitializeAge(K,agefilename,datadir):
 				# Open file for reading
 				inputfile = open(datadir+fileans[i_splitpatch],'rU')
 			else:
-				print("CDmetaPOP InitializeAge() error: open failed, could not open %s"%(datadir+afileans[i_splitpatch]))
+				print("CDmetaPOP InitializeAge() error: open failed, could not open %s"%(datadir+fileans[i_splitpatch]))
 				sys.exit(-1)
 			
 			# Read lines from the file
