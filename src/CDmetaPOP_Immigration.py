@@ -894,9 +894,9 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					sizesamp = np.random.normal(offspring_mu,offspring_sigma)
 									
 					# Check to see if negative values, set to 0
-					if len(sizesamp) > 1:
+					if not isinstance(sizesamp,float):
 						sizesamp[np.where(sizesamp < 0)[0]] = 0.
-					elif len(sizesamp) == 1:
+					else:
 						if sizesamp < 0:
 							sizesamp = 0.
 					
