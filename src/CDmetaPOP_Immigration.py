@@ -811,10 +811,10 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	# Loop through each subpop, sort, and grab Kage
 	SubpopIN_keepAge1plus = []
 	PackingDeathsAge.append([])
-	PackingDeathsAge[gen] = [[] for x in xrange(0,len(size_bin))]
+	PackingDeathsAge[gen] = [[] for x in xrange(0,len(size_mean[0][0]))]
 	N_beforePack_pop.append([])
 	N_beforePack_age.append([])
-	N_beforePack_age[gen] = [[] for x in xrange(0,len(size_bin))]
+	N_beforePack_age[gen] = [[] for x in xrange(0,len(size_mean[0][0]))]
 		
 	# -------------------
 	# Packing is selected
@@ -896,13 +896,13 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# Check to see if negative values, set to 0
 					if not isinstance(sizesamp,float):
 						sizesamp[np.where(sizesamp < 0)[0]] = 0.
+						# Append to list
+						offspring_size.append(sizesamp.tolist())
 					else:
 						if sizesamp < 0:
 							sizesamp = 0.
-					
-					# Append to list
-					offspring_size.append(sizesamp.tolist())
-					#offspring_file.append(temp_offspring_files.tolist())
+							# Append to list
+							offspring_size.append(sizesamp)
 																	
 				# Add sizes to SubpopIN_arr['size']
 				offspring_size = np.asarray(sum(offspring_size,[]))
@@ -948,7 +948,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			# Tracking N before packing
 			# -------------------------
 			N_beforePack_pop[gen].append(Npop) 
-			for iage in xrange(len(size_bin)):
+			for iage in xrange(len(size_mean[0][0])):
 				sizeindex = np.where(age_adjusted==iage)[0]
 				N_beforePack_age[gen][iage].append(len(sizeindex))
 			# Special case where age class is greater than lastage
@@ -981,8 +981,8 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					Ageclass = iage
 					
 					# Special case when age is greater than last age class only used for indexing now
-					if Ageclass > len(size_bin)-1:
-						indexforAgeclass = len(size_bin) - 1
+					if Ageclass > len(size_mean[0][0])-1:
+						indexforAgeclass = len(size_mean[0][0]) - 1
 					else:
 						indexforAgeclass = Ageclass
 					
@@ -1232,7 +1232,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			# Tracking numbers - no packing deaths
 			# ------------------------------------
 			PackingDeaths[gen][isub] = 0
-			for iage in xrange(len(size_bin)):
+			for iage in xrange(len(size_mean[0][0])):
 				# Just store 0 for packing deaths age
 				PackingDeathsAge[gen][iage].append(0)			
 			# Store some numbers in this loop too.

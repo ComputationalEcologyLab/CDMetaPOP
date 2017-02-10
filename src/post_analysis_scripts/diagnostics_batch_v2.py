@@ -13,7 +13,8 @@
 # _batch_v0: Create general for standard and +- runs (5 total).
 # _batch_v1: Add in growth rate for patch mean Nt / Nt-1 - read in patch All time
 # _batch_v099: Update for recent version. 
-# _batch_v1.08: Update for recent version.
+# _batch_v1.08: Update for recent version. Add in more diagnostics: mortalities.
+# v2: Added more metrics: packing and move mortalities.
 # ----------------------------------------------------------------------------- 
 
 # Load modules
@@ -35,9 +36,15 @@ except ImportError:
 dir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/Compare_modKv3/"
 plottitle = ''
 savename = "_Diagnostics_modKv3_"
-label = ['6kmMove', 'MaxMove']
-batchno = 2
+label = ['1kmMove','6kmMove', 'MaxMove']
+batchno = 3
 linemarks = ['k--','b-o','r-','g-^','ys-']
+
+# For Emi/Immi plots
+label_D1 = ['1km Emi','6km Emi','Max Emi']
+label_D2 = ['1km Immi','6km Immi','Max Immi']
+linemarks_D1 = ['k--','b--','r--','g--','y--']
+linemarks_D2 = ['k-o','b-o','r-o','g-o','y-o']
 
 outdir = dir
 
@@ -68,6 +75,10 @@ N_afterImmi = []
 N_growthback = []
 N_growthout = []
 # Store values - Patch
+PackDeaths_Emi = []
+PackDeaths_Immi = []
+MoveDeaths_Emi = []
+MoveDeaths_Immi = []
 N_init_patch = []
 
 # Loop through batches
@@ -82,6 +93,10 @@ for ibatch in xrange(batchno):
 	N_growthback.append([])
 	N_growthout.append([])
 	N_init_patch.append([])
+	PackDeaths_Emi.append([])
+	PackDeaths_Immi.append([])
+	MoveDeaths_Emi.append([])
+	MoveDeaths_Immi.append([])
 
 	# Loop through MCs
 	for imc in xrange(mcno):
@@ -145,6 +160,10 @@ for ibatch in xrange(batchno):
 		N_growthback[ibatch].append([])
 		N_growthout[ibatch].append([])
 		N_init_patch[ibatch].append([])
+		PackDeaths_Emi[ibatch].append([])
+		PackDeaths_Immi[ibatch].append([])
+		MoveDeaths_Emi[ibatch].append([])
+		MoveDeaths_Immi[ibatch].append([])
 		
 		# Then Loop through generations/time
 		for iout in xrange(gen):
@@ -157,6 +176,10 @@ for ibatch in xrange(batchno):
 			N_growthback[ibatch][imc].append([])
 			N_growthout[ibatch][imc].append([])
 			N_init_patch[ibatch][imc].append([])
+			PackDeaths_Emi[ibatch][imc].append([])
+			PackDeaths_Immi[ibatch][imc].append([])
+			MoveDeaths_Emi[ibatch][imc].append([])
+			MoveDeaths_Immi[ibatch][imc].append([])
 			
 			# Age split
 			for j in xrange(len(values[1+iout][2].split('|'))-1):
@@ -167,7 +190,7 @@ for ibatch in xrange(batchno):
 					N_afterEmi[ibatch][imc][iout].append(nan)
 				else:
 					N_afterEmi[ibatch][imc][iout].append(int(values[1+iout][12].split('|')[j]))
-				if values[1+iout][18].split('|')[j] == 'NA':
+				if values[1+iout][19].split('|')[j] == 'NA':
 					N_afterImmi[ibatch][imc][iout].append(nan)
 				else:
 					N_afterImmi[ibatch][imc][iout].append(int(values[1+iout][19].split('|')[j]))
@@ -183,6 +206,10 @@ for ibatch in xrange(batchno):
 			# Grab all patch values - patch values with total
 			for j in xrange(1,len(values_pop[1+iout][3].split('|'))-1):
 				N_init_patch[ibatch][imc][iout].append(float(values_pop[1+iout][3].split('|')[j])) # remove todal
+				PackDeaths_Emi[ibatch][imc][iout].append(float(values_pop[1+iout][18].split('|')[j])) # remove todal
+				PackDeaths_Immi[ibatch][imc][iout].append(float(values_pop[1+iout][26].split('|')[j])) # remove todal
+				MoveDeaths_Emi[ibatch][imc][iout].append(float(values_pop[1+iout][17].split('|')[j])) # remove todal
+				MoveDeaths_Immi[ibatch][imc][iout].append(float(values_pop[1+iout][24].split('|')[j])) # remove todal			
 
 # Turn into arrays
 N_init_age = np.asarray(N_init_age)
@@ -196,6 +223,10 @@ N_growthback = np.asarray(N_growthback)
 N_growthout = np.asarray(N_growthout)
 # Patch values
 N_init_patch = np.asarray(N_init_patch)
+PackDeaths_Emi = np.asarray(PackDeaths_Emi)
+PackDeaths_Immi = np.asarray(PackDeaths_Immi)
+MoveDeaths_Emi = np.asarray(MoveDeaths_Emi)
+MoveDeaths_Immi = np.asarray(MoveDeaths_Immi)
 
 # --------------------------------------------
 # Get mean over Monte Carlosfor each batch run
@@ -237,6 +268,9 @@ N_afterEmi_l = N_afterEmi_m-error
 N_afterEmi_r = 	N_afterEmi_m+error
 N_afterEmi_min = np.min(N_afterEmi[:][:],axis=1)
 N_afterEmi_max = np.max(N_afterEmi[:][:],axis=1)
+# Get Total
+N_afterEmi_m_total = np.nansum(N_afterEmi_m,axis=2)
+N_afterEmi_sd_total = np.nansum(N_afterEmi_sd,axis=2)
 
 N_afterImmi_m = np.nansum(N_afterImmi[:][:],axis=1)/mcno
 N_afterImmi_sd = np.std(N_afterImmi[:][:],axis=1)	
@@ -245,6 +279,9 @@ N_afterImmi_l = N_afterImmi_m-error
 N_afterImmi_r = 	N_afterImmi_m+error
 N_afterImmi_min = np.min(N_afterImmi[:][:],axis=1)
 N_afterImmi_max = np.max(N_afterImmi[:][:],axis=1)
+# Get Total
+N_afterImmi_m_total = np.nansum(N_afterImmi_m,axis=2)
+N_afterImmi_sd_total = np.nansum(N_afterImmi_sd,axis=2)
 
 N_growthback_m = np.nansum(N_growthback[:][:],axis=1)/mcno
 N_growthback_sd = np.std(N_growthback[:][:],axis=1)	
@@ -270,6 +307,30 @@ N_init_patch_l = N_init_patch_m-error
 N_init_patch_r = 	N_init_patch_m+error
 N_init_patch_min = np.min(N_init_patch,axis=1)
 N_init_patch_max = np.max(N_init_patch,axis=1)
+
+PackDeaths_Emi_m = np.nansum(PackDeaths_Emi,axis=1)/mcno
+PackDeaths_Emi_sd = np.std(PackDeaths_Emi,axis=1)
+# Get Total
+PackDeaths_Emi_m_total = np.nansum(PackDeaths_Emi_m,axis=2)
+PackDeaths_Emi_sd_total = np.nansum(PackDeaths_Emi_sd,axis=2)
+
+PackDeaths_Immi_m = np.nansum(PackDeaths_Immi,axis=1)/mcno
+PackDeaths_Immi_sd = np.std(PackDeaths_Immi,axis=1)
+# Get Total
+PackDeaths_Immi_m_total = np.nansum(PackDeaths_Immi_m,axis=2)
+PackDeaths_Immi_sd_total = np.nansum(PackDeaths_Immi_sd,axis=2)
+
+MoveDeaths_Emi_m = np.nansum(MoveDeaths_Emi,axis=1)/mcno
+MoveDeaths_Emi_sd = np.std(MoveDeaths_Emi,axis=1)
+# Get Total
+MoveDeaths_Emi_m_total = np.nansum(MoveDeaths_Emi_m,axis=2)
+MoveDeaths_Emi_sd_total = np.nansum(MoveDeaths_Emi_sd,axis=2)
+
+MoveDeaths_Immi_m = np.nansum(MoveDeaths_Immi[:][:],axis=1)/mcno
+MoveDeaths_Immi_sd = np.std(MoveDeaths_Immi[:][:],axis=1)
+# Get Total
+MoveDeaths_Immi_m_total = np.nansum(MoveDeaths_Immi_m,axis=2)
+MoveDeaths_Immi_sd_total = np.nansum(MoveDeaths_Immi_sd,axis=2)
 
 # --------------------------------
 # Other summary data 
@@ -317,7 +378,7 @@ title(plottitle,fontsize=21)
 #axis([-0.1,gen,np.min(N_init_pop_m),np.max(N_init_pop_m)])
 #axis([-0.1,gen,50000,150000])
 #axis([-0.01,130,40000,120000])
-axis([-0.01,130,0,140000])
+axis([-0.01,130,0,100000])
 legend(loc=0)
 savefig(dir+savename+'NInit_pop.png',dpi=savedpi)
 
@@ -391,7 +452,28 @@ if plotagesize == 'Y':
 			xtickNames = ax.set_xticklabels(xTickMarks)
 			plt.setp(xtickNames, rotation=0)
 			ax.legend((rects0[0],rects1[0],rects2[0],rects3[0]),label,loc=0)
+		
+		if batchno == 3:
+		
+			rects0 = ax.bar(ind,N_init_age_m[0][it],width,color='red',edgecolor='black',hatch="/",yerr=N_init_age_sd[0][it],error_kw=dict(elinewidth=2,ecolor='black'))			
+
+			rects1 = ax.bar(ind+width,N_init_age_m[1][it],width,color='blue',edgecolor='black',hatch="\\",yerr=N_init_age_sd[1][it],error_kw=dict(elinewidth=2,ecolor='black'))
 			
+			rects2 = ax.bar(ind+2*width,N_init_age_m[2][it],width,color='grey',edgecolor='black',hatch="0",yerr=N_init_age_sd[2][it],error_kw=dict(elinewidth=2,ecolor='black'))	
+			
+			# axes and labels
+			ax.set_ylabel('N',fontsize=18)
+			ax.set_xlabel('Age',fontsize=18)
+			ax.set_title(plottitle+'N Initial (Age) Year ' +str(it),fontsize=21)
+			ax.set_xlim(-width,len(ind)+width)
+			ax.set_ylim(0, max(np.max(N_init_age_m[0][it]),np.max(N_init_age_m[1][it]),np.max(N_init_age_m[2][it])))
+			xTickMarks = [str(i) for i in xrange(len(N_init_age_m[0][0]))]
+			ax.set_xticks(ind+width)
+			xtickNames = ax.set_xticklabels(xTickMarks)
+			plt.setp(xtickNames, rotation=0)
+			ax.legend((rects0[0],rects1[0],rects2[0]),label,loc=0)
+		
+		
 		if batchno == 2:
 		
 			rects0 = ax.bar(ind,N_init_age_m[0][it],width,color='red',edgecolor='black',hatch="/",yerr=N_init_age_sd[0][it],error_kw=dict(elinewidth=2,ecolor='black'))			
@@ -467,6 +549,26 @@ if plotagesize == 'Y':
 			xtickNames = ax.set_xticklabels(xTickMarks)
 			plt.setp(xtickNames, rotation=0)
 			ax.legend((rects0[0],rects1[0],rects2[0],rects3[0]),label,loc=0)
+			
+		if batchno == 3:
+		
+			rects0 = ax.bar(ind,N_init_class_m[0][it],width,color='red',edgecolor='black',hatch="/",yerr=N_init_class_sd[0][it],error_kw=dict(elinewidth=2,ecolor='black'))			
+
+			rects1 = ax.bar(ind+width,N_init_class_m[1][it],width,color='blue',edgecolor='black',hatch="\\",yerr=N_init_class_sd[1][it],error_kw=dict(elinewidth=2,ecolor='black'))
+			
+			rects2 = ax.bar(ind+2*width,N_init_class_m[2][it],width,color='grey',edgecolor='black',hatch="0",yerr=N_init_class_sd[2][it],error_kw=dict(elinewidth=2,ecolor='black'))		
+				
+			# axes and labels
+			ax.set_ylabel('N',fontsize=18)
+			ax.set_xlabel('Size',fontsize=18)
+			ax.set_title(plottitle+'N Initial (Class) Year ' +str(it),fontsize=21)
+			ax.set_xlim(-width,len(ind)+width)
+			ax.set_ylim(0, max(np.max(N_init_class_m[0][it]),np.max(N_init_class_m[1][it]),np.max(N_init_class_m[2][it])))
+			xTickMarks = [str(sizeclass[i]) for i in xrange(len(N_init_class_m[0][0]))]
+			ax.set_xticks(ind+width)
+			xtickNames = ax.set_xticklabels(xTickMarks)
+			plt.setp(xtickNames, rotation=0)
+			ax.legend((rects0[0],rects1[0],rects2[0]),label,loc=0)
 
 		if batchno == 2:
 		
@@ -488,8 +590,122 @@ if plotagesize == 'Y':
 		
 		savefig(dir+savename+'NInit_sizeclass_year_'+str(it)+'.png',dpi=savedpi)
 
+# Plot Deaths: Packing
+# ------------------------------------
+figure()
+for i in xrange(len(PackDeaths_Emi_m_total)):
+	plot(nthfile,PackDeaths_Emi_m_total[i],linemarks_D1[i],label = label_D1[i],linewidth=2)
+	plot(nthfile,PackDeaths_Immi_m_total[i],linemarks_D2[i],label = label_D2[i],linewidth=2)
+xlabel('Time',fontsize=18)
+ylabel('Packing Deaths',fontsize=18)
+title(plottitle,fontsize=21)
+axis([-0.1,gen,0,30000])
+legend(loc=0)	
+savefig(dir+savename+'PackingDeaths.png',dpi=savedpi)
 
+# Bar plot for first few years
+n_groups = 5
+fig, ax = subplots()
 
+index = np.arange(n_groups)
+bar_width = 0.25
+
+opacity = 1.0
+error_config = dict(elinewidth=2,ecolor='black')
+			
+rects0 = bar(index, PackDeaths_Emi_m_total[0][index], bar_width,alpha=opacity,color='red',edgecolor='black',hatch="/",yerr=PackDeaths_Emi_sd_total[0][index],error_kw=error_config,label='1km Emi')
+
+rects1 = bar(index + bar_width, PackDeaths_Emi_m_total[1][index], bar_width,alpha=opacity,color='blue',edgecolor='black',hatch="\\",yerr=PackDeaths_Emi_sd_total[1][index],error_kw=error_config,label='6km Emi')
+
+rects2 = bar(index + 2*bar_width, PackDeaths_Emi_m_total[2][index], bar_width,alpha=opacity,color='grey',edgecolor='black',hatch="0",yerr=PackDeaths_Emi_sd_total[2][index],error_kw=error_config,label='Max Emi')
+
+xlabel('Time')
+ylabel('Deaths')
+title(plottitle)
+xticks(index + bar_width / 2, ('0', '1', '2', '3', '4'))
+legend()
+
+tight_layout()
+savefig(dir+savename+'PackingDeathsEmi_BarGraphs.png',dpi=savedpi)
+
+# Bar plot with same pars from above
+fig, ax = subplots()
+			
+rects0 = bar(index, PackDeaths_Immi_m_total[0][index], bar_width,alpha=opacity,color='red',edgecolor='black',hatch="/",yerr=PackDeaths_Immi_sd_total[0][index],error_kw=error_config,label='1km Immi')
+
+rects1 = bar(index + bar_width, PackDeaths_Immi_m_total[1][index], bar_width,alpha=opacity,color='blue',edgecolor='black',hatch="\\",yerr=PackDeaths_Immi_sd_total[1][index],error_kw=error_config,label='6km Immi')
+
+rects2 = bar(index + 2*bar_width, PackDeaths_Immi_m_total[2][index], bar_width,alpha=opacity,color='grey',edgecolor='black',hatch="0",yerr=PackDeaths_Immi_sd_total[2][index],error_kw=error_config,label='Max Immi')
+
+xlabel('Time')
+ylabel('Deaths')
+title(plottitle)
+xticks(index + bar_width / 2, ('0', '1', '2', '3', '4'))
+legend()
+
+tight_layout()
+savefig(dir+savename+'PackingDeathsImmi_BarGraphs.png',dpi=savedpi)
+
+# Plot Deaths: Move
+# ------------------------------------
+figure()
+for i in xrange(len(PackDeaths_Emi_m_total)):
+	plot(nthfile,MoveDeaths_Emi_m_total[i],linemarks_D1[i],label = label_D1[i],linewidth=2)
+	plot(nthfile,MoveDeaths_Immi_m_total[i],linemarks_D2[i],label = label_D2[i],linewidth=2)
+xlabel('Time',fontsize=18)
+ylabel('Move Deaths',fontsize=18)
+title(plottitle,fontsize=21)
+axis([-0.1,gen,0,5000])
+legend(loc=0)	
+savefig(dir+savename+'MoveDeaths.png',dpi=savedpi)
+
+# Plot Emi/Immi Totals
+# -----------------------
+figure()
+for i in xrange(len(PackDeaths_Emi_m_total)):
+	plot(nthfile,N_afterEmi_m_total[i],linemarks_D1[i],label=label_D1[i],linewidth=2)
+	plot(nthfile,N_afterImmi_m_total[i],linemarks_D2[i],label=label_D2[i],linewidth=2)
+xlabel('Time',fontsize=18)
+ylabel('N',fontsize=18)
+title(plottitle,fontsize=21)
+axis([-0.1,gen,0,70000])
+legend(loc=0)	
+savefig(dir+savename+'NEmi_NImmi_Totals.png',dpi=savedpi)	
+
+# Bar plot with same pars from above
+fig, ax = subplots()
+			
+rects0 = bar(index, N_afterEmi_m_total[0][index], bar_width,alpha=opacity,color='red',edgecolor='black',hatch="/",yerr=N_afterEmi_sd_total[0][index],error_kw=error_config,label='1km Emi')
+
+rects1 = bar(index + bar_width, N_afterEmi_m_total[1][index], bar_width,alpha=opacity,color='blue',edgecolor='black',hatch="\\",yerr=N_afterEmi_sd_total[1][index],error_kw=error_config,label='6km Emi')
+
+rects2 = bar(index + 2*bar_width, N_afterEmi_m_total[2][index], bar_width,alpha=opacity,color='grey',edgecolor='black',hatch="0",yerr=N_afterEmi_sd_total[2][index],error_kw=error_config,label='Max Emi')
+
+xlabel('Time')
+ylabel('N')
+title(plottitle)
+xticks(index + bar_width / 2, ('0', '1', '2', '3', '4'))
+legend()
+
+tight_layout()
+savefig(dir+savename+'NAfterEmi_BarGraphs.png',dpi=savedpi)
+
+fig, ax = subplots()
+			
+rects0 = bar(index, N_afterImmi_m_total[0][index], bar_width,alpha=opacity,color='red',edgecolor='black',hatch="/",yerr=N_afterImmi_sd_total[0][index],error_kw=error_config,label='1km Immi')
+
+rects1 = bar(index + bar_width, N_afterImmi_m_total[1][index], bar_width,alpha=opacity,color='blue',edgecolor='black',hatch="\\",yerr=N_afterImmi_sd_total[1][index],error_kw=error_config,label='6km Immi')
+
+rects2 = bar(index + 2*bar_width, N_afterImmi_m_total[2][index], bar_width,alpha=opacity,color='grey',edgecolor='black',hatch="0",yerr=N_afterImmi_sd_total[2][index],error_kw=error_config,label='Max Immi')
+
+xlabel('Time')
+ylabel('N')
+title(plottitle)
+xticks(index + bar_width / 2, ('0', '1', '2', '3', '4'))
+legend()
+
+tight_layout()
+savefig(dir+savename+'NAfterImmi_BarGraphs.png',dpi=savedpi)
 
 show()
 

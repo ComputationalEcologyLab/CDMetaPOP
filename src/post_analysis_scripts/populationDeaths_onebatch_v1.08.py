@@ -1,10 +1,8 @@
 # -----------------------------------------------------------------------------
-# population.py
+# populationDeaths.py
 # 2016 11 28: Erin Landguth
-# This script grabs summary_popAllTime.csv files and plots population numbers
-# _batch_v1.08: Update for recent version. Add in different populaiton plots:
-#	Initial N(when they are back), Capture Back, N when they are out, Capture
-# 	Out
+# Updated: 2017 01 18
+# This script grabs summary_popAllTime.csv files and plots population mortalities
 # ----------------------------------------------------------------------------- 
 
 # Load modules
@@ -24,7 +22,7 @@ except ImportError:
 # ---------
 dir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2_6kmMove_modKv3/"
 plottitle = ''
-savename = "_Diagnostics_WCT2016Nov22_noGenes2x2_6kmMove_modKv3"
+savename = "_Diagnostics_WCT2016Nov22_noGenes2x2_6Move_modKv3"
 #label = ['100years', '200years', '300years']
 label = ['Back','Captured Back','Out','Captured Out']
 label2 = ['Back','Out']
@@ -42,7 +40,7 @@ gen = 125 # Number of years
 nthfile = range(0,gen,1)
 #nthfile = np.asarraty([0,1,2,3,4,5,10,19])
 mcno = 3 # Number of MCs
-plottime = np.asarray([124])
+plottime = np.asarray([100])
 Naxes = [-0.01,125,0,100000]
 
 # List folders in this directory

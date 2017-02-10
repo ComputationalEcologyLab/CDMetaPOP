@@ -5,6 +5,7 @@
 # _batch_v1.08: Update for recent version. Add in different populaiton plots:
 #	Initial N(when they are back), Capture Back, N when they are out, Capture
 # 	Out
+# v2: Added in more patch metrics; packing and N after Emigration and immigration.
 # ----------------------------------------------------------------------------- 
 
 # Load modules
@@ -42,7 +43,7 @@ gen = 125 # Number of years
 nthfile = range(0,gen,1)
 #nthfile = np.asarraty([0,1,2,3,4,5,10,19])
 mcno = 3 # Number of MCs
-plottime = np.asarray([124])
+plottime = np.asarray([0,1,2,3,4,5,100,124])
 Naxes = [-0.01,125,0,100000]
 
 # List folders in this directory
@@ -62,6 +63,14 @@ N_out_patch = [] # Each patch value when out
 N_out_pop = [] # total population when out
 N_cap_out_patch = [] # patch capture when out
 N_cap_out_pop = [] # total population captured when out
+PackDeaths_out_patch = [] # patch packing deaths when 
+PackDeaths_back_patch = [] # patch packing deaths when back
+MoveDeaths_out_patch = [] # Disperser deaths Emi
+MoveDeaths_back_patch = [] #Disperser deaths Immi
+PackDeaths_out_pop = []
+PackDeaths_back_pop = []
+MoveDeaths_out_pop = []
+MoveDeaths_back_pop = []
 
 # Loop through batches
 for ibatch in xrange(batchno):
@@ -75,6 +84,14 @@ for ibatch in xrange(batchno):
 	N_out_pop.append([])
 	N_cap_out_patch.append([])
 	N_cap_out_pop.append([])
+	PackDeaths_out_patch.append([])
+	PackDeaths_back_patch.append([])
+	MoveDeaths_out_patch.append([])
+	MoveDeaths_back_patch.append([])
+	PackDeaths_out_pop.append([])
+	PackDeaths_back_pop.append([])
+	MoveDeaths_out_pop.append([])
+	MoveDeaths_back_pop.append([])
 
 	# Loop through MCs
 	for imc in xrange(mcno):
@@ -88,6 +105,14 @@ for ibatch in xrange(batchno):
 		N_out_pop[ibatch].append([])
 		N_cap_out_patch[ibatch].append([])
 		N_cap_out_pop[ibatch].append([])
+		PackDeaths_out_patch[ibatch].append([])
+		PackDeaths_back_patch[ibatch].append([])
+		MoveDeaths_out_patch[ibatch].append([])
+		MoveDeaths_back_patch[ibatch].append([])
+		PackDeaths_out_pop[ibatch].append([])
+		PackDeaths_back_pop[ibatch].append([])
+		MoveDeaths_out_pop[ibatch].append([])
+		MoveDeaths_back_pop[ibatch].append([])
 		
 		# -------------------------------
 		# Read in patchAllTime values
@@ -123,15 +148,32 @@ for ibatch in xrange(batchno):
 			N_out_patch[ibatch][imc].append([])
 			N_out_pop[ibatch][imc].append([])
 			N_cap_out_patch[ibatch][imc].append([])
-			N_cap_out_pop[ibatch][imc].append([])			
+			N_cap_out_pop[ibatch][imc].append([])
+			PackDeaths_out_patch[ibatch][imc].append([])
+			PackDeaths_back_patch[ibatch][imc].append([])
+			MoveDeaths_out_patch[ibatch][imc].append([])
+			MoveDeaths_back_patch[ibatch][imc].append([])
+			PackDeaths_out_pop[ibatch][imc].append([])
+			PackDeaths_back_pop[ibatch][imc].append([])
+			MoveDeaths_out_pop[ibatch][imc].append([])
+			MoveDeaths_back_pop[ibatch][imc].append([])			
 			
 			# Grab all patch values - patch values with total
 			for j in xrange(1,len(values_pop[1+iout][3].split('|'))-1):
 				N_init_patch[ibatch][imc][iout].append(float(values_pop[1+iout][3].split('|')[j]))
-				N_out_patch[ibatch][imc][iout].append(float(values_pop[1+iout][19].split('|')[j]))				
+				N_out_patch[ibatch][imc][iout].append(float(values_pop[1+iout][19].split('|')[j]))
+				PackDeaths_out_patch[ibatch][imc][iout].append(float(values_pop[1+iout][18].split('|')[j]))
+				PackDeaths_back_patch[ibatch][imc][iout].append(float(values_pop[1+iout][26].split('|')[j]))	
+				MoveDeaths_out_patch[ibatch][imc][iout].append(float(values_pop[1+iout][17].split('|')[j]))
+				MoveDeaths_back_patch[ibatch][imc][iout].append(float(values_pop[1+iout][24].split('|')[j]))				
+			
 			# Sum totals
 			N_init_pop[ibatch][imc][iout] = sum(N_init_patch[ibatch][imc][iout])
 			N_out_pop[ibatch][imc][iout] = sum(N_out_patch[ibatch][imc][iout])
+			PackDeaths_out_pop[ibatch][imc][iout] = sum(PackDeaths_out_patch[ibatch][imc][iout])
+			PackDeaths_back_pop[ibatch][imc][iout] = sum(PackDeaths_back_patch[ibatch][imc][iout])
+			MoveDeaths_out_pop[ibatch][imc][iout] = sum(MoveDeaths_out_patch[ibatch][imc][iout])
+			MoveDeaths_back_pop[ibatch][imc][iout] = sum(MoveDeaths_back_patch[ibatch][imc][iout])
 			
 			# Grab all patch values - patch values withOUT total
 			for j in xrange(len(values_pop[1+iout][15].split('|'))-1):
@@ -150,6 +192,14 @@ N_out_patch = np.asarray(N_out_patch)
 N_out_pop = np.asarray(N_out_pop)
 N_cap_out_patch = np.asarray(N_cap_out_patch)
 N_cap_out_pop = np.asarray(N_cap_out_pop)
+PackDeaths_out_patch = np.asarray(PackDeaths_out_patch)
+PackDeaths_out_pop = np.asarray(PackDeaths_out_pop)
+PackDeaths_back_patch = np.asarray(PackDeaths_back_patch)
+PackDeaths_back_pop = np.asarray(PackDeaths_back_pop)
+MoveDeaths_out_patch = np.asarray(MoveDeaths_out_patch)
+MoveDeaths_out_pop = np.asarray(MoveDeaths_out_pop)
+MoveDeaths_back_patch = np.asarray(MoveDeaths_back_patch)
+MoveDeaths_back_pop = np.asarray(MoveDeaths_back_pop)
 
 # --------------------------------------------
 # Get mean over Monte Carlosfor each batch run
@@ -222,6 +272,74 @@ N_out_pop_r = 	N_out_pop_m+error
 N_out_pop_min = np.min(N_out_pop,axis=1)
 N_out_pop_max = np.max(N_out_pop,axis=1)
 
+# Pack Death Patch numbers [batch][mcrun][time][patch] - when back
+PackDeaths_back_patch_m = np.nansum(PackDeaths_back_patch,axis=1)/mcno
+PackDeaths_back_patch_sd = np.std(PackDeaths_back_patch,axis=1)	
+error = qnorm*PackDeaths_back_patch_sd/(mcno)
+PackDeaths_back_patch_l = PackDeaths_back_patch_m-error
+PackDeaths_back_patch_r = 	PackDeaths_back_patch_m+error
+PackDeaths_back_patch_min = np.min(PackDeaths_back_patch,axis=1)
+PackDeaths_back_patch_max = np.max(PackDeaths_back_patch,axis=1)
+# Total population
+PackDeaths_back_pop_m = np.nansum(PackDeaths_back_pop,axis=1)/mcno
+PackDeaths_back_pop_sd = np.std(PackDeaths_back_pop,axis=1)	
+error = qnorm*PackDeaths_back_pop_sd/(mcno)
+PackDeaths_back_pop_l = PackDeaths_back_pop_m-error
+PackDeaths_back_pop_r = 	PackDeaths_back_pop_m+error
+PackDeaths_back_pop_min = np.min(PackDeaths_back_pop,axis=1)
+PackDeaths_back_pop_max = np.max(PackDeaths_back_pop,axis=1)
+
+# Packing Deaths Patch numbers [batch][mcrun][time][patch] - when out
+PackDeaths_out_patch_m = np.nansum(PackDeaths_out_patch,axis=1)/mcno
+PackDeaths_out_patch_sd = np.std(PackDeaths_out_patch,axis=1)	
+error = qnorm*PackDeaths_out_patch_sd/(mcno)
+PackDeaths_out_patch_l = PackDeaths_out_patch_m-error
+PackDeaths_out_patch_r = 	PackDeaths_out_patch_m+error
+PackDeaths_out_patch_min = np.min(PackDeaths_out_patch,axis=1)
+PackDeaths_out_patch_max = np.max(PackDeaths_out_patch,axis=1)
+# Total population
+PackDeaths_out_pop_m = np.nansum(PackDeaths_out_pop,axis=1)/mcno
+PackDeaths_out_pop_sd = np.std(PackDeaths_out_pop,axis=1)	
+error = qnorm*PackDeaths_out_pop_sd/(mcno)
+PackDeaths_out_pop_l = PackDeaths_out_pop_m-error
+PackDeaths_out_pop_r = 	PackDeaths_out_pop_m+error
+PackDeaths_out_pop_min = np.min(PackDeaths_out_pop,axis=1)
+PackDeaths_out_pop_max = np.max(PackDeaths_out_pop,axis=1)
+
+# Move Death Patch numbers [batch][mcrun][time][patch] - when back
+MoveDeaths_back_patch_m = np.nansum(MoveDeaths_back_patch,axis=1)/mcno
+MoveDeaths_back_patch_sd = np.std(MoveDeaths_back_patch,axis=1)	
+error = qnorm*MoveDeaths_back_patch_sd/(mcno)
+MoveDeaths_back_patch_l = MoveDeaths_back_patch_m-error
+MoveDeaths_back_patch_r = 	MoveDeaths_back_patch_m+error
+MoveDeaths_back_patch_min = np.min(MoveDeaths_back_patch,axis=1)
+MoveDeaths_back_patch_max = np.max(MoveDeaths_back_patch,axis=1)
+# Total population
+MoveDeaths_back_pop_m = np.nansum(MoveDeaths_back_pop,axis=1)/mcno
+MoveDeaths_back_pop_sd = np.std(MoveDeaths_back_pop,axis=1)	
+error = qnorm*MoveDeaths_back_pop_sd/(mcno)
+MoveDeaths_back_pop_l = MoveDeaths_back_pop_m-error
+MoveDeaths_back_pop_r = 	MoveDeaths_back_pop_m+error
+MoveDeaths_back_pop_min = np.min(MoveDeaths_back_pop,axis=1)
+MoveDeaths_back_pop_max = np.max(MoveDeaths_back_pop,axis=1)
+
+# Move numbers [batch][mcrun][time][patch] - when out
+MoveDeaths_out_patch_m = np.nansum(MoveDeaths_out_patch,axis=1)/mcno
+MoveDeaths_out_patch_sd = np.std(MoveDeaths_out_patch,axis=1)	
+error = qnorm*MoveDeaths_out_patch_sd/(mcno)
+MoveDeaths_out_patch_l = MoveDeaths_out_patch_m-error
+MoveDeaths_out_patch_r = 	MoveDeaths_out_patch_m+error
+MoveDeaths_out_patch_min = np.min(MoveDeaths_out_patch,axis=1)
+MoveDeaths_out_patch_max = np.max(MoveDeaths_out_patch,axis=1)
+# Total population
+MoveDeaths_out_pop_m = np.nansum(MoveDeaths_out_pop,axis=1)/mcno
+MoveDeaths_out_pop_sd = np.std(MoveDeaths_out_pop,axis=1)	
+error = qnorm*MoveDeaths_out_pop_sd/(mcno)
+MoveDeaths_out_pop_l = MoveDeaths_out_pop_m-error
+MoveDeaths_out_pop_r = 	MoveDeaths_out_pop_m+error
+MoveDeaths_out_pop_min = np.min(MoveDeaths_out_pop,axis=1)
+MoveDeaths_out_pop_max = np.max(MoveDeaths_out_pop,axis=1)
+
 # --------------------------------
 # Other summary data 
 # -------------------------------- 
@@ -265,7 +383,7 @@ del(xyvalues)
 for itime in xrange(len(plottime)):
 	outputfile = open(outdir+savename+'mean_patch_pops_time'+str(plottime[itime])+'.csv','w')
 	# Write out the titles
-	outputfile.write('Subpopulation,X,Y,Back,Back_Captured,Out,Out_Captured\n')	
+	outputfile.write('Subpopulation,X,Y,N_Back,N_Back_Captured,Deaths_MoveOut,Deaths_PackOut,N_Out,N_Out_Captured,Deaths_MoveBack,Deaths_PackBack\n')	
 	# WRite information
 	for i in xrange(len(X)):
 		outputfile.write(SubPop[i]+',')
@@ -274,8 +392,12 @@ for itime in xrange(len(plottime)):
 		for j in xrange(batchno):
 			outputfile.write(str(N_init_patch_m[j][plottime[itime]][i])+',')
 			outputfile.write(str(N_cap_back_patch_m[j][plottime[itime]][i])+',')
+			outputfile.write(str(MoveDeaths_out_patch_m[j][plottime[itime]][i])+',')
+			outputfile.write(str(PackDeaths_out_patch_m[j][plottime[itime]][i])+',')			
 			outputfile.write(str(N_out_patch_m[j][plottime[itime]][i])+',')
 			outputfile.write(str(N_cap_out_patch_m[j][plottime[itime]][i])+',')
+			outputfile.write(str(MoveDeaths_back_patch_m[j][plottime[itime]][i])+',')
+			outputfile.write(str(PackDeaths_back_patch_m[j][plottime[itime]][i])+',')
 		# To get return character on the end
 		outputfile.write('\n')		
 	outputfile.close()		
@@ -326,7 +448,6 @@ title(plottitle,fontsize=21)
 axis([-0.01,125,0,1])
 legend(loc=0)
 savefig(outdir+savename+'NCapture_Proportion.png',dpi=savedpi)
-
 
 show()
 

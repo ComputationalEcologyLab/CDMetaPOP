@@ -673,9 +673,9 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 						
 			# Loop through each ind spot and output
 			for ispot in xrange(patchN[ipop]):
-			
+				
 				# Loop through each allele spot at that locus
-				for ithallele in xrange(len(GenFormgenes[ipop][ispot][ithloci])):
+				for ithallele in xrange(2):
 			
 					outputfile.write(str(ispot+1)+' ')
 					outputfile.write(str(subpop_cdpop[ipop][ispot])+' ')

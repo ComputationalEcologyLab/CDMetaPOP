@@ -301,7 +301,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					ProbSuccess[gen].append(1)
 					
 				# If statement to check if there were not spots to disperse to
-				elif sum(probarray) == 0.0:							
+				elif sum(probarray) == 0.0:
+					
 					# Then Break from the loop and move to next outpool
 					SelectionDeaths[gen][int(originalpop)-1].append(0)
 					DisperseDeaths[gen][int(originalpop)-1].append(1)
@@ -415,9 +416,10 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 	Population.append([]) #Add spot for next generation
 	PackingDeathsAge.append([])
 	PopulationAge.append([])
+	
 	# Age tracking numbers will be for the first size bin given
-	PackingDeathsAge[gen] = [[] for x in xrange(0,len(size_bin))]
-	PopulationAge[gen] = [[] for x in xrange(0,len(size_bin))]	
+	PackingDeathsAge[gen] = [[] for x in xrange(0,len(size_mean[0][0]))]
+	PopulationAge[gen] = [[] for x in xrange(0,len(size_mean[0][0]))]	
 	
 	# -------------------
 	# Packing is selected
@@ -466,8 +468,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					Ageclass = iage
 					
 					# Special case when age is greater than last age class only used for indexing now
-					if Ageclass > len(size_bin)-1:
-						indexforAgeclass = len(size_bin) - 1
+					if Ageclass > len(size_mean[0][0])-1:
+						indexforAgeclass = len(size_mean[0][0]) - 1
 					else:
 						indexforAgeclass = Ageclass
 					
@@ -657,9 +659,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						Nage_index = np.where(SubpopIN_arr['age']==Ageclass)[0]
 											
 					# Special case: if last age class, no survivros
-					if Ageclass > len(size_bin)-1:
+					if Ageclass > len(size_mean[0][0])-1:
 						mortreturn = Nage # Then mortality all this age class
-						indexforAgeclass = len(size_bin) - 1
+						indexforAgeclass = len(size_mean[0][0]) - 1
 					else: 
 						indexforAgeclass = Ageclass
 						# Number in next age class

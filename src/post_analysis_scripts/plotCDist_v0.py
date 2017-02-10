@@ -27,16 +27,17 @@ def count_unique(keys):
 # User Input
 #-----------------
 # Directory location of output.csv
-dir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2/"
+dir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2_6kmMove_modKv3/"
+
 # Outputname 
-outname = "_Diagnostics_WCT2016Nov22_noGenes2x2_OUT_"
-outdir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2/summary/"
+outname = "_Diagnostics_WCT2016Nov22_noGenes2x2_6kmMove_modKv3_OUT_"
+outdir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2_6kmMove_modKv3/summary/"
 xlabel = 'Probability'
 
 # batch number - batchrun(batchno)mcrun{mcrun}
 batchno = 0
 
-# Number of monte carlo runs
+# MCRun number
 mcrun = 0
 
 # Generations to look at
@@ -109,7 +110,7 @@ for igen in xrange(len(gen)):
 		P.figure(igen)
 		P.hist(cdist_noAge0s, histtype='bar')
 		P.xlabel(xlabel)
-		P.title("Year "+str(gen[igen])+"; N = "+str(N[igen])+ "; Age0s = "+str(Age0s[igen][0]))
+		P.title("Year "+str(gen[igen])+"; N_move = "+str(N[igen])+ "; N_nomove = "+str(Age0s[igen][0]))
 		P.savefig(outdir+outname+'CostDistance_'+str(gen[igen])+'.png',dpi=200)
 		
 P.show()	
