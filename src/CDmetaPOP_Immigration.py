@@ -1135,18 +1135,20 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					sigma0_index = np.where(offspring_sigma == 0)[0]
 					if len(sigma0_index) != 0:
 						# Temp replace those values
-						offspring_sigma[sigma0_index] = 0.000001
+						offspring_sigma[sigma0_index] = 0.0000001
 					sizesamp = np.random.normal(offspring_mu,offspring_sigma)
-					# Replace sigma 0 values with means
-					#if len(sigma0_index) != 0:
-					#	sizesamp[sigma0_index] = offspring_mu[sigma0_index]
 					
 					# Check to see if negative values, set to 0
-					sizesamp[np.where(sizesamp < 0)[0]] = 0
-					
-					# Append to list
-					offspring_size.append(sizesamp.tolist())
-				
+					if not isinstance(sizesamp,float):
+						sizesamp[np.where(sizesamp < 0)[0]] = 0.
+						# Append to list
+						offspring_size.append(sizesamp.tolist())
+					else:
+						if sizesamp < 0:
+							sizesamp = 0.
+							# Append to list
+							offspring_size.append(sizesamp)
+									
 				# Add these to SubpopIN_arr['size']
 				offspring_size = np.asarray(sum(offspring_size,[]))
 				tempSizePatch = np.concatenate((SubpopIN_arr['size'],offspring_size))

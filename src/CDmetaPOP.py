@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.08"
-appRele = "2016.11.11-09:49:01MST"
+appVers = "version 1.09"
+appRele = "2016.03.01-05:29:01MST"
 authorNames = "Erin L Landguth"
 
 # ---------------

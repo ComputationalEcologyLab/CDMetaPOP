@@ -1,3 +1,6 @@
+Changes v1.09.20170301T05:26:00MST (ell)
+0) Erroe in Immigraton with single sample indexing with Packans N. Fixed.
+
 Changes v1.08.20161128T09:17:00MST (ell)
 0) summary_ClassAllTime.csv column headers off. Fixed.
 1) Updated some post_analysis scripts: create a population_batch script (report population total numbers, capture ratios)
