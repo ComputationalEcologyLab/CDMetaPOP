@@ -1,3 +1,10 @@
+Changes v1.10.20170322T14:41:00MDT (ell)
+0) Added 3 more parameters to the CDEVOVLE option for Hindex parent fitness with hybrid penalty. 
+fitness = p * exp (- (Xj - (Temperaturemin + (Temperaturemax - Temperaturemin) * HINDEX)) / (2 * s^2))
+a) where p scales the hybrid fitness between 0 and 1. 
+b) a min and max for what a hybrid is, that is, if HINDEX > a or HINDEX < b then p = 1 (i.e. parental species, so a and b represent the H index cutoffs for parental species) if b < HINDEX < a then p = whatever value we choose for hybrid penalty. 
+c) PopVars value enter: Hindex_mintemp;maxtemp;C;p;minparent;maxparent’ 
+
 Changes v1.09.20170301T05:26:00MST (ell)
 0) Erroe in Immigraton with single sample indexing with Packans N. Fixed.
 

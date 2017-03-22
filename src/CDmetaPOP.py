@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.09"
-appRele = "2016.03.01-05:29:01MST"
+appVers = "version 1.10"
+appRele = "2017.03.22-04:21:01MDT"
 authorNames = "Erin L Landguth"
 
 # ---------------
@@ -263,8 +263,8 @@ if __name__ == '__main__':
 		
 		# For Hindex answer
 		if cdevolveans.split('_')[0] == 'Hindex':
-			if len(cdevolveans.split('_')[1].split(';')) != 3:
-				print('CDEOLVE answer is Hindex and 3 parameters for the Gaussian function must be specified, see user manual and example files.')			
+			if len(cdevolveans.split('_')[1].split(';')) != 5:
+				print('CDEOLVE answer is Hindex and 5 parameters for the Gaussian function must be specified, see user manual and example files.')			
 		
 		# If cdevolve is turned on must have 2 alleles
 		if cdevolveans != 'N' and alleles[0] != 2:

@@ -103,9 +103,17 @@ def DoHindexSelection(cdevolveans,hindex,X):
 	min_temp = float(pars[0])
 	max_temp = float(pars[1])
 	C = float(pars[2])
+	min_ParentHindex = float(pars[4])
+	max_ParentHindex = float(pars[5])
+	
+	# Check min and max parent Hindex and get p value
+	if (hindex <= min_ParentHindex) or (hindex >= max_ParentHindex):
+		p = 1.0
+	else:
+		p = float(pars[3])	
 	
 	# Get fitness value
-	fitness = np.exp(-((X - (min_temp + (max_temp-min_temp)*hindex))**2/(2.*C**2)))
+	fitness = p * np.exp(-((X - (min_temp + (max_temp-min_temp)*hindex))**2/(2.*C**2)))
 	
 	# Get mortality value
 	differentialmortality = 1. - fitness		
