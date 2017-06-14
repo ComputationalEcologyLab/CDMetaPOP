@@ -23,9 +23,9 @@ except ImportError:
 # ---------
 # User info
 # ---------
-dir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2_6kmMove_modKv3/"
+dir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2_1kmMove_modKv3/"
 plottitle = ''
-savename = "_Diagnostics_WCT2016Nov22_noGenes2x2_6kmMove_modKv3"
+savename = "_Diagnostics_WCT2017Mar_noGenes2x2_1kmMove_modKv3_"
 #label = ['100years', '200years', '300years']
 label = ['Back','Captured Back','Out','Captured Out']
 label2 = ['Back','Out']
@@ -34,8 +34,8 @@ batchno = 1
 linemarks = ['k','b','r','g','y']
 linemarks_lr = ['k--','b--','r--','--.','--.']
 
-outdir = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/WCT2016Nov22_noGenes2x2_6kmMove_modKv3/summary/"
-xyfile = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2016Sampling/PatchVars_WCT1384_2016Nov_Sampling_withGenes.csv"
+outdir = dir+"summary/"
+xyfile = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1384_2017March_HarvestResponse/PatchVars_WCTmodKv3_IncreaseKwithHarvest_Scenario3_HighEffort.csv"
 
 savedpi = 300
 qnorm = 1.959964 # For CIs, not in function 
@@ -43,7 +43,7 @@ gen = 125 # Number of years
 nthfile = range(0,gen,1)
 #nthfile = np.asarraty([0,1,2,3,4,5,10,19])
 mcno = 3 # Number of MCs
-plottime = np.asarray([0,1,2,3,4,5,100,124])
+plottime = np.asarray([0,1,2,3,4,5,6,7,8,9,10,100,101,102,103,104,105,106,107,108,109,110])
 Naxes = [-0.01,125,0,100000]
 
 # List folders in this directory

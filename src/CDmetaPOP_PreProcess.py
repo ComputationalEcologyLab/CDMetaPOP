@@ -624,7 +624,7 @@ def InitializeID(K,N):
 	'''
 	InitializeID()
 	This function initializes the location of each individuals for the id varialbe
-	{Initial,Residor,Immigrant,Emigrant,Stayor}_{Year born}_{Natal Pop}_{Numeric ID} and produces the subpop temp list
+	{Initial,Residor,Immigrant,Emigrant,Stayor}_{Year born}_{Natal Pop}_{Numeric ID} and produces the subpop temp list with corresponding PopTag ID
 	'''
 	
 	id = []
@@ -1745,9 +1745,9 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	# Read in xy points file and store info in list
 	# ------------------------------------------------------------------
 	xy = ReadXY(xyfilename)
-
+	
 	# Error statement for column data
-	if len(xy[1]) != 44:
+	if len(xy[1]) != 45:
 		print('Patchvars.csv input file is not correct version, see example input files.')
 		sys.exit(-1)	
 		
@@ -1755,6 +1755,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	Pop = []
 	xgridpop = []
 	ygridpop = []
+	PopTag = []
 	K_temp = []
 	Kstd_temp = []
 	N0_temp = []	
@@ -1786,41 +1787,42 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 		Pop.append(xy[i+1][0])
 		xgridpop.append(float(xy[i+1][1]))
 		ygridpop.append(float(xy[i+1][2]))
-		K_temp.append(xy[i+1][3])
-		Kstd_temp.append(xy[i+1][4])
-		N0_temp.append(xy[i+1][5])
-		natal.append(int(xy[i+1][6]))
-		migrate.append(int(xy[i+1][7]))
-		allefreqfiles_temp.append(xy[i+1][8])
-		classvarsfiles_temp.append(xy[i+1][9])
-		popmort_out.append(xy[i+1][10])
-		popmort_out_sd.append(xy[i+1][11])
-		popmort_back.append(xy[i+1][12])
-		popmort_back_sd.append(xy[i+1][13])
-		newmortperc.append(xy[i+1][14])
-		newmortperc_sd.append(xy[i+1][15])
-		Mg.append(xy[i+1][16])
-		setmigrate.append(xy[i+1][17])
-		Str.append(xy[i+1][18])	
-		outsizevals.append(xy[i+1][19])
-		outsizevals_sd.append(xy[i+1][20])
-		outgrowdays.append(xy[i+1][21])
-		outgrowdays_sd.append(xy[i+1][22])
-		backsizevals.append(xy[i+1][23])
-		backsizevals_sd.append(xy[i+1][24])
-		backgrowdays.append(xy[i+1][25])		
-		backgrowdays_sd.append(xy[i+1][26])
-		pop_capture_out.append(xy[i+1][27])
-		pop_capture_back_pass.append(xy[i+1][28])
+		PopTag.append(xy[i+1][3])
+		K_temp.append(xy[i+1][4])
+		Kstd_temp.append(xy[i+1][5])
+		N0_temp.append(xy[i+1][6])
+		natal.append(int(xy[i+1][7]))
+		migrate.append(int(xy[i+1][8]))
+		allefreqfiles_temp.append(xy[i+1][9])
+		classvarsfiles_temp.append(xy[i+1][10])
+		popmort_out.append(xy[i+1][11])
+		popmort_out_sd.append(xy[i+1][12])
+		popmort_back.append(xy[i+1][13])
+		popmort_back_sd.append(xy[i+1][14])
+		newmortperc.append(xy[i+1][15])
+		newmortperc_sd.append(xy[i+1][16])
+		Mg.append(xy[i+1][17])
+		setmigrate.append(xy[i+1][18])
+		Str.append(xy[i+1][19])	
+		outsizevals.append(xy[i+1][20])
+		outsizevals_sd.append(xy[i+1][21])
+		outgrowdays.append(xy[i+1][22])
+		outgrowdays_sd.append(xy[i+1][23])
+		backsizevals.append(xy[i+1][24])
+		backsizevals_sd.append(xy[i+1][25])
+		backgrowdays.append(xy[i+1][26])		
+		backgrowdays_sd.append(xy[i+1][27])
+		pop_capture_out.append(xy[i+1][28])
+		pop_capture_back_pass.append(xy[i+1][29])
 		
 		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray':
-			fitvals.append([xy[i+1][29],xy[i+1][30],xy[i+1][31]])
+			fitvals.append([xy[i+1][30],xy[i+1][31],xy[i+1][32]])
 		elif cdevolveans == 'G':
-			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34]])
+			fitvals.append([xy[i+1][33],xy[i+1][34],xy[i+1][35]])
 		elif cdevolveans == '2' or cdevolveans == '2_mat':
-			fitvals.append([xy[i+1][35],xy[i+1][36],xy[i+1][37],xy[i+1][38],xy[i+1][39],xy[i+1][40],xy[i+1][41],xy[i+1][42],xy[i+1][43]])
+			fitvals.append([xy[i+1][36],xy[i+1][37],xy[i+1][38],xy[i+1][39],xy[i+1][40],xy[i+1][41],xy[i+1][42],xy[i+1][43],xy[i+1][44]])
 		elif cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link':
-			fitvals.append([xy[i+1][29],xy[i+1][30],xy[i+1][31],xy[i+1][32],xy[i+1][33],xy[i+1][34]])
+			fitvals.append([xy[i+1][30],xy[i+1][31],xy[i+1][32],xy[i+1][33],xy[i+1][34],xy[i+1][35]])
 			
 	# Delete x variable
 	del(xy)
@@ -1919,7 +1921,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	unisubpops = len(Pop)
 	
 	# Organize type data in SubpopIN - here return this and also update dynamically.
-	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('genes',(str,3*sum(alleles)+2*loci+2))]
+	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('genes',(str,3*sum(alleles)+2*loci+2))]
 	
 	# Get N here - N maybe slighlty different then specified due to random draws
 	N = []
@@ -1970,20 +1972,20 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 				# Update the Wright Fisher case for sex here
 				if Femalepercent[isub][0] == 'WrightFisher':				
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],repr(genes[indspot]))
 					SubpopIN[isub].append(recd)
 				
 				# Not special Wright Fisher case
 				else:			
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature, newmature
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],repr(genes[indspot]))
 					SubpopIN[isub].append(recd)
 		# Convert to array with dytpe		
 		SubpopIN[isub] = np.asarray(SubpopIN[isub],dtype=dtype)
 	
 	# Clean up N
 	N = sum(N,[])
-		
+	
 	# --------------------------
 	# Error Checks
 	# --------------------------	
@@ -2022,7 +2024,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_percmort_out,age_percmort_back,age_Mg,age_S,\
 	age_mu,age_size_mean,age_size_std,xgridpop,ygridpop,\
 	SubpopIN,N,K,dtype,outsizevals,backsizevals,\
-	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,M_mature,F_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp
+	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,M_mature,F_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag
 	
 	return tupPreProcess	
 	#End::DoPreProcess()
@@ -2061,7 +2063,7 @@ def DoUserInput(fileans):
 	#End::DoUserInput()
 
 # -------------------------------------------------------------------------	
-def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen):
+def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen,PopTag):
 	'''
 	AddIndividuals()
 	This function adds more individuals with given classvars 
@@ -2166,12 +2168,12 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 				# Update the Wright Fisher case for sex here
 				if Femalepercent[isub][0] == 'WrightFisher':				
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],repr(genes[indspot]))
 				
 				# Not special Wright Fisher case
 				else:			
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature, newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],repr(genes[indspot]))
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],repr(genes[indspot]))
 				SubpopIN_add.append(recd)
 		
 		# Convert to array with dytpe		
@@ -2180,5 +2182,20 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 		# Append all information to temp SubpopKeep variable
 		SubpopIN_keep.append(np.concatenate([SubpopIN_arr,SubpopIN_add]))
 			
+	# Delete storage variables
+	del(size)
+	del(age)
+	del(id)
+	del(genes)
+	del(sex)
+	del(infection)
+	del(subpop)
+	del(mature)
+	del(capture)
+	del(recapture)
+	del(layEggs)
+	del(hindex)
+	del(whichClassFile)
+	
 	return SubpopIN_keep
 	#End::AddIndividuals()

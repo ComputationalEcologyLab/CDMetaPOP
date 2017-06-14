@@ -1,3 +1,7 @@
+Changes v1.11.20170531T09:16:00MST (ell)
+0) Checking Patch field not in consecutive order with subpopulation groupings. This does not work, so I am adding another field to the PatchVars. PatchID must be 1...N. Then SubpatchID will be another tag attached to each individual in the example stream segments of patches want to be grouped together. The program will only recongnize the PatchID, but tag the SubpatchID to the individual output files. 
+1) Removed genetic distance matrix option. Users can do this post hoc.  
+
 Changes v1.10.20170322T14:41:00MDT (ell)
 0) Added 3 more parameters to the CDEVOVLE option for Hindex parent fitness with hybrid penalty. 
 fitness = p * exp (- (Xj - (Temperaturemin + (Temperaturemax - Temperaturemin) * HINDEX)) / (2 * s^2))

@@ -64,111 +64,6 @@ def count_unique(keys):
 	
 	#End::count_unique()
 
-# ---------------------------------------------------------------------------------------------------	
-def DoDpsGeneticDistance(loci,alleles,\
-ithmcrundir,nthfile,logfHndl):
-	'''
-	DoDpsGeneticDistance()
-	This function outputs the genetic distance matrix 
-	following proportion of shared alleles algorithm.
-	'''	
-	# List the grid files in directory
-	csvfileList = glob.glob(ithmcrundir+'ind*.csv')
-		
-	# Get the specified nthfile's ind to calculated matrix
-	for i in xrange(len(csvfileList)):
-						
-		# Open file for reading
-		inputfile = open(csvfileList[i],'r')
-			
-		# Read lines from the file
-		lines = inputfile.readlines()
-		
-		#Close the file
-		inputfile.close()
-		
-		# Create an empty matrix to append to
-		x = []
-		
-		# Split up each line in file and append to empty matrix, x
-		for l in lines:
-			thisline = l.split(',')
-			x.append(thisline)
-				
-		# Store genetic information: genes[individual], but need them as float values
-		genes = []
-		tempgenes = []
-		for k in xrange(len(x)-1):
-			# Get list from read in file
-			tempgenes.append(x[k+1][16:int(16+sum(alleles))])
-			# Create spot in genes
-			genes.append([])
-			for j in xrange(sum(alleles)):
-				# Make each list spot an integer
-				genes[k].append(tempgenes[k][j].strip('\n'))
-		
-		# Create a matrix of zeros to be filled
-		gendmatrix = np.zeros((len(genes),len(genes)),float)
-		
-		# Loop through each individual
-		for k in xrange(len(genes)):
-			
-			# Break if NA
-			if genes[k][0] == 'NA':
-				continue
-			else:
-				# Compare individual k to every other inidividual j
-				for j in xrange(len(genes)):					
-					# Break if NA
-					if genes[j][0] == 'NA':
-						continue
-					else:
-						# Create a tempvariable to be written over for each comparison
-						tempmin=[]
-						# Loop through each allele value
-						for alle in xrange(sum(alleles)):
-							# Find the shared alleles between k and j checking the 4 conditions
-							if genes[k][alle]=='2':
-								if genes[j][alle]=='2':
-									tempmin.append(2)
-								elif genes[j][alle]=='1':
-									tempmin.append(1)
-							elif genes[k][alle]=='1':
-								if genes[j][alle]=='1':
-									tempmin.append(1)
-								elif genes[j][alle]=='2':
-									tempmin.append(1)
-						# Write the Dps value to gendmatrix
-						gendmatrix[k][j] = 1.-float(sum(tempmin))/(2*loci)
-		
-		# Strip directory/filename of ind and add 'Gdmatrix.csv'
-		gdpathname = csvfileList[i].replace('ind','Gdmatrix')
-	
-		# Create file to write matrix to
-		outputfile = open(gdpathname,'w')
-		
-		# Sequence each row in the matrix
-		for seqrow in gendmatrix:
-		
-			# Grab each element in each row and write element to outputfile
-			for ele in xrange(len(seqrow)):
-				outputfile.write(str(seqrow[ele]))
-				# Add comma
-				outputfile.write(',')
-			
-			# Return line
-			outputfile.write('\n')
-		
-		# Close file
-		outputfile.close()
-		
-		# Logging message
-		stringout = gdpathname+' has been created'
-		logMsg(logfHndl,stringout)
-		print('The genetic distance matrix '+gdpathname+' has been created.')
-		
-	# End::DoDpsGeneticDistance()
-			
 # ---------------------------------------------------------------------------------------------------	 
 def DoGridOut_general(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 	'''
@@ -272,7 +167,7 @@ def DoGridOut_general(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(16+sum(alleles[0:jspot])):int(16+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(17+sum(alleles[0:jspot])):int(17+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -457,7 +352,7 @@ def DoGridOut_genalex(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(16+sum(alleles[0:jspot])):int(16+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(17+sum(alleles[0:jspot])):int(17+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -636,7 +531,7 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(16+sum(alleles[0:jspot])):int(16+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(17+sum(alleles[0:jspot])):int(17+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -798,7 +693,7 @@ def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				# Get each genotype
 				for jspot in xrange(loci):					
 					# Cdpop genes
-					genes_cdpop = x[1+counter][int(16+sum(alleles[0:jspot])):int(16+sum(alleles[0:jspot+1]))]
+					genes_cdpop = x[1+counter][int(17+sum(alleles[0:jspot])):int(17+sum(alleles[0:jspot+1]))]
 					
 					# Add gene individual spot 
 					GenFormgenes[ipop][ispot].append([])
@@ -883,7 +778,7 @@ def DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gr
 		sys.exit(-1)
 	
 	# Write out the titles - Add Titles from xypoints
-	title = ['Subpopulation','XCOORD','YCOORD','ID','sex','age','size','mature','newmature','layeggs','capture','recapture','infection','CDist','Hindex','ClassFile']
+	title = ['PatchID','XCOORD','YCOORD','ID','sex','age','size','mature','newmature','layeggs','capture','recapture','infection','CDist','Hindex','ClassFile','SubPatchID']
 	
 	# Write out the title from xy points
 	for i in xrange(len(title)):
@@ -932,6 +827,7 @@ def DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gr
 				outputfile.write(str(Ind['ImmiCD'])+',')
 			outputfile.write(str(Ind['hindex'])+',')
 			outputfile.write(str(Ind['classfile'])+',')
+			outputfile.write(str(Ind['popID'])+',')
 			outputfile.write(repr(Ind_genes).strip('[]')+'\n')	
 																
 	if gridsample == 'Initial' or 'Middle':
@@ -1499,8 +1395,7 @@ def DoOut_Class(ithmcrundir,logfHndl,N_Init_Age,N_back_age,PackingDeathsEmiAge,N
 	# End::DoOut_Class()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPostProcess(ithmcrundir,\
-gendmatans,loci,alleles,looptime,ToTFemales,ToTMales,\
+def DoPostProcess(ithmcrundir,loci,alleles,looptime,ToTFemales,ToTMales,\
 BreedFemales,BreedMales,Births,PopDeathsIN,PopDeathsOUT,Alleles,He,Ho,\
 MateDistCD,MateDistCDstd,nthfile,logfHndl,p1,p2,q1,q2,\
 subpopemigration,subpopimmigration,FAvgMate,MAvgMate,FSDMate,\
@@ -1517,13 +1412,6 @@ StrSuccess,EggDeaths,K_track,N_Init,N_Emigration,N_EmiMortality,N_Immigration,N_
 	# If extinct before nthfile end check here
 	if gen < max(nthfile):
 		nthfile = np.where(np.asarray(nthfile) <= gen)[0]
-	
-	# -----------------------------
-	# Matrix calculations
-	# -----------------------------	
-	# Create Genetic distance matrix with Bray-Curtis algorithm
-	if gendmatans == 'Dps':		
-		DoDpsGeneticDistance(loci,alleles,ithmcrundir,nthfile,logfHndl)
 	
 	# ------------------------
 	# Grid format options

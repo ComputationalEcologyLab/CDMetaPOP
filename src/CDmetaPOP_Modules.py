@@ -745,8 +745,8 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 			if not isinstance(offgenes,list): # Make sure this is in list format and split up for each loci list of lists
 				offgenes = offgenes.tolist()
 				offgenes = [offgenes[x:x+(len(offgenes)/loci)] for x in xrange(0, len(offgenes), (len(offgenes)/loci))]
-			
-			recd = (offpop,offpop,offpop,0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],name,0,0,0,hindex,offspring[i]['classfile'],repr(offgenes))
+		
+			recd = (offpop,offpop,offpop,0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],name,0,0,0,hindex,offspring[i]['classfile'],offspring[i]['popID'],repr(offgenes))
 					
 			# Record offspring information to SubpopIN 
 			Age0_keep.append(recd)
