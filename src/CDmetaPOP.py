@@ -661,6 +661,7 @@ if __name__ == '__main__':
 						# ----------------------------------------
 						if (gen != 0 and len(N0_pass[0].split('|')) > 1):
 							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N0,natal,gen,PopTag)			
+				
 				# -------------------------------------------
 				# Update stochastic parameters each year here
 				# -------------------------------------------

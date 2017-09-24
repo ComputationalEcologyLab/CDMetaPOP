@@ -580,17 +580,15 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					F1 = np.where(fathergenes[possiblealleles] == 1)[0]
 					M2 = np.where(mothergenes[possiblealleles] == 2)[0]
 					M1 = np.where(mothergenes[possiblealleles] == 1)[0]
-					tempALL = np.concatenate((F2,F2,F1,M2,M2,M1),axis=0) # Repeat 2s twice
-					if len(tempALL) < 4:
-						print('Error in twinning. Email Erin.')
-						sys.exit(-1)
-						
-					# Sample 2 alleles - these are indeices
-					sampleAlleles = random.sample(tempALL,2)
+					FALL = np.concatenate((F2,F2,F1),axis=0) # 2 copies of 2s
+					MALL = np.concatenate((M2,M2,M1),axis=0) # 2 copies of 2s		
+					# Sample allele from each parent
+					FsampleAlleles = random.sample(FALL,1)
+					MsampleAlleles = random.sample(MALL,1)
 					# Fill in alleles corresponding to sampled spots
-					for iall in xrange(2):
-						offgenes[possiblealleles[sampleAlleles[iall]]] = offgenes[possiblealleles[sampleAlleles[iall]]] + 1
-						
+					offgenes[possiblealleles[FsampleAlleles[0]]] = offgenes[possiblealleles[FsampleAlleles[0]]] + 1
+					offgenes[possiblealleles[MsampleAlleles[0]]] = offgenes[possiblealleles[MsampleAlleles[0]]] + 1
+											
 				# mtDNA is turned on
 				# ------------------
 				if mtdna == 'Y':

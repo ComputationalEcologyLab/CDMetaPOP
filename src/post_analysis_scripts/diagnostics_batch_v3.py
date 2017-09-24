@@ -15,6 +15,7 @@
 # _batch_v099: Update for recent version. 
 # _batch_v1.08: Update for recent version. Add in more diagnostics: mortalities.
 # v2: Added more metrics: packing and move mortalities.
+# v3: Added more metrics: captured individual plots. Also write each batch at given time to file for patch specific numbers
 # ----------------------------------------------------------------------------- 
 
 # Load modules
@@ -44,8 +45,14 @@ label_D1 = ['K Emi', '3K Emi', '5K Emi', 'modKv3 Emi']
 label_D2 = ['K Imm', '3K Imm', '5K Imm', 'modKv3 Imm']
 linemarks_D1 = ['k--','b--','r--','g--','y--']
 linemarks_D2 = ['k-o','b-o','r-o','g-o','y-o']
+# For captured plots
+label_Cap1 = ['K CapBack', '3K CapBack', '5K CapBack', 'modKv3 CapBack']
+label_Cap2 = ['K CapOut', '3K CapOut', '5K CapOut', 'modKv3 CapOut']
+linemarks_Cap1 = ['k--','b--','r--','g--','y--']
+linemarks_Cap2 = ['k-o','b-o','r-o','g-o','y-o']
 
-outdir = dir
+outdir = dir+"summary/"
+xyfile = "D:/projects/CDmetaPOP/Seattle/Runs/data_WCT1043_BarrierRemovalwGenetics/PatchVars1043_Model0_K.csv"
 
 savedpi = 300
 qnorm = 1.959964 # For CIs, not in function 
@@ -66,6 +73,8 @@ barr4 = 65
 barr5 = 66
 barr6 = 69
 barr7 = 71
+
+
 # List folders in this directory
 def listdirs(folder):
     return [d for d in (os.path.join(folder, d1) for d1 in os.listdir(folder)) if os.path.isdir(d)]
@@ -88,6 +97,10 @@ PackDeaths_Immi = []
 MoveDeaths_Emi = []
 MoveDeaths_Immi = []
 N_init_patch = []
+N_cap_back_patch = [] # Patch capture when back at spawn grounds
+N_cap_back_pop = [] # total population captured when back
+N_cap_out_patch = [] # patch capture when out
+N_cap_out_pop = [] # total population captured when out
 
 # Loop through batches
 for ibatch in xrange(batchno):
@@ -105,6 +118,10 @@ for ibatch in xrange(batchno):
 	PackDeaths_Immi.append([])
 	MoveDeaths_Emi.append([])
 	MoveDeaths_Immi.append([])
+	N_cap_back_patch.append([])
+	N_cap_back_pop.append([])
+	N_cap_out_patch.append([])
+	N_cap_out_pop.append([])
 
 	# Loop through MCs
 	for imc in xrange(mcno):
@@ -172,6 +189,10 @@ for ibatch in xrange(batchno):
 		PackDeaths_Immi[ibatch].append([])
 		MoveDeaths_Emi[ibatch].append([])
 		MoveDeaths_Immi[ibatch].append([])
+		N_cap_back_patch[ibatch].append([])
+		N_cap_back_pop[ibatch].append([])
+		N_cap_out_patch[ibatch].append([])
+		N_cap_out_pop[ibatch].append([])
 		
 		# Then Loop through generations/time
 		for iout in xrange(gen):
@@ -188,6 +209,10 @@ for ibatch in xrange(batchno):
 			PackDeaths_Immi[ibatch][imc].append([])
 			MoveDeaths_Emi[ibatch][imc].append([])
 			MoveDeaths_Immi[ibatch][imc].append([])
+			N_cap_back_patch[ibatch][imc].append([])
+			N_cap_back_pop[ibatch][imc].append([])
+			N_cap_out_patch[ibatch][imc].append([])
+			N_cap_out_pop[ibatch][imc].append([])
 			
 			# Age split
 			for j in xrange(len(values[1+iout][2].split('|'))-1):
@@ -217,8 +242,16 @@ for ibatch in xrange(batchno):
 				PackDeaths_Emi[ibatch][imc][iout].append(float(values_pop[1+iout][18].split('|')[j])) # remove todal
 				PackDeaths_Immi[ibatch][imc][iout].append(float(values_pop[1+iout][26].split('|')[j])) # remove todal
 				MoveDeaths_Emi[ibatch][imc][iout].append(float(values_pop[1+iout][17].split('|')[j])) # remove todal
-				MoveDeaths_Immi[ibatch][imc][iout].append(float(values_pop[1+iout][24].split('|')[j])) # remove todal			
-
+				MoveDeaths_Immi[ibatch][imc][iout].append(float(values_pop[1+iout][24].split('|')[j])) # remove todal
+				
+				# Patch values without total
+				N_cap_back_patch[ibatch][imc][iout].append(float(values_pop[1+iout][15].split('|')[j-1]))
+				N_cap_out_patch[ibatch][imc][iout].append(float(values_pop[1+iout][22].split('|')[j-1]))
+			# Sum the capture
+			N_cap_back_pop[ibatch][imc][iout] = np.nansum(N_cap_back_patch[ibatch][imc][iout])
+			N_cap_out_pop[ibatch][imc][iout] = np.nansum(N_cap_out_patch[ibatch][imc][iout])
+			
+			
 # Turn into arrays
 N_init_age = np.asarray(N_init_age)
 N_init_age = N_init_age.astype(np.float)
@@ -235,10 +268,47 @@ PackDeaths_Emi = np.asarray(PackDeaths_Emi)
 PackDeaths_Immi = np.asarray(PackDeaths_Immi)
 MoveDeaths_Emi = np.asarray(MoveDeaths_Emi)
 MoveDeaths_Immi = np.asarray(MoveDeaths_Immi)
-
+N_cap_back_patch = np.asarray(N_cap_back_patch)
+N_cap_back_pop = np.asarray(N_cap_back_pop)
+N_cap_out_patch = np.asarray(N_cap_out_patch)
+N_cap_out_pop = np.asarray(N_cap_out_pop)
 # --------------------------------------------
 # Get mean over Monte Carlosfor each batch run
 # --------------------------------------------
+# Capture numbers - back patch
+N_cap_back_patch_m = np.nansum(N_cap_back_patch,axis=1)/mcno
+N_cap_back_patch_sd = np.std(N_cap_back_patch,axis=1)	
+error = qnorm*N_cap_back_patch_sd/(mcno)
+N_cap_back_patch_l = N_cap_back_patch_m-error
+N_cap_back_patch_r = 	N_cap_back_patch_m+error
+N_cap_back_patch_min = np.min(N_cap_back_patch,axis=1)
+N_cap_back_patch_max = np.max(N_cap_back_patch,axis=1)
+# Capture numbers - back pop
+N_cap_back_pop_m = np.nansum(N_cap_back_pop,axis=1)/mcno
+N_cap_back_pop_sd = np.std(N_cap_back_pop,axis=1)	
+error = qnorm*N_cap_back_pop_sd/(mcno)
+N_cap_back_pop_l = N_cap_back_pop_m-error
+N_cap_back_pop_r = 	N_cap_back_pop_m+error
+N_cap_back_pop_min = np.min(N_cap_back_pop,axis=1)
+N_cap_back_pop_max = np.max(N_cap_back_pop,axis=1)
+
+# Capture numbers - out patch
+N_cap_out_patch_m = np.nansum(N_cap_out_patch,axis=1)/mcno
+N_cap_out_patch_sd = np.std(N_cap_out_patch,axis=1)	
+error = qnorm*N_cap_out_patch_sd/(mcno)
+N_cap_out_patch_l = N_cap_out_patch_m-error
+N_cap_out_patch_r = 	N_cap_out_patch_m+error
+N_cap_out_patch_min = np.min(N_cap_out_patch,axis=1)
+N_cap_out_patch_max = np.max(N_cap_out_patch,axis=1)
+# Capture numbers - out pop
+N_cap_out_pop_m = np.nansum(N_cap_out_pop,axis=1)/mcno
+N_cap_out_pop_sd = np.std(N_cap_out_pop,axis=1)	
+error = qnorm*N_cap_out_pop_sd/(mcno)
+N_cap_out_pop_l = N_cap_out_pop_m-error
+N_cap_out_pop_r = 	N_cap_out_pop_m+error
+N_cap_out_pop_min = np.min(N_cap_out_pop,axis=1)
+N_cap_out_pop_max = np.max(N_cap_out_pop,axis=1)
+
 N_init_pop_m = np.nansum(N_init_age,axis=3)
 #N_init_pop_m = np.nansum(N_init_pop_m,axis=1)
 #N_init_pop_sd = np.std(N_init_pop_m,axis=1)
@@ -368,6 +438,48 @@ N_growth_patch_time_cv = N_growth_patch_m_time_m / N_growth_patch_sd_time_m
 # --------------------------------------------
 # Write to file
 # --------------------------------------------
+# X,Y,patch population
+X = []
+Y = []
+SubPop = []
+# Read in PatchVars file to get X,Y
+inputfile = open(xyfile)
+# Read lines from the file
+lines = inputfile.readlines()
+#Close the file
+inputfile.close()
+# Create an empty matrix to append to
+xyvalues = []
+# Split up each line in file and append to empty matrix for generation specified
+for i in xrange(len(lines)):
+	thisline = lines[i].split(',')
+	xyvalues.append(thisline)
+# Delete lines
+del(lines)
+for i in xrange(len(xyvalues)-1):
+	SubPop.append(xyvalues[i+1][0])
+	X.append(xyvalues[i+1][1])
+	Y.append(xyvalues[i+1][2])
+del(xyvalues)
+
+# Create file for each batch to write info to
+for ibatch in xrange(batchno):
+	for itime in xrange(len(plottime)):
+		outputfile = open(outdir+'Batch'+str(ibatch)+'_'+label[ibatch]+'_'+savename+'mean_patch_pops_time'+str(plottime[itime])+'.csv','w')
+		# Write out the titles
+		outputfile.write('Subpopulation,X,Y,N_Back,N_Back_Captured,N_Out_Captured\n')
+			
+		# WRite information
+		for i in xrange(len(X)):
+			outputfile.write(SubPop[i]+',')
+			outputfile.write(X[i]+',')
+			outputfile.write(Y[i]+',')
+			
+			outputfile.write(str(N_init_patch_m[ibatch][plottime[itime]][i])+',')
+			outputfile.write(str(N_cap_back_patch_m[ibatch][plottime[itime]][i])+',')
+			outputfile.write(str(N_cap_out_patch_m[ibatch][plottime[itime]][i])+'\n')
+					
+		outputfile.close()		
 
 # --------------------------------------------------------
 # Plotting
@@ -398,6 +510,29 @@ title(plottitle,fontsize=21)
 #axis([-0.01,130,0,100000])
 legend(loc=0)
 savefig(dir+savename+'NInit_pop.png',dpi=savedpi)
+
+# Plot captured Ns
+# -----------------
+figure()
+for i in xrange(len(N_init_pop_m)):
+	plot(nthfile,N_cap_back_pop_m[i],linemarks_Cap1[i],label=label_Cap1[i],linewidth=2)
+	plot(nthfile,N_cap_out_pop_m[i],linemarks_Cap2[i],label=label_Cap2[i],linewidth=2)
+axvline(x=popburn, color='k', linestyle='--')
+axvline(x=barr0, color='k', linestyle='--')	
+axvline(x=barr1, color='k', linestyle='--')
+axvline(x=barr2, color='k', linestyle='--')
+axvline(x=barr3, color='k', linestyle='--')
+axvline(x=barr4, color='k', linestyle='--')
+axvline(x=barr5, color='k', linestyle='--')
+axvline(x=barr6, color='k', linestyle='--')
+axvline(x=barr7, color='k', linestyle='--')
+xlabel('Time',fontsize=18)
+ylabel('Captured Population',fontsize=18)
+title(plottitle,fontsize=21)
+legend(loc=0)
+savefig(dir+savename+'CapturedN.png',dpi=savedpi)
+
+
 
 # Plot patch mean
 # -------------------------------
