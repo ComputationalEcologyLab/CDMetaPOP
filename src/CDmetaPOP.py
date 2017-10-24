@@ -262,8 +262,18 @@ if __name__ == '__main__':
 		
 		# For Hindex answer
 		if cdevolveans.split('_')[0] == 'Hindex':
-			if len(cdevolveans.split('_')[1].split(';')) != 5:
-				print('CDEOLVE answer is Hindex and 5 parameters for the Gaussian function must be specified, see user manual and example files.')			
+			# Split for Gaussian
+			if cdevolveans.split('_')[1] == 'Gauss':
+				if len(cdevolveans.split('_')[2].split(';')) != 6:
+					print('CDEVOLVE answer is Hindex and 6 parameters for the Gaussian function must be specified, see user manual and example files.')
+					sys.exit(-1)
+			elif cdevolveans.split('_')[1] == 'Para':
+				if len(cdevolveans.split('_')[2].split(';')) != 3:
+					print('CDEOLVE answer is Hindex and 3 parameters for the Parabolic function must be specified, see user manual and example files.')
+					sys.exit(-1)
+			else:
+				print('CDEVOLVE and Hindex parameter not entered correctly, check user manual and example files.')
+				sys.exit(-1)
 		
 		# If cdevolve is turned on must have 2 alleles
 		if cdevolveans != 'N' and alleles[0] != 2:

@@ -718,7 +718,7 @@ def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				
 		# Delete x variable
 		del(x)
-			
+		
 		# Create file to write matrix to
 		outputfilename = filename.split('ind')
 		outputfile = open(outputfilename[0]+'/genepop_ind'+outputfilename[1].strip('.csv')+'.gen','w')

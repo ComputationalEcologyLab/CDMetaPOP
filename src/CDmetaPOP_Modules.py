@@ -97,24 +97,39 @@ def DoHindexSelection(cdevolveans,hindex,X):
 	DoHindexSelection()
 	This function calculates individual differential mortality, based on the individuals Hindex, temperature or environment at location based on a Gaussian.
 	'''
-	
-	# Get parameters
-	pars = cdevolveans.split('_')[1].split(';')
-	min_temp = float(pars[0])
-	max_temp = float(pars[1])
-	C = float(pars[2])
-	min_ParentHindex = float(pars[4])
-	max_ParentHindex = float(pars[5])
-	
-	# Check min and max parent Hindex and get p value
-	if (hindex <= min_ParentHindex) or (hindex >= max_ParentHindex):
-		p = 1.0
-	else:
-		p = float(pars[3])	
-	
-	# Get fitness value
-	fitness = p * np.exp(-((X - (min_temp + (max_temp-min_temp)*hindex))**2/(2.*C**2)))
-	
+		
+	# Gaussian
+	# ---------
+	if cdevolveans.split('_')[1] == 'Gauss':
+		# Get parameters	
+		pars = cdevolveans.split('_')[2].split(';')
+		min_temp = float(pars[0])
+		max_temp = float(pars[1])
+		C = float(pars[2])
+		min_ParentHindex = float(pars[4])
+		max_ParentHindex = float(pars[5])
+		
+		# Check min and max parent Hindex and get p value
+		if (hindex <= min_ParentHindex) or (hindex >= max_ParentHindex):
+			p = 1.0
+		else:
+			p = float(pars[3])	
+		
+		# Get fitness value
+		fitness = p * np.exp(-((X - (min_temp + (max_temp-min_temp)*hindex))**2/(2.*C**2)))
+		
+	# Parabolic
+	# ---------
+	elif cdevolveans.split('_')[1] == 'Para':
+		# Get parameters	
+		pars = cdevolveans.split('_')[2].split(';')
+		p = float(pars[0])
+		h = float(pars[1])
+		k = float(pars[2])
+		
+		# Get fitness value
+		fitness = k + ((hindex - h)**2 / (4 * p))
+		
 	# Get mortality value
 	differentialmortality = 1. - fitness		
 	

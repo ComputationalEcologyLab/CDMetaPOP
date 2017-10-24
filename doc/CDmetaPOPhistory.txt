@@ -1,5 +1,6 @@
 Changes v1.11.20170924T17:31:00MST (ell)
-0) Small error in InheritGenes().
+0) Fixed small error in InheritGenes().
+1) Added Hindex parabolic function for Dana and Chris RT project. Updated usermanual 
 
 Changes v1.11.20170531T09:16:00MST (ell)
 0) Checking Patch field not in consecutive order with subpopulation groupings. This does not work, so I am adding another field to the PatchVars. PatchID must be 1...N. Then SubpatchID will be another tag attached to each individual in the example stream segments of patches want to be grouped together. The program will only recongnize the PatchID, but tag the SubpatchID to the individual output files. 
