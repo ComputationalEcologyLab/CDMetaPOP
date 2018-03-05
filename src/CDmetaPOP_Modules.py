@@ -242,7 +242,7 @@ def Do2LocusSelection(fitvals,genes,location):
 	# End::Do2LocusSelection()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p2,q1,q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,ToTMales,ToTFemales,BreedMales,BreedFemales,N_Age,MatureCount,ImmatureCount,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,sexans):
+def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p2,q1,q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,ToTMales,ToTFemales,BreedMales,BreedFemales,N_Age,MatureCount,ImmatureCount,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,sexans,ToTYYMales,BreedYYMales):
 	'''
 	GetMetrics()
 	This function summarizes the genotypes and
@@ -312,8 +312,10 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	PopSizes_Std.append([])
 	ToTMales.append([]) #Storage add spot for generation
 	ToTFemales.append([]) #Storage add spot for generation
+	ToTYYMales.append([])
 	BreedMales.append([]) #Storage add spot for generation
 	BreedFemales.append([]) #Storage add spot for generation
+	BreedYYMales.append([])
 	MatureCount.append([])
 	ImmatureCount.append([])
 	
@@ -341,26 +343,33 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 		Strayers1[gen].append(len(tempname))
 		tempname = np.asarray([i for i, val in enumerate(SubpopIN[isub]['name']) if 'Z' in val])
 		Strayers2[gen].append(len(tempname))
-		indexF = np.where(SubpopIN[isub]['sex']==0)[0]
-		indexM = np.where(SubpopIN[isub]['sex']==1)[0]
+		indexF = np.where(SubpopIN[isub]['sex']=='XX')[0]
+		indexM = np.where(SubpopIN[isub]['sex']=='XY')[0]
+		indexYY = np.where(SubpopIN[isub]['sex']=='YY')[0]
 		allfemales = SubpopIN[isub][indexF]
 		allmales = SubpopIN[isub][indexM]
+		allYYmales = SubpopIN[isub][indexYY]
 		# Get reproduction age individuals
 		indexFage = np.where(allfemales['mature'] == 1)[0]
 		indexMage = np.where(allmales['mature'] == 1)[0]
+		indexYYage = np.where(allYYmales['mature'] == 1)[0]
 		
 		if sexans == 'Y':
 			# Storage tracking
 			ToTMales[gen].append(len(indexM)) 
 			ToTFemales[gen].append(len(indexF))
+			ToTYYMales[gen].append(len(indexYY))
 			BreedMales[gen].append(len(indexMage))
 			BreedFemales[gen].append(len(indexFage))
+			BreedYYMales[gen].append(len(indexYYage))
 		else:
 			# Storage tracking
-			ToTMales[gen].append(len(indexM)+len(indexF)) 
-			ToTFemales[gen].append(len(indexM)+len(indexF))
-			BreedMales[gen].append(len(indexMage)+len(indexFage))
-			BreedFemales[gen].append(len(indexMage)+len(indexFage))
+			ToTMales[gen].append(len(indexM)+len(indexF)+len(indexYY)) 
+			ToTFemales[gen].append(len(indexM)+len(indexF)+len(indexYY))
+			ToTYYMales[gen].append(len(indexM)+len(indexF)+len(indexYY))
+			BreedMales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
+			BreedFemales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
+			BreedYYMales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
 		MatureCount[gen].append(sum(SubpopIN[isub]['mature']))
 		ImmatureCount[gen].append(len(SubpopIN[isub]['mature'])-sum(SubpopIN[isub]['mature']))
 		
@@ -423,8 +432,10 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	# Add Population totals
 	ToTMales[gen].insert(0,sum(ToTMales[gen]))
 	ToTFemales[gen].insert(0,sum(ToTFemales[gen]))
+	ToTYYMales[gen].insert(0,sum(ToTYYMales[gen]))
 	BreedMales[gen].insert(0,sum(BreedMales[gen]))
 	BreedFemales[gen].insert(0,sum(BreedFemales[gen]))
+	BreedYYMales[gen].insert(0,sum(BreedYYMales[gen]))
 	
 	# Add Count totals
 	MatureCount[gen] = sum(MatureCount[gen])
@@ -887,7 +898,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_sl
 	# -----------------------
 	if SubpopIN[isub][iind]['mature'] == 0:		
 		if sizeans == 'N': # Age control
-			if SubpopIN[isub][iind]['sex'] == 0: # Female
+			if SubpopIN[isub][iind]['sex'] == 'XX': # Female
 				if Fmat_set == 'N': # Use prob value
 					matval = F_mature[Indage]
 				else: # Use set age
@@ -934,7 +945,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_sl
 					Mmat_int = float(Mmat_int)
 					Mmat_slope = float(Mmat_slope)
 				
-			if SubpopIN[isub][iind]['sex'] == 0: # Female
+			if SubpopIN[isub][iind]['sex'] == 'XX': # Female
 				if Fmat_set == 'N': # Use equation - size
 					matval = np.exp(Fmat_int + Fmat_slope * SubpopIN[isub][iind]['size']) / (1 + np.exp(Fmat_int + Fmat_slope * SubpopIN[isub][iind]['size']))
 				else: # Use set size
@@ -966,7 +977,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,F_mature,M_mature,Fmat_int,Fmat_sl
 		SubpopIN[isub][iind]['mature'] = 1# Becomes mature	
 	
 	# Check if mature female, then chance it lays eggs
-	if SubpopIN[isub][iind]['mature'] and SubpopIN[isub][iind]['sex'] == 0:
+	if SubpopIN[isub][iind]['mature'] and SubpopIN[isub][iind]['sex'] == 'XX':
 		randegglay = rand()				
 		if randegglay < eggFreq:
 			SubpopIN[isub][iind]['layeggs'] = 1 # Lays eggs next year

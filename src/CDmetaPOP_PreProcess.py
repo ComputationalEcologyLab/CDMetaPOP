@@ -453,7 +453,7 @@ def InitializeAge(K,agefilename,datadir):
 	agelst = [] # [age,probability] for age distribution
 	ageclass = []
 	ageno = []
-	Femalepercent = []
+	sexratio = []
 	age_percmort_out = []
 	age_percmort_back = []
 	size_percmort_out = []
@@ -481,7 +481,7 @@ def InitializeAge(K,agefilename,datadir):
 		agelst.append([])
 		ageclass.append([])
 		ageno.append([])
-		Femalepercent.append([])
+		sexratio.append([])
 		age_percmort_out.append([])
 		age_percmort_back.append([])
 		size_percmort_out.append([])
@@ -512,7 +512,7 @@ def InitializeAge(K,agefilename,datadir):
 			agelst[isub].append([]) # [age,probability] for age distribution
 			ageclass[isub].append([])
 			ageno[isub].append([])
-			Femalepercent[isub].append([])
+			sexratio[isub].append([])
 			age_percmort_out[isub].append([])
 			age_percmort_back[isub].append([])
 			size_percmort_out[isub].append([])
@@ -565,7 +565,7 @@ def InitializeAge(K,agefilename,datadir):
 				age_size_mean[isub][i_splitpatch].append(float(xage[i+1][1]))
 				age_size_std[isub][i_splitpatch].append(float(xage[i+1][2]))
 				ageno[isub][i_splitpatch].append(float(xage[i+1][3]))
-				Femalepercent[isub][i_splitpatch].append(xage[i+1][4])
+				sexratio[isub][i_splitpatch].append(xage[i+1][4])
 				age_percmort_out[isub][i_splitpatch].append(xage[i+1][5])
 				age_percmort_back[isub][i_splitpatch].append(xage[i+1][7])
 				size_percmort_out[isub][i_splitpatch].append(xage[i+1][9])
@@ -595,9 +595,9 @@ def InitializeAge(K,agefilename,datadir):
 			if len(age_Mg[isub][i_splitpatch]) != len(age_S[isub][i_splitpatch]):
 				print('Age distribution file in the wrong format.')
 				sys.exit(-1)
-			# Error check on Femalepercent
-			if 'WrightFisher' in Femalepercent[isub][i_splitpatch]:
-				if Femalepercent[isub][i_splitpatch][1:] != Femalepercent[isub][i_splitpatch][-1:]:
+			# Error check on sexratio
+			if 'WrightFisher' in sexratio[isub][i_splitpatch]:
+				if sexratio[isub][i_splitpatch][1:] != sexratio[isub][i_splitpatch][-1:]:
 					print('Wright Fisher specified in Female Percent in Agevars.csv file. All age classes must be WrightFisher.')
 					sys.exit(-1)
 			
@@ -614,7 +614,7 @@ def InitializeAge(K,agefilename,datadir):
 	
 	# Return variables
 	tupAgeFile = agelst,age_percmort_out,age_percmort_back,age_Mg,age_S,\
-	Femalepercent,age_mu,age_size_mean,age_size_std,M_mature,F_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd
+	sexratio,age_mu,age_size_mean,age_size_std,M_mature,F_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd
 	
 	return tupAgeFile
 	#End::InitializeAge()
@@ -645,7 +645,7 @@ def InitializeID(K,N):
 	#End::InitializeID()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,addans):
+def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,addans):
 	'''
 	InitializeVars()
 	This function initializes the age,sex,infection,genes of each individual based for the id variable
@@ -662,7 +662,6 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 	hindex = []
 	whichClassFile = []
 	
-	#pdb.set_trace() # Initialize XY chromosomes. 
 	# Just loop through actual individuals, else this can take a long while - carful of indexing
 	for iind in xrange(len(subpop)):
 		
@@ -760,20 +759,29 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 		# ------------------------------
 		# Sex set
 		# ------------------------------
+		
 		# Case for Wright Fisher or not
-		if Femalepercent[isub][thisfile][agetemp] != 'WrightFisher':
-			# Select the sex
-			randsex = int(100*rand())				
-			# If that random number is less than Femalepercent, assign it to be a female
-			if randsex < int(Femalepercent[isub][thisfile][agetemp]):
-				offsex = 0				
-			# If the random number is greater than the Femalepercent, assign it to be a male
-			else:
-				offsex = 1					
+		if sexratio[isub][thisfile][agetemp] != 'WrightFisher':
+			# Get each sex prob, add index, convert to prob
+			tempratios = sexratio[isub][thisfile][agetemp].split(';')
+			# Error check, must add to 100 and must be 3 values
+			if len(tempratios) != 3:
+				print('Must specify percentages for 3 sex classes in ClassVars file. Length is not 3.')
+				sys.exit(-1)
+			if float(tempratios[0])+float(tempratios[1])+float(tempratios[2]) != 100.:
+				print('3 sex class percentages must equal 100 in ClassVars file.')
+				sys.exit(-1)
+			ratiolst = [['XX',float(tempratios[0])/100.],['XY',float(tempratios[1])/100.],['YY',float(tempratios[2])/100.]]
+			offsex = w_choice_general(ratiolst)[0] 
+										
 			sex.append(offsex)
 		# Special case for WrightFisher
 		else: 
 			offsex = int(2*rand())
+			if offsex == 0:
+				offsex == 'XX'
+			else:
+				offsex == 'XY'
 			sex.append(offsex) # temporary fill
 		
 		# ------------------------
@@ -799,7 +807,7 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 		# Set maturity Y or N and get egg lay last year
 		# ---------------------------------------------		
 		if sizeans == 'N': # Age control
-			if offsex == 0: # Female
+			if offsex == 'XX': # Female
 				if Fmat_set == 'N': # Use prob value
 					matval = F_mature[isub][thisfile][agetemp]
 				else: # Use set age
@@ -858,7 +866,7 @@ def InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,age_size_m
 					Mmat_int = float(Mmat_int)
 					Mmat_slope = float(Mmat_slope)				
 			
-			if offsex == 0: # Female
+			if offsex == 'XX': # Female
 				if Fmat_set == 'N': # Use equation - size
 					matval = np.exp(Fmat_int + Fmat_slope * sizesamp) / (1 + np.exp(Fmat_int + Fmat_slope * sizesamp))
 				else: # Use set size
@@ -1879,7 +1887,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_percmort_back = tupAgeFile[2]
 	age_Mg = tupAgeFile[3]
 	age_S = tupAgeFile[4]
-	Femalepercent = tupAgeFile[5]
+	sexratio = tupAgeFile[5]
 	age_mu = tupAgeFile[6]
 	age_size_mean = tupAgeFile[7]
 	age_size_std = tupAgeFile[8]
@@ -1898,7 +1906,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature...
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
+	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
 	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'N')
 	
 	# ------------------------------------
@@ -1921,7 +1929,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	unisubpops = len(Pop)
 	
 	# Organize type data in SubpopIN - here return this and also update dynamically.
-	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('genes',(str,3*sum(alleles)+2*loci+2))]
+	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('genes',(str,3*sum(alleles)+2*loci+2))]
 	
 	# Get N here - N maybe slighlty different then specified due to random draws
 	N = []
@@ -1952,13 +1960,16 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 			N[isub].append(noinsub) # Track N
 			# Update the Wright Fisher case for sex here
 			# ------------------------------------------
-			if Femalepercent[isub][0] == 'WrightFisher':
+			if sexratio[isub][0] == 'WrightFisher':
 				# If the subpopulation number is not even then sys exit
 				if np.mod(noinsub,2) == 1:
 					print("You have WrightFisher turned and this population must be even.")
 					sys.exit(-1)
 				# Then create half males and females and shuffle
 				sex = np.append(np.zeros(noinsub/2,"int"),np.ones(noinsub/2,"int"))
+				sex = np.asarray(sex,dtype=str)
+				sex[np.where(sex == '0')[0]] = 'XX'
+				sex[np.where(sex == '1')[0]] = 'XY'
 				np.random.shuffle(sex)
 			
 			# Loop through individuals in subpop
@@ -1970,7 +1981,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 				# Record individual to subpopulation
 				# ---------------------------------				
 				# Update the Wright Fisher case for sex here
-				if Femalepercent[isub][0] == 'WrightFisher':				
+				if sexratio[isub][0] == 'WrightFisher':				
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
 					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],repr(genes[indspot]))
 					SubpopIN[isub].append(recd)
@@ -2096,7 +2107,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	age_percmort_back = tupAgeFile[2]
 	age_Mg = tupAgeFile[3]
 	age_S = tupAgeFile[4]
-	Femalepercent = tupAgeFile[5]
+	sexratio = tupAgeFile[5]
 	age_mu = tupAgeFile[6]
 	age_size_mean = tupAgeFile[7]
 	age_size_std = tupAgeFile[8]
@@ -2115,7 +2126,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(Femalepercent,agelst,cdinfect,loci,alleles,allelst,\
+	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
 	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'Y')
 	
 	# ---------------------------------------------
@@ -2144,7 +2155,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 			
 			# Update the Wright Fisher case for sex here
 			# ------------------------------------------
-			if Femalepercent[isub][0] == 'WrightFisher':
+			if sexratio[isub][0] == 'WrightFisher':
 				# If the subpopulation number is not even then sys exit
 				if np.mod(noinsub,2) == 1:
 					print("You have WrightFisher turned and this population must be even.")
@@ -2166,7 +2177,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 				# Record individual to subpopulation
 				# ---------------------------------				
 				# Update the Wright Fisher case for sex here
-				if Femalepercent[isub][0] == 'WrightFisher':				
+				if sexratio[isub][0] == 'WrightFisher':				
 					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
 					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],repr(genes[indspot]))
 				

@@ -1,3 +1,34 @@
+Changes v1.12.20180130T10:30:00MDT (ell)
+0) Resume adding in sex chromosomes for YY additions: sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex based on this assignment unless another option overides (e.g., known option). Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are assumed to be males. Parameters for these genotypes can be added (e.g., assortative mating). Fitness linked to genotype and environment can also follow cdevolve module rules.
+a) In ClassVars 'Percent Female' controls the distribution of initial sex. This parameter changed to 'Sex Ratio'. Then, 3 percentages are given for Female;Male;TrojanYY and sex is initialized based on this distribution. The ind{year}.csv output files will now have designations of XX, XY, or YY in the sex column.
+b) For this first version, mating will occur the same and treat all males as XY and YY equally. 
+c) For this first version, Mendal inheritance will act upon the sex chromosome and assign individual sex from a random draw from each parent. Thus, offspring can only be XX or XY. 
+d) For this first version, all offspring will have equal fitness. 
+e) PopVars Egg_FemalePercent parameter can be removed. 
+f) Added error checks, must have 3 values and must equal 100 %.
+h) Carefully check code for parameter 'sex' and checks for 0 and 1, switch to XX and XY, etc.
+
+- Dtype sex changed to string, careful checks throughout
+- GetMetrics() - added ToTYYMales, BreedYYMales
+- DoUpdate() (first) checks (for Initial, no changes)
+----- Time loop
+- CDClimate() - no changes
+- AddIndividuals() - updated
+- DoStochasticUpdate() - no changes
+- DoMate() - assume mating occurs the same and all males treated equal. First, Egg_FemalePercent options changed to 'N' which will tell the program to look at parents chromosomes and randomly draw one from each. 
+- DoOffsrping() - assume egg mean and egg mortality is the same with pairings of XX+YY and XX+XY. - no changes here to this module.
+- DoUpdate() (second) checks - for Middle, maturation update and sex specific - for now assume all males mature according to male maturation curve. Assume growth is also the same for YY and XY individuals that came from the cross XX+YY.
+DoEmigration() - small changes to int vs str calls. Probarray includes 'YY' now, but assumes calling male movement matrix. small updates to CalculateDispersalMetrics for int vs str calls. Again assume male metrics same here. 
+- DoMortality() - no changes, assume equal.
+- DoUpdate() - third, no changes, assume growth equal. 
+- DoImmigration() - updated Probarray() for int vs str calls and included 'YY', but assumes the same as 'XY'. DoOffspringVars() updated options here for assigning sex to eggs, included a random draw from parents sex chromosomes. Small checks/changes throughout for int vs str calls. dtype updated for 'sex' key. 
+- DoMortality() - no changes, assume equal. 
+- GetMetrics() - no changes.
+- DoPostProcess() - Updated ind files to include chromosome sex assignment now. Updated output files to include 2 more tracking numbers for YY counts. 
+
+i) Running tests and checks. 
+- For asexual situation, could have 'YX' sex assignment, thus sorted alpha for these situations.   
+
 Changes v1.11.20170924T17:31:00MST (ell)
 0) Fixed small error in InheritGenes().
 1) Added Hindex parabolic function for Dana and Chris RT project. Updated usermanual 

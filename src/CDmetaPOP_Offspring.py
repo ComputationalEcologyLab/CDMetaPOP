@@ -94,21 +94,38 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				
 				# --------------------------
 				# Assign sex here
-				# --------------------------			
-				# Case for Wright Fisher or not
-				if Femalepercent != 'WrightFisher':
+				# --------------------------				
+				# Case for Mendal from parents sex chromosomes
+				if Femalepercent == 'N':
+					mothers_sex = Bearpairs[i][0]['sex'] # It must be 'XX'
+					randindex = int(2*rand())
+					from_mother = mothers_sex[randindex]
+					fathers_sex = Bearpairs[i][1]['sex'] # It can be XY or YY
+					randindex = int(2*rand())
+					from_father = fathers_sex[randindex]
+					offsex = from_mother + from_father				
+				# Special case for WrightFisher
+				elif Femalepercent == 'WrigthFisher':
+					offsex = int(2*rand())
+					if offsex == 0:
+						offsex = 'XX'
+					else:
+						offsex = 'XY'
+				elif isinstance(int(Femalepercent),int):
 					# Select sex of the jth offspring - select a random number
 					randsex = int(100*rand())				
 					# If that random number is less the Femalepercent, assign it to be a female
 					if randsex < int(Femalepercent):
-						offsex = 0				
+						offsex = 'XX'				
 					# If the random number is greater than the Femalepercent, assign it to be a male
 					else:
-						offsex = 1
-				# Special case for WrightFisher
+						offsex = 'XY'				
+				# Error check
 				else:
-					offsex = int(2*rand())
-				
+					print('Egg_Femalepercent is not correct.')
+					sys.exit(-1)
+				# Make sure XY not YX for asexual cases
+				offsex = ''.join(sorted(offsex))
 				# --------------------------
 				# Assign infection here
 				# --------------------------			

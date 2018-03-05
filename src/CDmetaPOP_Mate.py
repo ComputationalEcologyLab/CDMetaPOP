@@ -326,13 +326,15 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# ---------------------------------------------------
 
 	# Storage variables for breeding age males and females
-	females = []		# These are the zeros
-	males = []			# These are the ones
+	females = []		# These are the zeros or XX
+	males = []			# These are the ones or XY
 	
 	# Loop through and grab each female and male for probability of mature and probability to lay eggs
 	for isub in xrange(len(K)):
-		indexF = np.where(SubpopIN[isub]['sex']==0)[0]
-		indexM = np.where(SubpopIN[isub]['sex']==1)[0]
+		indexF = np.where(SubpopIN[isub]['sex']=='XX')[0]
+		indexM = np.where(SubpopIN[isub]['sex']=='XY')[0]
+		indexYY = np.where(SubpopIN[isub]['sex']=='YY')[0]
+		indexM = np.concatenate((indexM,indexYY),axis=0) # Here, assume all males the same.
 		allfemales = SubpopIN[isub][indexF]
 		allmales = SubpopIN[isub][indexM]
 		# Get reproduction age individuals

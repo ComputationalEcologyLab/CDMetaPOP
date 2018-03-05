@@ -102,14 +102,16 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal):
 	# Subpopulation current offspring is in - index - 1
 	currentsubpop = int(currentoff['EmiPop']) - 1
 	natalsubpop = int(currentoff['NatalPop']) - 1
-	indSex = int(currentoff['sex'])
+	indSex = currentoff['sex']
 		
 	# If straying process - use full cdmatrix
 	if answer == 'strayer_emiPop':
 		# Append the freegrid probabilities for the offspring choice
-		if indSex == 0: # Female offspring
+		if indSex == 'XX': # Female 
 			probarray = Fxycdmatrix[currentsubpop]
-		elif indSex == 1: # Male offspring
+		elif indSex == 'XY': # Male 
+			probarray = Mxycdmatrix[currentsubpop]
+		elif indSex == 'YY': # Male 
 			probarray = Mxycdmatrix[currentsubpop]
 		else:
 			print('Invalid offspring list.')
@@ -123,9 +125,11 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal):
 	elif answer == 'strayer_natalPop':
 		
 		# Append the freegrid probabilities for the offspring choice
-		if indSex == 0: # Female offspring
+		if indSex == 'XX': # Female 
 			probarray = Fxycdmatrix[natalsubpop]
-		elif indSex == 1: # Male offspring
+		elif indSex == 'XY': # Male 
+			probarray = Mxycdmatrix[natalsubpop]
+		elif indSex == 'YY': # Male 
 			probarray = Mxycdmatrix[natalsubpop]
 		else:
 			print('Invalid offspring list.')
@@ -137,9 +141,11 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal):
 		probarray[np.where(np.asarray(K)==0)[0]] = 0.
 		
 		# Where currentpop to 0 probabilities set to zero
-		if indSex == 0: # Female offspring
+		if indSex == 'XX': # Female 
 			nothere = Fxycdmatrix[currentsubpop]
-		elif indSex == 1: # Male offspring
+		elif indSex == 'XY': # Male 
+			nothere = Mxycdmatrix[currentsubpop]
+		elif indSex == 'YY': # Male 
 			nothere = Mxycdmatrix[currentsubpop]
 		probarray[np.where(nothere == 0.)[0]] = 0.
 		
@@ -150,11 +156,15 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal):
 			probarray = [0.0]
 		else:
 			# Append the freegrid probabilities for the offspring choice
-			if indSex == 0: # Female offspring
+			if indSex == 'XX': # Female 
 				# Get probarray from current to natal - only one number!
 				probarray_BA = [Fxycdmatrix[currentsubpop][natalsubpop]]
 				probarray_AB = [Fxycdmatrix[natalsubpop][currentsubpop]]
-			elif indSex == 1: # Male offspring
+			elif indSex == 'XY': # Male 
+				# Get probarray from current to natal - only one number!
+				probarray_BA = [Mxycdmatrix[currentsubpop][natalsubpop]]
+				probarray_AB = [Mxycdmatrix[natalsubpop][currentsubpop]]
+			elif indSex == 'YY': # Male 
 				# Get probarray from current to natal - only one number!
 				probarray_BA = [Mxycdmatrix[currentsubpop][natalsubpop]]
 				probarray_AB = [Mxycdmatrix[natalsubpop][currentsubpop]]
@@ -375,7 +385,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					
 					name = 'S'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 					
-					recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
+					recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
 								
 					# Record outpool disperse information	
 					SubpopIN_keep[int(straypop)-1].append(recd)		
@@ -467,7 +477,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					outpool_name = outpool_name.split('_')
 					name = 'R'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 					
-					recd = (originalpop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['genes'])
+					recd = (originalpop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['genes'])
 								
 					# Record outpool disperse information	
 					SubpopIN_keep[int(immipop)-1].append(recd)				
@@ -572,7 +582,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						
 						name = 'I'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 						
-						recd = (originalpop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['genes'])
+						recd = (originalpop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['genes'])
 									
 						# Record outpool disperse information	
 						SubpopIN_keep[int(immipop)-1].append(recd)		
@@ -669,7 +679,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 								
 								name = 'Z'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 								
-								recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
+								recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
 											
 								# Record outpool disperse information	
 								SubpopIN_keep[int(straypop)-1].append(recd)		
@@ -762,7 +772,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 								
 								name = 'Z'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
 								
-								recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
+								recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
 											
 								# Record outpool disperse information	
 								SubpopIN_keep[int(straypop)-1].append(recd)		
@@ -1300,9 +1310,9 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	
 	# Get dtype for offspring - first check to see if any Bearpairs exist.
 	if Bearpairs[0][0] != -9999:	
-		offdtype = [('Mother',(str,len(Bearpairs[0][0]['genes']))),('Father',(str,len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100))]
+		offdtype = [('Mother',(str,len(Bearpairs[0][0]['genes']))),('Father',(str,len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100))]
 	else:
-		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('age',int),('sex',int),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100))]
+		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100))]
 
 	offspring = np.asarray(offspring,dtype=offdtype) # Convert to array with dytpe
 	
@@ -1314,6 +1324,9 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			sys.exit(-1)
 		# Then create half males and females and shuffle
 		offsex = np.append(np.zeros(len(offspring)/2,"int"),np.ones(len(offspring)/2,"int"))
+		offsex = np.asarray(offsex,dtype=str)
+		offsex[np.where(offsex == '0')[0]] = 'XX'
+		offsex[np.where(offsex == '1')[0]] = 'XY'
 		np.random.shuffle(offsex)
 		# And reassign the sex to offspring list
 		offspring['sex'] = offsex
@@ -1405,7 +1418,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 					subpopmigration[gen][int(indTo)-1].append(1)
 			
 			# If female - CD distances
-			if int(indSex) == 0:
+			if indSex == 'XX':
 				Fcount = Fcount + 1
 				probval = Fxycdmatrix[int(indFrom)-1][int(indTo)-1]
 				
@@ -1439,7 +1452,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 				FtempAvgDispDistCD.append(cdval)				
 					
 			# Else if Male
-			elif int(indSex) == 1: 
+			elif indSex == 'XY' or indSex == 'YY': # assume males same movement matrix 	
 				Mcount = Mcount + 1
 				probval = Mxycdmatrix[int(indFrom)-1][int(indTo)-1]
 				
@@ -1468,7 +1481,11 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 				elif Mdispmoveno == '8':
 					cdval = (1. - probval)*(MScaleMax-MScaleMin)+MScaleMin
 				MtempAvgDispDistCD.append(cdval)
-
+			
+			else:
+				print('Error in sex assignment.')
+				sys.exit(-1)
+			
 			# Store the traveled distance - carefully index here
 			if name != 'All':
 				OffDisperseIN[isub][miIndex[ioff]]['ImmiCD'] = cdval

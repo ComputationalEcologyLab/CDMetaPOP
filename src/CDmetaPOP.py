@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.10"
-appRele = "2017.03.22-04:21:01MDT"
+appVers = "version 1.12"
+appRele = "2018.03.05-12:38:01MST"
 authorNames = "Erin L Landguth"
 
 # ---------------
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 	
 	# If user did not specify .rip file
 	else:
-		print "User must specify data directory, input file name, and output file directory (e.g., at command line type CDmetaPOP.py ../CDmetaPOP_data/ inputvariables.csv exampleout_foldername)."
+		print "User must specify data directory, input file name, and output file directory (e.g., at command line type CDmetaPOP.py ../CDmetaPOP_data/ PopVars.csv exampleout_foldername)."
 		sys.exit(-1)	
 	
 	# If .ip file does not exist
@@ -358,6 +358,7 @@ if __name__ == '__main__':
 			Track_MatureCount = []
 			Track_ImmatureCount = []
 			
+			
 			# DoMate()
 			Track_FAvgMate = []
 			Track_MAvgMate = []
@@ -367,8 +368,10 @@ if __name__ == '__main__':
 			Track_MateDistCDstd = []
 			Track_ToTFemales = []
 			Track_ToTMales = []
+			Track_ToTYYMales = []
 			Track_BreedFemales = []
 			Track_BreedMales = []
+			Track_BreedYYMales = []
 			Track_BreedEvents = []
 			Track_AAaaMates = []
 			Track_AAAAMates =[]
@@ -525,7 +528,7 @@ if __name__ == '__main__':
 			
 			# Grab first one only
 			K = K_mu # Initialize K with mu
-			#pdb.set_trace() # check SubPopIN for XY chromosomes			
+						
 			# Print to log
 			stringout = 'DoPreProcess(): '+str(datetime.datetime.now() -start_time1) + ''
 			logMsg(logfHndl,stringout)
@@ -538,7 +541,7 @@ if __name__ == '__main__':
 			# Timing events: start
 			start_time1 = datetime.datetime.now()
 			
-			GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,loci,alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans)
+			GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,loci,alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans,Track_ToTYYMales,Track_BreedYYMales)
 			
 			# Print to log
 			stringout = 'GetMetrics() Initial: '+str(datetime.datetime.now() -start_time1) + ''
@@ -549,13 +552,13 @@ if __name__ == '__main__':
 			# Error statements
 			# ---------------------------------			
 			# Error statement here in case no females or males, then break
-			if Track_ToTFemales[0][0]==0 or Track_ToTMales[0][0]==0:						
+			if Track_ToTFemales[0][0]==0 or (Track_ToTMales[0][0] + Track_ToTYYMales[0][0])==0:						
 				print('There are no females or males to begin time loop.\n')
 				break
 				
-			# ------------------------------------------
+			# ----------------------------------------------------
 			# Call DoUpdate() - output initial file here ind-1.csv
-			# ------------------------------------------	
+			# ----------------------------------------------------	
 							
 			# Timing events: start
 			start_time1 = datetime.datetime.now()
@@ -710,7 +713,7 @@ if __name__ == '__main__':
 				stringout = 'DoMate(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
 				print 'DoMate(): ',str(datetime.datetime.now() -start_time1),''
-								
+							
 				# ---------------------------------------
 				# Call DoOffspring()
 				# ---------------------------------------
@@ -727,7 +730,7 @@ if __name__ == '__main__':
 				stringout = 'DoOffspring(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
 				print 'DoOffspring(): ',str(datetime.datetime.now() -start_time1),''				
-								
+							
 				# ----------------------------------------------------------------
 				# Call 2nd DoUpdate() - grow, age/mature (selection option),egglay,capture, output ind.csv file;no Age0s; ind.csv
 				# ----------------------------------------------------------------
@@ -741,7 +744,7 @@ if __name__ == '__main__':
 				stringout = 'Second DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
 				print 'Second DoUpdate(): ',str(datetime.datetime.now() -start_time1),''
-				
+					
 				# ------------------------------------------
 				# Call DoEmigration()
 				# ------------------------------------------		
@@ -759,7 +762,7 @@ if __name__ == '__main__':
 				stringout = 'DoEmigration(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
 				print 'DoEmigration(): ',str(datetime.datetime.now() -start_time1),''					
-							
+						
 				# ----------------------------------------
 				# Call DoMortality()
 				# ----------------------------------------			
@@ -805,7 +808,7 @@ if __name__ == '__main__':
 				# ------------------------------------------
 				# Call DoMortality()
 				# ------------------------------------------
-				
+					
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
 				
@@ -826,7 +829,7 @@ if __name__ == '__main__':
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
 				
-				GetMetrics(SubpopIN,K,Track_N_Init_pop,Track_K,loci,alleles,gen+1,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans)
+				GetMetrics(SubpopIN,K,Track_N_Init_pop,Track_K,loci,alleles,gen+1,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_ToTMales,Track_ToTFemales,Track_BreedMales,Track_BreedFemales,Track_N_Init_age,Track_MatureCount,Track_ImmatureCount,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,sexans,Track_ToTYYMales,Track_BreedYYMales)
 				
 				# Print to log
 				stringout = 'GetMetrics(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -863,7 +866,7 @@ if __name__ == '__main__':
 			DisperseDeathsEmi,DisperseDeathsImm,\
 			Track_BreedEvents,gridformat,\
 			MgSuccess,AdultNoMg,StrSuccess,\
-			Track_EggDeaths,Track_K,Track_N_Init_pop,N_Emigration_pop,N_EmiMortality,N_Immigration_pop,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,Track_N_Init_age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,Track_MatureCount,Track_ImmatureCount,Track_N_back_age,Track_N_out_age,outputans,gen,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,age_size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates)
+			Track_EggDeaths,Track_K,Track_N_Init_pop,N_Emigration_pop,N_EmiMortality,N_Immigration_pop,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,Track_N_Init_age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,Track_MatureCount,Track_ImmatureCount,Track_N_back_age,Track_N_out_age,outputans,gen,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,age_size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,Track_ToTYYMales,Track_BreedYYMales)
 			
 			# Print to log
 			stringout = 'DoPostProcess(): '+str(datetime.datetime.now() -start_time1) + ''

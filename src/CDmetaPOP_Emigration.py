@@ -101,14 +101,17 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate):
 	currentsubpop = int(currentsubpop) - 1
 
 	# Get sex of individual
-	indSex = int(currentoff['sex'])
+	indSex = currentoff['sex']
 	
 	# Append the freegrid probabilities for the offspring choice
-	if indSex == 0: # Female offspring
+	if indSex == 'XX': # Female offspring
 		probarray = Fxycdmatrix[currentsubpop]
-	elif indSex == 1: # Male offspring
+	elif indSex == 'XY': # Male offspring
+		probarray = Mxycdmatrix[currentsubpop]
+	elif indSex == 'YY': # Assume same as XY
 		probarray = Mxycdmatrix[currentsubpop]
 	else:
+		pdb.set_trace()
 		print('Invalid offspring list.')
 		sys.exit(-1)		
 	
@@ -291,7 +294,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 					# Record string name of OriginalSubpop,ToSubpop,NAsubpop,EmiCD,ImmiCD,age,sex,size,infection,name,capture,layeggs,genes				
-					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(tosubpop)-1],outpool['genes'])
+					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(tosubpop)-1],outpool['genes'])
 								
 					# Record outpool disperse information
 					SubpopIN_keep[int(tosubpop)-1].append(recd)
@@ -379,7 +382,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]	
 					
 				# Record string name of OriginalSubpop,ToSubpop,NA,EmiCD,ImmiCD,age,sex,size,infection,name,capture,genes 
-				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],int(outpool['sex']),outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(originalpop)-1],outpool['genes'])
+				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(originalpop)-1],outpool['genes'])
 							
 				# Record outpool disperse information
 				SubpopIN_keep[int(originalpop)-1].append(recd)
@@ -782,7 +785,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 				subpopmigration[gen][int(indTo)-1].append(1)			
 			
 			# If female - CD distances			
-			if int(indSex) == 0:
+			if indSex == 'XX':
 				Fcount = Fcount + 1			
 				probval = Fxycdmatrix[int(indFrom)-1][int(indTo)-1]
 				
@@ -817,7 +820,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 				FtempAvgDispDistCD.append(cdval)				
 					
 			# Else if Male
-			elif int(indSex) == 1: 			
+			elif indSex == 'XY' or indSex == 'YY': # assume males same movement matrix 			
 				Mcount = Mcount + 1
 				probval = Mxycdmatrix[int(indFrom)-1][int(indTo)-1]
 				
