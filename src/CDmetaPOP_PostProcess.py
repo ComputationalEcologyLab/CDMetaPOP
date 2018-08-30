@@ -434,6 +434,7 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 	DoGridOut_structure()
 	Output ind.csv in structure genotype format	
 	'''	
+	
 	subpopno = len(subgridtotal[0])	- 1	
 	# Create a genes vector, appending loci information with alleles to it
 	genes_genform = []
@@ -556,32 +557,31 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal):
 				
 		# Create file to write matrix to
 		outputfilename = filename.split('ind')
-		outputfile = open(outputfilename[0]+'/structure_ind'+outputfilename[1].strip('.csv')+'.stru','w')	
+		outputfile = open(outputfilename[0]+'/structure_ind'+outputfilename[1].strip('.csv')+'.stru','wb')	
 		
 		# Write out the first line of structure format
-		for i in range(loci):
-			outputfile.write('locus'+str(i+1)+' ')
-		outputfile.write('\n')
-							
+		for i in range(loci - 1):
+			outputfile.write('locus'+str(i+1)+'_1\t')
+		outputfile.write('locus'+str(loci - 1)+'_1\n')
+					
 		# Write out the genes of each individual 
 		for ipop in xrange(subpopno):
 						
 			# Loop through each ind spot and output
 			for ispot in xrange(patchN[ipop]):
-				
-				# Loop through each allele spot at that locus
-				for ithallele in xrange(2):
 			
-					outputfile.write(str(ispot+1)+' ')
-					outputfile.write(str(subpop_cdpop[ipop][ispot])+' ')
-					
-					# Loop through each locus
-					for ithloci in xrange(loci):
-					
-						outputfile.write(str(GenFormgenes[ipop][ispot][ithloci][ithallele])+' ')
-					# Return character
-					outputfile.write('\n')
-		
+				# ID write out
+				outputfile.write(id_cdpop[ipop][ispot]+'\t')
+				# Pop number and then a 1?
+				outputfile.write(subpop_cdpop[ipop][ispot]+'\t1\t')
+				
+				# Loop through each locus
+				for ithloci in xrange(loci - 1):
+					outputfile.write(str(GenFormgenes[ipop][ispot][ithloci][0])+'\t')
+					outputfile.write(str(GenFormgenes[ipop][ispot][ithloci][1])+'\t')
+				outputfile.write(str(GenFormgenes[ipop][ispot][loci-1][0])+'\t')
+				outputfile.write(str(GenFormgenes[ipop][ispot][loci-1][1])+'\n')
+						
 		# Logging message
 		stringout = 'The file ind'+outputfilename[0]+'/structure'+outputfilename[1]+'.stru has been created'
 		logMsg(logfHndl,stringout)		
@@ -1069,7 +1069,7 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 		outputfile.write(',')
 		for j in xrange(nosubpops+1):
 			outputfile.write(str(ToTYYMales[i][j])+'|')
-		outputfile.write(',')
+		outputfile.write(',')		
 		for j in xrange(nosubpops+1):
 			outputfile.write(str(BreedFemales[i][j])+'|')
 		outputfile.write(',')
@@ -1316,13 +1316,13 @@ def DoOut_Class(ithmcrundir,logfHndl,N_Init_Age,N_back_age,PackingDeathsEmiAge,N
 	'''
 	
 	# Create class array
-	noclass = np.arange(0,len(size_mean[0]),1)
+	noclass = np.arange(0,len(size_mean[0][0]),1)
 	
 	# Get class values
 	if sizeans == 'Y':
-		classvals = size_mean[0]
+		classvals = size_mean[0][0]
 	else:
-		classvals = range(0,len(size_mean[0]),1)
+		classvals = range(0,len(size_mean[0][0]),1)
 	
 	# Write out the titles
 	# Add Titles from xypoints

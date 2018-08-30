@@ -1,3 +1,120 @@
+27August2018 - Version to CDay/unicorn-Ftp CDMetaPop site
+
+Changes v1.23.2018.0827T15:34:00MST (ell/cday)
+0) YY additions and sex ratio not working with v1.22 - error in DoMate and tracking YY and males; fixed.
+
+21August2018 - Version to CDay/unicorn-Ftp CDMetaPop site.
+
+Changes v1.22.2018.0816T12:20MST (ell/cday)
+0) Checking through packing algorithm
+i) size_mean_middles and size_bin split up between min and max reverted back to pre v1.08 and post v1.18. No changes here.
+ii) classcount = len(np.where(countages[0]<=Ageclass)[0]) - this counts the remaining classes and reallocates K propotionately. Consider updating to Ageclass + 1, but leaving as is. 
+iii) OK for now.
+1) Adding tracking numbers for YYs. 
+-N_YYs added calculated in DoMate module - other Ns calculated in GetMetrics, therefore initially and then at end of loop after mortalities occur, this N will capture YYs added. 
+-Moved Tracking for TOtal and Breed males/females/YYs to DoMate() module
+
+13August2018 - Version to CDay/unicorn-ftp CDMetaPop site
+
+Changes v1.21.2018.0808T08:07:00MST (ell/cday)
+0) Fixed line 598 in Mortality module MortAge to MortSize.
+1) Continue updating logistic model: 
+a) added logistic_back and logistic_out...in progress.
+ - logistic only applied when OUT; DoMortality() can then operate only when BACK. 
+ - ACTUAL Age is used for this option only. - So Age-percmort when OUT. Removing logistic_out and logistic_back options.
+ - Tracking PopulationAge uses actual age here too...careful throughout. Check POpulationAge count during DoImmigation()
+ - Added timing check to DoMortality() - so when logistic option specified, then only apply Mortality density independent mortality when 'BACK'
+ - Careful with tracking parameters here for the summary all time class fields when sizeans == 'Y'. Added 'packans' to GetMetrics() and will revert to actual age when logistic model specified. 
+
+02August2018 - Version to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.20.20180802T09:11:00MST (ell/cday)
+-1) Changing sex ratio option ':' split to a tilda split. Colon causes formatting issues with Excel, etc. 
+0) Continue checking RAM issue with new mortality/sex ratio option modifications:
+a) Narrowed down for when MortBack == 0 in PatchVars. Checking this...
+
+26July2018 - Version to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.19.20180716T15:16:00MST (ell)
+0) Continue checking RAM issue 
+a) DoMortality() 
+- all dieing off under certain conditions.
+- When MortPatch == 'N', skipped - fixed.
+
+1) Updated structure format
+
+Changes v1.18.20180716T10:56:00MST (ell)
+0) Last update increased RAM, checking this issue.
+a) GetMetrics() 
+- size_bin with multiple class var files: update to assume binning based on first classvars given.
+- condensed GetMetrics to run faster.
+
+13July2018 - Verstion to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.17.20180613T13:38:00MST (ell)
+0) Pareto convert back to cdval - B added. 
+1) WrightFisher option misspelled in DoOffspring module - fixed. 
+2) Add error statement for unequal sex ratio of eggs and if YY....Female_EggPercent options for [0-100] and WrightFisher to include 'YY' introductions. 'YY' introductions should only use 'N' for Femalepercent_Egg option.
+3) Checking logistic function. Adding logistic_back and logistic_out and logistic_both options. ***In progress
+
+4) Update any sex specific parameters to be separated by a ':' now. 
+i) InitializeAge() checked and updated in DoPreProcess()
+ii) age_percmort - check in logistic module in DoEmigration() and DoImmigration() ***
+iii) Checking DoUpdate() - Middle, growInd() and ageInd() updated. Created capInd() function. 
+iv) DoEmigration() updated for ProbAge (Migration specific class and sex values). Note, logistic model still not updated. 
+v) DoMortality() updated ConstantMortality_Add(), ConstantMortality_Multiply() .... 
+Note does not split up counts/tracking numbers based on sex mortality; will need to add this ***
+vi) Checking DoImmigration() - updated for ProbAge (Stray specific class and sex values). Note, logistic model still not updated.
+vii) Checking DoOffspring() - Note, if cdevolveans is M, then need to update AddAge0s maturation values. 
+
+(a) In ClassVars - 
+i) added colon to all columns except first 4 for age no, size, and distribution
+Note: ClassVars pars will not change with cdclimate module. ClassVars when used with cdclimate module is used to introduce new size/age distributions or sex ratio options. Continue to work on this transition. 
+	
+b) In PopVars
+i) mature_length_set colapsed to N:N or N:N:N or values for each sex.
+ii) mature_eqn_slope and mature_eqn_int collapses to 1, 2, or 3 values for each sex option.
+iii) default age of maturity can have 1,2, or 3 values for each sex option now. 
+iv) Considered Egg mortality *** Code is tricky here for individual sex of eggs.
+v) Condensed dispmoveout and dispmoveback for Female and Male. Have not added YY movement option, but consider ***
+
+c) In PatchVars
+i) When cdevolveans is 'M' this still has ; but updated to consider 6 values here and for YY option.
+ii) when cdevolvans is 'G', consider splitting for sex ratios here . ***
+iii) 5 growth parameters can no consider 3 sex options with :  
+
+13June2018 - Version to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.16.20180612T11:23:00MST (ell)
+0) Checking mate movement with asymmetrical movement...grab FROM for mate movement (probarray = cdmat[:,femalepop])
+
+04June2018 - Version to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.152018060112:28:00MST (ell)
+0) Updated subpopmortperc to include a mortality matrix. Columns are TO, but careful of references to array. subpopmort_mat[row][col]
+1) Added Pareto option (a*(b^a))/(cost distance^(a+1)). Note scaling parameter b added here. 
+2) Continued to fix additional FutureWarning string comparisons. 
+
+31May2018 - Version to CDay/unicorn-ftp CDMetaPop site. 
+
+Changes v1.14.2018052207:03:00PST (ell)
+0) Continue to update FutureWarning error with Bearpairs check of -9999.
+1) Offspring mismatch with Bearpairs - only error in linux. Changed np.int32 to int for isinstance calls.
+2) Added Hindex_Step function with 3 parameters for if Hindex <= a, then fitness = b, else fitness = c. (CDay YY project)
+3) Adding option to skip DoEmigration() module. Enter in 'N' for the Dispout_cdmat.
+4) Added error check for if 'N' in Dispout_cdmat and selection is on with 'Out' option, then selection is not implemented/skipped.  
+
+18May2018 - Version to CDay
+
+Changes v1.13.2018042611:22:00MST (ell)
+0) add an error check is XY file does not match cost mat dimensions. ***Still needs to be added. 
+1) Fixed FutureWarning errors around Bearpairs -9999.
+2) Updated Layeggs key field for first introduced population and added age 0s. Before first pop assumed to be all 1 for layeggs, and age0 assumed to be 0. 
+3) Adding more to ID for mother and father identification. 'm{}f{}'
+4) Updated 'layeggs' field for sexans == 'N'.
+
+
+Committed version --------------------------
 Changes v1.12.20180130T10:30:00MDT (ell)
 0) Resume adding in sex chromosomes for YY additions: sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex based on this assignment unless another option overides (e.g., known option). Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are assumed to be males. Parameters for these genotypes can be added (e.g., assortative mating). Fitness linked to genotype and environment can also follow cdevolve module rules.
 a) In ClassVars 'Percent Female' controls the distribution of initial sex. This parameter changed to 'Sex Ratio'. Then, 3 percentages are given for Female;Male;TrojanYY and sex is initialized based on this distribution. The ind{year}.csv output files will now have designations of XX, XY, or YY in the sex column.

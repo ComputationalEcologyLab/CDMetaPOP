@@ -27,7 +27,7 @@ def count_unique(keys):
 	#End::count_unique()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std,inheritans_classfiles):
+def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std,inheritans_classfiles,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set):
 	'''
 	DoOffspringVars()
 	This function assigns the age (0), sex, and size of each offspring.
@@ -37,7 +37,10 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 	offspring=[]
 		
 	# Only if pairing occured
-	if Bearpairs[0][0] != -9999:
+	#if len(Bearpairs) != 1 and Bearpairs[0][0] != -9999:
+	#if len(Bearpairs[0][0]) != 1:
+	if not isinstance(Bearpairs[0][0],int):
+	#if Bearpairs[0][0] != -9999:
 		
 		# Error check
 		if len(noOffspring) != len(Bearpairs):
@@ -105,27 +108,36 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 					from_father = fathers_sex[randindex]
 					offsex = from_mother + from_father				
 				# Special case for WrightFisher
-				elif Femalepercent == 'WrigthFisher':
+				elif Femalepercent == 'WrightFisher':
+					# Error with YYs here:
+					if Bearpairs[i][1]['sex'] == 'YY':
+						print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use N for Femalepercent_Egg.')
+						sys.exit(-1)
 					offsex = int(2*rand())
 					if offsex == 0:
 						offsex = 'XX'
 					else:
 						offsex = 'XY'
 				elif isinstance(int(Femalepercent),int):
+					# Error with YYs here:
+					if Bearpairs[i][1]['sex'] == 'YY':
+						print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use N for Femalepercent_Egg.')
+						sys.exit(-1)
 					# Select sex of the jth offspring - select a random number
 					randsex = int(100*rand())				
 					# If that random number is less the Femalepercent, assign it to be a female
 					if randsex < int(Femalepercent):
-						offsex = 'XX'				
+						offsex = 'XX'
 					# If the random number is greater than the Femalepercent, assign it to be a male
 					else:
-						offsex = 'XY'				
+						offsex = 'XY'
 				# Error check
 				else:
 					print('Egg_Femalepercent is not correct.')
 					sys.exit(-1)
 				# Make sure XY not YX for asexual cases
 				offsex = ''.join(sorted(offsex))
+				
 				# --------------------------
 				# Assign infection here
 				# --------------------------			
@@ -148,10 +160,12 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				
 				# --------------------------
 				# Assign ID here
-				# --------------------------
+				# --------------------------				
 				mother_name = Bearpairs[i][0]['name']
 				mother_name = mother_name.split('_')
-				name = 'Age0_'+'F'+Bearpairs[i][0][sourcePop]+'_P'+Bearpairs[i][0][sourcePop]+'_Y'+str(gen)+'_UO'+str(count)
+				father_name = Bearpairs[i][1]['name']
+				father_name = father_name.split('_')
+				name = 'Age0'+'_F'+Bearpairs[i][0][sourcePop]+'_m'+Bearpairs[i][0][sourcePop]+'f'+Bearpairs[i][1][sourcePop]+'_P'+Bearpairs[i][0][sourcePop]+'_Y'+str(gen)+'_UO'+str(count)
 				
 				# Unique ID is needed for sorting later, however, this unique name can get large, check length and reset.
 				check = name.split('_')[-1]
@@ -177,24 +191,47 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# --------------------------
 				# Assign maturity: age or size switch, then male or female mature switch
 				if sizecall == 'age':			
-					if offsex == 0: # Female check 
+					if offsex == 'XX': # Female check 
 						if Fmat_set == 'N': # Use prob value
-							matval = F_mature[natalP][theseclasspars][0]
+							matval = float(age_mature[natalP][theseclasspars][0].split('~')[0])
 						else: # Use set age
 							if int(Fmat_set) == 0: # Age of offspring is 0
 								matval = 1.0
 							else:
 								matval = 0.0
-					else: # Male check
-						if Mmat_set == 'N': # Use prob value in agevars
-							matval = M_mature[natalP][theseclasspars][0]
+					elif offsex == 'XY': # Male			
+						if Mmat_set == 'N': # Use prob value
+							# Check if more than 1 value is given for sex classes
+							if len(age_mature[natalP][theseclasspars][0].split('~')) > 1: 
+								matval = float(age_mature[natalP][theseclasspars][0].split('~')[1])
+							else:	
+								matval = float(age_mature[natalP][theseclasspars][0].split('~')[0])
 						else: # Use set age
 							if int(Mmat_set) == 0: # Age of offspring is 0
 								matval = 1.0
 							else:
 								matval = 0.0
+					else: # YY male - will never be a YY male, but leaving this for completeness
+						if sexans == 'Y':
+							print('YY offspring produced, warning, this should not occur.')
+							sys.exit(-1)
+						else:
+							if YYmat_set == 'N': # Use prob value
+								# Check if more than 1 value is given for sex classes
+								if len(age_mature[natalP][theseclasspars][0].split('~')) == 3: 
+									matval = float(age_mature[natalP][theseclasspars][0].split('~')[2])
+								elif len(age_mature[natalP][theseclasspars][0].split('~')) == 2: 
+									matval = float(age_mature[natalP][theseclasspars][0].split('~')[1])
+								else:	
+									matval = float(age_mature[natalP][theseclasspars][0].split('~')[0])
+							else: # Use set age
+								if int(YYmat_set) == 0: # Age of offspring is 0
+									matval = 1.0
+								else:
+									matval = 0.0											
+					
 				else: # If size control				
-					if offsex == 0:	# Female check
+					if offsex == 'XX':	# Female check
 						if Fmat_set == 'N': # Use equation - size
 							matval = np.exp(Fmat_int + Fmat_slope * sizesamp) / (1 + np.exp(Fmat_int + Fmat_slope * sizesamp))
 						else: # Use set size
@@ -202,7 +239,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 								matval = 1.0
 							else:
 								matval = 0.0
-					else: # Male check
+					elif offsex == 'XY': # Male check
 						if Mmat_set == 'N': # Use equation - size
 							matval = np.exp(Mmat_int + Mmat_slope * sizesamp) / (1 + np.exp(Mmat_int + Mmat_slope * sizesamp))
 						else: # Use set size
@@ -210,18 +247,46 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 								matval = 1.0
 							else:
 								matval = 0.0
+					else: ## YY, will never be a YY male, but leaving this for completeness
+						if sexans == 'Y':
+							print('YY offspring produced, warning, this should not occur.')
+							sys.exit(-1)
+						else:
+							if YYmat_set == 'N': # Use equation - size
+								matval = np.exp(YYmat_int + YYmat_slope * sizesamp) / (1 + np.exp(YYmat_int + YYmat_slope * sizesamp))
+							else: # Use set size
+								if sizesamp >= int(YYmat_set):
+									matval = 1.0
+								else:
+									matval = 0.0
 							
 				randmat = rand()
 				if randmat < matval:
 					mature = 1
-				else:
+					# Check if mature female, and if lays eggs
+					randegglay = rand()
+					if sexans == 'Y':
+						if offsex == 'XX':									
+							if randegglay < eggFreq:
+								offlayeggs = 1 # Lays eggs next year
+							else:
+								offlayeggs = 0	# Does not lay eggs next year
+						else:
+							offlayeggs = 0	# Does not lay eggs next year
+					else:
+						if randegglay < eggFreq:
+							offlayeggs = 1 # Lays eggs next year
+						else:
+							offlayeggs = 0	# Does not lay eggs next year
+				else: # Not mature
 					mature = 0
+					offlayeggs = 0
 				
 				# --------------------------
 				# REcord information
 				# --------------------------			
 				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,capture,recapture,layeggs,Mothers Hindex, Fathers Hindex, ClassVars File,PopID]
-				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,0,0,0,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'])
+				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'])
 				offspring.append(recd)
 				count = count + 1 # For unique naming tracking				
 	# If there was not a pairing
@@ -240,11 +305,13 @@ def DoOffspringRandom(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_a
 	This function chooses a random number of 
 	offspring for a mated pair.
 	'''	
+	
 	# Loop through each mate pair
 	for i in xrange(len(Bearpairs)):			
 			
 		# If female did not mate up, then assign 0 offspring
-		if Bearpairs[i][1] == -9999:
+		#if Bearpairs[i][1] == -9999:
+		if isinstance(Bearpairs[i][1],int):
 			littersamp = 0
 		
 		# If females did mate up, then assign random drawn number
@@ -270,7 +337,7 @@ def DoOffspringRandom(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_a
 				# If age is greater than last age
 				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
 					ageF = len(age_mu[natalP][theseclasspars]) - 1
-				litter_mu = age_mu[natalP][theseclasspars][ageF]
+				litter_mu = float(age_mu[natalP][theseclasspars][ageF])
 				
 			if litter_mu <= 0.:				
 				littersamp = 0
@@ -297,7 +364,8 @@ def DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_
 	for i in xrange(len(Bearpairs)):
 	
 		# If female did not mate up, then assign 0 offspring
-		if Bearpairs[i][1] == -9999:
+		#if Bearpairs[i][1] == -9999:
+		if isinstance(Bearpairs[i][1],int):
 			littersamp = 0
 		
 		# If females did mate up, then assign random drawn number
@@ -324,7 +392,7 @@ def DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_
 				# If age is greater than last age
 				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
 					ageF = len(age_mu[natalP][theseclasspars]) - 1
-				litter_mu = age_mu[natalP][theseclasspars][ageF]
+				litter_mu = float(age_mu[natalP][theseclasspars][ageF])
 			
 			if litter_mu <= 0.:				
 				littersamp = 0
@@ -351,7 +419,8 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 	for i in xrange(len(Bearpairs)):
 		
 		# If female did not mate up, then assign 0 offspring
-		if Bearpairs[i][1] == -9999:
+		#if Bearpairs[i][1] == -9999:
+		if isinstance(Bearpairs[i][1],int):
 			littersamp = 0
 		
 		# If females did mate up, then assign random drawn number
@@ -374,7 +443,9 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 				# Get the original ClassVars file location.
 				natalP = int(Bearpairs[i][0]['classfile'].split('_')[0].split('P')[1])
 				theseclasspars = int(Bearpairs[i][0]['classfile'].split('_')[1].split('CV')[1])
-				litter_sigma = np.mean(age_sigma[natalP][theseclasspars])
+				ageF = Bearpairs[i][0]['age']
+				#litter_sigma = np.mean(np.asarray(age_sigma[natalP][theseclasspars],dtype=float))
+				litter_sigma = float(age_sigma[natalP][theseclasspars][ageF])
 			else: # Use the AgeVars given mu and sigma
 				# Grab the age or size of the female
 				ageF = Bearpairs[i][0]['age']
@@ -384,8 +455,8 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 				# If age is greater than last age
 				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
 					ageF = len(age_mu[natalP][theseclasspars]) - 1
-				litter_mu = age_mu[natalP][theseclasspars][ageF]
-				litter_sigma = age_sigma[natalP][theseclasspars][ageF]
+				litter_mu = float(age_mu[natalP][theseclasspars][ageF])
+				litter_sigma = float(age_sigma[natalP][theseclasspars][ageF])
 				
 			if litter_mu <= 0.:				
 				littersamp = 0
@@ -414,7 +485,8 @@ def DoOffspringConstant(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean
 	for i in xrange(len(Bearpairs)):
 	
 		# If female did not mate up, then assign 0 offspring
-		if Bearpairs[i][1] == -9999:
+		#if Bearpairs[i][1] == -9999:
+		if isinstance(Bearpairs[i][1],int):
 			littersamp = 0
 		
 		# If females did mate up, then assign random drawn number
@@ -440,7 +512,7 @@ def DoOffspringConstant(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean
 				# If age is greater than last age
 				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
 					ageF = len(age_mu[natalP][theseclasspars]) - 1
-				litter_mu = age_mu[natalP][theseclasspars][ageF]
+				litter_mu = float(age_mu[natalP][theseclasspars][ageF])
 				
 			if litter_mu <= 0.:				
 				littersamp = 0
@@ -488,7 +560,7 @@ def DoClutch(Bearpairs,dtype,noOffspring):
 	
 # ---------------------------------------------------------------------------------------------------	 
 def DoOffspring(offno,Bearpairs,Births,transmissionprob,gen,K,sourcePop,\
-age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,Mmat_set,Fmat_set,eggmort_patch,EggDeaths,eggmort_back):
+age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,EggDeaths,eggmort_back):
 	'''
 	DoOffspring()
 	Choose number of Offspring for each mated pair 
@@ -514,7 +586,8 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,Mm
 		sys.exit(-1)
 	
 	# Only if pairings occurred
-	if Bearpairs[0][0] != -9999:
+	#if Bearpairs[0][0] != -9999:
+	if not isinstance(Bearpairs[0][0],int):
 			
 		# Function 1 is a uniform random draw between 0 and lmdba number	
 		if (offno=='1'):

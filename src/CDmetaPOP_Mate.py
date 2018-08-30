@@ -52,7 +52,7 @@ def w_choice_item(lst):
 	#End::w_choice_item()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,count=None):
+def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat,count=None):
 	'''
 	DoSexualYY() and DoSexualNY()
 	This function is the mating function for: 
@@ -77,7 +77,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 	female_hindex = np.around(females[intfemale]['hindex'],1)	
 		
 	# Extract each male patch probability that female can mate with - careful of indexing
-	probarray = xycdmatrix[int(femalepop)-1]
+	probarray = xycdmatrix[:,int(femalepop)-1]
 	
 	# If statement to check if there are patches available in probarray:
 	if sum(probarray) != 0.0:
@@ -103,118 +103,139 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				# Replace probarray with a zero, no males here
 				tempprobarray[itemselect] = 0.
 				continue
+							
+			# If subpopulation differential mortality is on
+			if not isinstance(subpopmort_mat,str):
+								
+				# PatchID of female
+				female_subpatch = females[intfemale]['popID']
+				# PatchID of males patch
+				male_subpatch = males[patchindex[0]]['popID']
+				
+				# if there is a mate selection to another subpatch id
+				if female_subpatch != male_subpatch:
+					# grab its mortality percentage male moves into female pop (but backwards in matrix (columns are TO)
+					differentialmortality = subpopmort_mat[int(female_subpatch)-1][int(male_subpatch)-1]
+					
+					# check if mating occurs
+					continuemate = rand()
+					# if randcheck < differentialmortality:
+					if continuemate < differentialmortality:
+						# Replace probarray with a zero, males can't mate from this patchid
+						tempprobarray[itemselect] = 0
+						continue
 			
 			# There are males in this patch, randomly select one while checking for self preference	
-			else:
+			#else:
 				
-				# Index into the males
-				patchmales = males[patchindex]
+			# Index into the males
+			patchmales = males[patchindex]
+			
+			# Strict self mating option (that is, AA with AA, Aa with Aa, and aa with aa, but using Hindex
+			if assortmateModel == '2':
+				# Get the males hindex 
+				males_hindex = np.around(patchmales['hindex'],1)
 				
-				# Strict self mating option (that is, AA with AA, Aa with Aa, and aa with aa, but using Hindex
-				if assortmateModel == '2':
-					# Get the males hindex 
-					males_hindex = np.around(patchmales['hindex'],1)
+				# Check for matching males
+				males_self = np.where(female_hindex == males_hindex)[0]
+				
+				# If no males with hindex = females_hindex 
+				if len(males_self) == 0:
+					# Continue to check next patch					
+					tempprobarray[itemselect] = 0. # Replace probarray with a zero, no males here
+					continue 
+				
+				# If males with hindex = females_hindex
+				else:
+					# Then randomly choose one of the self males
+					patchmales = patchmales[males_self]
+											
+			# Self-preference mating option
+			elif assortmateModel == '3':
+				# Get the males Hindex and frequency of each
+				males_hindex = np.around(patchmales['hindex'],1)
+				males_hindex_count = count_unique(males_hindex)
+				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
+				
+				# Calculate probability
+				males_hindex_prob = assortmateC ** (female_hindex == males_hindex_count[0]) * males_hindex_fj
+				# Normalized
+				males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
+				
+				# Take a weigthed draw from the 3 genotypes
+				selectMaleGenotype = w_choice_item(males_hindex_prob)
 					
-					# Check for matching males
-					males_self = np.where(female_hindex == males_hindex)[0]
-					
-					# If no males with hindex = females_hindex 
-					if len(males_self) == 0:
-						# Continue to check next patch					
-						tempprobarray[itemselect] = 0. # Replace probarray with a zero, no males here
-						continue 
-					
-					# If males with hindex = females_hindex
-					else:
-						# Then randomly choose one of the self males
-						patchmales = patchmales[males_self]
-												
-				# Self-preference mating option
-				elif assortmateModel == '3':
-					# Get the males Hindex and frequency of each
-					males_hindex = np.around(patchmales['hindex'],1)
-					males_hindex_count = count_unique(males_hindex)
-					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
-					
+				# Get selected males of preferential hindex
+				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
+				
+			# Dominant-preference mating
+			elif assortmateModel == '4':
+				# Get the males Hindex and frequency of each
+				males_hindex = np.around(patchmales['hindex'],1)
+				males_hindex_count = count_unique(males_hindex)
+				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
+				
+				# Get boolean array for dominance
+				if female_hindex == 1.0:			
 					# Calculate probability
-					males_hindex_prob = assortmateC ** (female_hindex == males_hindex_count[0]) * males_hindex_fj
-					# Normalized
-					males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
-					
-					# Take a weigthed draw from the 3 genotypes
-					selectMaleGenotype = w_choice_item(males_hindex_prob)
-						
-					# Get selected males of preferential hindex
-					patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
-					
-				# Dominant-preference mating
-				elif assortmateModel == '4':
-					# Get the males Hindex and frequency of each
-					males_hindex = np.around(patchmales['hindex'],1)
-					males_hindex_count = count_unique(males_hindex)
-					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
-					
-					# Get boolean array for dominance
-					if female_hindex == 1.0:			
-						# Calculate probability
-						males_hindex_prob = assortmateC ** (males_hindex_count[0] > 0.0) * males_hindex_fj
-					elif female_hindex == 0.0:
-						# Calculate probability
-						males_hindex_prob = assortmateC ** (males_hindex_count[0] < 1.0) * males_hindex_fj
-					else: # Hybrid can mate with any
-						# Calculate probability
-						males_hindex_prob = assortmateC ** (males_hindex_count[0] <= 1.0) * males_hindex_fj
-					
-					# Normalized
-					males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
-					
-					# Take a weigthed draw from the 3 genotypes
-					selectMaleGenotype = w_choice_item(males_hindex_prob)
-						
-					# Get selected males of preferential hindex
-					patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]				
-					
-				# Linear hindex preference mating
-				elif assortmateModel == '5':
-					# Get the males Hindex and frequency of each
-					males_hindex = np.around(patchmales['hindex'],1)
-					males_hindex_count = count_unique(males_hindex)
-					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
-										
+					males_hindex_prob = assortmateC ** (males_hindex_count[0] > 0.0) * males_hindex_fj
+				elif female_hindex == 0.0:
 					# Calculate probability
-					males_hindex_prob = (1. + (1. - np.abs(males_hindex_count[0] - female_hindex)) * (assortmateC - 1.)) * males_hindex_fj
-					# Normalized
-					males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
-												
-					# Take a weigthed draw from the 3 genotypes
-					selectMaleGenotype = w_choice_item(males_hindex_prob)
-						
-					# Get selected males of preferential hindex
-					patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
-										
-				# Randomly select a male in patch
-				malemate = random.sample(patchmales,1)[0]
+					males_hindex_prob = assortmateC ** (males_hindex_count[0] < 1.0) * males_hindex_fj
+				else: # Hybrid can mate with any
+					# Calculate probability
+					males_hindex_prob = assortmateC ** (males_hindex_count[0] <= 1.0) * males_hindex_fj
 				
-				# And store the mated pair information.						
-				Bearpairs.append([females[intfemale],malemate])
+				# Normalized
+				males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
 				
-				# Tracking
-				femalesmated.append(1)
-				if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
-					AAaaMates.append(1)
-				elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
-					AAAAMates.append(1)
-				elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
-					aaaaMates.append(1)
-				elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
-					AAAaMates.append(1)
-				elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
-					aaAaMates.append(1)
-				elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
-					AaAaMates.append(1)
+				# Take a weigthed draw from the 3 genotypes
+				selectMaleGenotype = w_choice_item(males_hindex_prob)
+					
+				# Get selected males of preferential hindex
+				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]				
 				
-				# Then break from patch search loop
-				break
+			# Linear hindex preference mating
+			elif assortmateModel == '5':
+				# Get the males Hindex and frequency of each
+				males_hindex = np.around(patchmales['hindex'],1)
+				males_hindex_count = count_unique(males_hindex)
+				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
+									
+				# Calculate probability
+				males_hindex_prob = (1. + (1. - np.abs(males_hindex_count[0] - female_hindex)) * (assortmateC - 1.)) * males_hindex_fj
+				# Normalized
+				males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
+											
+				# Take a weigthed draw from the 3 genotypes
+				selectMaleGenotype = w_choice_item(males_hindex_prob)
+					
+				# Get selected males of preferential hindex
+				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
+									
+			# Randomly select a male in patch
+			malemate = random.sample(patchmales,1)[0]
+			
+			# And store the mated pair information.						
+			Bearpairs.append([females[intfemale],malemate])
+			
+			# Tracking
+			femalesmated.append(1)
+			if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
+				AAaaMates.append(1)
+			elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
+				AAAAMates.append(1)
+			elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
+				aaaaMates.append(1)
+			elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+				AAAaMates.append(1)
+			elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+				aaAaMates.append(1)
+			elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
+				AaAaMates.append(1)
+			
+			# Then break from patch search loop
+			break
 					
 	# Return Variables from this function
 	return Bearpairs,femalesmated
@@ -223,7 +244,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 
 # ---------------------------------------------------------------------------------------------------	
 def DoSexualNN(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmate,nomales,xycdmatrix,females,\
-males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,count=None):
+males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,count=None):
 	'''
 	DoSexualNN()
 	This function is the mating function for
@@ -247,7 +268,7 @@ males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,count=None):
 	femalepop = int(subpop[females[intfemale]]) - 1
 	
 	# Extract each male patch probability that female can mate in
-	probarray = xycdmatrix[femalepop]
+	probarray = xycdmatrix[:,femalepop]
 				
 	# If statement to check if there were individuals in probarray:
 	if sum(probarray) != 0.0:
@@ -278,28 +299,48 @@ males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,count=None):
 				tempprobarray[itemselect] = 0.
 				continue
 				
-			else:			
-				# Randomly select a male in patch
-				malemate = random.sample(patchmales,1)[0]
+			# If subpopulation differential mortality is on
+			if not isinstance(subpopmort_mat,str):
+				
+				# PatchID of female
+				female_subpatch = females[intfemale]['popID']
+				# PatchID of males patch
+				male_subpatch = males[patchmales[0]]['popID']
+				
+				# if there is a mate selection to another subpatch id
+				if female_subpatch != male_subpatch:
+					# grab its mortality percentage male moves into female pop (but backwards in matrix (columns are TO)
+					differentialmortality = subpopmort_mat[int(female_subpatch)-1][int(male_subpatch)-1]
+					# check if mating occurs
+					continuemate = rand()
+					# if randcheck < differentialmortality:
+					if continuemate < differentialmortality:
+						# Replace probarray with a zero, males can't mate from this patchid
+						tempprobarray[itemselect] = 0
+						continue
+				
+			#else:			
+			# Randomly select a male in patch
+			malemate = random.sample(patchmales,1)[0]
+		
+			# And store the mated pair information.						
+			Bearpairs.append([females[intfemale],malemate])
 			
-				# And store the mated pair information.						
-				Bearpairs.append([females[intfemale],malemate])
-				
-				# Then delete that male from the male list
-				males = np.delete(males,np.where(males==malemate)[0][0])
-				
-				# Tracking
-				femalesmated.append(1)
-				
-				# Then break from loop
-				break
+			# Then delete that male from the male list
+			males = np.delete(males,np.where(males==malemate)[0][0])
+			
+			# Tracking
+			femalesmated.append(1)
+			
+			# Then break from loop
+			break
 			
 	return Bearpairs,males,femalesmated
 	
 	# End::DoSexualNN()		
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,dtype,ScaleMax,ScaleMin,A,B,C,Femalepercent,eggFreq,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel):
+def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,dtype,ScaleMax,ScaleMin,A,B,C,Femalepercent,eggFreq,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales):
 
 	'''
 	DoMate()
@@ -320,6 +361,14 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	AAAaMates.append([])
 	aaAaMates.append([])
 	AaAaMates.append([])
+	BreedMales.append([]) #Storage add spot for generation
+	BreedFemales.append([]) #Storage add spot for generation
+	BreedYYMales.append([])
+	ToTMales.append([]) #Storage add spot for generation
+	ToTFemales.append([]) #Storage add spot for generation
+	ToTYYMales.append([])
+	MatureCount.append([])
+	ImmatureCount.append([])
 	
 	# ---------------------------------------------------
 	# Select males and females for mating
@@ -334,17 +383,67 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		indexF = np.where(SubpopIN[isub]['sex']=='XX')[0]
 		indexM = np.where(SubpopIN[isub]['sex']=='XY')[0]
 		indexYY = np.where(SubpopIN[isub]['sex']=='YY')[0]
-		indexM = np.concatenate((indexM,indexYY),axis=0) # Here, assume all males the same.
+		#indexM = np.concatenate((indexM,indexYY),axis=0) # Here, assume all males the same.
 		allfemales = SubpopIN[isub][indexF]
 		allmales = SubpopIN[isub][indexM]
+		allYYmales = SubpopIN[isub][indexYY]
 		# Get reproduction age individuals
 		indexFage = np.where(allfemales['layeggs'] == 1)[0]
-		indexMage = np.where(allmales['mature'] == 1)[0]
-		females.append(list(allfemales[indexFage]))
-		males.append(list(allmales[indexMage]))
-	del allfemales
-	del allmales	
+		if sexans == 'Y':
+			indexMage = np.where(allmales['mature'] == 1)[0]
+			indexYYage = np.where(allYYmales['mature'] == 1)[0]
+		else:
+			indexMage = np.where(allmales['layeggs'] == 1)[0]
+			indexYYage = np.where(allYYmales['layeggs'] == 1)[0]
 		
+		# For Tracking
+		if sexans == 'Y':
+			# Storage tracking
+			ToTMales[gen].append(len(indexM)) 
+			ToTFemales[gen].append(len(indexF))
+			ToTYYMales[gen].append(len(indexYY))
+			BreedMales[gen].append(len(indexMage))
+			BreedFemales[gen].append(len(indexFage))
+			BreedYYMales[gen].append(len(indexYYage))
+		else:
+			# Storage tracking
+			ToTMales[gen].append(len(indexM)+len(indexF)+len(indexYY)) 
+			ToTFemales[gen].append(len(indexM)+len(indexF)+len(indexYY))
+			ToTYYMales[gen].append(len(indexM)+len(indexF)+len(indexYY))
+			BreedMales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
+			BreedFemales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
+			BreedYYMales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
+		MatureCount[gen].append(sum(SubpopIN[isub]['mature']))
+		ImmatureCount[gen].append(len(SubpopIN[isub]['mature'])-sum(SubpopIN[isub]['mature']))
+		
+		# Then get mature females and mature males together for rest of function
+		females.append(list(allfemales[indexFage]))
+		# For males, assume YY and XY are the same
+		indexM = np.concatenate((indexM,indexYY),axis=0) # Here, assume all males the same.
+		allmales = SubpopIN[isub][indexM]
+		if sexans == 'Y':
+			indexMage = np.where(allmales['mature'] == 1)[0]
+		else:
+			indexMage = np.where(allmales['layeggs'] == 1)[0]
+		males.append(list(allmales[indexMage]))
+	
+	# Add Population totals
+	ToTMales[gen].insert(0,sum(ToTMales[gen]))
+	ToTFemales[gen].insert(0,sum(ToTFemales[gen]))
+	ToTYYMales[gen].insert(0,sum(ToTYYMales[gen]))
+	BreedMales[gen].insert(0,sum(BreedMales[gen]))
+	BreedFemales[gen].insert(0,sum(BreedFemales[gen]))
+	BreedYYMales[gen].insert(0,sum(BreedYYMales[gen]))
+	
+	# Add Count totals
+	MatureCount[gen] = sum(MatureCount[gen])
+	ImmatureCount[gen] = sum(ImmatureCount[gen])
+	
+	# Error statement here in case no females or males, then break
+	if ToTFemales[gen][0]==0 or (ToTMales[gen][0] + ToTYYMales[gen][0])==0:			
+		print('There are no more females or males left in population after year '+str(gen)+'.\n')
+		return []
+	
 	# For sexual reproduction
 	if sexans == 'Y':
 		# Flatten the subpop list for random grabs		
@@ -376,7 +475,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		nofemales = len(females)	
 		# Get the number of times to select mates
 		looptime = nofemales
-		
+	
 	# ---------------------------------------------------
 	# Choose pairs for mating
 	# ---------------------------------------------------
@@ -399,7 +498,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			while count < looptime:
 						
 				# Get probability function of user defined input number
-				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,count)
+				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat, count)
 												
 				# Update count
 				count = count + 1
@@ -412,7 +511,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			while count < looptime:
 				
 				# Get probability function of user defined input number
-				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing)
+				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat)
 							
 				# Update count
 				count = count + 1
@@ -433,7 +532,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			while count < looptime:
 							
 				# Get probability function of user defined input number
-				Bearpairs,tempmales = DoSexualNN(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,nomales,xycdmatrix,females,tempmales,matemovethresh,Bearpairs,femalesmated,subpop,selfing,count)
+				Bearpairs,tempmales = DoSexualNN(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,nomales,xycdmatrix,females,tempmales,matemovethresh,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,count)
 										
 				# Update count
 				count = count + 1
@@ -459,14 +558,15 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	for ipair in xrange(len(Bearpairs)):
 		
 		# else calculate average distances
-		if Bearpairs[ipair][1]!=-9999: # Make sure a mate pair occurred.
+		if isinstance(Bearpairs[ipair][1],np.void):
+		#Bearpairs[ipair][1]!=-9999: # Make sure a mate pair occurred.
 			Floc = int(Bearpairs[ipair][0][sourcePop])-1
 			Mloc = int(Bearpairs[ipair][1][sourcePop])-1
 			probval = xycdmatrix[Floc][Mloc]			
 			
 			# If panmictic, can't get cost back
 			if matemoveno == '4' or matemoveno == '6' or matemoveno == '9':
-				cdval = 0.0
+				cdval = probval
 			# IF linear
 			elif matemoveno == '1':
 				cdval = (probval - 1.) * (-matemovethresh)
@@ -487,13 +587,20 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			# If just rescaled
 			elif matemoveno == '8':
 				cdval = probval*(ScaleMax-ScaleMin)+ScaleMin
+			# If pareto
+			elif matemoveno == '10':
+				if probval == 1.0:
+					cdval = 0.0
+				else:
+					cdval = pow(((float(A)*float(B)**float(A))/probval),(1/(float(A)+1))) - float(B)
 			else:
 				print('Mate move function does not exist.')
 				sys.exit(-1)
 			tempAvgMateCD.append(cdval)
 			
 	# If at least some individuals mated
-	if Bearpairs[0][0] != -9999:
+	if isinstance(Bearpairs[ipair][1],np.void):
+	#if Bearpairs[0][0] != -9999:
 			
 		# And append to MateDistCD
 		MateDistCD.append(sum(tempAvgMateCD) / len(Bearpairs))

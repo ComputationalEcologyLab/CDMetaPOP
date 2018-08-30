@@ -187,7 +187,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal):
 def Immigration(SubpopIN,K,N0,natal,Fxycdmatrix,Mxycdmatrix,gen,\
 cdevolveans,fitvals,subpopmigration,SelectionDeaths,DisperseDeaths,\
 burningen,ProbPatch,ProbSuccess,\
-cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_pop,N_beforePack_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles,PopTag):
+cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_pop,N_beforePack_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set):
 	
 	'''
 	Immigration()
@@ -217,12 +217,13 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 		
 		# Loop through individuals in this subpopulation
 		for iind in xrange(len(SubpopIN[isub])):
-		
+			
 			# Get individual, easier for indexing
 			outpool = SubpopIN[isub][iind]
 			originalpop = outpool['NatalPop']
 			emipop = outpool['EmiPop']
 			outpool_genes = literal_eval(outpool['genes'])
+			Indsex = outpool['sex']
 
 			# Get this individuals original ClassVars file and bins for indexing
 			natalP = int(SubpopIN[isub][iind]['classfile'].split('_')[0].split('P')[1])
@@ -249,10 +250,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				if Find > len(ProbAge[natalP][theseclasspars]) - 1:
 					Find = len(ProbAge[natalP][theseclasspars]) - 1 # Make last age
 				Str_Class = ProbAge[natalP][theseclasspars][Find]
-
-				# Then multiply these together
-				indProb = Str_Patch * Str_Class
-					
+									
 			# If genotype tied to stray rate
 			else:
 				if outpool_genes[0][0] == 2: #AA
@@ -278,8 +276,26 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						Find = len(ProbAge[natalP][theseclasspars]) - 1 # Make last age
 					Str_Class = ProbAge[natalP][theseclasspars][Find]
 
-					# Then multiply these together
-					indProb = Str_Patch * Str_Class
+			# Get sex class options if given
+			if Indsex == 'XX': # Female
+				Str_Class = float(Str_Class.split('~')[0])
+			elif Indsex == 'XY': #Male
+				# Check if more than value here
+				if len(Str_Class.split('~')) > 1:
+					Str_Class = float(Str_Class.split('~')[1])
+				else:
+					Str_Class = float(Str_Class.split('~')[0])
+			else: # YY male
+				# Check if more than value here
+				if len(Str_Class.split('~')) == 3:
+					Str_Class = float(Str_Class.split('~')[2])
+				elif len(Str_Class.split('~')) == 2:
+					Str_Class = float(Str_Class.split('~')[1])
+				else:
+					Str_Class = float(Str_Class.split('~')[0])
+			
+			# Then multiply these together
+			indProb = Str_Patch * Str_Class
 			
 			# Decide if strayer?
 			randProb = rand()	# Get a random number			
@@ -372,18 +388,44 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 							ProbSuccess[gen].append(1)
 							continue					
 					
+					# If subpopulation differential mortality is on
+					elif not isinstance(subpopmort_mat,str):
+						# Select the w_choice item
+						iteminlist = w_choice_item(probarray)
+						
+						# What subpatchID is individual coming from
+						from_subpatch = PopTag[isub]
+												
+						# What subpatchID is individual proposing to go to
+						to_subpatch = PopTag[iteminlist]
+						
+						# If it is dispersing to another subpatchID
+						if from_subpatch != to_subpatch:
+							
+							# grab the differential mortality associated with moving into this new subpatchID - from subpatch TO subpatch - cols are TO, read row, then col for correct spot
+							differentialmortality = subpopmort_mat[int(to_subpatch)-1][int(from_subpatch)-1]
+							# Check if survives
+							randcheck = rand()
+							dispersingto = iteminlist
+							# If it does not survive
+							if randcheck < differentialmortality:
+								SelectionDeaths[gen][dispersingto].append(1)
+								DisperseDeaths[gen][dispersingto].append(0)
+								ProbSuccess[gen].append(1)
+								continue					
+					
 					# If not cdevolve or if cdevolve but it is in burn in gen
 					else:
 						
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)	
-						
+					
 					# Record string name of OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-tofill in DoCalc,age,sex,capture,name
 					straypop = str(iteminlist+1)
 					outpool_name = outpool['name']
 					outpool_name = outpool_name.split('_')
-					
-					name = 'S'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
+				
+					name = 'S'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 					
 					recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
 								
@@ -475,7 +517,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					immipop = outpool['EmiPop']
 					outpool_name = outpool['name']
 					outpool_name = outpool_name.split('_')
-					name = 'R'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
+					name = 'R'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 					
 					recd = (originalpop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['genes'])
 								
@@ -567,8 +609,34 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 								DisperseDeaths[gen][dispersingto].append(0)
 								ProbSuccess[gen].append(0)
 								continue				
-					
-
+						
+						# If subpopulation differential mortality is on
+						elif not isinstance(subpopmort_mat,str):
+							
+							# Then it attemps to make it back to original pop
+							iteminlist = int(originalpop)-1
+							
+							# What subpatchID is individual coming from
+							from_subpatch = PopTag[isub]
+													
+							# What subpatchID is individual proposing to go to
+							to_subpatch = PopTag[iteminlist]
+							
+							# If it is dispersing to another subpatchID
+							if from_subpatch != to_subpatch:
+								
+								# grab the differential mortality associated with moving into this new subpatchID - from subpatch TO subpatch - cols are TO, read row, then col for correct spot
+								differentialmortality = subpopmort_mat[int(to_subpatch)-1][int(from_subpatch)-1]
+								# Check if survives
+								randcheck = rand()
+								dispersingto = iteminlist
+								# If it does not survive
+								if randcheck < differentialmortality:
+									SelectionDeaths[gen][dispersingto].append(1)
+									DisperseDeaths[gen][dispersingto].append(0)
+									ProbSuccess[gen].append(1)
+									continue					
+						
 						#If not cdevolve or if cdevolve but it is in burn in gen
 						else:
 														
@@ -580,7 +648,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						outpool_name = outpool['name']
 						outpool_name = outpool_name.split('_')
 						
-						name = 'I'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
+						name = 'I'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 						
 						recd = (originalpop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['genes'])
 									
@@ -671,13 +739,36 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 										ProbSuccess[gen].append(1)
 										continue				
 				
+								# If subpopulation differential mortality is on
+								elif not isinstance(subpopmort_mat,str):
+									
+									# What subpatchID is individual coming from
+									from_subpatch = PopTag[isub]
+															
+									# What subpatchID is individual proposing to go to
+									to_subpatch = PopTag[iteminlist]
+									
+									# If it is dispersing to another subpatchID
+									if from_subpatch != to_subpatch:
+										
+										# grab the differential mortality associated with moving into this new subpatchID - from subpatch TO subpatch - cols are TO, read row, then col for correct spot
+										differentialmortality = subpopmort_mat[int(to_subpatch)-1][int(from_subpatch)-1]
+										# Check if survives
+										randcheck = rand()
+										dispersingto = iteminlist
+										# If it does not survive
+										if randcheck < differentialmortality:
+											SelectionDeaths[gen][dispersingto].append(1)
+											DisperseDeaths[gen][dispersingto].append(0)
+											ProbSuccess[gen].append(1)
+											continue								
 								
 								# Record string name of OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-tofill in DoCalc,age,sex,capture,name
 								straypop = str(iteminlist+1)
 								outpool_name = outpool['name']
 								outpool_name = outpool_name.split('_')
 								
-								name = 'Z'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
+								name = 'Z'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 								
 								recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
 											
@@ -765,12 +856,36 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 										ProbSuccess[gen].append(1)
 										continue				
 				
+								# If subpopulation differential mortality is on
+								elif not isinstance(subpopmort_mat,str):
+									
+									# What subpatchID is individual coming from
+									from_subpatch = PopTag[isub]
+															
+									# What subpatchID is individual proposing to go to
+									to_subpatch = PopTag[iteminlist]
+									
+									# If it is dispersing to another subpatchID
+									if from_subpatch != to_subpatch:
+										
+										# grab the differential mortality associated with moving into this new subpatchID - from subpatch TO subpatch - cols are TO, read row, then col for correct spot
+										differentialmortality = subpopmort_mat[int(to_subpatch)-1][int(from_subpatch)-1]
+										# Check if survives
+										randcheck = rand()
+										dispersingto = iteminlist
+										# If it does not survive
+										if randcheck < differentialmortality:
+											SelectionDeaths[gen][dispersingto].append(1)
+											DisperseDeaths[gen][dispersingto].append(0)
+											ProbSuccess[gen].append(1)
+											continue
+								
 								# Record string name of OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-tofill in DoCalc,age,sex,capture,name
 								straypop = str(iteminlist+1)
 								outpool_name = outpool['name']
 								outpool_name = outpool_name.split('_')
 								
-								name = 'Z'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]
+								name = 'Z'+str(straypop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 								
 								recd = (originalpop,emipop,straypop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(straypop)-1],outpool['genes'])
 											
@@ -806,14 +921,18 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	
 	# ----------------------------------------------
 	# SubpopIN - sort/rank/pack by Kage options
-	# ----------------------------------------------# If multiple ClassVars are given then bin min to max
+	# ----------------------------------------------
+	# If multiple ClassVars are given then bin min to max
 	if sizecall == 'size':
+		'''
 		bin_min = min(sum(sum(size_mean,[]),[]))
 		bin_max = max(sum(sum(size_mean,[]),[]))
 		size_bin = [bin_min]
 		for ibin in xrange(len(size_mean[0][0])-1):
 			size_bin.append(size_bin[ibin]+(bin_max - bin_min)/(len(size_mean[0][0])-1))
+		'''
 		# Get the middles for finding closest values
+		size_bin = size_mean[0][0]
 		size_mean_middles = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2
 	
 	# Organize type data in SubpopIN_keep
@@ -1011,6 +1130,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 										
 					# Class count for redsitributing Khab
 					classcount = len(np.where(countages[0]<=Ageclass)[0])
+					#classcount = Ageclass+1
 					Kage_hab_adj_inc = Kage_hab_adj_inc + (Kage_hab_adj/classcount)
 					
 					# Adjust the Kage_hab
@@ -1081,7 +1201,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	# ---------------------
 	# Packing is turned off
 	# ---------------------
-	elif packans == 'N':		
+	elif packans == 'N':
 		# Loop through each patch
 		for isub in xrange(len(K)):
 			
@@ -1251,32 +1371,120 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
 			
-	# --------------------------------------------
-	# Logistic selected - not applied at this step
-	# -------------------------------------------- 
-	elif packans == 'logistic':
-	
-		print('Logistic growth is not updated yet with new version.')
-		sys.exit(-1)
+	# ---------------------
+	# Packing is turned off - this is a very special case, where eggs only enter into population and can exceed K
+	# ---------------------
+	elif packans == 'N_keepeggs':
 		
+		# Loop through each patch
 		for isub in xrange(len(K)):
 			
 			# Get each SubpopIN pop as array
 			SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
-			# Append all information to temp SubpopKeep variable
-			SubpopIN_keepAge1plus.append(SubpopIN_arr)
 			
+			# ----------------------------------------
+			# Get the number of eggs/fry in this patch
+			# ----------------------------------------
+			# Only if there are offspring and ONLY offspring
+			if len(noOffspring) != 0 and len(SubpopIN_arr) == 0:
+				mothers_patch = Bearpairs[:,0]
+				mothers_patch_ind = np.where(mothers_patch['NatalPop']==str(isub+1))[0]
+				mothers_patch_file = mothers_patch[mothers_patch_ind]['classfile']
+				fathers_patch_file = Bearpairs[:,1][mothers_patch_ind]['classfile']
+			
+				# Get the offspring in patch
+				offspring_patch = noOffspring[mothers_patch_ind]
+				Popoffspring = sum(offspring_patch)
+				
+				# Get fry sizes - from mothers classfile
+				offspring_size = [] # sizes
+				for ifile in xrange(len(offspring_patch)):
+					# Total offspring for this female
+					theseoffspring = offspring_patch[ifile]
+					
+					# Grab the mothers and fathers classfile index
+					mothers_thisfile = mothers_patch_file[ifile]
+					mothers_natalP = int(mothers_thisfile.split('_')[0].split('P')[1])
+					mothers_theseclasspars = int(mothers_thisfile.split('_')[1].split('CV')[1])
+					fathers_thisfile = fathers_patch_file[ifile]
+					fathers_natalP = int(fathers_thisfile.split('_')[0].split('P')[1])
+					fathers_theseclasspars = int(fathers_thisfile.split('_')[1].split('CV')[1])		
+					
+					# Get random assignment for either mother or fathers classfile
+					# -------------------------------------------------------------
+					randnos = np.random.sample(theseoffspring) # Create a list of random numbers
+					# Copy and make a int for writing over classfile assignment
+					offspring_mu = copy.deepcopy(randnos)
+					offspring_sigma = copy.deepcopy(randnos)
+					if inheritans_classfiles == 'random': # random assignment
+						# Where the numbers are < 0.5, assign fathers class file information
+						offspring_mu[np.where(randnos < 0.5)[0]] = size_mean[fathers_natalP][fathers_theseclasspars][0]
+						offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]
+												
+						# Else assign to mother
+						offspring_mu[np.where(randnos >= 0.5)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
+						offspring_sigma[np.where(randnos >= 0.5)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
+						#temp_offspring_files[np.where(randnos >= 0.5)[0]] = mothers_thisfile
+					else: # Hindex assignment
+						theseoffspring_hindex = offspring_patch_hindex[ifile]
+						# If rand nos less than hinex of offspring, make 1.0 Hindex file	
+						offspring_mu[np.where(randnos < theseoffspring_hindex)[0]] = size_mean[0][0][0]
+						offspring_sigma[np.where(randnos < theseoffspring_hindex)[0]] = size_std[0][0][0]
+						# Else, they are greater than hindex of offspring, make 0.0 Hindex file
+						offspring_mu[np.where(randnos >= theseoffspring_hindex)[0]] = size_mean[0][1][0]
+						offspring_sigma[np.where(randnos >= theseoffspring_hindex)[0]] = size_std[0][1][0]
+					
+					# Get sizes
+					# Case for when sigma = 0, temp replace
+					sigma0_index = np.where(offspring_sigma == 0)[0]
+					if len(sigma0_index) != 0:
+						# Temp replace those values
+						offspring_sigma[sigma0_index] = 0.0000001
+					sizesamp = np.random.normal(offspring_mu,offspring_sigma)
+					
+					# Check to see if negative values, set to 0
+					if not isinstance(sizesamp,float):
+						sizesamp[np.where(sizesamp < 0)[0]] = 0.
+						# Append to list
+						offspring_size.append(sizesamp.tolist())
+					else:
+						if sizesamp < 0:
+							sizesamp = 0.
+							# Append to list
+							offspring_size.append(sizesamp)
+									
+				# Add these to SubpopIN_arr['size']
+				offspring_size = np.asarray(sum(offspring_size,[]))
+				tempSizePatch = np.concatenate((SubpopIN_arr['size'],offspring_size))
+				
+				# Add age 0 numbers to SubpopIN_arr['age']
+				tempNewAge = np.zeros(Popoffspring,dtype='int')
+				tempAgePatch = np.concatenate((SubpopIN_arr['age'],tempNewAge))
+			
+			# If there are no offspring, but other individuals here
+			elif len(noOffspring) == 0:
+				# Get tracking number
+				Popoffspring = 0
+				# Get size and age for rest of patch
+				tempSizePatch = SubpopIN_arr['size']
+				tempAgePatch = SubpopIN_arr['age']	
+						
 			# K,N for this population
 			Kpop = K[isub]
-			Npop = len(SubpopIN_arr)
-			
-			# Get size adjusted age for tracking		
+			Npop = len(tempAgePatch)
+						
+			# -----------------------------------
+			# Get countages - for 'age' adjusted
+			# -----------------------------------
+			# Switch here for size or age control
 			if sizecall == 'size':
-				size_mean_middles = np.asarray(size_mean[0])[1:] - np.diff(np.asarray(size_mean[0]).astype('f'))/2
-				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr['size'])
-			else: # age call
+				age_adjusted = np.searchsorted(size_mean_middles, tempSizePatch)
+				# Count up each unique 'sizes'
+				countages = count_unique(age_adjusted)
+			else:
 				# Count up each uniages
-				age_adjusted = SubpopIN_arr['age']
+				countages = count_unique(tempAgePatch)
+				age_adjusted = tempAgePatch
 			
 			# Tracking N before packing
 			# -------------------------
@@ -1288,28 +1496,111 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			sizeindex = np.where(age_adjusted > iage)[0]
 			N_beforePack_age[gen][iage].append(len(sizeindex))
 			
+			# Get indexing numbers
+			Nage_ind_all = np.arange(len(tempAgePatch))
+			Nage_ind_adults = np.arange(len(SubpopIN_arr))
+			
+			# If nobody in this patch
+			if Npop == 0 or Kpop == 0:
+				# Use empty index
+				Nage_samp_ind_all = Nage_ind_adults
+				Nage_samp_ind_adults = Nage_ind_adults
+				PackingDeaths[gen][isub] = 0			
+			else:
+				# else do nothing if Npop is below Kpop
+				if Npop <= Kpop:	
+					# Grab index for adult and all
+					Nage_samp_ind_adults = Nage_ind_adults
+					Nage_samp_ind_all = Nage_ind_all
+					
+				# If more than Kpop, grab random number
+				else:
+					# But only if it was NOT Age0s here
+					if len(Nage_ind_adults) != 0:					
+						# Get index for all
+						Nage_samp_ind_all = np.asarray(random.sample(Nage_ind_all,Kpop))
+						# Get just the adults
+						index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
+						Nage_samp_ind_adults = Nage_samp_ind_all[index]	
+					else:
+						Nage_samp_ind_all = np.asarray(random.sample(Nage_ind_all,Npop))
+						# Get just the adults
+						index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
+						Nage_samp_ind_adults = Nage_samp_ind_all[index]
+			
+			# Select out the Age1+ adults
+			# ---------------------------
+			SubpopIN_keepAge1plus.append(SubpopIN_arr[Nage_samp_ind_adults])
+			
+			# Get the new adjusted offspring list for each Bearpair - use later
+			# ------------------------------------
+			if Npop != 0 and Popoffspring != 0:
+				Nage_samp_ind_off = len(Nage_samp_ind_all)-len(Nage_samp_ind_adults)
+				if Nage_samp_ind_off < Popoffspring:
+					# Split based on proportion
+					offspring_patch = np.around(offspring_patch * float(Nage_samp_ind_off)/sum(offspring_patch))
+					offspring_patch = np.asarray(offspring_patch,dtype='int')
+					noOffspring[mothers_patch_ind] = offspring_patch
+			
 			# Tracking numbers - no packing deaths
 			# ------------------------------------
 			PackingDeaths[gen][isub] = 0
-			for iage in xrange(len(PackingDeathsAge[gen])):
+			for iage in xrange(len(size_mean[0][0])):
 				# Just store 0 for packing deaths age
 				PackingDeathsAge[gen][iage].append(0)			
 			# Store some numbers in this loop too.
 			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
-				
+			
+	# --------------------------------------------
+	# Logistic selected - not applied at this step
+	# -------------------------------------------- 
+	elif packans == 'logistic':
+		
+		# Loop through each subpop
+		for isub in xrange(len(K)):
+			
+			# Get each SubpopIN pop as array
+			SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
+			# Append all information to temp SubpopKeep variable
+			SubpopIN_keepAge1plus.append(SubpopIN_arr)
+			
+			# K,N for this population
+			Kpop = K[isub]
+			Npop = len(SubpopIN_arr)
+			
+			# Count up each uniages
+			age_adjusted = SubpopIN_arr['age']
+			
+			# Tracking numbers - N before packing, packing deaths (0), 
+			# -----------------------------------
+			N_beforePack_pop[gen].append(Npop)
+			PackingDeaths[gen][isub] = 0 # No packing deaths here			
+			for iage in xrange(len(N_beforePack_age[gen])):
+				sizeindex = np.where(age_adjusted==iage)[0]
+				N_beforePack_age[gen][iage].append(len(sizeindex))
+				PackingDeathsAge[gen][iage].append(0) # Store 0 for packing deaths age
+			# Special case where age class is greater than lastage
+			sizeindex = np.where(age_adjusted > iage)[0]
+			N_beforePack_age[gen][iage].append(len(sizeindex))
+			# Store some numbers in this loop too.
+			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
+			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
+							
 	# Error check
 	else:
-		print('Packing answer must be Y or N.')
+		print('See user manual for population model options.')
 		sys.exit(-1)
-		
+	
 	# ------------------------------
 	# Get the survived SubpopIN_Age0
 	# ------------------------------
-	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std,inheritans_classfiles)
+	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std,inheritans_classfiles,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set)
 	
 	# Get dtype for offspring - first check to see if any Bearpairs exist.
-	if Bearpairs[0][0] != -9999:	
+	#if Bearpairs[0][0] != -9999:
+	#if len(Bearpairs[0][0]) != 1:
+	if not isinstance(Bearpairs[0][0],int):	
 		offdtype = [('Mother',(str,len(Bearpairs[0][0]['genes']))),('Father',(str,len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100))]
 	else:
 		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100))]
@@ -1337,7 +1628,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	# ---------------------------------------------------
 	# Call AddAge0() and InheritGenes() and track numbers
 	# ---------------------------------------------------
-	SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s,assortmateModel,patchvals)				
+	SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s,assortmateModel,patchvals,packans)				
 	del offspring
 	
 	# ---------------
@@ -1448,6 +1739,15 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 					
 				elif Fdispmoveno == '8':
 					cdval = (1.-probval)*(FScaleMax-FScaleMin)+FScaleMin
+				# If pareto
+				elif Fdispmoveno == '10':
+					if probval == 1.0:
+						cdval = 0.0
+					else:
+						cdval = pow(((float(FA)*float(FB)**float(FA))/probval),(1/(float(FA)+1))) - float(FB)
+				else:
+					print('Movement function does not exist')
+					sys.exit(-1)
 					
 				FtempAvgDispDistCD.append(cdval)				
 					
@@ -1480,6 +1780,15 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 					cdval = float(MB) + np.sqrt(-2*float(MC)**2 * np.log((probval*(MScaleMax-MScaleMin)+MScaleMin)/float(MA)))
 				elif Mdispmoveno == '8':
 					cdval = (1. - probval)*(MScaleMax-MScaleMin)+MScaleMin
+				# If pareto
+				elif Mdispmoveno == '10':
+					if probval == 1.0:
+						cdval = 0.0
+					else:
+						cdval = pow(((float(MA)*float(MB)**float(MA))/probval),(1/(float(MA)+1))) - float(MB)
+				else:
+					print('Movement function does not exist')
+					sys.exit(-1)
 				MtempAvgDispDistCD.append(cdval)
 			
 			else:
@@ -1519,7 +1828,7 @@ def DoImmigration(SubpopIN,K,N0,natal,Fdispmoveno,Mdispmoveno,\
 Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,\
 ygridcopy,cdevolveans,fitvals,subpopmigration,\
 SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,\
-StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,assortmateModel,inheritans_classfiles,PopTag):
+StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set):
 
 	'''
 	DoImmigration()
@@ -1542,7 +1851,7 @@ StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population
 	Fxycdmatrix,Mxycdmatrix,gen,\
 	cdevolveans,fitvals,subpopmigration,\
 	SelectionDeaths,DisperseDeaths,\
-	burningen,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,M_mature,F_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles,PopTag)
+	burningen,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set)
 	
 	# Calculate Dispersal Metrics for strayers 'S' 
 	tempStrayN = CalculateDispersalMetrics(SubpopIN,xgridcopy,ygridcopy,\

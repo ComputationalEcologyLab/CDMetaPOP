@@ -178,6 +178,15 @@ def ReadCDMatrix(cdmatrixfilename,function,threshold,A,B,C):
 	minbigCD = np.amin(bigCD)
 	maxbigCD = np.amax(bigCD)
 	
+	# Error checks on these values
+	if minbigCD < 0:
+		print('Cost matrix values should not be negative.')
+		sys.exit(-1)
+	if maxbigCD != 0:
+		if maxbigCD < 1 and (function == '2' or function == '5'):
+			print('Careful use of cost distance values less than 1 when using options 2 or 5.')
+			sys.exit(-1)
+	
 	# Get maximum cdvalue to use for movethreshold if specified
 	threshold = GetMaxCDValue(threshold,bigCD)
 	
@@ -329,15 +338,34 @@ def ReadCDMatrix(cdmatrixfilename,function,threshold,A,B,C):
 					else:
 						print('Something off in 8 function values.')
 						sys.exit(-1)
-						
+				
+				# For the Pareto function: (a*(b^a))/(cost distance^(a+1))
+				elif function == '10':
+					scale_min = None
+					scale_max = None
+					if B == 0 and minbigCD == 0:
+						print('Warning: B = 0 in Pareto function and zeros in cost distance matrix. Divide by zero issue.')
+						sys.exit(-1)
+					if threshold == 0:
+						print('Threshold can not be 0 in Pareto function.')
+						sys.exit(-1)
+					cdmatval = float(bigCD[j][k]) + B
+					# Set = to 0 if cdvalue is greater than movethreshold
+					if float(bigCD[j][k]) > threshold:
+						cdmatrix[j].append(0.0)
+					# Else calculated function value
+					else:
+						pareto = (A*(B**A))/(cdmatval**(A+1))
+						cdmatrix[j].append(pareto)
+					
 				# error
 				else:
 					print('This movement function option does not exist.')
 					sys.exit(-1)
 	else: # For option 9
 		cdmatrix = bigCD
-		scale_min = 0.0
-		scale_max = 1.0
+		scale_min = minbigCD
+		scale_max = maxbigCD
 		
 	# Transpose all matrices here (this was because gdistance asymetrical matrices read by column
 	cdmatrix = np.transpose(np.asarray(cdmatrix))
@@ -348,7 +376,7 @@ def ReadCDMatrix(cdmatrixfilename,function,threshold,A,B,C):
 	# Return variables
 	tupReadMat = cdmatrix,threshold,scale_min,scale_max
 	return tupReadMat
-	#End::ReadMateCDMatrix
+	#End::ReadCDMatrix
 	
 # ---------------------------------------------------------------------------------------------------	
 def CreateAlleleList(loci,alleles,xgenes):
@@ -467,8 +495,9 @@ def InitializeAge(K,agefilename,datadir):
 	age_mu = []
 	age_size_mean = []
 	age_size_std = []
-	M_mature = []
-	F_mature = []
+	#M_mature = []
+	#F_mature = []
+	age_mature = []
 	age_sigma = []
 	age_cap_out = []
 	age_cap_back = []	
@@ -495,8 +524,9 @@ def InitializeAge(K,agefilename,datadir):
 		age_mu.append([])
 		age_size_mean.append([])
 		age_size_std.append([])
-		M_mature.append([])
-		F_mature.append([])
+		#M_mature.append([])
+		#F_mature.append([])
+		age_mature.append([])
 		age_sigma.append([])
 		age_cap_out.append([])
 		age_cap_back.append([])
@@ -526,8 +556,9 @@ def InitializeAge(K,agefilename,datadir):
 			age_mu[isub].append([])
 			age_size_mean[isub].append([])
 			age_size_std[isub].append([])
-			M_mature[isub].append([])
-			F_mature[isub].append([])
+			#M_mature[isub].append([])
+			#F_mature[isub].append([])
+			age_mature[isub].append([])
 			age_sigma[isub].append([])
 			age_cap_out[isub].append([])
 			age_cap_back[isub].append([])
@@ -555,7 +586,11 @@ def InitializeAge(K,agefilename,datadir):
 				thisline = i.strip('\n').strip('\r').strip(' ').split('\r')
 				for j in xrange(len(thisline)):
 					xage.append(thisline[j].split(','))
-			lencheck[isub][i_splitpatch].append(len(xage)-1)	
+			lencheck[isub][i_splitpatch].append(len(xage)-1)
+			# Error on length of file
+			if len(xage[0]) != 20:
+				print('ClassVars file is not in the correct format (20 fields needed)')
+				sys.exit(-1)
 			# Delete lines from earlier
 			del(lines)
 			
@@ -567,38 +602,31 @@ def InitializeAge(K,agefilename,datadir):
 				ageno[isub][i_splitpatch].append(float(xage[i+1][3]))
 				sexratio[isub][i_splitpatch].append(xage[i+1][4])
 				age_percmort_out[isub][i_splitpatch].append(xage[i+1][5])
+				age_percmort_out_sd[isub][i_splitpatch].append(xage[i+1][6])
 				age_percmort_back[isub][i_splitpatch].append(xage[i+1][7])
+				age_percmort_back_sd[isub][i_splitpatch].append(xage[i+1][8])
 				size_percmort_out[isub][i_splitpatch].append(xage[i+1][9])
-				size_percmort_back[isub][i_splitpatch].append(xage[i+1][11])
-				age_percmort_out_sd[isub][i_splitpatch].append(float(xage[i+1][6]))
-				age_percmort_back_sd[isub][i_splitpatch].append(float(xage[i+1][8]))
-				size_percmort_out_sd[isub][i_splitpatch].append(float(xage[i+1][10]))
-				size_percmort_back_sd[isub][i_splitpatch].append(float(xage[i+1][12]))
-				age_Mg[isub][i_splitpatch].append(float(xage[i+1][13]))
-				age_S[isub][i_splitpatch].append(float(xage[i+1][14]))
-				M_mature[isub][i_splitpatch].append(float(xage[i+1][15]))
-				F_mature[isub][i_splitpatch].append(float(xage[i+1][16]))
-				age_mu[isub][i_splitpatch].append(float(xage[i+1][17]))
-				age_sigma[isub][i_splitpatch].append(float(xage[i+1][18]))
-				age_cap_out[isub][i_splitpatch].append(xage[i+1][19])
-				age_cap_back[isub][i_splitpatch].append(xage[i+1][20])	
+				size_percmort_out_sd[isub][i_splitpatch].append(xage[i+1][10])
+				size_percmort_back[isub][i_splitpatch].append(xage[i+1][11])				
+				size_percmort_back_sd[isub][i_splitpatch].append(xage[i+1][12])
+				age_Mg[isub][i_splitpatch].append(xage[i+1][13])
+				age_S[isub][i_splitpatch].append(xage[i+1][14])
+				#M_mature[isub][i_splitpatch].append(float(xage[i+1][15]))
+				#F_mature[isub][i_splitpatch].append(float(xage[i+1][16]))
+				age_mature[isub][i_splitpatch].append(xage[i+1][15])
+				age_mu[isub][i_splitpatch].append(xage[i+1][16])
+				age_sigma[isub][i_splitpatch].append(xage[i+1][17])
+				age_cap_out[isub][i_splitpatch].append(xage[i+1][18])
+				age_cap_back[isub][i_splitpatch].append(xage[i+1][19])	
 			
 			# Get age distribution list
 			for i in xrange(len(ageno[isub][i_splitpatch])):
 				agelst[isub][i_splitpatch].append([ageclass[isub][i_splitpatch][i],ageno[isub][i_splitpatch][i]/sum(ageno[isub][i_splitpatch])])
 			
-			# Error checks here: if number of classes does not equal mortality age classes
-			if len(agelst[isub][i_splitpatch]) != len(age_percmort_out[isub][i_splitpatch]) != len(age_percmort_back[isub][i_splitpatch]):
-				print('Agedistribution data not fully entered correctly.')
-				sys.exit(-1)
-			# Error probabilties in age list....finish error checks
-			if len(age_Mg[isub][i_splitpatch]) != len(age_S[isub][i_splitpatch]):
-				print('Age distribution file in the wrong format.')
-				sys.exit(-1)
 			# Error check on sexratio
 			if 'WrightFisher' in sexratio[isub][i_splitpatch]:
 				if sexratio[isub][i_splitpatch][1:] != sexratio[isub][i_splitpatch][-1:]:
-					print('Wright Fisher specified in Female Percent in Agevars.csv file. All age classes must be WrightFisher.')
+					print('Wright Fisher specified in ClassVars.csv file. All age classes must be WrightFisher.')
 					sys.exit(-1)
 			
 			# Deletes
@@ -614,7 +642,7 @@ def InitializeAge(K,agefilename,datadir):
 	
 	# Return variables
 	tupAgeFile = agelst,age_percmort_out,age_percmort_back,age_Mg,age_S,\
-	sexratio,age_mu,age_size_mean,age_size_std,M_mature,F_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd
+	sexratio,age_mu,age_size_mean,age_size_std,age_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd
 	
 	return tupAgeFile
 	#End::InitializeAge()
@@ -636,7 +664,7 @@ def InitializeID(K,N):
 			randno = rand()
 			if randno <= probfill:
 				# Get name
-				name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_P'+str(isub+1)+'_Y-1_U'+str(iind)
+				name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_m-1f-1'+'_P'+str(isub+1)+'_Y-1_U'+str(iind)
 				id.append(name)
 				subpop.append(isub+1)
 	id = np.asarray(id)
@@ -645,7 +673,7 @@ def InitializeID(K,N):
 	#End::InitializeID()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,addans):
+def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,addans,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature):
 	'''
 	InitializeVars()
 	This function initializes the age,sex,infection,genes of each individual based for the id variable
@@ -754,16 +782,16 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			sizesamp  = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)			
 		else:
 			sizesamp = mu
+		sizesamp = round(sizesamp,3)
 		size.append(sizesamp)
 		
 		# ------------------------------
 		# Sex set
-		# ------------------------------
-		
+		# ------------------------------		
 		# Case for Wright Fisher or not
 		if sexratio[isub][thisfile][agetemp] != 'WrightFisher':
 			# Get each sex prob, add index, convert to prob
-			tempratios = sexratio[isub][thisfile][agetemp].split(';')
+			tempratios = sexratio[isub][thisfile][agetemp].split('~')
 			# Error check, must add to 100 and must be 3 values
 			if len(tempratios) != 3:
 				print('Must specify percentages for 3 sex classes in ClassVars file. Length is not 3.')
@@ -777,6 +805,10 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			sex.append(offsex)
 		# Special case for WrightFisher
 		else: 
+			# Error check, WrightFisher can not include YYs
+			if float(sexratio[isub][thisfile][agetemp].split(';')[2]) != 0:
+				print('Wright Fisher option specified for sex ratios. YY individuals can not be considered.')
+				sys.exit(-1)			
 			offsex = int(2*rand())
 			if offsex == 0:
 				offsex == 'XX'
@@ -806,94 +838,160 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		# ---------------------------------------------
 		# Set maturity Y or N and get egg lay last year
 		# ---------------------------------------------		
-		if sizeans == 'N': # Age control
-			if offsex == 'XX': # Female
-				if Fmat_set == 'N': # Use prob value
-					matval = F_mature[isub][thisfile][agetemp]
-				else: # Use set age
-					if agetemp >= int(Fmat_set): # Age check
-						matval = 1.0
-					else:
-						matval = 0.0				
-			else: # Male			
-				if Mmat_set == 'N': # Use prob value
-					matval = M_mature[isub][thisfile][agetemp]
-				else: # Use set age
-					if agetemp >= int(Mmat_set): # Age check
-						matval = 1.0
-					else:
-						matval = 0.0				
-		elif sizeans == 'Y': # Size control
-			if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen <= 0: # cdevolve answer mature
-				tempgenes = genes[iind]
-				if tempgenes[0][0] == 2: # AA
-					tempvals = fitvals[isub][0] # First spot AA
-					# In case cdclimate is on, grab first split
-					tempvals = tempvals.split('|')[0]
-					# Then split ;
-					tempvals = tempvals.split(';')
-					# Then replace Fmat/Mmat values
-					Fmat_int = float(tempvals[3])
-					Fmat_slope = float(tempvals[2])
-					Mmat_int = float(tempvals[1])
-					Mmat_slope = float(tempvals[0])
-				elif tempgenes[0][0] == 1 and tempgenes[0][1] == 1: # Aa
-					tempvals = fitvals[isub][1] # Second spot Aa
-					# In case cdclimate is on, grab first split
-					tempvals = tempvals.split('|')[0]
-					# Then split ;
-					tempvals = tempvals.split(';')
-					# Then replace Fmat/Mmat values
-					Fmat_int = float(tempvals[3])
-					Fmat_slope = float(tempvals[2])
-					Mmat_int = float(tempvals[1])
-					Mmat_slope = float(tempvals[0])
-				elif tempgenes[0][1] == 2: # aa
-					tempvals = fitvals[isub][2] # third spot aa
-					# In case cdclimate is on, grab first split
-					tempvals = tempvals.split('|')[0]
-					# Then split ;
-					tempvals = tempvals.split(';')
-					# Then replace Fmat/Mmat values
-					Fmat_int = float(tempvals[3])
-					Fmat_slope = float(tempvals[2])
-					Mmat_int = float(tempvals[1])
-					Mmat_slope = float(tempvals[0])
-				else:
-					# Then replace Fmat/Mmat values
-					Fmat_int = float(Fmat_int)
-					Fmat_slope = float(Fmat_slope)
-					Mmat_int = float(Mmat_int)
-					Mmat_slope = float(Mmat_slope)				
-			
-			if offsex == 'XX': # Female
-				if Fmat_set == 'N': # Use equation - size
-					matval = np.exp(Fmat_int + Fmat_slope * sizesamp) / (1 + np.exp(Fmat_int + Fmat_slope * sizesamp))
-				else: # Use set size
-					if sizesamp >= int(Fmat_set):
-						matval = 1.0
-					else:
-						matval = 0.0				
-			else: # Male			
-				if Mmat_set == 'N': # Use equation - size
-					matval = np.exp(Mmat_int + Mmat_slope * sizesamp) / (1 + np.exp(Mmat_int + Mmat_slope * sizesamp))
-				else: # Use set size
-					if sizesamp >= int(Mmat_set):
-						matval = 1.0
-					else:
-						matval = 0.0						
+		
+		# Check default age for maturity
+		if offsex == 'XX':
+			AgeMature = int(defaultAgeMature.split('~')[0])
+		elif offsex == 'XY': 
+			# Check if more than 1 value
+			if len(defaultAgeMature.split('~')) > 1:
+				AgeMature = int(defaultAgeMature.split('~')[1])
+			else:
+				AgeMature = int(defaultAgeMature.split('~')[0])
 		else:
-			print('Size control option not correct, N or Y.')
-			sys.exit(-1)
+			# Check if more than 1 value
+			if len(defaultAgeMature.split('~')) == 3:
+				AgeMature = int(defaultAgeMature.split('~')[2])
+			elif len(defaultAgeMature.split('~')) == 2:
+				AgeMature = int(defaultAgeMature.split('~')[1])
+			else:
+				AgeMature = int(defaultAgeMature.split('~')[0])
 			
+		if agetemp >= AgeMature:
+			matval = 1.0
+		else: # Run through options and get matval		
+			if sizeans == 'N': # Age control
+				if offsex == 'XX': # Female
+					if Fmat_set == 'N': # Use prob value
+						matval = float(age_mature[isub][thisfile][agetemp].split('~')[0])
+					else: # Use set age
+						if agetemp >= int(Fmat_set): # Age check
+							matval = 1.0
+						else:
+							matval = 0.0				
+				elif offsex == 'XY': # Male			
+					if Mmat_set == 'N': # Use prob value
+						# Check if more than 1 value is given for sex classes
+						if len(age_mature[isub][thisfile][agetemp].split('~')) > 1: 
+							matval = float(age_mature[isub][thisfile][agetemp].split('~')[1])
+						else:	
+							matval = float(age_mature[isub][thisfile][agetemp].split('~')[0])
+					else: # Use set age
+						if agetemp >= int(Mmat_set): # Age check
+							matval = 1.0
+						else:
+							matval = 0.0
+				else: # YY male
+					if YYmat_set == 'N': # Use prob value
+						# Check if more than 1 value is given for sex classes
+						if len(age_mature[isub][thisfile][agetemp].split('~')) == 3: # Use YY value
+							matval = float(age_mature[isub][thisfile][agetemp].split('~')[2])
+						elif len(age_mature[isub][thisfile][agetemp].split('~')) == 2: # Use male value
+							matval = float(age_mature[isub][thisfile][agetemp].split('~')[1])
+						else:	
+							matval = float(age_mature[isub][thisfile][agetemp].split('~')[0])
+					else: # Use set age
+						if agetemp >= int(YYmat_set): # Age check
+							matval = 1.0
+						else:
+							matval = 0.0
+			elif sizeans == 'Y': # Size control
+				if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen <= 0: # cdevolve answer mature
+					tempgenes = genes[iind]
+					if tempgenes[0][0] == 2: # AA
+						tempvals = fitvals[isub][0] # First spot AA
+						# In case cdclimate is on, grab first split
+						tempvals = tempvals.split('|')[0]
+						# Then split ;
+						tempvals = tempvals.split(';')					
+					elif tempgenes[0][0] == 1 and tempgenes[0][1] == 1: # Aa
+						tempvals = fitvals[isub][1] # Second spot Aa
+						# In case cdclimate is on, grab first split
+						tempvals = tempvals.split('|')[0]
+						# Then split ;
+						tempvals = tempvals.split(';')
+					elif tempgenes[0][1] == 2: # aa
+						tempvals = fitvals[isub][2] # third spot aa
+						# In case cdclimate is on, grab first split
+						tempvals = tempvals.split('|')[0]
+						# Then split ;
+						tempvals = tempvals.split(';')
+					else:
+						print('2 alleles only with M options in cdevolveans.')
+						sys.exit(-1)
+					# Then Replace mat vals	
+					if len(tempvals) == 2:
+						# Then replace Fmat/Mmat values
+						Fmat_slope = float(tempvals[0])
+						Fmat_int = float(tempvals[1])
+						Mmat_slope = float(tempvals[0])					
+						Mmat_int = float(tempvals[1])
+						YYmat_slope = float(tempvals[0])					
+						YYmat_int = float(tempvals[1])
+					elif len(tempvals) == 4:
+						# Then replace Fmat/Mmat values
+						Fmat_slope = float(tempvals[0])
+						Fmat_int = float(tempvals[1])
+						Mmat_slope = float(tempvals[2])					
+						Mmat_int = float(tempvals[3])
+						YYmat_slope = float(tempvals[2])					
+						YYmat_int = float(tempvals[3])
+					elif len(tempvals) == 6:
+						# Then replace Fmat/Mmat values
+						Fmat_slope = float(tempvals[0])
+						Fmat_int = float(tempvals[1])
+						Mmat_slope = float(tempvals[2])					
+						Mmat_int = float(tempvals[3])
+						YYmat_slope = float(tempvals[4])					
+						YYmat_int = float(tempvals[5])
+							
+				if offsex == 'XX': # Female
+					if Fmat_set == 'N': # Use equation - size
+						matval = np.exp(Fmat_int + Fmat_slope * sizesamp) / (1 + np.exp(Fmat_int + Fmat_slope * sizesamp))
+					else: # Use set size
+						if sizesamp >= int(Fmat_set):
+							matval = 1.0
+						else:
+							matval = 0.0				
+				elif offsex == 'XY': # Male			
+					if Mmat_set == 'N': # Use equation - size
+						matval = np.exp(Mmat_int + Mmat_slope * sizesamp) / (1 + np.exp(Mmat_int + Mmat_slope * sizesamp))
+					else: # Use set size
+						if sizesamp >= int(Mmat_set):
+							matval = 1.0
+						else:
+							matval = 0.0
+				else: # YY Male			
+					if Mmat_set == 'N': # Use equation - size
+						matval = np.exp(YYmat_int + YYmat_slope * sizesamp) / (1 + np.exp(YYmat_int + YYmat_slope * sizesamp))
+					else: # Use set size
+						if sizesamp >= int(YYmat_set):
+							matval = 1.0
+						else:
+							matval = 0.0
+			else:
+				print('Size control option not correct, N or Y.')
+				sys.exit(-1)
+		
+		# Check probability and egg laying
 		randmat = rand()
 		if randmat < matval:
 			mature.append(1)
 			randegglay = rand()
-			if randegglay < eggFreq:
-				layEggs.append(1)
-			else:
-				layEggs.append(0)
+			# If sexans 'Y' and female, check layEggs
+			if sexans == 'Y':
+				if offsex == 'XX':
+					if randegglay < eggFreq:
+						layEggs.append(1)
+					else:
+						layEggs.append(0)
+				else:
+					layEggs.append(0)
+			else:				
+				if randegglay < eggFreq:
+					layEggs.append(1)
+				else:
+					layEggs.append(0)
 		else:
 			mature.append(0)
 			layEggs.append(0)
@@ -939,13 +1037,12 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,matemovethresh,FdispmoveOutthresh,MdispmoveOutthresh,FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
 	'''
 	
-	#change N, alle file, classvars file and add to SubpopIN
 	# -------------------------------
 	# Extract cdclimate values here
 	# -------------------------------
@@ -956,15 +1053,21 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			print('If not using CDClimate option, set begin time loop with cdclimgentime at 0.')
 			sys.exit(-1)
 	
-	# Check for each instance
+	#----------------------------
+	# Population-based parameters
+	# ---------------------------
 	if isinstance(matecdmatfile, (list,tuple)):
 		matecdmatfile = datadir+matecdmatfile[icdtime]
 	else:	
 		matecdmatfile = datadir+matecdmatfile
 	if isinstance(dispOutcdmatfile, (list,tuple)):
-		dispOutcdmatfile = datadir+dispOutcdmatfile[icdtime]
+		if dispOutcdmatfile[icdtime] != 'N': # Check if skipped
+			dispOutcdmatfile = datadir+dispOutcdmatfile[icdtime]
+		else:
+			dispOutcdmatfile = dispOutcdmatfile[icdtime]
 	else:
-		dispOutcdmatfile = datadir+dispOutcdmatfile
+		if dispOutcdmatfile != 'N': # CHeck if skipped.
+			dispOutcdmatfile = datadir+dispOutcdmatfile
 	if isinstance(dispBackcdmatfile, (list,tuple)):
 		dispBackcdmatfile = datadir+dispBackcdmatfile[icdtime]
 	else:
@@ -974,27 +1077,11 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	else:
 		straycdmatfile = datadir+straycdmatfile	
 	if isinstance(matemoveno, (list,tuple)):
-		matemoveno = matemoveno[icdtime]		
-	if isinstance(FdispmoveOutno, (list,tuple)):
-		FdispmoveOutno = FdispmoveOutno[icdtime]
-	if isinstance(MdispmoveOutno, (list,tuple)):
-		MdispmoveOutno = MdispmoveOutno[icdtime]
-	if isinstance(FdispmoveBackno, (list,tuple)):
-		FdispmoveBackno = FdispmoveBackno[icdtime]
-	if isinstance(MdispmoveBackno, (list,tuple)):
-		MdispmoveBackno = MdispmoveBackno[icdtime]
+		matemoveno = matemoveno[icdtime]
 	if isinstance(StrBackno, (list,tuple)):
 		StrBackno = StrBackno[icdtime]
 	if isinstance(matemovethresh, (list,tuple)):
 		matemovethresh = matemovethresh[icdtime]
-	if isinstance(FdispmoveOutthresh, (list,tuple)):
-		FdispmoveOutthresh = FdispmoveOutthresh[icdtime]
-	if isinstance(MdispmoveOutthresh, (list,tuple)):
-		MdispmoveOutthresh = MdispmoveOutthresh[icdtime]
-	if isinstance(FdispmoveBackthresh, (list,tuple)):
-		FdispmoveBackthresh = FdispmoveBackthresh[icdtime]
-	if isinstance(MdispmoveBackthresh, (list,tuple)):
-		MdispmoveBackthresh = MdispmoveBackthresh[icdtime]
 	if isinstance(StrBackthresh, (list,tuple)):
 		StrBackthresh = StrBackthresh[icdtime]
 	if isinstance(matemoveparA, (list,tuple)):
@@ -1009,54 +1096,6 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		matemoveparC = float(matemoveparC[icdtime])
 	else:
 		matemoveparC = float(matemoveparC)
-	if isinstance(FdispmoveOutparA, (list,tuple)):			
-		FdispmoveOutparA = float(FdispmoveOutparA[icdtime])
-	else:
-		FdispmoveOutparA = float(FdispmoveOutparA)
-	if isinstance(FdispmoveOutparB, (list,tuple)):
-		FdispmoveOutparB = float(FdispmoveOutparB[icdtime])
-	else:
-		FdispmoveOutparB = float(FdispmoveOutparB)		
-	if isinstance(FdispmoveOutparC, (list,tuple)):
-		FdispmoveOutparC = float(FdispmoveOutparC[icdtime])
-	else:
-		FdispmoveOutparC = float(FdispmoveOutparC)		
-	if isinstance(MdispmoveOutparA, (list,tuple)):
-		MdispmoveOutparA = float(MdispmoveOutparA[icdtime])
-	else:
-		MdispmoveOutparA = float(MdispmoveOutparA)
-	if isinstance(MdispmoveOutparB, (list,tuple)):
-		MdispmoveOutparB = float(MdispmoveOutparB[icdtime])
-	else:
-		MdispmoveOutparB = float(MdispmoveOutparB)		
-	if isinstance(MdispmoveOutparC, (list,tuple)):
-		MdispmoveOutparC = float(MdispmoveOutparC[icdtime])
-	else:
-		MdispmoveOutparC = float(MdispmoveOutparC)		
-	if isinstance(FdispmoveBackparA, (list,tuple)):
-		FdispmoveBackparA = float(FdispmoveBackparA[icdtime])
-	else:
-		FdispmoveBackparA = float(FdispmoveBackparA)
-	if isinstance(FdispmoveBackparB, (list,tuple)):
-		FdispmoveBackparB = float(FdispmoveBackparB[icdtime])
-	else:
-		FdispmoveBackparB = float(FdispmoveBackparB)		
-	if isinstance(FdispmoveBackparC, (list,tuple)):
-		FdispmoveBackparC = float(FdispmoveBackparC[icdtime])
-	else:
-		FdispmoveBackparC = float(FdispmoveBackparC)		
-	if isinstance(MdispmoveBackparA, (list,tuple)):
-		MdispmoveBackparA = float(MdispmoveBackparA[icdtime])
-	else:
-		MdispmoveBackparA = float(MdispmoveBackparA)
-	if isinstance(MdispmoveBackparB, (list,tuple)):
-		MdispmoveBackparB = float(MdispmoveBackparB[icdtime])
-	else:
-		MdispmoveBackparB = float(MdispmoveBackparB)		
-	if isinstance(MdispmoveBackparC, (list,tuple)):
-		MdispmoveBackparC = float(MdispmoveBackparC[icdtime])
-	else:
-		MdispmoveBackparC = float(MdispmoveBackparC)		
 	if isinstance(StrBackparA, (list,tuple)):
 		StrBackparA = float(StrBackparA[icdtime])
 	else:
@@ -1069,6 +1108,197 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		StrBackparC = float(StrBackparC[icdtime])
 	else:
 		StrBackparC = float(StrBackparC)
+	
+	if isinstance(dispmoveOutno, (list,tuple)):
+		dispmoveOutno = dispmoveOutno[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveOutno.split('~')) == 1:
+		FdispmoveOutno = dispmoveOutno.split('~')[0]
+		MdispmoveOutno = dispmoveOutno.split('~')[0]
+		YYdispmoveOutno = dispmoveOutno.split('~')[0]
+	elif len(dispmoveOutno.split('~')) == 2:
+		FdispmoveOutno = dispmoveOutno.split('~')[0]
+		MdispmoveOutno = dispmoveOutno.split('~')[1]
+		YYdispmoveOutno = dispmoveOutno.split('~')[1]
+	elif len(dispmoveOutno.split('~')) == 3:
+		FdispmoveOutno = dispmoveOutno.split('~')[0]
+		MdispmoveOutno = dispmoveOutno.split('~')[1]
+		YYdispmoveOutno = dispmoveOutno.split('~')[2]
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+		
+	if isinstance(dispmoveOutparA, (list,tuple)):
+		dispmoveOutparA = dispmoveOutparA[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveOutparA.split('~')) == 1:
+		FdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
+		MdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
+		YYdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
+	elif len(dispmoveOutparA.split('~')) == 2:
+		FdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
+		MdispmoveOutparA = float(dispmoveOutparA.split('~')[1])
+		YYdispmoveOutparA = float(dispmoveOutparA.split('~')[1])
+	elif len(dispmoveOutparA.split('~')) == 3:
+		FdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
+		MdispmoveOutparA = float(dispmoveOutparA.split('~')[1])
+		YYdispmoveOutparA = float(dispmoveOutparA.split('~')[2])
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+		
+	if isinstance(dispmoveOutparB, (list,tuple)):
+		dispmoveOutparB = dispmoveOutparB[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveOutparB.split('~')) == 1:
+		FdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
+		MdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
+		YYdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
+	elif len(dispmoveOutparB.split('~')) == 2:
+		FdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
+		MdispmoveOutparB = float(dispmoveOutparB.split('~')[1])
+		YYdispmoveOutparB = float(dispmoveOutparB.split('~')[1])
+	elif len(dispmoveOutparB.split('~')) == 3:
+		FdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
+		MdispmoveOutparB = float(dispmoveOutparB.split('~')[1])
+		YYdispmoveOutparB = float(dispmoveOutparB.split('~')[2])
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+		
+	if isinstance(dispmoveOutparC, (list,tuple)):
+		dispmoveOutparC = dispmoveOutparC[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveOutparC.split('~')) == 1:
+		FdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
+		MdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
+		YYdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
+	elif len(dispmoveOutparC.split('~')) == 2:
+		FdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
+		MdispmoveOutparC = float(dispmoveOutparC.split('~')[1])
+		YYdispmoveOutparC = float(dispmoveOutparC.split('~')[1])
+	elif len(dispmoveOutparC.split('~')) == 3:
+		FdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
+		MdispmoveOutparC = float(dispmoveOutparC.split('~')[1])
+		YYdispmoveOutparC = float(dispmoveOutparC.split('~')[2])
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+		
+	if isinstance(dispmoveOutthresh, (list,tuple)):
+		dispmoveOutthresh = dispmoveOutthresh[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveOutthresh.split('~')) == 1:
+		FdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
+		MdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
+		YYdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
+	elif len(dispmoveOutthresh.split('~')) == 2:
+		FdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
+		MdispmoveOutthresh = dispmoveOutthresh.split('~')[1]
+		YYdispmoveOutthresh = dispmoveOutthresh.split('~')[1]
+	elif len(dispmoveOutthresh.split('~')) == 3:
+		FdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
+		MdispmoveOutthresh = dispmoveOutthresh.split('~')[1]
+		YYdispmoveOutthresh = dispmoveOutthresh.split('~')[2]
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+	
+	if isinstance(dispmoveBackno, (list,tuple)):
+		dispmoveBackno = dispmoveBackno[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveBackno.split('~')) == 1:
+		FdispmoveBackno = dispmoveBackno.split('~')[0]
+		MdispmoveBackno = dispmoveBackno.split('~')[0]
+		YYdispmoveBackno = dispmoveBackno.split('~')[0]
+	elif len(dispmoveBackno.split('~')) == 2:
+		FdispmoveBackno = dispmoveBackno.split('~')[0]
+		MdispmoveBackno = dispmoveBackno.split('~')[1]
+		YYdispmoveBackno = dispmoveBackno.split('~')[1]
+	elif len(dispmoveBackno.split('~')) == 3:
+		FdispmoveBackno = dispmoveBackno.split('~')[0]
+		MdispmoveBackno = dispmoveBackno.split('~')[1]
+		YYdispmoveBackno = dispmoveBackno.split('~')[2]
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+		
+	if isinstance(dispmoveBackparA, (list,tuple)):
+		dispmoveBackparA = dispmoveBackparA[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveBackparA.split('~')) == 1:
+		FdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
+		MdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
+		YYdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
+	elif len(dispmoveBackparA.split('~')) == 2:
+		FdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
+		MdispmoveBackparA = float(dispmoveBackparA.split('~')[1])
+		YYdispmoveBackparA = float(dispmoveBackparA.split('~')[1])
+	elif len(dispmoveBackparA.split('~')) == 3:
+		FdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
+		MdispmoveBackparA = float(dispmoveBackparA.split('~')[1])
+		YYdispmoveBackparA = float(dispmoveBackparA.split('~')[2])
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+		
+	if isinstance(dispmoveBackparB, (list,tuple)):
+		dispmoveBackparB = dispmoveBackparB[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveBackparB.split('~')) == 1:
+		FdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
+		MdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
+		YYdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
+	elif len(dispmoveBackparB.split('~')) == 2:
+		FdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
+		MdispmoveBackparB = float(dispmoveBackparB.split('~')[1])
+		YYdispmoveBackparB = float(dispmoveBackparB.split('~')[1])
+	elif len(dispmoveBackparB.split('~')) == 3:
+		FdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
+		MdispmoveBackparB = float(dispmoveBackparB.split('~')[1])
+		YYdispmoveBackparB = float(dispmoveBackparB.split('~')[2])
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+		
+	if isinstance(dispmoveBackparC, (list,tuple)):
+		dispmoveBackparC = dispmoveBackparC[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveBackparC.split('~')) == 1:
+		FdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
+		MdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
+		YYdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
+	elif len(dispmoveBackparC.split('~')) == 2:
+		FdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
+		MdispmoveBackparC = float(dispmoveBackparC.split('~')[1])
+		YYdispmoveBackparC = float(dispmoveBackparC.split('~')[1])
+	elif len(dispmoveBackparC.split('~')) == 3:
+		FdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
+		MdispmoveBackparC = float(dispmoveBackparC.split('~')[1])
+		YYdispmoveBackparC = float(dispmoveBackparC.split('~')[2])
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+		
+	if isinstance(dispmoveBackthresh, (list,tuple)):
+		dispmoveBackthresh = dispmoveBackthresh[icdtime]
+	# Check for sex ratio options
+	if len(dispmoveBackthresh.split('~')) == 1:
+		FdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
+		MdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
+		YYdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
+	elif len(dispmoveBackthresh.split('~')) == 2:
+		FdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
+		MdispmoveBackthresh = dispmoveBackthresh.split('~')[1]
+		YYdispmoveBackthresh = dispmoveBackthresh.split('~')[1]
+	elif len(dispmoveBackthresh.split('~')) == 3:
+		FdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
+		MdispmoveBackthresh = dispmoveBackthresh.split('~')[1]
+		YYdispmoveBackthresh = dispmoveBackthresh.split('~')[2]
+	else:
+		print('Dispersal move value in wrong format.')
+		sys.exit(-1)
+	
 	if isinstance(assortmateModel_pass, (list,tuple)):
 		assortmateModel = str(assortmateModel_pass[icdtime])
 	else:
@@ -1077,7 +1307,29 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		assortmateC = float(assortmateC_pass[icdtime])
 	else:
 		assortmateC = float(assortmateC_pass)		
+	# Subpopmort percent matrix file, check and read in 
+	if isinstance(subpopmort_pass,(list,tuple)):
+		if subpopmort_pass[icdtime] != 'N':
+			subpopmort_mat = ReadXY(datadir + subpopmort_pass[icdtime])
+			subpopmort_mat = np.asarray(np.asarray(subpopmort_mat)[1:,1:],dtype='float')
+			if (len(np.unique(PopTag)) != len(subpopmort_mat[0])):
+				print('Subpatch id total does not equal the number of subpopulation mortality percentages given. Also make sure Subpatch id is consecutive.')
+				sys.exit(-1)
+		else:
+			subpopmort_mat = subpopmort_pass[icdtime]
+	else:
+		if subpopmort_pass != 'N':
+			subpopmort_mat = ReadXY(datadir + subpopmort_pass)
+			subpopmort_mat = np.asarray(np.asarray(subpopmort_mat)[1:,1:],dtype='float')
+			if (len(np.unique(PopTag)) != len(subpopmort_mat[0])):
+				print('Subpatch id total does not equal the number of subpopulation mortality percentages given. Also make sure Subpatch id is consecutive.')
+				sys.exit(-1)
+		else:
+			subpopmort_mat = subpopmort_pass
+	
+	# ----------------------
 	# Patch based parameters
+	# ----------------------
 	tempStr = []
 	tempMg = []
 	tempoutsize = []
@@ -1229,10 +1481,6 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 						tempfitvals[isub].append(fitvals[isub][i])
 					
 			# Error checks
-			if cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link':
-				if len(tempfitvals[isub][0]) != 4 or len(tempfitvals[isub][1]) != 4 or len(tempfitvals[isub][2]) != 4:
-					print('CDEVOLVE answer is M, 4 parameter values must be entered for size maturation curves (2 for male and 2 for female), see user manual.')
-					sys.exit(-1)
 			if cdevolveans == 'G':
 				if len(tempfitvals[isub][0]) != 6 or len(tempfitvals[isub][1]) != 6 or len(tempfitvals[isub][2]) != 6:
 					print('CDEVOLVE answer is G, 5 parameter values must be entered for growth equation, see user manual.')
@@ -1249,8 +1497,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		
 	# ---------------------------------------------------------
 	# Read in cdmatrix.csv and convert to a probability matrix
-	# ---------------------------------------------------------
-	
+	# ---------------------------------------------------------	
 	# If mate and disp are the same, then only read in once.
 	if (matecdmatfile == dispOutcdmatfile == dispBackcdmatfile == straycdmatfile) \
 	and (FdispmoveOutno == MdispmoveOutno == matemoveno == FdispmoveBackno == MdispmoveBackno == StrBackno) \
@@ -1300,23 +1547,33 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	
 		# ------------------------------------------------
 		# Read in cdmatrix.csv - For Female Dispersal Out
-		# ------------------------------------------------	
-		tupReadMat = ReadCDMatrix(dispOutcdmatfile,FdispmoveOutno,\
-		FdispmoveOutthresh,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC)
-		FdispOutcdmatrix = np.asarray(tupReadMat[0])
-		FdispmoveOutthresh = tupReadMat[1]
-		FdispOut_ScaleMin = tupReadMat[2]
-		FdispOut_ScaleMax = tupReadMat[3]
+		# ------------------------------------------------
+		if dispOutcdmatfile != 'N': # DO not skip this module
+			tupReadMat = ReadCDMatrix(dispOutcdmatfile,FdispmoveOutno,\
+			FdispmoveOutthresh,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC)
+			FdispOutcdmatrix = np.asarray(tupReadMat[0])
+			FdispmoveOutthresh = tupReadMat[1]
+			FdispOut_ScaleMin = tupReadMat[2]
+			FdispOut_ScaleMax = tupReadMat[3]
 
-		# ----------------------------------------------
-		# Read in cdmatrix.csv - For Male Dispersal Out
-		# ----------------------------------------------	
-		tupReadMat = ReadCDMatrix(dispOutcdmatfile,MdispmoveOutno,\
-		MdispmoveOutthresh,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC)
-		MdispOutcdmatrix = np.asarray(tupReadMat[0])
-		MdispmoveOutthresh = tupReadMat[1]
-		MdispOut_ScaleMin = tupReadMat[2]
-		MdispOut_ScaleMax = tupReadMat[3]
+			# ----------------------------------------------
+			# Read in cdmatrix.csv - For Male Dispersal Out
+			# ----------------------------------------------		
+			tupReadMat = ReadCDMatrix(dispOutcdmatfile,MdispmoveOutno,\
+			MdispmoveOutthresh,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC)
+			MdispOutcdmatrix = np.asarray(tupReadMat[0])
+			MdispmoveOutthresh = tupReadMat[1]
+			MdispOut_ScaleMin = tupReadMat[2]
+			MdispOut_ScaleMax = tupReadMat[3]
+		else: # Skip this module
+			FdispOutcdmatrix = 'N'
+			FdispmoveOutthresh = 'N'
+			FdispOut_ScaleMin = 'N'
+			FdispOut_ScaleMax = 'N'
+			MdispOutcdmatrix = 'N'
+			MdispmoveOutthresh = 'N'
+			MdispOut_ScaleMin = 'N'
+			MdispOut_ScaleMax = 'N'
 		
 		# ------------------------------------------------
 		# Read in cdmatrix.csv - For Female Dispersal Back
@@ -1352,7 +1609,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	tupClimate = matecdmatrix,FdispOutcdmatrix,MdispOutcdmatrix,FdispBackcdmatrix,MdispBackcdmatrix,\
 	StrBackcdmatrix,matemovethresh,\
 	FdispmoveOutthresh,MdispmoveOutthresh,\
-	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC	
+	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,FdispmoveOutparA,MdispmoveOutparA,FdispmoveOutparB,MdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparC,FdispmoveBackparA,MdispmoveBackparA,FdispmoveBackparB,MdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparC	
 	return tupClimate
 	#End::DoCDClimate()
 
@@ -1377,7 +1634,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	backgrowdays = []
 	
 	# For no cor_mat answer 'N'
-	if cor_mat == 'N':			
+	if isinstance(cor_mat,str):			
 		for isub in xrange(len(K_mu)):
 			# K ------------------
 			mu = K_mu[isub]
@@ -1648,8 +1905,39 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 			# Then loop through each class value
 			for iage in xrange(len(age_percmort_back_mu[isub][ifile])):		
 				# age mort back ----------------
+				# Split if sex ratios given
+				temp_age_mu = age_percmort_back_mu[isub][ifile][iage].split('~')				
+				temp_age_sd = age_percmort_back_sd[isub][ifile][iage].split('~')				
+				temp_store_mu = []
+				for isex in xrange(len(temp_age_mu)):
+					mu = temp_age_mu[isex]
+					if mu != 'N':
+						mu = float(mu)
+						# Case here for a single value in sigma
+						if len(temp_age_sd) != len(temp_age_mu):
+							# Use first value
+							sigma = float(temp_age_sd[0])
+						else:
+							sigma = float(temp_age_sd[isex]) # Use corresponding sex class option
+						# Case here for sigma == 0
+						if sigma != 0.:
+							# Call a truncated normal here
+							lower, upper = 0.,100.
+							X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							temp_store_mu.append(str(round(X/100.,3)))
+						else:
+							temp_store_mu.append(str(round(mu/100.,3)))
+						if temp_store_mu[isex] < 0:
+							temp_store_mu[isex] = '0'
+					else:
+						temp_store_mu.append(str(mu))
+				# condese with : 	
+				age_percmort_back[isub][ifile].append('~'.join(temp_store_mu))
+				'''
+				# Store previous code version without sex ratio here				
 				mu = age_percmort_back_mu[isub][ifile][iage]
 				sigma = age_percmort_back_sd[isub][ifile][iage]
+				pdb.set_trace()
 				if mu != 'N':
 					mu = float(mu)
 					# Case here for sigma == 0
@@ -1664,57 +1952,96 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 						age_percmort_back[isub][ifile][iage] = 0
 				else:
 					age_percmort_back[isub][ifile].append(mu)
+				'''
 				# age mort out ----------------
-				mu = age_percmort_out_mu[isub][ifile][iage]
-				sigma = age_percmort_out_sd[isub][ifile][iage]
-				if mu != 'N':
-					mu = float(mu)
-					# Case here for sigma == 0
-					if sigma != 0:
-						# Call a truncated normal here
-						lower, upper = 0,100
-						X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-						age_percmort_out[isub][ifile].append(round(X/100.,3))
+				# Split if sex ratios given
+				temp_age_mu = age_percmort_out_mu[isub][ifile][iage].split('~')				
+				temp_age_sd = age_percmort_out_sd[isub][ifile][iage].split('~')				
+				temp_store_mu = []
+				for isex in xrange(len(temp_age_mu)):
+					mu = temp_age_mu[isex]
+					if mu != 'N':
+						mu = float(mu)
+						# Case here for a single value in sigma
+						if len(temp_age_sd) != len(temp_age_mu):
+							# Use first value
+							sigma = float(temp_age_sd[0])
+						else:
+							sigma = float(temp_age_sd[isex]) # Use corresponding sex class option
+						# Case here for sigma == 0
+						if sigma != 0.:
+							# Call a truncated normal here
+							lower, upper = 0.,100.
+							X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							temp_store_mu.append(str(round(X/100.,3)))
+						else:
+							temp_store_mu.append(str(round(mu/100.,3)))
+						if temp_store_mu[isex] < 0:
+							temp_store_mu[isex] = '0'
 					else:
-						age_percmort_out[isub][ifile].append(round(mu/100.,3))
-					if age_percmort_out[isub][ifile][iage] < 0:
-						age_percmort_out[isub][ifile][iage] = 0
-				else:
-					age_percmort_out[isub][ifile].append(mu)
+						temp_store_mu.append(str(mu))
+				# condese with : 	
+				age_percmort_out[isub][ifile].append('~'.join(temp_store_mu))
+				
 				# size mort back  ----------------
-				mu = size_percmort_back_mu[isub][ifile][iage]
-				sigma = size_percmort_back_sd[isub][ifile][iage]
-				if mu != 'N':
-					mu = float(mu)
-					# Case here for sigma == 0
-					if sigma != 0:
-						# Call a truncated normal here
-						lower, upper = 0,100
-						X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-						size_percmort_back[isub][ifile].append(round(X/100.,3))
+				# Split if sex ratios given
+				temp_age_mu = size_percmort_back_mu[isub][ifile][iage].split('~')				
+				temp_age_sd = size_percmort_back_sd[isub][ifile][iage].split('~')				
+				temp_store_mu = []
+				for isex in xrange(len(temp_age_mu)):
+					mu = temp_age_mu[isex]
+					if mu != 'N':
+						mu = float(mu)
+						# Case here for a single value in sigma
+						if len(temp_age_sd) != len(temp_age_mu):
+							# Use first value
+							sigma = float(temp_age_sd[0])
+						else:
+							sigma = float(temp_age_sd[isex]) # Use corresponding sex class option
+						# Case here for sigma == 0
+						if sigma != 0.:
+							# Call a truncated normal here
+							lower, upper = 0.,100.
+							X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							temp_store_mu.append(str(round(X/100.,3)))
+						else:
+							temp_store_mu.append(str(round(mu/100.,3)))
+						if temp_store_mu[isex] < 0:
+							temp_store_mu[isex] = '0'
 					else:
-						size_percmort_back[isub][ifile].append(round(mu/100.,3))
-					if size_percmort_back[isub][ifile][iage] < 0:
-						size_percmort_back[isub][ifile][iage] = 0
-				else:
-					size_percmort_back[isub][ifile].append(mu)
+						temp_store_mu.append(str(mu))
+				# condese with : 	
+				size_percmort_back[isub][ifile].append('~'.join(temp_store_mu))
+				
 				# size mort out ----------------
-				mu = size_percmort_out_mu[isub][ifile][iage]
-				sigma = size_percmort_out_sd[isub][ifile][iage]
-				if mu != 'N':
-					mu = float(mu)
-					# Case here for sigma == 0
-					if sigma != 0:
-						# Call a truncated normal here
-						lower, upper = 0,100
-						X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-						size_percmort_out[isub][ifile].append(round(X/100.,3))
+				# Split if sex ratios given
+				temp_age_mu = size_percmort_out_mu[isub][ifile][iage].split('~')				
+				temp_age_sd = size_percmort_out_sd[isub][ifile][iage].split('~')				
+				temp_store_mu = []
+				for isex in xrange(len(temp_age_mu)):
+					mu = temp_age_mu[isex]
+					if mu != 'N':
+						mu = float(mu)
+						# Case here for a single value in sigma
+						if len(temp_age_sd) != len(temp_age_mu):
+							# Use first value
+							sigma = float(temp_age_sd[0])
+						else:
+							sigma = float(temp_age_sd[isex]) # Use corresponding sex class option
+						# Case here for sigma == 0
+						if sigma != 0.:
+							# Call a truncated normal here
+							lower, upper = 0.,100.
+							X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							temp_store_mu.append(str(round(X/100.,3)))
+						else:
+							temp_store_mu.append(str(round(mu/100.,3)))
+						if temp_store_mu[isex] < 0:
+							temp_store_mu[isex] = '0'
 					else:
-						size_percmort_out[isub][ifile].append(round(mu/100.,3))
-					if size_percmort_out[isub][ifile][iage] < 0:
-						size_percmort_out[isub][ifile][iage] = 0
-				else:
-					size_percmort_out[isub][ifile].append(mu)
+						temp_store_mu.append(str(mu))
+				# condese with : 	
+				size_percmort_out[isub][ifile].append('~'.join(temp_store_mu))
 			
 	# ----------------------------------
 	# For one numbers
@@ -1736,7 +2063,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans,inheritans_classfiles):
+def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen,cor_mat_ans,inheritans_classfiles,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature):
 	'''
 	DoPreProcess()
 	This function does all the pre-processing work before
@@ -1891,23 +2218,24 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_mu = tupAgeFile[6]
 	age_size_mean = tupAgeFile[7]
 	age_size_std = tupAgeFile[8]
-	M_mature = tupAgeFile[9]
-	F_mature = tupAgeFile[10]
-	age_sigma = tupAgeFile[11]
-	age_capture_out = tupAgeFile[12]
-	age_capture_back = tupAgeFile[13]
-	size_percmort_out = tupAgeFile[14]
-	size_percmort_back = tupAgeFile[15]
-	age_percmort_out_sd = tupAgeFile[16]
-	age_percmort_back_sd = tupAgeFile[17]
-	size_percmort_out_sd = tupAgeFile[18]
-	size_percmort_back_sd = tupAgeFile[19]
+	#M_mature = tupAgeFile[9]
+	#F_mature = tupAgeFile[10]
+	age_mature = tupAgeFile[9]
+	age_sigma = tupAgeFile[10]
+	age_capture_out = tupAgeFile[11]
+	age_capture_back = tupAgeFile[12]
+	size_percmort_out = tupAgeFile[13]
+	size_percmort_back = tupAgeFile[14]
+	age_percmort_out_sd = tupAgeFile[15]
+	age_percmort_back_sd = tupAgeFile[16]
+	size_percmort_out_sd = tupAgeFile[17]
+	size_percmort_back_sd = tupAgeFile[18]
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature...
 	# ------------------------------------------------------------------
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'N')
+	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'N',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature)
 	
 	# ------------------------------------
 	# For multiple files, error check here
@@ -2035,7 +2363,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_percmort_out,age_percmort_back,age_Mg,age_S,\
 	age_mu,age_size_mean,age_size_std,xgridpop,ygridpop,\
 	SubpopIN,N,K,dtype,outsizevals,backsizevals,\
-	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,M_mature,F_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag
+	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,age_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag
 	
 	return tupPreProcess	
 	#End::DoPreProcess()
@@ -2074,7 +2402,7 @@ def DoUserInput(fileans):
 	#End::DoUserInput()
 
 # -------------------------------------------------------------------------	
-def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen,PopTag):
+def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen,PopTag,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature):
 	'''
 	AddIndividuals()
 	This function adds more individuals with given classvars 
@@ -2111,23 +2439,24 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	age_mu = tupAgeFile[6]
 	age_size_mean = tupAgeFile[7]
 	age_size_std = tupAgeFile[8]
-	M_mature = tupAgeFile[9]
-	F_mature = tupAgeFile[10]
-	age_sigma = tupAgeFile[11]
-	age_capture_out = tupAgeFile[12]
-	age_capture_back = tupAgeFile[13]
-	size_percmort_out = tupAgeFile[14]
-	size_percmort_back = tupAgeFile[15]
-	age_percmort_out_sd = tupAgeFile[16]
-	age_percmort_back_sd = tupAgeFile[17]
-	size_percmort_out_sd = tupAgeFile[18]
-	size_percmort_back_sd = tupAgeFile[19]
+	#M_mature = tupAgeFile[9]
+	#F_mature = tupAgeFile[10]
+	age_mature = tupAgeFile[9]
+	age_sigma = tupAgeFile[10]
+	age_capture_out = tupAgeFile[11]
+	age_capture_back = tupAgeFile[12]
+	size_percmort_out = tupAgeFile[13]
+	size_percmort_back = tupAgeFile[14]
+	age_percmort_out_sd = tupAgeFile[15]
+	age_percmort_back_sd = tupAgeFile[16]
+	size_percmort_out_sd = tupAgeFile[17]
+	size_percmort_back_sd = tupAgeFile[18]
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,M_mature,F_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'Y')
+	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen,'Y',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature)
 	
 	# ---------------------------------------------
 	# Store class variable SubpopIN_add
@@ -2172,7 +2501,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 				
 				# Create ID for this individual
 				# Get name
-				name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_P'+str(isub+1)+'_Y'+str(gen)+'_UN'+str(iind)
+				name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_m-1f-1'+'_P'+str(isub+1)+'_Y'+str(gen)+'_UN'+str(iind)
 				
 				# Record individual to subpopulation
 				# ---------------------------------				
@@ -2192,7 +2521,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 		
 		# Append all information to temp SubpopKeep variable
 		SubpopIN_keep.append(np.concatenate([SubpopIN_arr,SubpopIN_add]))
-			
+	
 	# Delete storage variables
 	del(size)
 	del(age)
