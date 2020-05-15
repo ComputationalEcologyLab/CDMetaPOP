@@ -1,3 +1,215 @@
+Changes v1.52.2020.03.27T12:31:00MST (ell)
+0) If plasticans is N then make sure InheritGenes() ignores this section.
+1) Updating cdevolveans section 'MG' and PatchVars to include '~' sex delimitor for DGS2020 group. Updated PreProcess section to include 3 sex option in FitVals location. fitvals updated, splits for ';' and equation parameters must happen in modules now.
+2) Move parameter splits ';' to ':' splits. Now use only patch splits as ';' and and function splits as ':'. Only one instance that I left ';' and that is the Loo for temperature_hindex, since fitvals in option cdevolveans use ':' and need to have a another split for ';'
+3) Still will exit out if more than 2 alleles for M options, but not so with G options. G options use the PopVars files. M options could do this also. 
+4) Updated AddAge0s section for cdevolveans M option. 
+
+Changes v1.51.2020.03.25T14:36:00MST (ell)
+0) Added a plasticans check in Modules for the upsatePlasticGenes() function. 
+1) Check 'temperature_hindex' growth module. Checked out fine, but matched equations with 'temperature', that is, moved /365 around. 
+
+Changes v1.50.2020.03.19T08:58:00MST (ell/TS)
+0) More changes/updates to plastic processes
+a) Initialize individuals with only 1's or (1,1), (0,1), (1,0) -> this will allow for a signal to '2' to be a tracking mechanism. In updatePlasticGenes() in first year only, remove a '2', added check statement.
+b) Then in IheritGenes() offspring do not inherit the 'tracking' signal response; so move the plastic region out and do a different check for this inheritance, since individuals may not necessarily have 2 alleles. Essentially offspring inherit as normal, but check plastic region for a '2' and reset it to 1 at this time.
+
+Changes v1.49.2020.03.17T17:21:00MST (ell/Travis Seaborn)
+0) Changed updatePlasticGenes to initialize randomly (before intizlizing first year plastic region with 0s).
+1) Changed updatePlasticGenes if in temperature threshold and if allele is 1, then make 2. This will cause a temporary tracking in the plastic region unless ind is already a 2. e.g., if (1,1) and in temp >= tempthreshold, signal will be (2,2) if (2,0) or (0,2) then it stays as is. 
+2) Then when in movement modules, if ind has a 2 in either allele spot, apply behavior response. 
+3) Remove InheritGenes() plastic region section; now will work with original code for (2,2) parents. 
+
+Changes 1.48.2020.03.16T09:00:00MST (ell)
+0) Error in updatePlasticGenes; skipping initializing the alleles to 0 in first generation. 
+1) Fixed updatePlasticGenes to intialize 0s on first gen only (before updating every gen).
+
+Changes 1.47.2020.03.10T008:00:00MST (ell)
+0) Error checking plastic locus region (T. Seaborn)
+a) Strange pattern when stray rate < 1 and error given: checking functions and this error. FIXED, answer 'immigrator' has length 1 probarray, which was causing error in new segment of plastic loci region code check. Added special check.
+
+Changes 1.46.2020.02.25T14:04:00MDT (ell)
+0) Updating the Plastic locus region (Travis Seaborn)
+a) Added 3 new fields to PopVars; plasticgeneans, startPlasticgene, implementPlasticgene
+b) ** Need to update user manual
+c) Changed burningen to burningen_cdevolve
+d) Added 3 plastic vars to DoUpdate()
+e) If cdevolvans, first region will be selection loci, followed by plastic region.
+f) In DoUpdate() question on where to put plastic signal; before grow and age and mature section or after?
+g) **plastic region assumes only 1 locus for now; make general later
+h) **selection and plastic region assumes 2 alleles only; make general later
+i) If first generation, set genes epigenetic region to 0 or turned off, unless geneswap not started
+j) ** Any tracking needed?
+k) Moved to function updatePlasticGenes()
+l) Updated GetProbArray to look for plastic region and consider cdevolveans. 
+m) Error now in InheritGenes() when alleles are 0 at locus spot. Ln 656. If parent has 0,0 and parent has 1,1 or other allele copy, how do we handle mendel inheritance here? Assume, randomly inherit, e.g., (0,1). 
+-> Add plasloci_index/cdevolvans index region checks to InheritGenes()
+-> Add separate section in InheritGenes to check for inheritance for plastic region, since different checks.
+** Sending to Travis for testing ** 
+
+Changes 1.45.2020.02.14T08:58 (ell)
+0) Begin adding in 'plastic' allele tied to temperature threshold in patch. 
+If allele and if temp > threshold; do not move to those patches
+a) Added 'Plastic_temp;thresholdval' option to cdevolveans
+
+Changes v1.44.2020.02.12T11:55:00MDT (ell/cday/Adriana L)
+1) On species community:
+i) Added if no males in patch with that species, continue and move to next patch.
+
+Changes v1.43.2020.01.29T11:46:00MDT (ell/cday Adriana L)
+0) Begin adding 'community' option for the assortative mating module for Adriana's project.
+a) Added option '6' to Assortative mating module and user manual description.
+b) In DoPreProcessing() update checks for natalgrounds = 0, now N0 is a '0' passed into next functions for initialization.
+c) Add 'species' to dtype SubpopIN tracking
+d) Updated AddIndividuals() to match DoPreProcessing dtypes
+e) Add assortative mating if statement in Mate module
+f) Added 'species' to recd in Emigration, Immigration
+g) Added 'species' to offdtype in Immigration, for OffspringVars 
+h) Add to grid file a column for species ID, remove from string ID
+
+Changes v1.42.2019.10.17T10:40:00MDT (ell/cday)
+0) Added new FIDIMO option for cost/effictive distance movement to probability conversion.
+f(x) = p x 1/sqrt(2*pi*sigstat^2) x exp(-(x-mu)^2/2*sigstat^2) + (1-p) x 1/sqrt(2*pi*sigmob^2) x exp(-(x-mu)^2/2*sigmob^2)
+where mu = 0
+then 3 parameters, p, sigma_stat, sigma_mob
+
+
+Changes v1.41.2019.08.17T13:04:00MDT(ell)
+0) Begin updating code for flexible allele change. From CDPOP changes:
+-----------------------------------------------------------------------
+1) Add flexible allele / locus option
+a) intgenesans added option for 'file_var'.
+b) allele then has each allele per locus split by ';'
+c) added intgenesans option for 'random_var' then allele split by ';'
+d) added error checks
+e) Updated GetMetrics() to account for flexible alleles. 
+f) Updated InheritGenes()
+g) Now checking rest of code. For ease, flatten genes vector and stay consistent. Checked many combinations, sending code to beta testers.
+-------------------------------------------------------------------------- 
+a) For cdmetapop, the options include 
+i)specifying a allelefrequency file that has variable loci/allele combinations (PatchVars file), then specifying in PopVars the number of alleles per each locus split by ; 
+ii) specifying random_var in the PatchVars file and the in the PopVars file the number of alleles per each locus split by ;
+b) PreProcessing updated to include flattened gene array in class 'genes'. Also switched dtype for 'genes' to 'i' - np.array
+c) GetMetrics module next: updated with flattened gene array.
+d) DoUpdate module updated: growth/maturation cdevolve options index to flattened array updated and DoOutput. 
+e) AddIndividuals - checking - updated recd dtype for flattened array (gene array now uses np array, which is different from cdpop str-list).
+f) DoStochastic/CDClimate Update - checking; no updates here.
+g) DoMate - checking; update with dtype females/males class - changed dtype to np array (from object). 
+h) DoOffspring - checking; no updates here.
+i) Second DoUpDate(); checked
+j) DoEmigration() - checking; Do1LocusSelection and Do2LocusSelection Models updated in Modules()
+k) DoMortality; checking - no updates here.
+l) DoImmigration() - checking; Do1Locus and DO2Locus updates here. No updates in OffspringVars. 
+-> Checking AddAge0s() and InheritGenes(): 
+- In DoImmigration()
+-AddAge0s() -> InheritGenes() -> checking; update 'possiblealleles' array in this module. Do1Locus, Do2Locus Selection calls updated for AddAge0s cdevolveans. recd values updated for genes, so str not recd and flattened array used instead. 
+-DoMortality() -> checking; no genes called here, no updates.
+-Second GetMetrics() - checks fine. 
+- PostProcessing() - checks fine.
+----------------------------------------------------------------------
+
+Changes v1.40.2019.05.24T08:53:00MDT (cday/ell)
+0) Minor slight negative values when Pareto conversion back to cost from prob for tracking numbers; added fix max(Fxycdmatrix[isub]): for both male and female in Immigration and Emigration module.
+1) Fixed FutureWarning in cdmatrix_dispLocal != 'N' not isinstance(cdmatrix_dispLocal,str): 
+2) Added a tracking number for total Myy and Mxy progeny each year. 
+-------------------------------------------------------------------------------------------------------
+
+Changes v1.39.2019.05.21T12:40:00MDT (ell/cday)
+0) Updated Migrant check in DoImmigration()
+1) Added deepcopy to PreProcess when all of the movement options are the same.
+
+Changes 1.38.2019.05.18T10:09:00MDT (ell/cday)
+0) Added another CalculateDispersalMetrics() to DoImmigration for any 'D' movers.
+1) updated 'NatalPop', 'EmiPop', 'ImmiPop' assignments for each case in Immigration to account for intermediate case in order to calculate cdist movement for local dispersal. 
+2) sourcePop in Main now will always use 'NatalPop' designation.
+3) CalculateDispersalMetrics back to 3 for 'S', 'Z', and 'D'. 'I' removed and assumed the calculation is done already with the DoEmigration module
+4) Added tracking numbers for RDispersers and IDispersers.
+5) Updated user manual.
+
+Changes v1.37.2019.05.17T08:30:00MDT (cday/ell)
+0) Divide by 0 error when K=0 and recent N>0 addition. Added a check.
+1) When DoEmigration skipped, added recent tracking numbers (YY, Wild Selection deaths).
+2) Checking popmodel N (Caroline Sartor); working fine. Removed prob = N/K in InitializeID() which will exactly intiliaze with N now. 
+3) In CalculateDispersalMetrics() for DoImmigration, remove 'R' skip to capture RD movers now.
+
+Changes v1.36.2019.05.13T13:31:00MDT (cday)
+0) ValueError check for Inf in packing.
+1) Growth updated to:
+L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))
+
+CHanges v1.35.2019.05.09T13:28:00MDT (ell/cday)
+0) Updated DoImmigration() - only let Migrants Stray first (not residents). 
+
+Changes v1.34.2019.04.21T11:28:00MDT (ell/cday)
+0) Adding local dispersal movement option within DoImmigration().
+a) Add another surface, function number, 3 pars, and threshold option to PopVars file
+b) Changed name of dispOut dispBack to migrateOut, migrateBack. Stray stays the same. Now new option is 'disperse'. 
+c) ***Need to update usermanual, figures, flow diagrams, etc.
+d) Give the option for 'N' to skip.
+
+1) N0 allowed to be above K upon initialization
+2) Swapped these in growth equations:
+#L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+L_inc_age = L_inc * np.exp((Indage+1) * float(sizeR0))
+3) In DoImmigration() If Strayer, updated 'NatalPop' to straypop (was originalpop). Likewise with new LocalDispersal, if dispersal happens, then this 'NatalPop' field gets updated to the final settled location. 
+
+4) Added CDays packing option to next size class. 
+
+16Apr2019 - Version to CDay/unicorn-FTP CDMetapop site.
+
+Changes v1.33.2019.04.16T16:22:00MDT (ell/cday)
+0) Updated packing: included missing age classes.
+
+15Apr2019 - Version to CDay/unicorn-FTP CDMetaPop site.
+
+Changes v1.32.2019.04.15T13:43:00MDT (ell/cday)
+0) Updated packing: rescaled Kij_proportion to sum to 1.
+
+03Apr2019 - Version to CDay/unicorn-FTP CDMetaPop site.
+
+Changes v1.31.2019.04.01T13:34:00MDT (ell/cday)
+0) Moving maturation and lay egg from 'Middle' or second DoUpdate() to 'Sample' or third DoUpdate().
+
+11Jan2019 - Version to CDay/unicorn-FTP CDMetaPop site.
+
+Changes v1.30.2019.01.11T09:34:00MDT (ell/cday)
+0) Continue adding packing/hindex cdevolve option to Immigration
+a) added option for 'implementSelection' now to include packing_out, packing_back, and packing_both? 
+
+Changes v1.29.2018.11.09T08:32:00MDT (ell/cday)
+0) Add packing/hindex cdevolve option to both Emigration and Immigration
+1) Added 4 tracking numbers for Emigration and Immigration - selection deaths for YY and wildtypes within the packing.  
+2) Updated vonB error with newsize in DoUpdate() 'Sample' vs 'N'
+
+Changes v1.28.2018.10.25T10:32:00MST (ell/cday/zr)
+0) Continue to update vonB option with grow days.
+
+Changes v1.27.2018.10.20T11:52:00MST (ell/cday/zr)
+0) updated 'mother' option for YY work bugs fixed.
+1) Updated 'vonB' option (zr): added t0. 
+a) if newsize < 0, then newsize = 0. instead of sys.exit(-1)
+b) added grow day adjustment to vonB newsize = float(sizeLoo) * (1. - np.exp(-K * ((Indage+1+grow) - t0)))
+c) +1 in temperature growth ? ? 
+
+Changes v1.26.2018.09.19T11:47:00MST (ell/cday)
+0) Added 'mother' option to inherit class vars option
+
+Changes v1.25.2018.09.18T08:13:00MST (ell/cday)
+0) Updated Assortative mate module. See user manual and Assortative mate description. 
+1) *** Look at N0 and bars | : if multiple vs single
+2) *** summary tracking N F + N M != N Initial ?
+
+Changes v1.24.2018.0831T1248MST (ell/cday)
+0) Error statement in DoOffspringVars() for assigning sex when integer placed. Commented out error.
+1) Added Option 4a and 4b for Assortative mating. 
+Option 4a is the original and 4b is now:
+If female HIndex > 0 #This will be all females in our case
+             mate with any male according to c factor (delta = 1) except where male HIndex = 0.0 (delta = 0).
+If female HIndex = 0 #Impossible in our case
+             mate with males where HIndex = 0 according to c factor (delta = 1). All other males (delta = 0)
+
+Committed to GITHUB - August 30, 2018. 
+
 27August2018 - Version to CDay/unicorn-Ftp CDMetaPop site
 
 Changes v1.23.2018.0827T15:34:00MST (ell/cday)

@@ -87,7 +87,7 @@ def w_choice_item(lst):
 	#End::w_choice_item()
 	
 # ---------------------------------------------------------------------------------------------------	
-def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate):
+def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic):
 	'''
 	GetProbArray()
 	This function gets indices for F and M specific cdmatrix values
@@ -105,11 +105,11 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate):
 	
 	# Append the freegrid probabilities for the offspring choice
 	if indSex == 'XX': # Female offspring
-		probarray = Fxycdmatrix[currentsubpop]
+		probarray = copy.deepcopy(Fxycdmatrix[currentsubpop])
 	elif indSex == 'XY': # Male offspring
-		probarray = Mxycdmatrix[currentsubpop]
+		probarray = copy.deepcopy(Mxycdmatrix[currentsubpop])
 	elif indSex == 'YY': # Assume same as XY
-		probarray = Mxycdmatrix[currentsubpop]
+		probarray = copy.deepcopy(Mxycdmatrix[currentsubpop])
 	else:
 		print('Invalid offspring list.')
 		sys.exit(-1)		
@@ -119,7 +119,44 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate):
 	
 	# Where migrate = 0, turn prob to 0
 	probarray[np.where(np.asarray(migrate)==0)[0]] = 0.
-
+	
+	# Check plastic response here
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1):
+		
+		# Get location in genes array for plastic region
+		# ----------------------------------------------
+		Indgenes = currentoff['genes']
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+		
+		# Get the plastic behaviorial response threshold
+		# ----------------------------------------------
+		tempthresh = float(plasticans.split('_')[1].split(':')[1])
+		
+		# Does this individual have the allele to intiate response
+		# Anywhere there is a 2 in either plaloci index spot
+		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
+		
+			# Whereever temperature threshold, turn prob to 0
+			probarray[np.where(np.asarray(patchvals) >= tempthresh)[0]] = 0.
+	
 	return probarray
 	
 	# End::GetProbArray()
@@ -128,7 +165,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate):
 def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,\
 Fxycdmatrix,Mxycdmatrix,gen,\
 cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,\
-burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat):
+burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic):
 
 	'''
 	DoEmigration()
@@ -148,11 +185,15 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 	SelectionDeaths.append([]) # Dispersing Deaths cdevolve
 	PackingDeaths.append([]) # Deaths due to packing density dependence problem
 	ProbSuccess.append([]) # Prob switches
+	Track_YYSelectionPackDeaths.append([]) # YY selection deaths in packing algorithm
+	Track_WildSelectionPackDeaths.append([]) # wild type selection deaths in packing algorithm
 	for x in xrange(0,nosubpops):
 		DisperseDeaths[gen].append([])
 		SelectionDeaths[gen].append([])
 		PackingDeaths[gen].append([])
-		SubpopIN_keep.append([])
+		Track_YYSelectionPackDeaths[gen].append([])
+		Track_WildSelectionPackDeaths[gen].append([])
+		SubpopIN_keep.append([])		
 				
 	# Decide where everybody moves - loop through subpop, doesn't need to be shuffled.
 	for isub in xrange(len(SubpopIN)):
@@ -228,13 +269,13 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				
 				# Then Migrate Out....			
 				# Create a function here that gets indices for male and female
-				probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,originalpop,K,migrate)
+				probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,originalpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
 										
 				# If statement to check if there are spots for offpsring to disperse to
 				if sum(probarray) != 0.0:
 					
 					# CDEVOLVE
-					if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen) and (timecdevolve.find('Out') != -1):		
+					if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen_cdevolve) and (timecdevolve.find('Out') != -1):		
 												
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)
@@ -244,7 +285,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 							differentialmortality = 0.0
 						else:						
 							# Call 1-locus selection model
-							differentialmortality = Do1LocusSelection(fitvals,literal_eval(outpool['genes'])[0],iteminlist)
+							differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],iteminlist)
 												
 						# Then flip the coin to see if outpool survives its location
 						randcheck = rand()
@@ -257,7 +298,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 							continue
 													
 					# CDEVOLVE - 2 loci
-					elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
+					elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen_cdevolve) and (timecdevolve.find('Out') != -1):
 						
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)
@@ -267,7 +308,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 							differentialmortality = 0.0
 						else:
 							# Call 2-locus selection model
-							differentialmortality = Do2LocusSelection(fitvals,literal_eval(outpool['genes'])[0:2],iteminlist)
+							differentialmortality = Do2LocusSelection(fitvals,outpool['genes'][0:4],iteminlist)
 												
 						# Then flip the coin to see if outpool survives its location
 						randcheck = rand()
@@ -280,7 +321,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 							continue
 							
 					# CDEVOLVE - Hindex
-					elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
+					elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen_cdevolve) and (timecdevolve.find('Out') != -1):
 						
 						# Select the w_choice item
 						iteminlist = w_choice_item(probarray)
@@ -338,8 +379,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 					outpool_name = outpool_name.split('_')
 					name = 'E'+str(tosubpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
 					
-					# Record string name of OriginalSubpop,ToSubpop,NAsubpop,EmiCD,ImmiCD,age,sex,size,infection,name,capture,layeggs,genes				
-					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(tosubpop)-1],outpool['genes'])
+					# Record string name of OriginalSubpop,ToSubpop,NAsubpop,EmiCD,ImmiCD,age,sex,size,infection,name,capture,layeggs,species,genes				
+					recd = (originalpop,tosubpop,'NA',-9999,-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(tosubpop)-1],outpool['species'],outpool['genes'])
 								
 					# Record outpool disperse information
 					SubpopIN_keep[int(tosubpop)-1].append(recd)
@@ -364,14 +405,14 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			else:
 								
 				# CDEVOLVE - 1 locus
-				if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
+				if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen_cdevolve) and (timecdevolve.find('Out') != -1):
 											
 					# for option 3 in which has to be mature
 					if cdevolveans == '1_mat' and outpool['mature'] == 0:
 						differentialmortality = 0.0
 					else:					
 						# Call 1-locus selection model
-						differentialmortality = Do1LocusSelection(fitvals,literal_eval(outpool['genes'])[0],int(originalpop)-1)
+						differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],int(originalpop)-1)
 											
 					# Then flip the coin to see if outpool survives its location
 					randcheck = rand()
@@ -384,14 +425,14 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						continue
 												
 				# CDEVOLVE - 2 loci
-				elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
+				elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen_cdevolve) and (timecdevolve.find('Out') != -1):
 					
 					# for option 3 in which has to be mature
 					if cdevolveans == '2_mat' and outpool['mature'] == 0:
 						differentialmortality = 0.0
 					else:
 						# Call 2-locus selection model
-						differentialmortality = Do2LocusSelection(fitvals,literal_eval(outpool['genes'])[0:2],int(originalpop)-1)
+						differentialmortality = Do2LocusSelection(fitvals,outpool['genes'][0:4],int(originalpop)-1)
 										
 					# Then flip the coin to see if outpool survives its location
 					randcheck = rand()
@@ -404,7 +445,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						continue				
 				
 				# CDEVOLVE - Hindex
-				elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve.find('Out') != -1):
+				elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen_cdevolve) and (timecdevolve.find('Out') != -1):
 
 					# Call Hindex selection model
 					differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[int(originalpop)-1])
@@ -428,8 +469,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				
 				name = 'R'+str(originalpop)+'_F'+str(originalpop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
 					
-				# Record string name of OriginalSubpop,ToSubpop,NA,EmiCD,ImmiCD,age,sex,size,infection,name,capture,genes 
-				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(originalpop)-1],outpool['genes'])
+				# Record string name of OriginalSubpop,ToSubpop,NA,EmiCD,ImmiCD,age,sex,size,infection,name,capture,species,genes 
+				recd = (originalpop,originalpop,'NA',-9999,-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(originalpop)-1],outpool['species'],outpool['genes'])
 							
 				# Record outpool disperse information
 				SubpopIN_keep[int(originalpop)-1].append(recd)
@@ -485,6 +526,9 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			# Get each SubpopIN pop as array
 			SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
 			
+			# -----------------------------------
+			# Get countages - for 'age' adjusted
+			# -----------------------------------
 			# Switch here for size or age control
 			if sizecall == 'size': # Careful here and use first ClassVars
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
@@ -493,7 +537,10 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			else:
 				# Count up each uniages
 				countages = count_unique(SubpopIN_arr['age'])
-						
+			
+			# ------------------------
+			# Get packing parameters
+			# ------------------------			
 			# K,N for this population
 			Kpop = K[isub]
 			Npop = sum(countages[1])
@@ -515,7 +562,13 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				Nage_samp_ind = [] 
 				Kage_hab_adj = 0.
 				Kage_hab_adj_inc = 0.
-				for iage in -np.sort(-countages[0]):			
+				#Kij_proportion = np.exp(packpar1*(countages[0]+1)) # Equ 8
+				Kij_proportion = np.exp(packpar1*(np.asarray(xrange(len(size_mean[0][0])))+1))
+				Kij_proportion = Kij_proportion/sum(Kij_proportion) # Equ 8 rescaled
+				Kij_proportion = np.flipud(Kij_proportion) # Flip to match next age loop (old to young)
+				AgeClass_reverse = np.flipud(np.asarray(xrange(len(size_mean[0][0]))))
+				#for iage in -np.sort(-countages[0]):
+				for iage in AgeClass_reverse:
 					
 					# Age class
 					Ageclass = iage
@@ -527,39 +580,104 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 						indexforAgeclass = Ageclass
 					
 					# N for this age coming in
-					Nage = countages[1][np.where(countages[0]==Ageclass)[0][0]]
+					if len(np.where(countages[0]==Ageclass)[0]) == 0:
+						Nage = 0
+					else:
+						Nage = countages[1][np.where(countages[0]==Ageclass)[0][0]]
 					if sizecall == 'size': # Use the adjusted age classes
 						Nage_index = np.where(age_adjusted==Ageclass)[0]
 					else:
 						Nage_index = np.where(SubpopIN_arr['age']==Ageclass)[0]
 					
-					# Get Age_scaling for this pop's age class
+					# Get Age_scaling for this pop's age class (*Stage R)
 					Agescale = np.exp(Kscale * (1. - (Nage / float(Kpop))))
 					
 					# Kage proportion of habitat available (add one to age class) - equation from AB.
-					Kage_hab = np.exp(packpar1*(Ageclass+1))
+					#Kage_hab = np.exp(packpar1*(Ageclass+1))
+					Kage_hab = Kij_proportion[np.where(iage==AgeClass_reverse)][0]
 					
 					# Class count for redsitributing Khab
-					classcount = len(np.where(countages[0]<=Ageclass)[0])
+					classcount = len(np.where(AgeClass_reverse<=Ageclass)[0])
 					#classcount = Ageclass+1
 					Kage_hab_adj_inc = Kage_hab_adj_inc + (Kage_hab_adj/classcount)
+					#Kage_hab_adj_inc = Kage_hab_adj_inc[0]
 					
 					# Adjust the Kage_hab
 					Kage_hab = Kage_hab + Kage_hab_adj_inc
 					
-					# Kage for this population - this is a proportion
-					Kage = Nage * np.exp(Agescale * (1. - (Nage / (Kpop * Kage_hab))))
-										
+					# Kage for this population 
+					#Kage = Nage * np.exp(Agescale * (1. - (Nage / (Kpop * Kage_hab))))
+					#Added this check because this expression can result in large 'inf' values
+					if np.isnan(Nage * np.exp(Agescale * (1. - (Nage / (Kpop * Kage_hab))))):
+						Kage = 1000000000 #This should safely be above any Nage value
+					else:
+						Kage = Nage * np.exp(Agescale * (1. - (Nage / (Kpop * Kage_hab))))
 					# Get Kused
 					if Nage <= Kage:
-						# Grab all the ages
+						# Grab all the ages - they all survive
 						Kused = len(Nage_index)
 						Nage_samp_ind.append(list(Nage_index))
+						# Tracking numbers ------------------------------
 						PackingDeathsAge[gen][indexforAgeclass].append(0)
-					else:
-						# Grab a random draw of Kage from numbers - or sort by size and grab the top size classes?
+						Track_YYSelectionPackDeaths[gen][isub].append(0)
+						Track_WildSelectionPackDeaths[gen][isub].append(0)
+					else: # Some die
+						# Get Kused - this is the number that is kept
 						Kused = int(round(Kage))
-						Nage_samp_ind.append(random.sample(Nage_index,Kused))
+												
+						# CDEVOLVE PACKING OPTION
+						if timecdevolve == 'packing' and cdevolveans.split('_')[0] == 'Hindex':
+							
+							Fitness = float(cdevolveans.split('_')[2].split(':')[1])
+							X = Nage-Kused # Total number of deaths
+							hindex_arr = SubpopIN_arr[Nage_index]['hindex'] # Hindex of all the ind here
+							N_w = len(np.where(hindex_arr > 0)[0]) # Number of wild type
+							N_yy = len(np.where(hindex_arr == 0.)[0]) # Number of YY type
+							Deaths_yy = int(round((X * N_yy) / ((Fitness * N_w) + N_yy)))
+							Deaths_w = X - Deaths_yy
+							
+							# Here, recalculate deaths for the cases in which more deaths calculated than N showed up
+							if Deaths_yy > N_yy:
+								# Adjust the actuald deaths to wild type
+								Deaths_yy = N_yy
+								Deaths_w = X - Deaths_yy								
+							
+							# Then keep the propotional amount of each type
+							if Kused == 0: # No one survives given packing parameters
+								# Grab a random number of Kused from Nage sample. 
+								Nage_samp_ind.append(random.sample(Nage_index,Kused))
+								# Tracking numbers -------------------------------------
+								Track_YYSelectionPackDeaths[gen][isub].append(N_yy)
+								Track_WildSelectionPackDeaths[gen][isub].append(N_w)
+							
+							else: # Some individuals survive given packing parameters
+								# As with Nage_index - index for where the YYs are
+								Nage_index_yy = Nage_index[np.where(hindex_arr == 0.)[0]]
+								# Then get the Kused for just the yy class
+								Kused_yy = N_yy - Deaths_yy
+																
+								# Same for wild type Nage_index - all hindex greater than 0 at this point
+								Nage_index_wild = Nage_index[np.where(hindex_arr > 0)[0]]
+								#The get Kused for just the wild class
+								Kused_wild = N_w - Deaths_w								
+								
+								# Then sample those that survive and stay - YYs
+								Nage_samp_ind.append(random.sample(Nage_index_yy,Kused_yy))								
+								# Then sample those that survive and stay - Wild type
+								Nage_samp_ind.append(random.sample(Nage_index_wild,Kused_wild))								
+																
+								# Tracking numbers ------------------------------------------
+								Track_YYSelectionPackDeaths[gen][isub].append(Deaths_yy)
+								Track_WildSelectionPackDeaths[gen][isub].append(Deaths_w)					
+							
+						# CDEVOLVE Packing option off
+						else:
+							# Grab a random number of Kused from Nage sample. 
+							Nage_samp_ind.append(random.sample(Nage_index,Kused))
+							# Tracking numbers ----------------------------------
+							Track_YYSelectionPackDeaths[gen][isub].append(0)
+							Track_WildSelectionPackDeaths[gen][isub].append(0)
+						
 						PackingDeathsAge[gen][indexforAgeclass].append(Nage-Kused)
 					
 					# The adjust the habitat or reallocation for next class
@@ -580,6 +698,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
 			PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind)
+			Track_YYSelectionPackDeaths[gen][isub] = sum(Track_YYSelectionPackDeaths[gen][isub])
+			Track_WildSelectionPackDeaths[gen][isub] = sum(Track_WildSelectionPackDeaths[gen][isub])
 			
 			# Track class size - get age adjusted again. 		
 			if sizecall == 'size':
@@ -595,6 +715,236 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			# Special case where age class is greater than lastage
 			sizeindex = np.where(age_adjusted > iage)[0]
 			PopulationAge[gen][iage].append(len(sizeindex))	
+	
+	# ---------------------
+	# Packing option 1 - Extra space allocated to only 1 size class
+	# ---------------------
+	elif packans == 'packing_1':
+		
+		# Loop through each subpopulation
+		for isub in xrange(len(K)):
+					
+			# Get each SubpopIN pop as array
+			SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
+			
+			# -----------------------------------
+			# Get countages - for 'age' adjusted
+			# -----------------------------------
+			# Switch here for size or age control
+			if sizecall == 'size': # Careful here and use first ClassVars
+				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
+				# Count up each unique 'sizes'
+				countages = count_unique(age_adjusted)
+			else:
+				# Count up each uniages
+				countages = count_unique(SubpopIN_arr['age'])
+			
+			# ------------------------
+			# Get packing parameters
+			# ------------------------			
+			# K,N for this population
+			Kpop = K[isub]
+			Npop = sum(countages[1])
+			if Npop == 0 or Kpop == 0:
+				# Append all information to temp SubpopKeep variable
+				Nage_samp_ind = np.arange(0)					
+			else:		
+				# Check here on numbers
+				if Kpop == Npop:
+					Kscale = 1.0
+				else:
+					# Get K_scaling for population
+					Kscale = np.log(float(Kpop)/Npop) / (1. - (Npop/float(Kpop))) # Equation 6
+				
+				# -------------------------
+				# Age loop
+				# -------------------------
+				# Loop through each age class - here recursive, start with largest class first
+				Nage_samp_ind = [] 
+				Kage_hab_adj = 0.
+				Kage_hab_adj_inc = 0.				
+				Kij_proportion = np.exp(packpar1*(np.asarray(xrange(len(size_mean[0][0])))+1))
+				Kij_proportion = Kij_proportion/sum(Kij_proportion) # Equ 8 rescaled
+				Kij_proportion = np.flipud(Kij_proportion) # Flip to match next age loop (old to young)
+				AgeClass_reverse = np.flipud(np.asarray(xrange(len(size_mean[0][0]))))
+######################## Start Casey stuff #####################
+				#Goal here is to only distribute available space to one class below the given size class
+				AgeClass = np.asarray(xrange(len(size_mean[0][0]))) #Age classes not reversed
+				Agescale = []
+				Kage = []
+				Kage_hab_adj = []
+				Kage_hab = []
+				Kused = []
+				Kused_new = [] # This is for the second calculation of Kused after the adjusted Kage_hab is calculated
+				Kage_new = [] # This is the second calculation of Kage after the adjusted Kage_hab is calculated
+				
+				for iage in AgeClass:					
+					#Nage = countages[1][iage]
+					# Special case when age is greater than last age class only used for indexing now
+					if iage > len(size_mean[0][0])-1:
+						indexforAgeclass = len(size_mean[0][0]) - 1 
+					else:
+						indexforAgeclass = iage
+					
+					# N for this age coming in
+					if len(np.where(countages[0]==iage)[0]) == 0:
+						Nage = 0
+					else:
+						Nage = countages[1][np.where(countages[0]==iage)[0][0]]
+					if sizecall == 'size': # Use the adjusted age classes
+						Nage_index = np.where(age_adjusted==iage)[0]
+					else:
+						Nage_index = np.where(SubpopIN_arr['age']==iage)[0]
+					# Need to calculate Stage R (agescale) for each age class (equation 7)
+					Agescale.append(np.exp(Kscale * (1.-(Nage/float(Kpop))))) 
+					
+					# Here calculate Kage for a given size class based on equation 9
+					# Check for inf value in case of small N and large AgeScale value
+					if np.isnan(Nage * np.exp(Agescale[iage] * (1.-(Nage/(Kpop * Kij_proportion[(iage+1)*-1]))))):
+						Kage.append(1000000000)
+					else:
+						Kage.append(Nage * np.exp(Agescale[iage] * (1.-(Nage/(Kpop * Kij_proportion[(iage+1)*-1]))))) 
+					
+					# Now calculate Kused for each age class so we can calculate Kage_hab_adj
+					if Nage <= Kage[iage]: 
+						Kused.append(len(Nage_index))
+						# Don't append to Nage_samp_ind until second Kused?
+					else:
+						Kused.append(Kage[iage])						
+						
+					# Now calculate Kage_hab_adj - here just use Kij_proportion instead of Kage_hab_adj, equation 10
+					if Kage[iage] <= 0:
+						Kage_hab_adj.append(0)
+					else:
+						Kage_hab_adj.append(Kij_proportion[(iage+1)*-1] - ((Kused[iage]/Kage[iage])*Kij_proportion[(iage+1)*-1])) # Represents available space in each age class
+					#Kage_hab_adj_inc not necessary here because the available space is not divided among classes							
+				
+				#Reset Kused and Kage now that Kage_hab_adj is already calculated, will calculate new Kused based on new Kage_hab
+				for iage in AgeClass:					
+					# Special case when age is greater than last age class only used for indexing now
+					if iage > len(size_mean[0][0])-1:
+						indexforAgeclass = len(size_mean[0][0]) - 1
+					else:
+						indexforAgeclass = iage
+					
+					# N for this age coming in
+					if len(np.where(countages[0]==iage)[0]) == 0:
+						Nage = 0
+					else:
+						Nage = countages[1][np.where(countages[0]==iage)[0][0]]
+					if sizecall == 'size': # Use the adjusted age classes
+						Nage_index = np.where(age_adjusted==iage)[0]
+					else:
+						Nage_index = np.where(SubpopIN_arr['age']==iage)[0]
+					# Recalculate Kij_proportion for each age class based on available space from Kage_hab_adj
+					if iage == AgeClass[-1]: #If largest class, needs to be fixed to account for old fish.
+						Kage_hab.append(Kij_proportion[(iage+1)*-1]) # Just your own Kij_proportion value
+					else:
+						Kage_hab.append(Kij_proportion[(iage+1)*-1] + Kage_hab_adj[iage+1]) #your Kij_proportion + available space from class above you
+					# Now recalculate Kage with the new Kage_hab, and calculate deaths from Kused, equation 9
+					# Check for inf value in case of small N and large AgeScale value
+					if np.isnan(Nage * np.exp(Agescale[iage] * (1.-(Nage/(Kpop*Kage_hab[iage]))))):
+						Kage_new.append(1000000000)
+					else:
+						Kage_new.append(Nage * np.exp(Agescale[iage] * (1.-(Nage/(Kpop*Kage_hab[iage]))))) 
+					
+					
+										
+					#Now calculate Kused again to determine # of deaths
+					if Nage <= Kage_new[iage]:
+						Kused_new.append(Nage)
+						# Add tracking stuff here
+						Nage_samp_ind.append(list(Nage_index))
+						# Tracking numbers ------------------------------
+						PackingDeathsAge[gen][indexforAgeclass].append(0)
+						Track_YYSelectionPackDeaths[gen][isub].append(0)
+						Track_WildSelectionPackDeaths[gen][isub].append(0)
+					else: # some die
+						Kused_new.append(int(round(Kage_new[iage])))
+						if timecdevolve == 'packing' and cdevolveans.split('_')[0] == 'Hindex':
+							Fitness = float(cdevolveans.split('_')[2].split(':')[1])
+							X = Nage-Kused_new[iage] # Total number of deaths
+							hindex_arr = SubpopIN_arr[Nage_index]['hindex'] # Hindex of all the ind here
+							N_w = len(np.where(hindex_arr > 0)[0]) # Number of wild type
+							N_yy = len(np.where(hindex_arr == 0.)[0]) # Number of YY type
+							Deaths_yy = int(round((X * N_yy) / ((Fitness * N_w) + N_yy)))
+							Deaths_w = X - Deaths_yy
+							
+							# Here, recalculate deaths for the cases in which more deaths calculated than N showed up
+							if Deaths_yy > N_yy:
+								# Adjust the actuald deaths to wild type
+								Deaths_yy = N_yy
+								Deaths_w = X - Deaths_yy								
+							
+							# Then keep the propotional amount of each type
+							if Kused_new[iage] == 0: # No one survives given packing parameters
+								# Grab a random number of Kused from Nage sample. 
+								Nage_samp_ind.append(random.sample(Nage_index,Kused_new[iage]))
+								# Tracking numbers -------------------------------------
+								Track_YYSelectionPackDeaths[gen][isub].append(N_yy)
+								Track_WildSelectionPackDeaths[gen][isub].append(N_w)
+							
+							else: # Some individuals survive given packing parameters
+								# As with Nage_index - index for where the YYs are
+								Nage_index_yy = Nage_index[np.where(hindex_arr == 0.)[0]]
+								# Then get the Kused for just the yy class
+								Kused_yy = N_yy - Deaths_yy
+																
+								# Same for wild type Nage_index - all hindex greater than 0 at this point
+								Nage_index_wild = Nage_index[np.where(hindex_arr > 0)[0]]
+								#The get Kused for just the wild class
+								Kused_wild = N_w - Deaths_w								
+								
+								# Then sample those that survive and stay - YYs
+								Nage_samp_ind.append(random.sample(Nage_index_yy,Kused_yy))								
+								# Then sample those that survive and stay - Wild type
+								Nage_samp_ind.append(random.sample(Nage_index_wild,Kused_wild))								
+																
+								# Tracking numbers ------------------------------------------
+								Track_YYSelectionPackDeaths[gen][isub].append(Deaths_yy)
+								Track_WildSelectionPackDeaths[gen][isub].append(Deaths_w)				
+						# CDEVOLVE Packing option off
+						else:
+							# Grab a random number of Kused from Nage sample. 
+							#pdb.set_trace()
+							Nage_samp_ind.append(random.sample(Nage_index,Kused_new[iage]))
+							# Tracking numbers ----------------------------------
+							Track_YYSelectionPackDeaths[gen][isub].append(0)
+							Track_WildSelectionPackDeaths[gen][isub].append(0)
+						
+						PackingDeathsAge[gen][indexforAgeclass].append(Nage-Kused_new[iage])
+						#Then all the tracking stuff can go here						
+								
+			# Clean up index
+			#pdb.set_trace()
+			Nage_samp_ind = sum(Nage_samp_ind,[])
+				
+			# Append all information to temp SubpopKeep variable
+			SubpopIN_keepK.append(SubpopIN_arr[Nage_samp_ind])
+						
+			# Store new N - it can be possible to be less than K - its OK - rounding error
+			Population[gen].append(len(SubpopIN_keepK[isub]))			
+			# Store some numbers in this loop too.
+			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
+			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
+			PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind)
+			Track_YYSelectionPackDeaths[gen][isub] = sum(Track_YYSelectionPackDeaths[gen][isub])
+			Track_WildSelectionPackDeaths[gen][isub] = sum(Track_WildSelectionPackDeaths[gen][isub])
+			
+			# Track class size - get age adjusted again. 		
+			if sizecall == 'size':
+				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])
+			else: # age call
+				# Count up each uniages
+				age_adjusted = SubpopIN_keepK[isub]['age']
+			
+			# Tracking age N
+			for iage in xrange(len(PopulationAge[gen])):
+				sizeindex = np.where(age_adjusted==iage)[0]
+				PopulationAge[gen][iage].append(len(sizeindex))
+			# Special case where age class is greater than lastage
+			sizeindex = np.where(age_adjusted > iage)[0]
+			PopulationAge[gen][iage].append(len(sizeindex))		
 	
 	# ---------------------
 	# Packing is turned off
@@ -624,7 +974,7 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 				else:
 					# Grab a random draw of Kage from numbers
 					Nage_samp_ind = random.sample(np.arange(len(SubpopIN_arr)),Kpop)
-					PackingDeaths[gen][isub] = len(SubpopIN_arr) -Kpop					
+					PackingDeaths[gen][isub] = len(SubpopIN_arr) -Kpop	
 			
 			# Append all information to temp SubpopKeep variable
 			SubpopIN_keepK.append(SubpopIN_arr[Nage_samp_ind])
@@ -657,6 +1007,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			# Store some numbers in this loop too.
 			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
+			Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
+			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
 	
 	# ---------------------
 	# Packing is turned off - this is a special case in which all inds are kept.
@@ -719,7 +1071,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			# Store some numbers in this loop too.
 			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
-	
+			Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
+			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now	
 	
 	# --------------------------------------------
 	# Logistic selected - 
@@ -807,6 +1160,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
 			PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind)
+			Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
+			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
 			
 			# Count up each uniages
 			age_adjusted = SubpopIN_keepK[isub]['age']			
@@ -826,6 +1181,8 @@ burningen,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dt
 	SelectionDeaths[gen].insert(0,sum(SelectionDeaths[gen]))
 	DisperseDeaths[gen].insert(0,sum(DisperseDeaths[gen]))
 	PackingDeaths[gen].insert(0,sum(PackingDeaths[gen]))
+	Track_YYSelectionPackDeaths[gen].insert(0,sum(Track_YYSelectionPackDeaths[gen]))
+	Track_WildSelectionPackDeaths[gen].insert(0,sum(Track_WildSelectionPackDeaths[gen]))
 	ProbSuccess[gen] = sum(ProbSuccess[gen])
 	AdultNoMg.append(sum(NoMg))
 	# Add Population total
@@ -888,7 +1245,8 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 				if Fdispmoveno == '4' or Fdispmoveno == '6': 
 					cdval = 0.
 					
-				elif Fdispmoveno == '9':
+				# If prob matrix or FIDIMO
+				elif Fdispmoveno == '9' or Fdispmoveno == '11': 
 					cdval = probval
 				
 				# If linear
@@ -913,7 +1271,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 					cdval = (1. - probval)*(FScaleMax-FScaleMin)+FScaleMin
 				# If pareto
 				elif Fdispmoveno == '10':
-					if probval == 1.0:
+					if probval == max(Fxycdmatrix[isub]):
 						cdval = 0.0
 					else:
 						cdval = pow(((float(FA)*float(FB)**float(FA))/probval),(1/(float(FA)+1))) - float(FB)
@@ -928,7 +1286,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 				# If panmictic
 				if Mdispmoveno == '4' or Mdispmoveno == '6': 
 					cdval = 0.0
-				elif Mdispmoveno == '9':
+				elif Mdispmoveno == '9' or Mdispmoveno == '11':
 					cdval = probval
 				# If linear
 				elif Mdispmoveno == '1':					
@@ -950,7 +1308,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 					cdval = (1. - probval)*(MScaleMax-MScaleMin)+MScaleMin
 				# If pareto
 				elif Mdispmoveno == '10':
-					if probval == 1.0:
+					if probval == max(Mxycdmatrix[isub]):
 						cdval = 0.0
 					else:
 						cdval = pow(((float(MA)*float(MB)**float(MA))/probval),(1/(float(MA)+1))) - float(MB)
@@ -986,7 +1344,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 	# End::CalculateDispersalMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,ygridcopy,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Fthreshold,Mthreshold,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat):
+def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,ygridcopy,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Fthreshold,Mthreshold,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic):
 	'''
 	DoEmigration()
 	Disperse the individuals to patch locations
@@ -1010,7 +1368,7 @@ def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,
 		SubpopIN = Emigration(SubpopIN,K,Fdispmoveno,\
 		Mdispmoveno,\
 		Fxycdmatrix,Mxycdmatrix,gen,\
-		cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat)
+		cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic)
 		
 		# Calculate Dispersal Metrics for movers out
 		CalculateDispersalMetrics(SubpopIN,xgridcopy,ygridcopy,\
@@ -1020,11 +1378,14 @@ def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,
 	# Skip module, but store tracking numbers from this module and update 'EmiPop' key
 	# --------------------------------------------------------------------------------
 	else:
+		
 		# Patch-based with total
 		SelectionDeaths.append(['NA']*(len(SubpopIN)+1))
 		DisperseDeaths.append(['NA']*(len(SubpopIN)+1))
 		Population.append(['NA']*(len(SubpopIN)+1))
 		PackingDeaths.append(['NA']*(len(SubpopIN)+1))
+		Track_YYSelectionPackDeathsEmi.append(['NA']*(len(SubpopIN)+1))
+		Track_WildSelectionPackDeathsEmi.append(['NA']*(len(SubpopIN)+1))
 		
 		# Population value
 		ProbSuccess.append('NA')
@@ -1041,7 +1402,7 @@ def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,
 		# Update 'EmiPop'
 		for isub in xrange(len(SubpopIN)):
 			SubpopIN[isub]['EmiPop'] = SubpopIN[isub]['NatalPop']		
-		
+				
 	# Return variables from this argument
 	return SubpopIN
 	

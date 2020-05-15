@@ -87,13 +87,19 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 					else:
 						natalP = mothers_natalP
 						theseclasspars = mothers_theseclasspars	
-				else: #Hindex draw
+				elif inheritans_classfiles == 'Hindex': #Hindex draw
 					if randno <= offspring_hindex: # Use 1.0 files
 						natalP = 0
 						theseclasspars = 0
 					else: # Use 0.0 files
 						natalP = 0
-						theseclasspars = 1					
+						theseclasspars = 1
+				elif inheritans_classfiles == 'mother': # Inherits mother's class pars
+					natalP = mothers_natalP
+					theseclasspars = mothers_theseclasspars	
+				else:
+					print('Error in inherit class vars file answer')
+					sys.exit(-1)
 				
 				# --------------------------
 				# Assign sex here
@@ -120,9 +126,9 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 						offsex = 'XY'
 				elif isinstance(int(Femalepercent),int):
 					# Error with YYs here:
-					if Bearpairs[i][1]['sex'] == 'YY':
-						print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use N for Femalepercent_Egg.')
-						sys.exit(-1)
+					#if Bearpairs[i][1]['sex'] == 'YY':
+					#	print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use N for Femalepercent_Egg.')
+					#	sys.exit(-1)
 					# Select sex of the jth offspring - select a random number
 					randsex = int(100*rand())				
 					# If that random number is less the Femalepercent, assign it to be a female
@@ -285,8 +291,8 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# --------------------------
 				# REcord information
 				# --------------------------			
-				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,capture,recapture,layeggs,Mothers Hindex, Fathers Hindex, ClassVars File,PopID]
-				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'])
+				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,capture,recapture,layeggs,Mothers Hindex, Fathers Hindex, ClassVars File,PopID,speciesID]
+				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'],Bearpairs[i][0]['species'])
 				offspring.append(recd)
 				count = count + 1 # For unique naming tracking				
 	# If there was not a pairing
@@ -560,7 +566,7 @@ def DoClutch(Bearpairs,dtype,noOffspring):
 	
 # ---------------------------------------------------------------------------------------------------	 
 def DoOffspring(offno,Bearpairs,Births,transmissionprob,gen,K,sourcePop,\
-age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,EggDeaths,eggmort_back):
+age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,EggDeaths,eggmort_back,BirthsYY):
 	'''
 	DoOffspring()
 	Choose number of Offspring for each mated pair 
@@ -634,7 +640,7 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 	# Call DoEggMortality()
 	# -------------------------------------	
 	
-	noOffspring = DoEggMortality(Bearpairs,eggmort_patch,EggDeaths,gen,K,eggmort_back,noOffspring,Births)
+	noOffspring = DoEggMortality(Bearpairs,eggmort_patch,EggDeaths,gen,K,eggmort_back,noOffspring,Births,BirthsYY)
 	
 	# Check if there were 0 litter size events, delete those Bearpairs
 	if len(np.where(noOffspring == 0)[0]) > 0:

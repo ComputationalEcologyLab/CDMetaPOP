@@ -723,7 +723,7 @@ def DoMortality(SubpopIN,K,PopDeaths,pop_percmort,age_percmort,gen,Population,Ag
 	# End::DoMortality()
 		
 # ----------------------------------------------------------------------------------------------	 
-def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffspring,Births):
+def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffspring,Births,BirthsYY):
 	'''
 	DoEggMortality()
 	Mortality functions for age 0 class.
@@ -732,6 +732,7 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 	# Storage for egg deaths
 	Age0Deaths.append([])
 	Births.append([]) # Spot for generation
+	BirthsYY.append([]) # Spot for generation, note this is the offspring number after egg deaths. 
 	tempoffloc = []
 	# Loop through each patch
 	for i in xrange(len(K)):
@@ -782,7 +783,8 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 			# -------------------
 			Age0Deaths[gen].append(Popoffspring - sum(offspring_patch))
 			Births[gen].append(Popoffspring)
-			
+			BirthsYY[gen].append( sum(noOffspring[mothers_patch_ind[np.where(Bearpairs[mothers_patch_ind,1]['sex']=='YY')[0]]]) )
+			#BirthsYY[gen].append(sum(noOffspring[mothers_patch_ind[np.where(Bearpairs[mothers_patch_ind[np.where(Bearpairs[mothers_patch_ind,1]['sex']=='YY')[0]],1]['age']==0)[0]]]) )
 		# if a pairing did not occur, for tracking
 		else:
 			# -------------------
@@ -790,9 +792,11 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 			# -------------------
 			Age0Deaths[gen].append(0)
 			Births[gen].append(0)
+			BirthsYY[gen].append(0)
 			
 	Age0Deaths[gen].insert(0,sum(Age0Deaths[gen])) # Total the deaths
 	Births[gen].insert(0,sum(Births[gen]))
+	BirthsYY[gen].insert(0,sum(BirthsYY[gen]))
 		
 	return noOffspring
 	

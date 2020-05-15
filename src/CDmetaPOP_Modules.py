@@ -91,6 +91,69 @@ def w_choice_general(lst):
 	
 	#End::w_choice_general()
 
+# ---------------------------------------------------------------------------------------------------
+def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,plasticans,timeplastic, gridsample):
+	'''
+	This function will check and update the plastic gene region.
+	'''
+	
+	# Get location in genes array for plastic region
+	# ---------------------------					
+	Indgenes = Ind['genes']
+	# If cdevolve is on
+	if cdevolveans != 'N':
+		# Then the first l loci are for selection, next for plastic region
+		if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+			selloci = int(cdevolveans.split('_')[2].split('L')[1])
+		elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+			selloci = 1
+		elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+			selloci = 2
+		else:
+			print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+			sys.exit(-1)
+	# If selection is not on
+	else:
+		selloci = 0 # zero loci in selection
+	# Get number of plastic loci
+	plaloci = 1 # For now, 1, but make this general later
+	# Get index for plastic region
+	plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+	
+	# If first generation, set alleles in plastic region to 0 or 'turned off', unless geneswap not started
+	if gen == geneswap:
+		# But ensure that this is only done once if Out;Back specified, just initialize at second update
+		if (timeplastic == 'Out;Back' or timeplastic == 'Back;Out') and gridsample == 'Middle':
+			if Indgenes[plaloci_index[0]] == 2:
+				Indgenes[plaloci_index[0]] = 1
+			if Indgenes[plaloci_index[1]] == 2:
+				Indgenes[plaloci_index[1]] = 1
+		else: # otherwise initialize with timeplastic choice here	
+			if Indgenes[plaloci_index[0]] == 2:
+				Indgenes[plaloci_index[0]] = 1
+			if Indgenes[plaloci_index[1]] == 2:
+				Indgenes[plaloci_index[1]] = 1
+			
+	# Skip if delayed start time
+	if gen >= burningen_plastic:
+		
+		# Get the plastic signal response threshold
+		plasticSignalThreshold = float(plasticans.split('_')[1].split(':')[0])
+		
+		# If patch temp values are greater than/equal to threshold and check to make sure the alleles are still 0 (not turned on)
+		#if (patchTemp >= plasticSignalThreshold) and (sum(Indgenes[plaloci_index]) == 0):
+		# If patch temp values are greater than/equal to threshold
+		if (patchTemp >= plasticSignalThreshold):
+			
+			get_plaallele1_index = plaloci_index[0]
+			if Indgenes[get_plaallele1_index] == 1:
+				Indgenes[get_plaallele1_index] = Indgenes[get_plaallele1_index]+1 
+			get_plaallele2_index = plaloci_index[1]
+			if Indgenes[get_plaallele2_index] == 1:
+				Indgenes[get_plaallele2_index] = Indgenes[get_plaallele2_index]+1
+
+	#End::updatePlasticGenes()
+
 # ---------------------------------------------------------------------------------------------------	
 def DoHindexSelection(cdevolveans,hindex,X):
 	'''
@@ -103,7 +166,7 @@ def DoHindexSelection(cdevolveans,hindex,X):
 		# ---------
 		if cdevolveans.split('_')[1] == 'Gauss':
 			# Get parameters	
-			pars = cdevolveans.split('_')[2].split(';')
+			pars = cdevolveans.split('_')[2].split(':')
 			min_temp = float(pars[0])
 			max_temp = float(pars[1])
 			C = float(pars[2])
@@ -123,7 +186,7 @@ def DoHindexSelection(cdevolveans,hindex,X):
 		# ---------
 		elif cdevolveans.split('_')[1] == 'Para':
 			# Get parameters	
-			pars = cdevolveans.split('_')[2].split(';')
+			pars = cdevolveans.split('_')[2].split(':')
 			p = float(pars[0])
 			h = float(pars[1])
 			k = float(pars[2])
@@ -135,7 +198,7 @@ def DoHindexSelection(cdevolveans,hindex,X):
 		# ----
 		elif cdevolveans.split('_')[1] == 'Step':
 			# Get parameters
-			pars = cdevolveans.split('_')[2].split(';')
+			pars = cdevolveans.split('_')[2].split(':')
 			p = float(pars[0])
 			h = float(pars[1])
 			k = float(pars[2])
@@ -206,54 +269,54 @@ def Do2LocusSelection(fitvals,genes,location):
 	'''
 	
 	# If L0A0|L0A0|L1A0|L1A0 - AABB -- loci under selection:
-	if int(genes[0][0]) == 2 and int(genes[1][0]) == 2:
+	if int(genes[0]) == 2 and int(genes[2]) == 2:
 
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][0])/100.
 									
 	# If L0A0|L0A1|L1A0|L1A0 - AaBB -- loci under selection:
-	elif int(genes[0][0]) == 1 and int(genes[0][1]) == 1 and int(genes[1][0]) == 2:
+	elif int(genes[0]) == 1 and int(genes[1]) == 1 and int(genes[2]) == 2:
 
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][1])/100.																															
 	# If L0A1|L0A1|L1A0|L1A0 - aaBB -- loci under selection
-	elif int(genes[0][1]) == 2 and int(genes[1][0]) == 2:
+	elif int(genes[1]) == 2 and int(genes[2]) == 2:
 		
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][2])/100.
 									
 	# If L0A0|L0A0|L1A0|L1A1 - AABb -- loci under selection:
-	elif int(genes[0][0]) == 2 and int(genes[1][0]) == 1 and int(genes[1][1]) == 1:
+	elif int(genes[0]) == 2 and int(genes[2]) == 1 and int(genes[3]) == 1:
 
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][3])/100.
 									
 	# If L0A0|L0A1|L1A0|L1A1 - AaBb -- loci under selection:
-	elif int(genes[0][0]) == 1 and int(genes[0][1]) == 1 and int(genes[1][0]) == 1 and int(genes[1][1]) == 1:
+	elif int(genes[0]) == 1 and int(genes[1]) == 1 and int(genes[2]) == 1 and int(genes[3]) == 1:
 
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][4])/100.
 																	
 	# If L0A1|L0A1|L1A0|L1A1 - aaBb -- loci under selection
-	elif int(genes[0][1]) == 2 and int(genes[1][0]) == 1 and int(genes[1][1]) == 1:
+	elif int(genes[1]) == 2 and int(genes[2]) == 1 and int(genes[3]) == 1:
 		
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][5])/100.
 	
 	# If L0A0|L0A0|L1A1|L1A1 - AAbb -- loci under selection:
-	elif int(genes[0][0]) == 2 and int(genes[1][1]) == 2:
+	elif int(genes[0]) == 2 and int(genes[3]) == 2:
 
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][6])/100.
 									
 	# If L0A0|L0A1|L1A1|L1A1 - Aabb -- loci under selection:
-	elif int(genes[0][0]) == 1 and int(genes[0][1]) == 1 and int(genes[1][1]) == 2:
+	elif int(genes[0]) == 1 and int(genes[1]) == 1 and int(genes[3]) == 2:
 
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][7])/100.
 																															
 	# If L0A1|L0A1|L1A1|L1A1 - aabb -- loci under selection
-	elif int(genes[0][1]) == 2 and int(genes[1][1]) == 2:
+	elif int(genes[1]) == 2 and int(genes[3]) == 2:
 		
 		# The grab it's fitness values
 		differentialmortality = float(fitvals[location][8])/100.
@@ -268,7 +331,7 @@ def Do2LocusSelection(fitvals,genes,location):
 	# End::Do2LocusSelection()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p2,q1,q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,N_Age,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,sexans,packans):
+def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p2,q1,q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,N_Age,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,sexans,packans,RDispersers,IDispersers):
 	'''
 	GetMetrics()
 	This function summarizes the genotypes and
@@ -281,15 +344,13 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	# List for total, left, and right
 	unique_alleles = Alleles
 	
-	# Get allele location as seqence from alleles array
+	# Get allele location as sequence from alleles array
 	allele_numbers = np.asarray(range(alleles[0]) * loci) # Assumes same number of alleles per loci
-	'''
-	for i in xrange(loci):		
-		for j in xrange(alleles[i]):
-			allele_numbers.append(j)
-	allele_numbers = np.asarray(allele_numbers)
-	'''
-	
+	allele_numbers = []
+	for iall in alleles:
+		allele_numbers.append(range(iall))
+	allele_numbers = np.asarray(sum(allele_numbers,[]))
+		
 	# Get length of classes and size bins if more than one classfile, then bin from min to max
 	# This was in previous < 1.17 versions, assume binning based on first classvars now.
 	if sizecall == 'Y' and packans != 'logistic':
@@ -321,7 +382,7 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	ClassSizes_Std[gen] = [[] for x in xrange(0,classno)]
 		
 	# Extract the genes information from SubpopIN
-	tempgenes = []
+	tempgenes = SubpopIN[0]['genes'] # start 
 	tempgenesPop = []
 	Population.append([]) # Storage numbers - add spot for generation
 	K_track.append([]) # Storage numbers - add spot for generation
@@ -343,17 +404,30 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	Immigrators.append([])
 	PopSizes_Mean.append([])
 	PopSizes_Std.append([])	
+	RDispersers.append([])
+	IDispersers.append([])
 	
-	# For each supopulation	
+	# For each subopulation	
 	for isub in xrange(len(K)):
+		# -------------------------------------
+		# Get total genes array for all subpops
+		# -------------------------------------
+		# Cast genes as an numpy array as byte type
+		#genes_array_woNA = np.asarray(tempgenes,dtype='float')
+		if isub != 0:
+			tempgenes = np.concatenate((tempgenes,SubpopIN[isub]['genes']),axis=0)
+		tempgenesPop.append(SubpopIN[isub]['genes'])
+		'''
 		tempgenesPop.append([])
-		# For each individual
+		# For each individual ----- For 'genes' dtype as str
 		for iind in xrange(len(SubpopIN[isub])):
 			# Extract genes and convert back to list
 			tempgenes.append(literal_eval(SubpopIN[isub][iind]['genes']))
 			tempgenesPop[isub].append(literal_eval(SubpopIN[isub][iind]['genes']))
-		
+		'''
+		# -------------------------------------
 		# Add information to Population tracker
+		# -------------------------------------
 		Population[gen].append(len(SubpopIN[isub]))
 		K_track[gen].append(K[isub])
 		PopSizes_Mean[gen].append(np.mean(SubpopIN[isub]['size']))
@@ -368,7 +442,11 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 		Strayers1[gen].append(len(tempname))
 		tempname = np.asarray([i for i, val in enumerate(SubpopIN[isub]['name']) if 'Z' in val])
 		Strayers2[gen].append(len(tempname))
-				
+		tempname = np.asarray([i for i, val in enumerate(SubpopIN[isub]['name']) if 'ID' in val])
+		IDispersers[gen].append(len(tempname))
+		tempname = np.asarray([i for i, val in enumerate(SubpopIN[isub]['name']) if 'RD' in val])
+		RDispersers[gen].append(len(tempname))
+						
 		# Size class counting		
 		# Switch here for size or age control
 		# Note that first size classes used for binning
@@ -439,6 +517,9 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 		ClassSizes_Mean[gen][iage] = np.mean(tempsize)
 		ClassSizes_Std[gen][iage] = np.std(tempsize)
 	
+	# ------------------------------------------------
+	# Get Total information
+	# ------------------------------------------------
 	# Cast genes as an numpy array as byte type
 	genes_array_woNA = np.asarray(tempgenes,dtype='float')
 	
@@ -456,7 +537,8 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	
 	# Get allele frequency for total # Calculate the observed het for total
 	if filledgrids != 0:
-		all_freq_tot = np.asarray(np.sum(genes_array_woNA,axis=0),dtype = 'float').reshape(total_alleles)
+		all_freq_tot = np.asarray(np.nansum(genes_array_woNA,axis=0),dtype = 'float')
+		#all_freq_tot = np.asarray(np.nansum(genes_array_woNA,axis=0),dtype = 'float').reshape(total_alleles)
 		all_freq_tot = all_freq_tot/(2*filledgrids)
 		ho_tot = (float(filledgrids*loci - ho_count_tot)/(loci*filledgrids))		
 	else:
@@ -502,7 +584,7 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 		
 		if Population[gen][isub+1] != 0:			
 			# Get allele frequency for subpopulations
-			all_freq_sub[isub].append(np.asarray(np.sum(genes_array_subpop,axis=0),dtype = 'float').reshape(total_alleles))
+			all_freq_sub[isub].append(np.asarray(np.sum(genes_array_subpop,axis=0),dtype = 'float'))
 			all_freq_sub[isub] = all_freq_sub[isub][0]/(2*Population[gen][isub+1])
 			# Calculate the observed het in each subpop
 			ho_sub[isub].append((float(Population[gen][isub+1]*loci - ho_count_sub[isub][0])/(loci*Population[gen][isub+1])))
@@ -535,14 +617,39 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	#End::GetMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel):
+def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel,noalleles,plasticans,cdevolveans):
 	'''
 	InheritGenes()
 	Pass along gentic information to survived offspring from parents
 	Input: offspring [femalegenes,malegenes,NatalPop,EmiPop,ImmiPop,age,sex,size,infection,name]
 	Output: SubpopIN_Age0	[NatalPop,EmiPop,ImmiPop,age,sex,size,infection,name,genes]		
 	'''		
-
+	
+	# Get Plastic loci region
+	# -----------------------
+	if plasticans != 'N':		
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+	else:
+		plaloci_index = [-9999]
+	
 	# Create list for appending
 	Age0_keep = []
 	
@@ -556,14 +663,9 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 			if gen >= geneswap and geneswap != 'N':
 				
 				# Temp storage for i's mother's and father's genes, then offspring genes
-				mothergenes=literal_eval(offspring[i]['Mother'])
-				fathergenes=literal_eval(offspring[i]['Father'])
-				#offgenes = []
+				mothergenes=offspring[i]['Mother']
+				fathergenes=offspring[i]['Father']
 				
-				fathergenes = sum(fathergenes,[])
-				mothergenes = sum(mothergenes,[])
-				fathergenes = np.asarray(fathergenes,dtype=int)
-				mothergenes = np.asarray(mothergenes,dtype=int)
 				# Temp genes storage for offspring
 				offgenes = np.zeros(len(fathergenes),dtype =int)
 				# Allele indices
@@ -571,22 +673,55 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 				# Loop through each locus
 				for iloci in xrange(loci):
 					# Allele indices to sample from - index into offgenes
-					possiblealleles = alleles[(iloci*len(mothergenes)/loci):(iloci*len(mothergenes)/loci+len(mothergenes)/loci)]
+					#possiblealleles = alleles[(iloci*len(mothergenes)/loci):(iloci*len(mothergenes)/loci+len(mothergenes)/loci)] # code for equal alleles per locus
+					possiblealleles = alleles[sum(noalleles[0:iloci]):sum(noalleles[0:iloci+1])]
 					
-					# Father and mother locations							
-					F2 = np.where(fathergenes[possiblealleles] == 2)[0] # location of 2s
-					F1 = np.where(fathergenes[possiblealleles] == 1)[0]
-					M2 = np.where(mothergenes[possiblealleles] == 2)[0]
-					M1 = np.where(mothergenes[possiblealleles] == 1)[0]
-					FALL = np.concatenate((F2,F2,F1),axis=0) # 2 copies of 2s
-					MALL = np.concatenate((M2,M2,M1),axis=0) # 2 copies of 2s		
-					# Sample allele from each parent
-					FsampleAlleles = random.sample(FALL,1)
-					MsampleAlleles = random.sample(MALL,1)
-					# Fill in alleles corresponding to sampled spots
-					offgenes[possiblealleles[FsampleAlleles[0]]] = offgenes[possiblealleles[FsampleAlleles[0]]] + 1
-					offgenes[possiblealleles[MsampleAlleles[0]]] = offgenes[possiblealleles[MsampleAlleles[0]]] + 1
-											
+					# If this is not the plastic region, assume diploid, randomly grab from parents
+					# ---------------------------------------------------------------------------------
+					#if len(np.where(np.asarray(plaloci_index) == iloci*2)[0]) == 0:
+					if (plasticans == 'N') or (plaloci_index != range(iloci*2,iloci*2+plaloci*2)):
+					
+						# Father and mother locations						
+						F2 = np.where(fathergenes[possiblealleles] == 2)[0] # location of 2s
+						F1 = np.where(fathergenes[possiblealleles] == 1)[0]
+						M2 = np.where(mothergenes[possiblealleles] == 2)[0]
+						M1 = np.where(mothergenes[possiblealleles] == 1)[0]
+						FALL = np.concatenate((F2,F2,F1),axis=0) # 2 copies of 2s
+						MALL = np.concatenate((M2,M2,M1),axis=0) # 2 copies of 2s		
+						
+						# Sample allele from each parent						
+						FsampleAlleles = random.sample(FALL,1)
+						MsampleAlleles = random.sample(MALL,1)
+						# Fill in alleles corresponding to sampled spots
+						offgenes[possiblealleles[FsampleAlleles[0]]] = offgenes[possiblealleles[FsampleAlleles[0]]] + 1
+						offgenes[possiblealleles[MsampleAlleles[0]]] = offgenes[possiblealleles[MsampleAlleles[0]]] + 1
+
+					# If this is the plastic region, then individual may not inherit 2 alleles from parents, and individual does not inherit parents plastic tracking, signal response or a '2'; a different check here for this region
+					# --------------------------------------------------------------------------------------
+					else:						
+						
+						# Father and mother locations						
+						F2 = np.where(fathergenes[possiblealleles] == 2)[0] # location of 2s
+						F1 = np.where(fathergenes[possiblealleles] == 1)[0] # location of 1s
+						M2 = np.where(mothergenes[possiblealleles] == 2)[0]
+						M1 = np.where(mothergenes[possiblealleles] == 1)[0]
+						FALL = np.concatenate((F2,F2,F1),axis=0) # 2 copies of 2s
+						MALL = np.concatenate((M2,M2,M1),axis=0) 		
+						
+						# Sample allele from each parent						
+						FsampleAlleles = random.sample(FALL,1)
+						MsampleAlleles = random.sample(MALL,1)
+						
+						# Fill in alleles corresponding to sampled spots
+						offgenes[possiblealleles[FsampleAlleles[0]]] = offgenes[possiblealleles[FsampleAlleles[0]]] + 1
+						offgenes[possiblealleles[MsampleAlleles[0]]] = offgenes[possiblealleles[MsampleAlleles[0]]] + 1
+						
+						# Check if offspring inherited a 2 from mother or father, reset to 1
+						if offgenes[possiblealleles[FsampleAlleles[0]]] == 2:
+							offgenes[possiblealleles[FsampleAlleles[0]]] = 1
+						if offgenes[possiblealleles[MsampleAlleles[0]]] == 2:
+							offgenes[possiblealleles[MsampleAlleles[0]]] = 1					
+				
 				# mtDNA is turned on
 				# ------------------
 				if mtdna == 'Y':
@@ -599,7 +734,8 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					for iloci in xrange(loci): # Loop through loci
 						mutationrandnos = rand(2) # Get a random number for checking
 						# Allele indices to sample from - index into offgenes
-						possiblealleles = alleles[(iloci*len(mothergenes)/loci):(iloci*len(mothergenes)/loci+len(mothergenes)/loci)]
+						#possiblealleles = alleles[(iloci*len(mothergenes)/loci):(iloci*len(mothergenes)/loci+len(mothergenes)/loci)]
+						possiblealleles = alleles[sum(noalleles[0:iloci]):sum(noalleles[0:iloci+1])] # This accounts for variable alleles per loci.
 						# Get the current location of alleles - index into offgenes 
 						thisloci = possiblealleles[np.where(offgenes[possiblealleles] != 0)[0]]
 						# Check case for homo
@@ -649,7 +785,7 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 										
 								# If forward mutation in A and backward mutation for b (A -> a, b -> B)
 								elif mutationans == 'forwardAbackwardBrandomN':
-									print('Currently not operating. Email Erin.')
+									print('Currently not operational. Email developers for more information.')
 									sys.exit(-1)
 									if iloci == 0 and thisloci[iall] == possiblealleles[0]:
 										offgenes[thisloci[iall]+1] = offgenes[thisloci[iall]+1] + 1
@@ -682,7 +818,7 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 				for j in xrange(loci):
 									
 					# Store genes loci spot
-					offgenes.append([])
+					#offgenes.append([])
 					
 					# Take a random draw from the w_choice function at jth locus
 					rand1 = w_choice_general(allelst[sourcepop][thisgenefile][j])[0]
@@ -710,13 +846,17 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 								tempindall = 0
 														
 						# And to genes list
-						offgenes[j].append(tempindall)
+						#offgenes[j].append(tempindall)
+						offgenes.append(tempindall)
 				
 				# Special case for assortative mating option 2 (strict) and when hindex is being used - inherit the parents first locus, so that AA gives to AA and aa gives to aa, etc. 
 				if assortmateModel == '2':
-					mothergenes=literal_eval(offspring[i]['Mother'])
-					offgenes[0] = mothergenes[0]
-				
+					#mothergenes=literal_eval(offspring[i]['Mother'])
+					mothergenes=offspring[i]['Mother']
+					#offgenes[0] = mothergenes[0]
+					# to get index for first locus
+					offgenes[0:noalleles[0]] = mothergenes[0:noalleles[0]]
+					
 				# mtDNA is turned on
 				# ------------------
 				if mtdna == 'Y':
@@ -724,26 +864,20 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					offgenes[-1] = mothergenes[-1]
 				
 				# Calculate hybrid index
-				if offgenes[0][0] == 2:
+				if offgenes[0] == 2: #AA
 					hindex = 1.0
-				elif offgenes[0][1] == 2:
+				elif offgenes[1] == 2: #aa
 					hindex = 0.0
-				elif offgenes[0][0] == 1 and offgenes[0][1] == 1:
+				elif offgenes[0] == 1 and offgenes[1] == 1: #Aa
 					hindex = 0.5
 				else:
-					hindex = -9999
+					hindex = -9999			
 			
-			
-			# Then record new offspring information to Subpop location [subpop-ofmother,subpop of mother,NASubpop,EmiCD,ImmiCD,age,sex,size,mataure,infection,name,capture,layeggs,hindex,classfile,genes]
+			# Then record new offspring information to Subpop location [subpop-ofmother,subpop of mother,NASubpop,EmiCD,ImmiCD,age,sex,size,mataure,infection,name,capture,layeggs,hindex,classfile,speciesID,genes]
 			offpop = offspring[i]['NatalPop']
 			name = offspring[i]['name']
-			
-			if not isinstance(offgenes,list): # Make sure this is in list format and split up for each loci list of lists
-				offgenes = offgenes.tolist()
-				offgenes = [offgenes[x:x+(len(offgenes)/loci)] for x in xrange(0, len(offgenes), (len(offgenes)/loci))]
-		
-			recd = (offpop,offpop,offpop,0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],name,0,0,offspring[i]['layeggs'],hindex,offspring[i]['classfile'],offspring[i]['popID'],repr(offgenes))
-					
+			recd = (offpop,offpop,offpop,0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],name,0,0,offspring[i]['layeggs'],hindex,offspring[i]['classfile'],offspring[i]['popID'],offspring[i]['species'],offgenes)
+						
 			# Record offspring information to SubpopIN 
 			Age0_keep.append(recd)
 		
@@ -763,145 +897,172 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 	# End::InheritGenes()
 
 # ---------------------------------------------------------------------------------------------------	
-def growInd(Indloc,SubpopIN,sizeLoo_pass,sizeR0_pass,size_1_pass,size_2_pass,size_3_pass,size_4,sizevals,isub,iind,growans,size_mean,gridsample):
+def growInd(Indloc,SubpopIN,sizeLoo_pass,sizeR0_pass,size_1_pass,size_2_pass,size_3_pass,size_4,sizevals,isub,iind,growans,size_mean,gridsample,cdevolveans):
 	'''
 	Growth options
 	'''	
-	
 	# Get age
 	Indage = SubpopIN[isub][iind]['age']
-	
-	if Indage == 20:
-		pdb.set_trace() # checking old growth...
-	
 	# Get sex and split options if provided
 	Indsex = SubpopIN[isub][iind]['sex']
-	# ------------------sizeLoo
-	if len(sizeLoo_pass.split('~')) == 3:
-		if Indsex == 'XX':
+	if cdevolveans == 'MG_ind' or  cdevolveans == 'MG_link' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'G':	
+		sizeLoo = sizeLoo_pass
+		sizeR0 = sizeR0_pass
+		size_1 = size_1_pass
+		size_2 = size_2_pass
+		size_3 = size_3_pass
+	else:		
+		# ------------------sizeLoo
+		if len(sizeLoo_pass.split('~')) == 3:
+			if Indsex == 'XX':
+				sizeLoo = sizeLoo_pass.split('~')[0]
+			elif Indsex == 'XY':
+				sizeLoo = sizeLoo_pass.split('~')[1]
+			else:
+				sizeLoo = sizeLoo_pass.split('~')[2]
+		elif len(sizeLoo_pass.split('~')) == 2:
+			if Indsex == 'XX':
+				sizeLoo = sizeLoo_pass.split('~')[0]
+			elif Indsex == 'XY':
+				sizeLoo = sizeLoo_pass.split('~')[1]
+			else:
+				sizeLoo = sizeLoo_pass.split('~')[1]
+		elif len(sizeLoo_pass.split('~')) == 1:
 			sizeLoo = sizeLoo_pass.split('~')[0]
-		elif Indsex == 'XY':
-			sizeLoo = sizeLoo_pass.split('~')[1]
 		else:
-			sizeLoo = sizeLoo_pass.split('~')[2]
-	elif len(sizeLoo_pass.split('~')) == 2:
-		if Indsex == 'XX':
-			sizeLoo = sizeLoo_pass.split('~')[0]
-		elif Indsex == 'XY':
-			sizeLoo = sizeLoo_pass.split('~')[1]
-		else:
-			sizeLoo = sizeLoo_pass.split('~')[1]
-	elif len(sizeLoo_pass.split('~')) == 1:
-		sizeLoo = sizeLoo_pass.split('~')[0]
-	else:
-		print('Error in input with growth parameters; growInd().')
-		sys.exit(-1)
-	# -------------------sizeR0
-	if len(sizeR0_pass.split('~')) == 3:
-		if Indsex == 'XX':
+			print('Error in input with growth parameters; growInd().')
+			sys.exit(-1)
+		# -------------------sizeR0
+		if len(sizeR0_pass.split('~')) == 3:
+			if Indsex == 'XX':
+				sizeR0 = sizeR0_pass.split('~')[0]
+			elif Indsex == 'XY':
+				sizeR0 = sizeR0_pass.split('~')[1]
+			else:
+				sizeR0 = sizeR0_pass.split('~')[2]
+		elif len(sizeR0_pass.split('~')) == 2:
+			if Indsex == 'XX':
+				sizeR0 = sizeR0_pass.split('~')[0]
+			elif Indsex == 'XY':
+				sizeR0 = sizeR0_pass.split('~')[1]
+			else:
+				sizeR0 = sizeR0_pass.split('~')[1]
+		elif len(sizeR0_pass.split('~')) == 1:
 			sizeR0 = sizeR0_pass.split('~')[0]
-		elif Indsex == 'XY':
-			sizeR0 = sizeR0_pass.split('~')[1]
 		else:
-			sizeR0 = sizeR0_pass.split('~')[2]
-	elif len(sizeR0_pass.split('~')) == 2:
-		if Indsex == 'XX':
-			sizeR0 = sizeR0_pass.split('~')[0]
-		elif Indsex == 'XY':
-			sizeR0 = sizeR0_pass.split('~')[1]
-		else:
-			sizeR0 = sizeR0_pass.split('~')[1]
-	elif len(sizeR0_pass.split('~')) == 1:
-		sizeR0 = sizeR0_pass.split('~')[0]
-	else:
-		print('Error in input with growth parameters; growInd().')
-		sys.exit(-1)
-	# ------------------size_1
-	if len(size_1_pass.split('~')) == 3:
-		if Indsex == 'XX':
+			print('Error in input with growth parameters; growInd().')
+			sys.exit(-1)
+		# ------------------size_1
+		if len(size_1_pass.split('~')) == 3:
+			if Indsex == 'XX':
+				size_1 = size_1_pass.split('~')[0]
+			elif Indsex == 'XY':
+				size_1 = size_1_pass.split('~')[1]
+			else:
+				size_1 = size_1_pass.split('~')[2]
+		elif len(size_1_pass.split('~')) == 2:
+			if Indsex == 'XX':
+				size_1 = size_1_pass.split('~')[0]
+			elif Indsex == 'XY':
+				size_1 = size_1_pass.split('~')[1]
+			else:
+				size_1 = size_1_pass.split('~')[1]
+		elif len(size_1_pass.split('~')) == 1:
 			size_1 = size_1_pass.split('~')[0]
-		elif Indsex == 'XY':
-			size_1 = size_1_pass.split('~')[1]
 		else:
-			size_1 = size_1_pass.split('~')[2]
-	elif len(size_1_pass.split('~')) == 2:
-		if Indsex == 'XX':
-			size_1 = size_1_pass.split('~')[0]
-		elif Indsex == 'XY':
-			size_1 = size_1_pass.split('~')[1]
-		else:
-			size_1 = size_1_pass.split('~')[1]
-	elif len(size_1_pass.split('~')) == 1:
-		size_1 = size_1_pass.split('~')[0]
-	else:
-		print('Error in input with growth parameters; growInd().')
-		sys.exit(-1)
-	# ------------------size_2
-	if len(size_2_pass.split('~')) == 3:
-		if Indsex == 'XX':
+			print('Error in input with growth parameters; growInd().')
+			sys.exit(-1)
+		# ------------------size_2
+		if len(size_2_pass.split('~')) == 3:
+			if Indsex == 'XX':
+				size_2 = size_2_pass.split('~')[0]
+			elif Indsex == 'XY':
+				size_2 = size_2_pass.split('~')[1]
+			else:
+				size_2 = size_2_pass.split('~')[2]
+		elif len(size_2_pass.split('~')) == 2:
+			if Indsex == 'XX':
+				size_2 = size_2_pass.split('~')[0]
+			elif Indsex == 'XY':
+				size_2 = size_2_pass.split('~')[1]
+			else:
+				size_2 = size_2_pass.split('~')[1]
+		elif len(size_2_pass.split('~')) == 1:
 			size_2 = size_2_pass.split('~')[0]
-		elif Indsex == 'XY':
-			size_2 = size_2_pass.split('~')[1]
 		else:
-			size_2 = size_2_pass.split('~')[2]
-	elif len(size_2_pass.split('~')) == 2:
-		if Indsex == 'XX':
-			size_2 = size_2_pass.split('~')[0]
-		elif Indsex == 'XY':
-			size_2 = size_2_pass.split('~')[1]
-		else:
-			size_2 = size_2_pass.split('~')[1]
-	elif len(size_2_pass.split('~')) == 1:
-		size_2 = size_2_pass.split('~')[0]
-	else:
-		print('Error in input with growth parameters; growInd().')
-		sys.exit(-1)
-	# ------------------size_3
-	if len(size_3_pass.split('~')) == 3:
-		if Indsex == 'XX':
+			print('Error in input with growth parameters; growInd().')
+			sys.exit(-1)
+		# ------------------size_3
+		if len(size_3_pass.split('~')) == 3:
+			if Indsex == 'XX':
+				size_3 = size_3_pass.split('~')[0]
+			elif Indsex == 'XY':
+				size_3 = size_3_pass.split('~')[1]
+			else:
+				size_3 = size_3_pass.split('~')[2]
+		elif len(size_3_pass.split('~')) == 2:
+			if Indsex == 'XX':
+				size_3 = size_3_pass.split('~')[0]
+			elif Indsex == 'XY':
+				size_3 = size_3_pass.split('~')[1]
+			else:
+				size_3 = size_3_pass.split('~')[1]
+		elif len(size_3_pass.split('~')) == 1:
 			size_3 = size_3_pass.split('~')[0]
-		elif Indsex == 'XY':
-			size_3 = size_3_pass.split('~')[1]
 		else:
-			size_3 = size_3_pass.split('~')[2]
-	elif len(size_3_pass.split('~')) == 2:
-		if Indsex == 'XX':
-			size_3 = size_3_pass.split('~')[0]
-		elif Indsex == 'XY':
-			size_3 = size_3_pass.split('~')[1]
-		else:
-			size_3 = size_3_pass.split('~')[1]
-	elif len(size_3_pass.split('~')) == 1:
-		size_3 = size_3_pass.split('~')[0]
-	else:
-		print('Error in input with growth parameters; growInd().')
-		sys.exit(-1)
+			print('Error in input with growth parameters; growInd().')
+			sys.exit(-1)
 		
 	# -----------------------------
 	# Grow based on von Bertalanffy
 	# -----------------------------
 	if growans == 'vonB':
-		newsize = float(sizeLoo) * (1. - np.exp(-float(sizeR0)*(Indage+1)))
+		grow = float(size_4[int(Indloc) - 1]) / 365. # grow days or proportion of time
+		t0 = float(size_3)
+		K = float(sizeR0)
+		if gridsample == 'Middle': 	# This is the second DoUpdate() - when they are 'Back' ind.csv before DoEmigration()
+			newsize = float(sizeLoo) * (1. - np.exp(-K * ((Indage+1) - t0))) # 365 days
+			#newsize = float(sizeLoo) * (1. - np.exp(-K * ((Indage+grow) - t0)))
+		elif gridsample == 'Sample' or gridsample == 'N': # THis is the third DoUpdate() - when they are 'Out' indSample.csv before DoImmigration()
+			newsize = float(sizeLoo) * (1. - np.exp(-K * ((Indage+grow) - t0)))
+			#newsize = float(sizeLoo) * (1. - np.exp(-K * ((Indage+1) - t0)))
 		if newsize <= 0.:
-			print('Warning: von Bertalanffy growth producing negative values.')
-			sys.exit(-1)
+			#print('Warning: von Bertalanffy growth producing negative values.')
+			newsize = 0.
 		SubpopIN[isub][iind]['size'] = newsize	
-	
+		
+	# -----------------------------
+	# Grow based on von Bertalanffy
+	# -----------------------------
+	elif growans == 'vonB_zak':
+		print('ZakR code here.')
+			
 	# -------------------------------
 	# Grow based on temp fit len/size
 	# -------------------------------
 	elif growans == 'temperature':
 		if sizevals[int(Indloc) - 1] != 'N':
 			tempval = float(sizevals[int(Indloc) - 1])
-			grow = float(size_4[int(Indloc) - 1])
-							
+			grow = float(size_4[int(Indloc) - 1]) / 365.
+			# size_2 = CV				
 			int_R = -float(sizeR0) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
-			
+			'''
+			if gridsample == 'Middle': 	# This is the second DoUpdate() - when they are 'Back' ind.csv before DoEmigration()
+				L_inc = float(sizeLoo) * (1. - np.exp(int_R * (Indage+1-float(size_3)))) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
+				# Get the incremental growth
+				L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+			elif gridsample == 'Sample': # THis is the third DoUpdate() - when they are 'Out' indSample.csv before DoImmigration()
+				L_inc = float(sizeLoo) * (1. - np.exp(int_R * (Indage+grow-float(size_3)))) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
+				# Get the incremental growth
+				L_inc_age = L_inc * np.exp((Indage+grow) * int_R)
+			'''
 			L_inc = float(sizeLoo) * (1. - np.exp(int_R * (Indage+1-float(size_3)))) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
 			# Get the incremental growth
-			L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+			#L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+			L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))			
+			
 			# Update the new size for this individual		
-			newsize = SubpopIN[isub][iind]['size'] + (L_inc_age * (grow/365.))
+			newsize = SubpopIN[isub][iind]['size'] + (L_inc_age * (grow))
 			if newsize <= 0.:
 				print('Warning: temperature growth producing negative values.')
 				sys.exit(-1)
@@ -913,7 +1074,7 @@ def growInd(Indloc,SubpopIN,sizeLoo_pass,sizeR0_pass,size_1_pass,size_2_pass,siz
 	elif growans == 'temperature_hindex':
 		if sizevals[int(Indloc) - 1] != 'N':			
 			tempval = float(sizevals[int(Indloc) - 1])
-			grow = float(size_4[int(Indloc) - 1])
+			grow = float(size_4[int(Indloc) - 1]) / 365.
 							
 			int_R = -float(sizeR0) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
 			
@@ -929,9 +1090,10 @@ def growInd(Indloc,SubpopIN,sizeLoo_pass,sizeR0_pass,size_1_pass,size_2_pass,siz
 			
 			L_inc = float(sizeLoo_hindex) * (1. - np.exp(int_R * (Indage+1-float(size_3)))) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
 			# Get the incremental growth
-			L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+			#L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+			L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))
 			# Update the new size for this individual		
-			newsize = SubpopIN[isub][iind]['size'] + (L_inc_age * (grow/365.))
+			newsize = SubpopIN[isub][iind]['size'] + (L_inc_age * (grow))
 			if newsize <= 0.:
 				print('Warning: temperature growth producing negative values.')
 				sys.exit(-1)
@@ -973,14 +1135,10 @@ def growInd(Indloc,SubpopIN,sizeLoo_pass,sizeR0_pass,size_1_pass,size_2_pass,siz
 	
 	#End::growInd()
 # ---------------------------------------------------------------------------------	
-def ageInd(lastage,SubpopIN,isub,iind,sizeans,age_mature,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,eggFreq,Mmat_set,Fmat_set,cdevolveans,fitvals,burningen,gen,defaultAgeMature,YYmat_int,YYmat_slope,YYmat_set):
+def matureInd(lastage,SubpopIN,isub,iind,sizecall,age_mature,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,eggFreq,Mmat_set,Fmat_set,cdevolveans,fitvals,burningen_cdevolve,gen,defaultAgeMature,YYmat_int,YYmat_slope,YYmat_set):
 	'''
-	Age, mature, and check egg frequency interval here
+	Mature, and check egg frequency interval here
 	'''
-	
-	# Age here
-	# --------
-	SubpopIN[isub][iind]['age'] = SubpopIN[isub][iind]['age'] + 1
 	
 	# Get Sex
 	Indsex = SubpopIN[isub][iind]['sex']
@@ -1020,7 +1178,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,age_mature,Fmat_int,Fmat_slope,Mma
 		else: # Run through options and get matval
 		
 			# Age control ------------------
-			if sizeans == 'N': 
+			if sizecall == 'N': 
 				if Indsex == 'XX': # Female
 					if Fmat_set == 'N': # Use prob value
 						matval = float(age_mature[Indage].split('~')[0])
@@ -1057,56 +1215,32 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,age_mature,Fmat_int,Fmat_slope,Mma
 							matval = 0.0
 			
 			# Size control ---------------------------------------------
-			elif sizeans == 'Y': 
-				if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen <= gen:
-					tempgenes = literal_eval(SubpopIN[isub][iind]['genes'])
-					if tempgenes[0][0] == 2: # AA
-						tempvals = fitvals[isub][0] # First spot AA
-						# In case cdclimate is on, grab first split
-						tempvals = tempvals.split('|')[0]
-						# Then split ;
-						tempvals = tempvals.split(';')					
-					elif tempgenes[0][0] == 1 and tempgenes[0][1] == 1: # Aa
+			elif sizecall == 'Y': 
+				if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen_cdevolve <= gen:
+					tempgenes = SubpopIN[isub][iind]['genes']
+					if tempgenes[0] == 2: # AA
+						tempvals = fitvals[isub][0] # First spot AA									
+					elif tempgenes[0] == 1 and tempgenes[1] == 1: # Aa
 						tempvals = fitvals[isub][1] # Second spot Aa
-						# In case cdclimate is on, grab first split
-						tempvals = tempvals.split('|')[0]
-						# Then split ;
-						tempvals = tempvals.split(';')
-					elif tempgenes[0][1] == 2: # aa
+					elif tempgenes[1] == 2: # aa
 						tempvals = fitvals[isub][2] # third spot aa
-						# In case cdclimate is on, grab first split
-						tempvals = tempvals.split('|')[0]
-						# Then split ;
-						tempvals = tempvals.split(';')
 					else:
 						print('2 alleles only with M options in cdevolveans.')
 						sys.exit(-1)
 					# Then Replace mat vals	
-					if len(tempvals) == 2:
-						# Then replace Fmat/Mmat values
-						Fmat_slope = float(tempvals[0])
-						Fmat_int = float(tempvals[1])
-						Mmat_slope = float(tempvals[0])					
-						Mmat_int = float(tempvals[1])
-						YYmat_slope = float(tempvals[0])					
-						YYmat_int = float(tempvals[1])
-					elif len(tempvals) == 4:
-						# Then replace Fmat/Mmat values
-						Fmat_slope = float(tempvals[0])
-						Fmat_int = float(tempvals[1])
-						Mmat_slope = float(tempvals[2])					
-						Mmat_int = float(tempvals[3])
-						YYmat_slope = float(tempvals[2])					
-						YYmat_int = float(tempvals[3])
-					elif len(tempvals) == 6:
-						# Then replace Fmat/Mmat values
-						Fmat_slope = float(tempvals[0])
-						Fmat_int = float(tempvals[1])
-						Mmat_slope = float(tempvals[2])					
-						Mmat_int = float(tempvals[3])
-						YYmat_slope = float(tempvals[4])					
-						YYmat_int = float(tempvals[5])
-					
+					if Indsex == 'XX':
+						tempmat = tempvals[0].split(':')
+						Fmat_slope = float(tempmat[0])
+						Fmat_int = float(tempmat[1])						
+					elif Indsex == 'XY':
+						tempmat = tempvals[1].split(':')
+						Mmat_slope = float(tempmat[0])
+						Mmat_int = float(tempmat[1])					
+					elif Indsex == 'YY':
+						tempmat = tempvals[2].split(':')
+						YYmat_slope = float(tempmat[0])
+						YYmat_int = float(tempmat[1])
+
 				if Indsex == 'XX': # Female
 					if Fmat_set == 'N': # Use equation - size
 						matval = np.exp(Fmat_int + Fmat_slope * SubpopIN[isub][iind]['size']) / (1 + np.exp(Fmat_int + Fmat_slope * SubpopIN[isub][iind]['size']))
@@ -1150,7 +1284,7 @@ def ageInd(lastage,SubpopIN,isub,iind,sizeans,age_mature,Fmat_int,Fmat_slope,Mma
 		else:
 			SubpopIN[isub][iind]['layeggs'] = 0	# Does not lay eggs next year	
 	
-	#End::ageInd()
+	#End::matureInd()
 
 # ---------------------------------------------------------------------------------	
 def capInd(lastage,SubpopIN,isub,iind,sizecall,size_mean,ClasscapProb,PopcapProb):
@@ -1210,7 +1344,7 @@ def capInd(lastage,SubpopIN,isub,iind,sizecall,size_mean,ClasscapProb,PopcapProb
 	#End::capInd()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,sizeans=None,age_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None,YYmat_int=None,YYmat_slope=None,YYmat_set=None):
+def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,plasticans=None,burningen_plastic=None,timeplastic=None,geneswap = None,age_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None,YYmat_int=None,YYmat_slope=None,YYmat_set=None):
 	
 	'''
 	DoUpdate()
@@ -1253,41 +1387,48 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# Grow here - middle and sample
 				# -----------------------------
 				if growans != 'N':
-					Indloc = SubpopIN[isub][iind][sourcePop] # Get location
+					Indloc = SubpopIN[isub][iind][sourcePop] # Get location						
 					if Indloc == 'NA':
 						print('Error in individual location DoUpdate()')
 						sys.exit(-1)
+					Indsex = SubpopIN[isub][iind]['sex'] # Get sex for indexing
+					if Indsex == 'XX':
+						sxspot = 0
+					elif Indsex == 'XY':
+						sxspot = 1
+					else:
+						sxspot = 2
 					# Check for cdevolve growth option - get new growth parameters
 					# If MG independent
 					if cdevolveans == 'MG_ind':
-						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
+						Indgenes = SubpopIN[isub][iind]['genes']
 						# BB
-						if Indgenes[1][0] == 2:
+						if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
 							genespot = 3
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
 						# Bb
-						elif Indgenes[1][0] == 1 and Indgenes[1][1] == 1:
+						elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
 							genespot = 4
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
 						# bb
-						elif Indgenes[1][1] == 2:
+						elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
 							genespot = 5
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
 						else:
 							growans = growans
 							sizeLoo = sizeLoo
@@ -1297,34 +1438,34 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 							size_3 = float(size_3)
 					# If MG linked
 					elif cdevolveans == 'MG_link':
-						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
+						Indgenes = SubpopIN[isub][iind]['genes']
 						# AA - use BB
-						if Indgenes[0][0] == 2:
-							genespot = 3
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
+						if Indgenes[0] == 2:
+							genespot = 3							
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
 						# Aa - use Bb
-						elif Indgenes[0][0] == 1 and Indgenes[0][1] == 1:
+						elif Indgenes[0] == 1 and Indgenes[1] == 1:
 							genespot = 4
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
 						# aa - use bb
-						elif Indgenes[0][1] == 2:
+						elif Indgenes[1] == 2:
 							genespot = 5
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
 						else:
 							growans = growans
 							sizeLoo = sizeLoo
@@ -1334,34 +1475,34 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 							size_3 = float(size_3)
 					# If just Locus B (Growth)
 					elif cdevolveans == 'G':
-						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
+						Indgenes = SubpopIN[isub][iind]['genes']
 						# BB
-						if Indgenes[1][0] == 2:
+						if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
 							genespot = 0
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
 						# Bb
-						elif Indgenes[1][0] == 1 and Indgenes[1][1] == 1:
+						elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
 							genespot = 1
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
 						# bb
-						elif Indgenes[1][1] == 2:
+						elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
 							genespot = 2
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
 						else:
 							growans = growans
 							sizeLoo = sizeLoo
@@ -1371,34 +1512,34 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 							size_3 = float(size_3)
 					# If 1_G independent
 					elif cdevolveans == '1_G_ind':
-						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
+						Indgenes = SubpopIN[isub][iind]['genes']
 						# BB
-						if Indgenes[1][0] == 2:
+						if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
 							genespot = 3
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
 						# Bb
-						elif Indgenes[1][0] == 1 and Indgenes[1][1] == 1:
+						elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
 							genespot = 4
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
 						# bb
-						elif Indgenes[1][1] == 2:
+						elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
 							genespot = 5
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
 						else:
 							growans = growans
 							sizeLoo = sizeLoo
@@ -1408,9 +1549,9 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 							size_3 = float(size_3)
 					# If 1_G linked
 					elif cdevolveans == '1_G_link':
-						Indgenes = literal_eval(SubpopIN[isub][iind]['genes'])
+						Indgenes = SubpopIN[isub][iind]['genes']
 						# AA - use BB
-						if Indgenes[0][0] == 2:
+						if Indgenes[sum(alleles[0:0]) + 0 + 1] == 2:
 							genespot = 3
 							growans = fitvals[int(Indloc)-1][genespot][0]
 							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
@@ -1419,7 +1560,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
 							size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
 						# Aa - use Bb
-						elif Indgenes[0][0] == 1 and Indgenes[0][1] == 1:
+						elif Indgenes[sum(alleles[0:0]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
 							genespot = 4
 							growans = fitvals[int(Indloc)-1][genespot][0]
 							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
@@ -1428,7 +1569,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
 							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
 						# aa - use bb
-						elif Indgenes[0][1] == 2:
+						elif Indgenes[sum(alleles[0:0]) + 1 + 1] == 2:
 							genespot = 5
 							growans = fitvals[int(Indloc)-1][genespot][0]
 							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
@@ -1443,16 +1584,29 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 							size_1 = float(size_1)
 							size_2 = float(size_2)
 							size_3 = float(size_3)
-					
-					growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,isub,iind,growans,size_mean[natalP][theseclasspars],gridsample)
+										
+					growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,isub,iind,growans,size_mean[natalP][theseclasspars],gridsample,cdevolveans)
 										
 				# --------------------------------------------
-				# Age, mature, egg lay frequency here - middle
+				# Age here - Middle or Second Update
 				# --------------------------------------------
 				lastage = classno
-				if gridsample == 'Middle':
+				if gridsample == 'Middle':					
+					SubpopIN[isub][iind]['age'] = SubpopIN[isub][iind]['age'] + 1
+										
+				# -------------------------------------------------------
+				# Mature, egg lay frequency here - Sample or Third Update
+				# -------------------------------------------------------
+				if gridsample != 'Middle':
+					matureInd(lastage,SubpopIN,isub,iind,sizecall,age_mature[natalP][theseclasspars],Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,eggFreq,Mmat_set,Fmat_set,cdevolveans,fitvals,burningen_cdevolve,gen,defaultAgeMature,YYmat_int,YYmat_slope,YYmat_set)
+									
+				
+				# -------------------------------------------------------
+				# Check Plastic signal response
+				# -------------------------------------------------------
+				if (plasticans != 'N') and ((gridsample == 'Middle') and (timeplastic.find('Back') != -1)) or (((gridsample == 'Sample') or (gridsample == 'N')) and (timeplastic.find('Out') != -1)):
 					
-					ageInd(lastage,SubpopIN,isub,iind,sizeans,age_mature[natalP][theseclasspars],Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,eggFreq,Mmat_set,Fmat_set,cdevolveans,fitvals,burningen,gen,defaultAgeMature,YYmat_int,YYmat_slope,YYmat_set)
+					updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample)
 									
 				# ---------------------------------
 				# Capture here - Middle and Sample
@@ -1544,14 +1698,14 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 		if gridsample != 'Initial':
 			SubpopIN[isub]['capture'] = 0
 		SubpopIN[isub]['newmature'] = 0
-
+	
 	# Return variables only if updated age
 	return SubpopIN
 	
 	# End::DoUpdate()
 	
 # ---------------------------------------------------------------------------------------------------
-def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen,timecdevolve,fitvals,SelectionDeathsImm_Age0s,assortmateModel,patchvals,packans):
+def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeathsImm_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq,Fmat_set,Mmat_set,YYmat_set):
 
 	'''
 	Add in the Age 0 population.
@@ -1577,13 +1731,14 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 		# ----------------
 		# InheritGenes()
 		# ----------------
-		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel)	
+		
+		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel,noalleles,plasticans,cdevolveans)	
 		
 		# --------------------------------
 		# Apply spatial selection to Age0s (this might not be the right order)
 		# --------------------------------
 		# 1-locus selection model
-		if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen) and (timecdevolve.find('Eggs') != -1):
+		if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen_cdevolve) and (timecdevolve.find('Eggs') != -1):
 			SubpopIN_Age0_keep = []
 			for iind in xrange(len(SubpopIN_Age0_temp)):
 				outpool = SubpopIN_Age0_temp[iind]
@@ -1592,7 +1747,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 					differentialmortality = 0.0
 				else:
 					# Call 1-locus selection model
-					differentialmortality = Do1LocusSelection(fitvals,literal_eval(outpool['genes'])[0],isub)
+					differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],isub)
 				# Then flip the coin to see if outpool survives its location
 				randcheck = rand()
 				
@@ -1604,7 +1759,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 			# dtype here
 			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)		
 		# 2-locus model
-		elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen) and (timecdevolve.find('Eggs') != -1):
+		elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen_cdevolve) and (timecdevolve.find('Eggs') != -1):
 			SubpopIN_Age0_keep = []
 			for iind in xrange(len(SubpopIN_Age0_temp)):
 				outpool = SubpopIN_Age0_temp[iind]
@@ -1613,7 +1768,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 					differentialmortality = 0.0
 				else:				
 					# Call 2-locus selection model
-					differentialmortality = Do2LocusSelection(fitvals,literal_eval(outpool['genes'])[0:2],isub)			
+					differentialmortality = Do2LocusSelection(fitvals,outpool['genes'][0:4],isub)			
 				# Then flip the coin to see if outpool survives its location
 				randcheck = rand()				
 				# If outpool did not survive: break from loop, move to next outpool
@@ -1624,7 +1779,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 			# dtype here
 			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
 		# Hindex cdevolveans
-		elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen) and (timecdevolve.find('Eggs') != -1):
+		elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen_cdevolve) and (timecdevolve.find('Eggs') != -1):
 			SubpopIN_Age0_keep = []
 			for iind in xrange(len(SubpopIN_Age0_temp)):
 				outpool = SubpopIN_Age0_temp[iind]				
@@ -1643,16 +1798,79 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
 					
 		# Maturation values need to be updated here for cdevolveans M
-		elif (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen <= 0: # cdevolve answer mature
-			print('cdevolveans is M; updated AddAge0s() and maturation values. See PreProcess() ln898')
-			sys.exit(-1)
+		elif (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen_cdevolve <= 0: # cdevolve answer mature			
+			if sizecall == 'size': # Size control
+				for iind in xrange(len(SubpopIN_Age0_temp)):				
+					tempgenes = SubpopIN_Age0_temp[iind]['genes']
+					if tempgenes[0] == 2: # AA
+						tempvals = fitvals[isub][0] # First spot AA										
+					elif tempgenes[0] == 1 and tempgenes[1] == 1: # Aa
+						tempvals = fitvals[isub][1] # Second spot Aa
+					elif tempgenes[1] == 2: # aa
+						tempvals = fitvals[isub][2] # third spot aa
+					else:
+						print('2 alleles only with M options in cdevolveans.')
+						sys.exit(-1)
+					# Then Replace mat vals, and calculate matval	
+					if SubpopIN_Age0_temp[iind]['sex'] == 'XX':
+						tempmat = tempvals[0].split(':')
+						Fmat_slope = float(tempmat[0])
+						Fmat_int = float(tempmat[1])
+						if Fmat_set == 'N': # Use equation - size
+							matval = np.exp(Fmat_int + Fmat_slope * SubpopIN_Age0_temp[iind]['size']) / (1 + np.exp(Fmat_int + Fmat_slope * SubpopIN_Age0_temp[iind]['size']))
+						else: # Use set size
+							if SubpopIN_Age0_temp[iind]['size'] >= int(Fmat_set):
+								matval = 1.0
+							else:
+								matval = 0.0
+					elif SubpopIN_Age0_temp[iind]['sex'] == 'XY':
+						tempmat = tempvals[1].split(':')
+						Mmat_slope = float(tempmat[0])
+						Mmat_int = float(tempmat[1])
+						if Mmat_set == 'N': # Use equation - size
+							matval = np.exp(Mmat_int + Mmat_slope * SubpopIN_Age0_temp[iind]['size']) / (1 + np.exp(Mmat_int + Mmat_slope * SubpopIN_Age0_temp[iind]['size']))
+						else: # Use set size
+							if SubpopIN_Age0_temp[iind]['size'] >= int(Mmat_set):
+								matval = 1.0
+							else:
+								matval = 0.0
+					elif SubpopIN_Age0_temp[iind]['sex'] == 'YY':
+						tempmat = tempvals[2].split(':')
+						YYmat_slope = float(tempmat[0])
+						YYmat_int = float(tempmat[1])
+						if Mmat_set == 'N': # Use equation - size
+							matval = np.exp(YYmat_int + YYmat_slope * SubpopIN_Age0_temp[iind]['size']) / (1 + np.exp(YYmat_int + YYmat_slope * SubpopIN_Age0_temp[iind]['size']))
+						else: # Use set size
+							if SubpopIN_Age0_temp[iind]['size'] >= int(YYmat_set):
+								matval = 1.0
+							else:
+								matval = 0.0
+
+					# Check probability and egg laying
+					randmat = rand()
+					if randmat < matval:
+						SubpopIN_Age0_temp[iind]['mature'] = 1
+						SubpopIN_Age0_temp[iind]['newmature'] = 1
+						randegglay = rand()
+						# If sexans 'Y' and female, check layEggs
+						if sexans == 'Y':
+							if SubpopIN_Age0_temp[iind]['sex'] == 'XX':
+								if randegglay < eggFreq:
+									SubpopIN_Age0_temp[iind]['layeggs'] = 1
+						else:				
+							if randegglay < eggFreq:
+								SubpopIN_Age0_temp[iind]['layeggs'] = 1	
+				SubpopIN_Age0_keep = SubpopIN_Age0_temp
 			
+			else:
+				print("This Size answer not operating with cdevolveans M or G.")
+				sys.exit(-1)			
 		else:
 			SubpopIN_Age0_keep = SubpopIN_Age0_temp
-					
+		
 		# Append all information to temp SubpopKeep variable
 		SubpopIN_keepK.append(np.concatenate([SubpopIN_arr,SubpopIN_Age0_keep]))			
-	
+		
 		# Store new N
 		Population[gen].append(len(SubpopIN_keepK[isub]))
 		SelectionDeathsImm_Age0s[gen].append(len(SubpopIN_Age0_temp)-len(SubpopIN_Age0_keep))
