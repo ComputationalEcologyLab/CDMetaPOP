@@ -72,9 +72,19 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 	
 	# Extract the subpopulation this female is in
 	femalepop = females[intfemale][sourcePop]
-	
-	# Get this females genes/hindex for assortive mating potential - round to nearest 10th
-	female_hindex = np.around(females[intfemale]['hindex'],1)
+
+	# Check Assortative Mate model for Hindex or Gene here
+	# ----------------------------------------------------
+	if len(assortmateModel.split('_')) > 1:
+		if assortmateModel.split('_')[1] == 'gene':
+			# Get this females genes for assortative mating potential 
+			female_genes = females[intfemale]['genes'][0:2]
+		elif assortmateModel.split('_')[1] == 'hindex':
+			# Get this females genes/hindex for assortive mating potential - round to nearest 10th
+			female_hindex = np.around(females[intfemale]['hindex'],1)
+		else:
+			print('Assortative Mate option entered wrong.')
+			sys.exit(-1)
 		
 	# Extract each male patch probability that female can mate with - careful of indexing
 	probarray = xycdmatrix[:,int(femalepop)-1]
@@ -197,29 +207,46 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
 				
 			# Dominant-preference mating - 
-			elif assortmateModel == '4':
-				# Get the males Hindex and frequency of each
-				males_hindex = np.around(patchmales['hindex'],1)
-				males_hindex_count = count_unique(males_hindex)
-				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
+			elif assortmateModel == '4_gene' or assortmateModel == '4_hindex':
+				if assortmateModel == '4_hindex':
+					# Get the males Hindex and frequency of each
+					males_hindex = np.around(patchmales['hindex'],1)
+					males_hindex_count = count_unique(males_hindex)
+					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
 				
-				# Calculate probability for females greater than 0.0 (all males except 0.0)
-				if female_hindex > 0.0:			
-					# Calculate probability
-					males_hindex_prob = assortmateC ** (males_hindex_count[0] > 0.0) * males_hindex_fj
-				# Calculate probability for females with 0.0 (all males except 0.0)
-				else: # Hybrid can mate with any
-					# Calculate probability
-					males_hindex_prob = assortmateC ** (males_hindex_count[0] == 0.0) * males_hindex_fj
-				
-				# Normalized
-				males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
-				
-				# Take a weigthed draw from the 3 genotypes
-				selectMaleGenotype = w_choice_item(males_hindex_prob)
+					# Calculate probability for females greater than 0.0 (all males except 0.0)
+					if female_hindex > 0.0:			
+						# Calculate probability
+						males_hindex_prob = assortmateC ** (males_hindex_count[0] > 0.0) * males_hindex_fj
+					# Calculate probability for females with 0.0 (all males except 0.0)
+					else: # Hybrid can mate with any
+						# Calculate probability
+						males_hindex_prob = assortmateC ** (males_hindex_count[0] == 0.0) * males_hindex_fj
 					
-				# Get selected males of preferential hindex
-				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
+					# Normalized
+					males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
+					
+					# Take a weigthed draw from the 3 genotypes
+					selectMaleGenotype = w_choice_item(males_hindex_prob)
+						
+					# Get selected males of preferential hindex
+					patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
+				
+				# Special case for sneaker Males - technically not the dominant preference model
+				elif assortmateModel == '4_gene':
+					# Get the males Genes and frequency of each
+					males_genes = patchmales['genes'][:,0:2]
+					males_genes_count = count_unique(males_genes[:,0])
+					males_genes_fj = males_genes_count[1]/float(sum(males_genes_count[1]))
+					# Correct for aa (see Equ in M'Gonigle paper) - kronecker's delta = 0 for sneakers (dgs2020)					
+					males_genes_prob = assortmateC ** (males_genes_count[0] > 0) * males_genes_fj
+					# Normalized
+					males_genes_prob = males_genes_prob / sum(males_genes_prob)
+					# Take a weigthed draw from the 3 genotypes
+					selectMaleGenotype = w_choice_item(males_genes_prob)
+					
+					# Get selected males of preferential hindex
+					patchmales = patchmales[np.where(males_genes[:,0]==males_genes_count[0][selectMaleGenotype])[0]]
 
 			# Linear hindex preference mating
 			elif assortmateModel == '5':
@@ -262,19 +289,34 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 			
 			# Tracking
 			femalesmated.append(1)
-			if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
-				AAaaMates.append(1)
-			elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
-				AAAAMates.append(1)
-			elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
-				aaaaMates.append(1)
-			elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
-				AAAaMates.append(1)
-			elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
-				aaAaMates.append(1)
-			elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
-				AaAaMates.append(1)
-			
+			if len(assortmateModel.split('_')) > 1:
+				if assortmateModel.split('_')[1] == 'hindex':
+					if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
+						AAaaMates.append(1)
+					elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
+						AAAAMates.append(1)
+					elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
+						aaaaMates.append(1)
+					elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+						AAAaMates.append(1)
+					elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+						aaAaMates.append(1)
+					elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
+						AaAaMates.append(1)
+				else:
+					if (female_genes[0] == 2 and malemate['genes'][1] == 2) or (female_genes[1] == 2 and malemate['genes'][0] == 2):
+						AAaaMates.append(1)
+					elif (female_genes[0] == 2 and malemate['genes'][0] == 2):
+						AAAAMates.append(1)
+					elif (female_genes[1] == 2 and malemate['genes'][1] == 2):
+						aaaaMates.append(1)
+					elif (female_genes[0] == 2 and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)) or (malemate['genes'][0] == 2 and (female_genes[0] == 1 and female_genes[1] == 1)):
+						AAAaMates.append(1)
+					elif (female_genes[1] == 2 and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)) or (malemate['genes'][1] == 2 and (female_genes[0] == 1 and female_genes[1] == 1)):
+						aaAaMates.append(1)
+					elif ((female_genes[0] == 1 and female_genes[1] == 1) and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)):
+						AaAaMates.append(1)
+				
 			# Then break from patch search loop
 			break
 					

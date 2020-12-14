@@ -710,7 +710,7 @@ def InitializeID(K,N):
 	#End::InitializeID()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,addans,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature):
+def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,addans,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,N0):
 	'''
 	InitializeVars()
 	This function initializes the age,sex,infection,genes of each individual based for the id variable
@@ -739,8 +739,18 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		# Get genes - For each loci:
 		# --------------------------		
 		genes.append([]) # And store genes information
-		# First check to see if there is more than one file that can be used for this patch and then randomly choose which one to initialize this individual; make sure this file is stored for ClassVars selection later
-		thisgenefile = randint(len(allelst[isub]))
+		# Match the 'species' ID with the allele frequency file
+		if len(N0[isub].split(';')) > 1:
+			# If more than one allele frequency file was given to match species ID
+			if len(allelst[isub]) > 1:
+				# Index possibly allele file matching species ID here
+				thisgenefile = speciesID[iind]-1
+			# Could have entered 'random' gene init
+			else:
+				thisgenefile = randint(len(allelst[isub]))
+		# 1 or less N0 value given
+		else:
+			thisgenefile = randint(len(allelst[isub]))
 		for j in xrange(loci):
 							
 			# Take a random draw from the w_choice function at jth locus
@@ -1063,7 +1073,7 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,outhabvals_pass,backhabvals_pass):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
@@ -1407,6 +1417,8 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	tempN0 = []
 	tempAllelefile = []
 	tempClassVarsfile = []
+	tempouthabvals = []
+	tempbackhabvals = []
 	
 	for isub in xrange(len(K)):
 		if len(Str[isub].split('|')) > 1:
@@ -1548,6 +1560,14 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			if float(tempoutgrow[isub]) + float(tempbackgrow[isub]) > 365.:
 				print('Grow days back and out must be <= 365.')
 				sys.exit(-1)
+		if len(outhabvals_pass[isub].split('|')) > 1:
+			tempouthabvals.append(outhabvals_pass[isub].split('|')[icdtime])
+		else:
+			tempouthabvals.append(outhabvals_pass[isub])
+		if len(backhabvals_pass[isub].split('|')) > 1:
+			tempbackhabvals.append(backhabvals_pass[isub].split('|')[icdtime])
+		else:
+			tempbackhabvals.append(backhabvals_pass[isub])
 		
 	# ---------------------------------------------------------
 	# Read in cdmatrix.csv and convert to a probability matrix
@@ -1683,7 +1703,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	tupClimate = matecdmatrix,FdispOutcdmatrix,MdispOutcdmatrix,FdispBackcdmatrix,MdispBackcdmatrix,\
 	StrBackcdmatrix,matemovethresh,\
 	FdispmoveOutthresh,MdispmoveOutthresh,\
-	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,FdispmoveOutparA,MdispmoveOutparA,FdispmoveOutparB,MdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparC,FdispmoveBackparA,MdispmoveBackparA,FdispmoveBackparB,MdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparC,dispLocalcdmatrix,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,dispLocal_ScaleMin,dispLocal_ScaleMax	
+	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,FdispmoveOutparA,MdispmoveOutparA,FdispmoveOutparB,MdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparC,FdispmoveBackparA,MdispmoveBackparA,FdispmoveBackparB,MdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparC,dispLocalcdmatrix,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,dispLocal_ScaleMin,dispLocal_ScaleMax,tempouthabvals,tempbackhabvals	
 	return tupClimate
 	#End::DoCDClimate()
 
@@ -2156,10 +2176,10 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	xy = ReadXY(xyfilename)
 	
 	# Error statement for column data
-	if len(xy[1]) != 45:
+	if len(xy[1]) != 47:
 		print('Patchvars.csv input file is not correct version, see example input files.')
 		sys.exit(-1)	
-		
+	
 	# Store all information in lists by variable name and store
 	Pop = []
 	xgridpop = []
@@ -2191,6 +2211,8 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	backgrowdays_sd = [] # grow days back
 	pop_capture_back_pass = [] # Grab first one to go into first DoUpdate
 	pop_capture_out = []
+	outhabvals = [] 
+	backhabvals = []
 	fitvals = [] # selection values
 	for i in xrange(len(xy)-1):
 		Pop.append(xy[i+1][0])
@@ -2223,15 +2245,17 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 		backgrowdays_sd.append(xy[i+1][27])
 		pop_capture_out.append(xy[i+1][28])
 		pop_capture_back_pass.append(xy[i+1][29])
+		outhabvals.append(xy[i+1][30])
+		backhabvals.append(xy[i+1][31])
 		
 		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray':
-			fitvals.append([xy[i+1][30],xy[i+1][31],xy[i+1][32]])
+			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34]])
 		elif cdevolveans == 'G':
-			fitvals.append([xy[i+1][33],xy[i+1][34],xy[i+1][35]])
+			fitvals.append([xy[i+1][35],xy[i+1][36],xy[i+1][37]])
 		elif cdevolveans == '2' or cdevolveans == '2_mat':
-			fitvals.append([xy[i+1][36],xy[i+1][37],xy[i+1][38],xy[i+1][39],xy[i+1][40],xy[i+1][41],xy[i+1][42],xy[i+1][43],xy[i+1][44]])
+			fitvals.append([xy[i+1][38],xy[i+1][39],xy[i+1][40],xy[i+1][41],xy[i+1][42],xy[i+1][43],xy[i+1][44],xy[i+1][45],xy[i+1][46]])
 		elif cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link':
-			fitvals.append([xy[i+1][30],xy[i+1][31],xy[i+1][32],xy[i+1][33],xy[i+1][34],xy[i+1][35]])
+			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34],xy[i+1][35],xy[i+1][36],xy[i+1][37]])
 			
 	# Delete x variable
 	del(xy)
@@ -2272,8 +2296,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 				N0[isub] = '0'
 		elif int(N0[isub]) > 0 and natal[isub] == 0:
 			print('N0 specified in nonnatal grounds. Initializing N0 at patch ',str(isub+1),' to 0.')
-			N0[isub] = '0'
-		
+			N0[isub] = '0'		
 	
 	# --------------------------------
 	# Initialize subpop and ID field
@@ -2315,7 +2338,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	# Initialize rest of variables: age,sex,infection,genes,size,mature...
 	# ------------------------------------------------------------------
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'N',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature)
+	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'N',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,N0)
 	
 	# ------------------------------------
 	# For multiple files, error check here
@@ -2444,7 +2467,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_percmort_out,age_percmort_back,age_Mg,age_S,\
 	age_mu,age_size_mean,age_size_std,xgridpop,ygridpop,\
 	SubpopIN,N,K,dtype,outsizevals,backsizevals,\
-	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,age_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag
+	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,age_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,outhabvals,backhabvals
 	
 	return tupPreProcess	
 	#End::DoPreProcess()
@@ -2537,7 +2560,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature)
+	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,tempN0)
 	
 	# ---------------------------------------------
 	# Store class variable SubpopIN_add

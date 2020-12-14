@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.52"
-appRele = "2020.05.12-14:27:01MST"
+appVers = "version 1.59"
+appRele = "2020.12.14-14:54:01MST"
 authorNames = "Erin L Landguth, Casey Day, Andrew Bearlin"
 
 # ---------------
@@ -23,7 +23,7 @@ SRC_PATH =  "../src/"
 # Import Modules with Except/Try statements
 # ------------------------------------------
 # Python specific functions
-import datetime,time,pdb,os,sys,shutil,gc,multiprocessing
+import datetime,time,pdb,os,sys,shutil,gc,multiprocessing,warnings
 	
 # Numpy functions
 try:
@@ -55,7 +55,7 @@ except ImportError:
 # Begin main file execution
 #------------------------------------------------------------ 
 if __name__ == '__main__':
-		
+	warnings.filterwarnings("ignore")	
 	# ------------------------------------------------------	
 	# Start timer, get script arguments, create log writeout
 	# ------------------------------------------------------
@@ -354,7 +354,7 @@ if __name__ == '__main__':
 		# For Plastic answer
 		if plasticans != 'N':
 			# Split for temp
-			if plasticans.split('_')[0] != 'Temp':
+			if (plasticans.split('_')[0] != 'Temp') and (plasticans.split('_')[0] != 'Hab'):
 				print('Plastic parameter not entered corectly, check user manual and example files.')
 				sys.exit(-1)
 		if plasticans != 'N':	
@@ -619,6 +619,8 @@ if __name__ == '__main__':
 			allefreqfiles_pass = tupPreProcess[55]
 			classvarsfiles_pass = tupPreProcess[56]
 			PopTag = tupPreProcess[57] # To pass into AddIndividuals, Emigration, Immigration
+			outhabvals_pass = tupPreProcess[58]
+			backhabvals_pass = tupPreProcess[59]
 			
 			# Grab first one only
 			K = K_mu # Initialize K with mu
@@ -702,7 +704,7 @@ if __name__ == '__main__':
 				for icdtime in xrange(len(cdclimgentime)): 
 					if gen == int(cdclimgentime[icdtime]):
 						tupClimate = DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,\
-						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval)	
+						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,outhabvals_pass,backhabvals_pass)	
 
 						cdmatrix_mate = tupClimate[0]
 						cdmatrix_FOut = tupClimate[1]
@@ -779,7 +781,9 @@ if __name__ == '__main__':
 						dispLocalparC = tupClimate[72]
 						thresh_dispLocal = tupClimate[73]
 						dispLocal_ScaleMin = tupClimate[74]
-						dispLocal_ScaleMax = tupClimate[75]						
+						dispLocal_ScaleMax = tupClimate[75]
+						outhabvals = tupClimate[76]
+						backhabvals = tupClimate[77]
 						
 						# ----------------------------------------
 						# Introduce new individuals
@@ -855,7 +859,7 @@ if __name__ == '__main__':
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
 				
-				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,'Middle',growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,sizeans,age_size_mean,Track_N_back_age,eggFreq,backsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,backgrowdays,sourcePop,plasticans,burningen_plastic,timeplastic,geneswap)
+				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,'Middle',growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,sizeans,age_size_mean,Track_N_back_age,eggFreq,backsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,backgrowdays,sourcePop,plasticans,burningen_plastic,timeplastic,geneswap,backhabvals)
 												
 				# Print to log
 				stringout = 'Second DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -900,7 +904,7 @@ if __name__ == '__main__':
 				#pdb.set_trace()
 				start_time1 = datetime.datetime.now() # Timing events: start
 				
-				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,'EmiPop',plasticans,burningen_plastic,timeplastic,geneswap,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_int,YYmat_slope,YYmat_set)
+				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,'EmiPop',plasticans,burningen_plastic,timeplastic,geneswap,outhabvals,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_int,YYmat_slope,YYmat_set)
 					
 				# Print to log
 				stringout = 'Third DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''

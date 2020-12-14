@@ -92,7 +92,7 @@ def w_choice_general(lst):
 	#End::w_choice_general()
 
 # ---------------------------------------------------------------------------------------------------
-def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,plasticans,timeplastic, gridsample):
+def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,plasticans,timeplastic, gridsample, patchHab):
 	'''
 	This function will check and update the plastic gene region.
 	'''
@@ -135,7 +135,7 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 				Indgenes[plaloci_index[1]] = 1
 			
 	# Skip if delayed start time
-	if gen >= burningen_plastic:
+	if gen >= burningen_plastic and (plasticans.split('_')[0] == 'Temp'):
 		
 		# Get the plastic signal response threshold
 		plasticSignalThreshold = float(plasticans.split('_')[1].split(':')[0])
@@ -144,6 +144,20 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 		#if (patchTemp >= plasticSignalThreshold) and (sum(Indgenes[plaloci_index]) == 0):
 		# If patch temp values are greater than/equal to threshold
 		if (patchTemp >= plasticSignalThreshold):
+			
+			get_plaallele1_index = plaloci_index[0]
+			if Indgenes[get_plaallele1_index] == 1:
+				Indgenes[get_plaallele1_index] = Indgenes[get_plaallele1_index]+1 
+			get_plaallele2_index = plaloci_index[1]
+			if Indgenes[get_plaallele2_index] == 1:
+				Indgenes[get_plaallele2_index] = Indgenes[get_plaallele2_index]+1
+                
+	if gen >= burningen_plastic and (plasticans.split('_')[0] == 'Hab'):
+		
+		# Get the plastic signal response threshold
+		plasticSignalThreshold = float(plasticans.split('_')[1].split(':')[0])
+		
+		if (patchHab >= plasticSignalThreshold):
 			
 			get_plaallele1_index = plaloci_index[0]
 			if Indgenes[get_plaallele1_index] == 1:
@@ -901,6 +915,7 @@ def growInd(Indloc,SubpopIN,sizeLoo_pass,sizeR0_pass,size_1_pass,size_2_pass,siz
 	'''
 	Growth options
 	'''	
+	
 	# Get age
 	Indage = SubpopIN[isub][iind]['age']
 	# Get sex and split options if provided
@@ -1344,7 +1359,7 @@ def capInd(lastage,SubpopIN,isub,iind,sizecall,size_mean,ClasscapProb,PopcapProb
 	#End::capInd()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,plasticans=None,burningen_plastic=None,timeplastic=None,geneswap = None,age_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None,YYmat_int=None,YYmat_slope=None,YYmat_set=None):
+def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,plasticans=None,burningen_plastic=None,timeplastic=None,geneswap = None,habvals=None,age_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None,YYmat_int=None,YYmat_slope=None,YYmat_set=None):
 	
 	'''
 	DoUpdate()
@@ -1399,192 +1414,193 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 					else:
 						sxspot = 2
 					# Check for cdevolve growth option - get new growth parameters
-					# If MG independent
-					if cdevolveans == 'MG_ind':
-						Indgenes = SubpopIN[isub][iind]['genes']
-						# BB
-						if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
-							genespot = 3
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
-						# Bb
-						elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
-							genespot = 4
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
-						# bb
-						elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
-							genespot = 5
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
-						else:
-							growans = growans
-							sizeLoo = sizeLoo
-							sizeR0 = float(sizeR0)
-							size_1 = float(size_1)
-							size_2 = float(size_2)
-							size_3 = float(size_3)
-					# If MG linked
-					elif cdevolveans == 'MG_link':
-						Indgenes = SubpopIN[isub][iind]['genes']
-						# AA - use BB
-						if Indgenes[0] == 2:
-							genespot = 3							
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
-						# Aa - use Bb
-						elif Indgenes[0] == 1 and Indgenes[1] == 1:
-							genespot = 4
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
-						# aa - use bb
-						elif Indgenes[1] == 2:
-							genespot = 5
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
-						else:
-							growans = growans
-							sizeLoo = sizeLoo
-							sizeR0 = float(sizeR0)
-							size_1 = float(size_1)
-							size_2 = float(size_2)
-							size_3 = float(size_3)
-					# If just Locus B (Growth)
-					elif cdevolveans == 'G':
-						Indgenes = SubpopIN[isub][iind]['genes']
-						# BB
-						if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
-							genespot = 0
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
-						# Bb
-						elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
-							genespot = 1
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
-						# bb
-						elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
-							genespot = 2
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
-						else:
-							growans = growans
-							sizeLoo = sizeLoo
-							sizeR0 = float(sizeR0)
-							size_1 = float(size_1)
-							size_2 = float(size_2)
-							size_3 = float(size_3)
-					# If 1_G independent
-					elif cdevolveans == '1_G_ind':
-						Indgenes = SubpopIN[isub][iind]['genes']
-						# BB
-						if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
-							genespot = 3
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
-						# Bb
-						elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
-							genespot = 4
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
-						# bb
-						elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
-							genespot = 5
-							growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
-						else:
-							growans = growans
-							sizeLoo = sizeLoo
-							sizeR0 = float(sizeR0)
-							size_1 = float(size_1)
-							size_2 = float(size_2)
-							size_3 = float(size_3)
-					# If 1_G linked
-					elif cdevolveans == '1_G_link':
-						Indgenes = SubpopIN[isub][iind]['genes']
-						# AA - use BB
-						if Indgenes[sum(alleles[0:0]) + 0 + 1] == 2:
-							genespot = 3
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
-						# Aa - use Bb
-						elif Indgenes[sum(alleles[0:0]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
-							genespot = 4
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
-						# aa - use bb
-						elif Indgenes[sum(alleles[0:0]) + 1 + 1] == 2:
-							genespot = 5
-							growans = fitvals[int(Indloc)-1][genespot][0]
-							sizeLoo = fitvals[int(Indloc)-1][genespot][1]
-							sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
-							size_1 = float(fitvals[int(Indloc)-1][genespot][3])
-							size_2 = float(fitvals[int(Indloc)-1][genespot][4])
-							size_3 = float(fitvals[int(Indloc)-1][genespot][5])
-						else:
-							growans = growans
-							sizeLoo = sizeLoo
-							sizeR0 = float(sizeR0)
-							size_1 = float(size_1)
-							size_2 = float(size_2)
-							size_3 = float(size_3)
-										
+					if gen >= burningen_cdevolve: # Skip if selection is not on
+						# If MG independent
+						if cdevolveans == 'MG_ind':
+							Indgenes = SubpopIN[isub][iind]['genes']
+							# BB
+							if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
+								genespot = 3
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
+							# Bb
+							elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
+								genespot = 4
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
+							# bb
+							elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
+								genespot = 5
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
+							else:
+								growans = growans
+								sizeLoo = sizeLoo
+								sizeR0 = float(sizeR0)
+								size_1 = float(size_1)
+								size_2 = float(size_2)
+								size_3 = float(size_3)
+						# If MG linked
+						elif cdevolveans == 'MG_link':
+							Indgenes = SubpopIN[isub][iind]['genes']
+							# AA - use BB
+							if Indgenes[0] == 2:
+								genespot = 3							
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
+							# Aa - use Bb
+							elif Indgenes[0] == 1 and Indgenes[1] == 1:
+								genespot = 4
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
+							# aa - use bb
+							elif Indgenes[1] == 2:
+								genespot = 5
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
+							else:
+								growans = growans
+								sizeLoo = sizeLoo
+								sizeR0 = float(sizeR0)
+								size_1 = float(size_1)
+								size_2 = float(size_2)
+								size_3 = float(size_3)
+						# If just Locus B (Growth)
+						elif cdevolveans == 'G':
+							Indgenes = SubpopIN[isub][iind]['genes']
+							# BB
+							if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
+								genespot = 0
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
+							# Bb
+							elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
+								genespot = 1
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
+							# bb
+							elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
+								genespot = 2
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
+							else:
+								growans = growans
+								sizeLoo = sizeLoo
+								sizeR0 = float(sizeR0)
+								size_1 = float(size_1)
+								size_2 = float(size_2)
+								size_3 = float(size_3)
+						# If 1_G independent
+						elif cdevolveans == '1_G_ind':
+							Indgenes = SubpopIN[isub][iind]['genes']
+							# BB
+							if Indgenes[sum(alleles[0:1]) + 0 + 1] == 2:
+								genespot = 3
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])							
+							# Bb
+							elif Indgenes[sum(alleles[0:1]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
+								genespot = 4
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
+							# bb
+							elif Indgenes[sum(alleles[0:1]) + 1 + 1] == 2:
+								genespot = 5
+								growans = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][sxspot].split(':')[1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][sxspot].split(':')[5])
+							else:
+								growans = growans
+								sizeLoo = sizeLoo
+								sizeR0 = float(sizeR0)
+								size_1 = float(size_1)
+								size_2 = float(size_2)
+								size_3 = float(size_3)
+						# If 1_G linked
+						elif cdevolveans == '1_G_link':
+							Indgenes = SubpopIN[isub][iind]['genes']
+							# AA - use BB
+							if Indgenes[sum(alleles[0:0]) + 0 + 1] == 2:
+								genespot = 3
+								growans = fitvals[int(Indloc)-1][genespot][0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][5])							
+							# Aa - use Bb
+							elif Indgenes[sum(alleles[0:0]) + 0 + 1] == 1 and Indgenes[sum(alleles[0:1]) + 1 + 1] == 1:
+								genespot = 4
+								growans = fitvals[int(Indloc)-1][genespot][0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							# aa - use bb
+							elif Indgenes[sum(alleles[0:0]) + 1 + 1] == 2:
+								genespot = 5
+								growans = fitvals[int(Indloc)-1][genespot][0]
+								sizeLoo = fitvals[int(Indloc)-1][genespot][1]
+								sizeR0 = float(fitvals[int(Indloc)-1][genespot][2])
+								size_1 = float(fitvals[int(Indloc)-1][genespot][3])
+								size_2 = float(fitvals[int(Indloc)-1][genespot][4])
+								size_3 = float(fitvals[int(Indloc)-1][genespot][5])
+							else:
+								growans = growans
+								sizeLoo = sizeLoo
+								sizeR0 = float(sizeR0)
+								size_1 = float(size_1)
+								size_2 = float(size_2)
+								size_3 = float(size_3)
+											
 					growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,isub,iind,growans,size_mean[natalP][theseclasspars],gridsample,cdevolveans)
 										
 				# --------------------------------------------
@@ -1606,7 +1622,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# -------------------------------------------------------
 				if (plasticans != 'N') and ((gridsample == 'Middle') and (timeplastic.find('Back') != -1)) or (((gridsample == 'Sample') or (gridsample == 'N')) and (timeplastic.find('Out') != -1)):
 					
-					updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample)
+					updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample,habvals[isub]) #travis, sizevales corresponds to the temp in def
 									
 				# ---------------------------------
 				# Capture here - Middle and Sample
@@ -1860,6 +1876,10 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 						else:				
 							if randegglay < eggFreq:
 								SubpopIN_Age0_temp[iind]['layeggs'] = 1	
+					else:
+						SubpopIN_Age0_temp[iind]['mature'] = 0
+						SubpopIN_Age0_temp[iind]['newmature'] = 0
+						
 				SubpopIN_Age0_keep = SubpopIN_Age0_temp
 			
 			else:

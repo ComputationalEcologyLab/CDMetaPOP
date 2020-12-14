@@ -181,7 +181,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 				probarray = [1.0]
 	
 	# Check plastic response here
-	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1):
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1 and (plasticans.split('_')[0] == 'Temp')):
 		
 		# Get location in genes array for plastic region
 		# ----------------------------------------------
@@ -222,6 +222,47 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 				# Whereever temperature threshold, turn prob to 0
 				probarray[np.where(np.asarray(patchvals) >= tempthresh)[0]] = 0.
 	
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1) and (plasticans.split('_')[0] == 'Hab'):
+		
+		# Get location in genes array for plastic region
+		# ----------------------------------------------
+		Indgenes = currentoff['genes']
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+		
+		# Get the plastic behaviorial response threshold
+		# ----------------------------------------------
+		habthresh = float(plasticans.split('_')[1].split(':')[1])
+		
+		# Does this individual have the allele for response (2,2) or (2,0) or (0,2)
+		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
+					
+			if answer == 'immigrator': # probarray is length 1
+				# Only check patchvals in natalsubpop, which is where this individual is going if probarray is 1
+				if patchvals[natalsubpop] >= tempthresh:
+					probarray = [0.0]
+				
+			else: # probarray is length patch dim
+				# Whereever temperature threshold, turn prob to 0
+				probarray[np.where(np.asarray(patchvals) >= habthresh)[0]] = 0.
+
 	return probarray
 	
 	# End::GetProbArray()
@@ -1283,6 +1324,8 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 							
 					# No spots available to move to:
 					elif sum(probarray) == 0.0:
+						print('No where to locally disperse to. All individuals will die.')
+						sys.exit(-1)
 						# Then Break from the loop and move to next outpool	
 						SelectionDeaths[gen][int(emipop)-1].append(0)
 						DisperseDeaths[gen][int(emipop)-1].append(1)

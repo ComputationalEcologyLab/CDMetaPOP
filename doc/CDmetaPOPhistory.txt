@@ -1,3 +1,52 @@
+Changes v1.59.2020.12.14T00:00:00MST (ell/cday)
+0) Bug in DoEmigration: Added 'S' and 'Z' to check for migrants. 
+1) Added if len(assortmateModel.split('_')) > 1: to assortative mate section in _Mate()
+2) Updated all inputfiles for push to Github
+
+Changes V1.58.2020.11.30T10:14:00MDT (ell/cday)
+0) Checking possible error with MG_link and maturation parameters (DGS2020 group); added burn in selection to 'MG' growth sections.
+
+# -> ELL sent back to tjs for more testing on plastic and DGS for testing on sneaker size strategy
+
+Changes V1.57.2020.07.31T15:32:00MST (ell)
+-1) Removed warnings from init year/gen
+0) Check first through tjs errors
+a) Moved , habvals=None after geneswap=None in DoUpdate() pass in order. Seems to be working, will pass back to TJS
+
+1) Check DGS2020 error with delimitor in MG_link and growth function. 
+a) fitvals not initializing correctly due to habitat columns not entered correctly. Running fine. 
+
+Changes V1.56.2020.07.31T00:00:00MST (ell/cday)
+0) Checking N0 for ';' split matching gene files ';' splits
+
+# -> sent to Erin for troubleshooting
+
+Changes V1.55a.2020.07.23T00:00:00MST (tjs)
+0) CDmetaPOP.py: at 357, added 'or' to check if plastic parameter input from user is correct using either temp or hab within the popvar file
+1) Emigration: at line 124, added check for temp in plasticans
+2) Emigration: copied section of 124 but with check for hab in plasticans. at 188/195 changed tempthresh to habthresh
+3) Repeated 1 and 2 from above with CDimmigration at ~225-264
+4) Modules: 95, added patchHab to list based on patchTemp being in list for function args
+5) Modules: 138, at updatePlasticGenes def, Added if to updating genes based on user input. Added habitat section which mirrors temp section for turning switch on. PatchTemp is arg 6, new PatchHab is arg 10.
+6) Modules: 1623, updatePlasticGenes, added another argument to pull habitat values. the temp data seems to be coming from sizevals[isub] input from PreProcess (arg 6 based on line 95 of updatePlasticGenes def), which feeds into PatchTemp in updatePlasticGenes.
+7) Modules: 1361, added habvals=None to end of the list for DoUpdate, because that is the only place I see sizevals not have out/back in front of it within modules (arg 25 is sizevals)
+8) CDmetaPOP.py 862, due to 7, added backhabvals to the end of the 2nd do update
+9) CDmetaPOP.py 907, due to 7, added outhabvals to the end of the 3rd do update
+
+Latest error:     updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample,habvals[isub]) #travis note, sizevales corresponds to the temp in def
+TypeError: 'NoneType' object has no attribute '__getitem__'
+
+Changes V1.55.2020.07.22T00:00:00MST (ell/TS)
+0) Adding 2 columns to PatchVars for Habitat variable OUT/Back.
+
+Changes V1.54.2020.07.10T00:00:00MST (ell/dgs2020)
+0) Fixed bugs with 4_gene tracking hindex vs genes.
+
+Changes v1.53.2020.07.06T00:00:00MST (ell/dgs2020)
+0) Update Assortative mating module to include first locus, provide option for hindex/gene
+a) 4_gene option provide; technical special case for sneaker male, not dominant preference. 
+b) only splitting this option right now for genes, letting group test
+
 Changes v1.52.2020.03.27T12:31:00MST (ell)
 0) If plasticans is N then make sure InheritGenes() ignores this section.
 1) Updating cdevolveans section 'MG' and PatchVars to include '~' sex delimitor for DGS2020 group. Updated PreProcess section to include 3 sex option in FitVals location. fitvals updated, splits for ';' and equation parameters must happen in modules now.

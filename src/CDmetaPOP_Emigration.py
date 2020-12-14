@@ -120,9 +120,9 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patch
 	# Where migrate = 0, turn prob to 0
 	probarray[np.where(np.asarray(migrate)==0)[0]] = 0.
 	
-	# Check plastic response here
-	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1):
-		
+	# Check plastic response here for temperature response
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans.split('_')[0] == 'Temp'):
+
 		# Get location in genes array for plastic region
 		# ----------------------------------------------
 		Indgenes = currentoff['genes']
@@ -156,6 +156,43 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patch
 		
 			# Whereever temperature threshold, turn prob to 0
 			probarray[np.where(np.asarray(patchvals) >= tempthresh)[0]] = 0.
+            
+    #Check plastic response here for habitat response        
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans.split('_')[0] == 'Hab'):
+
+		# Get location in genes array for plastic region
+		# ----------------------------------------------
+		Indgenes = currentoff['genes']
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+		
+		# Get the plastic behaviorial response threshold
+		# ----------------------------------------------
+		habthresh = float(plasticans.split('_')[1].split(':')[1])
+		
+		# Does this individual have the allele to intiate response
+		# Anywhere there is a 2 in either plaloci index spot
+		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
+		
+			# Whereever temperature threshold, turn prob to 0
+			probarray[np.where(np.asarray(patchvals) >= habthresh)[0]] = 0.
 	
 	return probarray
 	
@@ -211,7 +248,7 @@ burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sou
 			theseclasspars = int(SubpopIN[isub][iind]['classfile'].split('_')[1].split('CV')[1])
 			
 			# If setmigration is turned on
-			if setmigrate[isub] == 'Y' and 'I' in outpool['name']:
+			if setmigrate[isub] == 'Y' and ('I' in outpool['name'] or 'S' in outpool['name'] or 'Z' in outpool['name']):
 				indProbans = 'Yes'
 							
 			# Else no setmigration or outpool is not an Immigrator yet
