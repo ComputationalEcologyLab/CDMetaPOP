@@ -1814,7 +1814,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
 					
 		# Maturation values need to be updated here for cdevolveans M
-		elif (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen_cdevolve <= 0: # cdevolve answer mature			
+		elif (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen_cdevolve <= gen: # cdevolve answer mature			
 			if sizecall == 'size': # Size control
 				for iind in xrange(len(SubpopIN_Age0_temp)):				
 					tempgenes = SubpopIN_Age0_temp[iind]['genes']

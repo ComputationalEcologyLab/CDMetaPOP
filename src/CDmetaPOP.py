@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.59"
-appRele = "2020.12.14-14:54:01MST"
+appVers = "version 1.60"
+appRele = "2020.12.18-14:54:01MST"
 authorNames = "Erin L Landguth, Casey Day, Andrew Bearlin"
 
 # ---------------
@@ -901,7 +901,7 @@ if __name__ == '__main__':
 				# ----------------------------------------------------
 				# Call DoUpdate() - grow, capture, and optional output indSample.csv
 				# ----------------------------------------------------
-				#pdb.set_trace()
+				
 				start_time1 = datetime.datetime.now() # Timing events: start
 				
 				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,'EmiPop',plasticans,burningen_plastic,timeplastic,geneswap,outhabvals,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_int,YYmat_slope,YYmat_set)

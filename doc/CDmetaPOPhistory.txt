@@ -1,3 +1,6 @@
+Changes v1.60.2020.12.28T00:00:00MST (ell/cday)
+0) Changed AddAge0s() burningen was set to 0, updated to gen for cdevolveans 'M' checks. 
+
 Changes v1.59.2020.12.14T00:00:00MST (ell/cday)
 0) Bug in DoEmigration: Added 'S' and 'Z' to check for migrants. 
 1) Added if len(assortmateModel.split('_')) > 1: to assortative mate section in _Mate()
