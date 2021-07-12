@@ -531,7 +531,8 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 						# --------------------------------------------
 						
 						# Just this size group in this patch
-						SubpopIN_arr_sizeclass = SubpopIN_arr[Nsize_index]
+						#SubpopIN_arr_sizeclass = SubpopIN_arr[Nsize_index] # Change made below on v2.39
+						SubpopIN_arr_sizeclass = SubpopIN_keep_thistype[Nsize_index]
 					
 						# Get ages in this size class
 						countages = count_unique(SubpopIN_arr_sizeclass['age'])

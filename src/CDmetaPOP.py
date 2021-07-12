@@ -5,8 +5,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP information
 appName = "CDmetaPOP"
-appVers = "version 1.60"
-appRele = "2020.12.18-14:54:01MST"
+appVers = "version 1.70"
+appRele = "2021.7.12-14:54:01MST"
 authorNames = "Erin L Landguth, Casey Day, Andrew Bearlin"
 
 # ---------------
