@@ -92,7 +92,7 @@ def w_choice_general(lst):
 	#End::w_choice_general()
 
 # ---------------------------------------------------------------------------------------------------
-def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,plasticans,timeplastic, gridsample, patchHab):
+def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,plasticans,timeplastic, gridsample, patchHab,plastic_signalresp):
 	'''
 	This function will check and update the plastic gene region.
 	'''
@@ -135,15 +135,11 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 				Indgenes[plaloci_index[1]] = 1
 			
 	# Skip if delayed start time
-	if gen >= burningen_plastic and (plasticans.split('_')[0] == 'Temp'):
-		
-		# Get the plastic signal response threshold
-		plasticSignalThreshold = float(plasticans.split('_')[1].split(':')[0])
+	if gen >= burningen_plastic and (plasticans == 'Temp'):
 		
 		# If patch temp values are greater than/equal to threshold and check to make sure the alleles are still 0 (not turned on)
-		#if (patchTemp >= plasticSignalThreshold) and (sum(Indgenes[plaloci_index]) == 0):
 		# If patch temp values are greater than/equal to threshold
-		if (patchTemp >= plasticSignalThreshold):
+		if (patchTemp >= plastic_signalresp):
 			
 			get_plaallele1_index = plaloci_index[0]
 			if Indgenes[get_plaallele1_index] == 1:
@@ -152,12 +148,9 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 			if Indgenes[get_plaallele2_index] == 1:
 				Indgenes[get_plaallele2_index] = Indgenes[get_plaallele2_index]+1
                 
-	if gen >= burningen_plastic and (plasticans.split('_')[0] == 'Hab'):
+	if gen >= burningen_plastic and (plasticans == 'Hab'):
 		
-		# Get the plastic signal response threshold
-		plasticSignalThreshold = float(plasticans.split('_')[1].split(':')[0])
-		
-		if (patchHab >= plasticSignalThreshold):
+		if (patchHab >= plastic_signalresp):
 			
 			get_plaallele1_index = plaloci_index[0]
 			if Indgenes[get_plaallele1_index] == 1:
@@ -1359,7 +1352,7 @@ def capInd(lastage,SubpopIN,isub,iind,sizecall,size_mean,ClasscapProb,PopcapProb
 	#End::capInd()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,plasticans=None,burningen_plastic=None,timeplastic=None,geneswap = None,habvals=None,age_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None,YYmat_int=None,YYmat_slope=None,YYmat_set=None):
+def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,plasticans=None,burningen_plastic=None,timeplastic=None,plastic_signalresp=None,geneswap = None,habvals=None,age_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None,YYmat_int=None,YYmat_slope=None,YYmat_set=None):
 	
 	'''
 	DoUpdate()
@@ -1622,7 +1615,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# -------------------------------------------------------
 				if (plasticans != 'N') and ((gridsample == 'Middle') and (timeplastic.find('Back') != -1)) or (((gridsample == 'Sample') or (gridsample == 'N')) and (timeplastic.find('Out') != -1)):
 					
-					updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample,habvals[isub]) #travis, sizevales corresponds to the temp in def
+					updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample,habvals[isub],plastic_signalresp) #travis, sizevales corresponds to the temp in def
 									
 				# ---------------------------------
 				# Capture here - Middle and Sample

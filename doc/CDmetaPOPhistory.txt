@@ -1,3 +1,13 @@
+Changes v1.71.2021.07.20T12:35:00 (ell/cday)
+0) Added Adriana's popmodel 'N' fix to DoImmigration
+1) For plastic module, pull out temperature in PopVars plasticans option into own field to allow for dynamic cdclimate link.
+a) Added 2 new fields to PopVars 'plasticSignalResponse'	'plasticBehavioralResponse'
+b) Read in these new fields batchVars and allow for cdclimate module. 
+c) Remove any 'Temp' split calls in plasticgenans 
+d) Added plastic_signalres to DoUpdate, Added plastic_behaviorresp to DoImmigration, DoEmigration and corresponding functions.
+e) Usermanual not updated ***
+
+
 Changes v1.70.2021.07.12T12:07:00 (ell/cday)
 0) Updated option 2 multiple mortality
 

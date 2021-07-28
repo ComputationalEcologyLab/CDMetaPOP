@@ -87,7 +87,7 @@ def w_choice_item(lst):
 	#End::w_choice_item()
 	
 # ---------------------------------------------------------------------------------------------------	
-def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic):
+def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
 	'''
 	GetProbArray()
 	This function gets indices for F and M specific cdmatrix values
@@ -121,7 +121,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patch
 	probarray[np.where(np.asarray(migrate)==0)[0]] = 0.
 	
 	# Check plastic response here for temperature response
-	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans.split('_')[0] == 'Temp'):
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans == 'Temp'):
 
 		# Get location in genes array for plastic region
 		# ----------------------------------------------
@@ -148,17 +148,16 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patch
 		
 		# Get the plastic behaviorial response threshold
 		# ----------------------------------------------
-		tempthresh = float(plasticans.split('_')[1].split(':')[1])
 		
 		# Does this individual have the allele to intiate response
 		# Anywhere there is a 2 in either plaloci index spot
 		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
 		
 			# Whereever temperature threshold, turn prob to 0
-			probarray[np.where(np.asarray(patchvals) >= tempthresh)[0]] = 0.
+			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = 0.
             
     #Check plastic response here for habitat response        
-	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans.split('_')[0] == 'Hab'):
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans == 'Hab'):
 
 		# Get location in genes array for plastic region
 		# ----------------------------------------------
@@ -184,15 +183,13 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patch
 		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
 		
 		# Get the plastic behaviorial response threshold
-		# ----------------------------------------------
-		habthresh = float(plasticans.split('_')[1].split(':')[1])
-		
+		# ----------------------------------------------		
 		# Does this individual have the allele to intiate response
 		# Anywhere there is a 2 in either plaloci index spot
 		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
 		
 			# Whereever temperature threshold, turn prob to 0
-			probarray[np.where(np.asarray(patchvals) >= habthresh)[0]] = 0.
+			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = 0.
 	
 	return probarray
 	
@@ -202,7 +199,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patch
 def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,\
 Fxycdmatrix,Mxycdmatrix,gen,\
 cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,\
-burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic):
+burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
 
 	'''
 	DoEmigration()
@@ -306,7 +303,7 @@ burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sou
 				
 				# Then Migrate Out....			
 				# Create a function here that gets indices for male and female
-				probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,originalpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+				probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,originalpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 										
 				# If statement to check if there are spots for offpsring to disperse to
 				if sum(probarray) != 0.0:
@@ -1381,7 +1378,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 	# End::CalculateDispersalMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,ygridcopy,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Fthreshold,Mthreshold,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic):
+def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,ygridcopy,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Fthreshold,Mthreshold,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
 	'''
 	DoEmigration()
 	Disperse the individuals to patch locations
@@ -1405,7 +1402,7 @@ def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,
 		SubpopIN = Emigration(SubpopIN,K,Fdispmoveno,\
 		Mdispmoveno,\
 		Fxycdmatrix,Mxycdmatrix,gen,\
-		cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic)
+		cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,totalA,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,ithmcrundir,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 		
 		# Calculate Dispersal Metrics for movers out
 		CalculateDispersalMetrics(SubpopIN,xgridcopy,ygridcopy,\

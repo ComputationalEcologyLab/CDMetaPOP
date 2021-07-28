@@ -89,7 +89,7 @@ def count_unique(keys):
 	#End::count_unique()
 	
 # ---------------------------------------------------------------------------------------------------	
-def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic):
+def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
 	'''
 	GetProbArray()
 	This function gets indices for F and M specific cdmatrix values
@@ -181,7 +181,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 				probarray = [1.0]
 	
 	# Check plastic response here
-	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1 and (plasticans.split('_')[0] == 'Temp')):
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1 and (plasticans == 'Temp')):
 		
 		# Get location in genes array for plastic region
 		# ----------------------------------------------
@@ -208,21 +208,20 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 		
 		# Get the plastic behaviorial response threshold
 		# ----------------------------------------------
-		tempthresh = float(plasticans.split('_')[1].split(':')[1])
 		
 		# Does this individual have the allele for response (2,2) or (2,0) or (0,2)
 		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
 					
 			if answer == 'immigrator': # probarray is length 1
 				# Only check patchvals in natalsubpop, which is where this individual is going if probarray is 1
-				if patchvals[natalsubpop] >= tempthresh:
+				if patchvals[natalsubpop] >= plastic_behaviorresp:
 					probarray = [0.0]
 				
 			else: # probarray is length patch dim
 				# Whereever temperature threshold, turn prob to 0
-				probarray[np.where(np.asarray(patchvals) >= tempthresh)[0]] = 0.
+				probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = 0.
 	
-	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1) and (plasticans.split('_')[0] == 'Hab'):
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1) and (plasticans == 'Hab'):
 		
 		# Get location in genes array for plastic region
 		# ----------------------------------------------
@@ -249,19 +248,18 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 		
 		# Get the plastic behaviorial response threshold
 		# ----------------------------------------------
-		habthresh = float(plasticans.split('_')[1].split(':')[1])
 		
 		# Does this individual have the allele for response (2,2) or (2,0) or (0,2)
 		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
 					
 			if answer == 'immigrator': # probarray is length 1
 				# Only check patchvals in natalsubpop, which is where this individual is going if probarray is 1
-				if patchvals[natalsubpop] >= tempthresh:
+				if patchvals[natalsubpop] >= plastic_behaviorresp:
 					probarray = [0.0]
 				
 			else: # probarray is length patch dim
 				# Whereever temperature threshold, turn prob to 0
-				probarray[np.where(np.asarray(patchvals) >= habthresh)[0]] = 0.
+				probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = 0.
 
 	return probarray
 	
@@ -271,7 +269,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 def Immigration(SubpopIN,K,N0,natal,Fxycdmatrix,Mxycdmatrix,gen,\
 cdevolveans,fitvals,subpopmigration,SelectionDeaths,DisperseDeaths,\
 burningen_cdevolve,ProbPatch,ProbSuccess,\
-cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_pop,N_beforePack_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,cdmatrix_dispLocal,noalleles,plasticans,burningen_plastic,timeplastic):
+cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_pop,N_beforePack_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,cdmatrix_dispLocal,noalleles,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
 	
 	'''
 	Immigration()
@@ -412,7 +410,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# ---------------------------------------------------------
 					
 					# Get the probability array
-					probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+					probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 											
 					# If spot available to stray to
 					if sum(probarray) != 0.0:
@@ -552,7 +550,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# Attempt to move back to natal grounds
 					
 					# - Use partial cdmatrix - only natal supopulation values - should be only one number - check K = 0 and natal ground indeed 1
-					probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,'immigrator',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+					probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,'immigrator',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 					
 					# Here check if makes it back
 					randback = rand()
@@ -574,7 +572,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 							# ---------------------------------------------------------
 							
 							# Get the probability array - be careful not to overwrite previous if statement!
-							probarray_LD = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'strayer_natalPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+							probarray_LD = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'strayer_natalPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 							
 							# If spots available to move to:
 							if sum(probarray_LD) != 0.0:
@@ -952,7 +950,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						elif homeattempt == 'stray_emiPop':
 
 							# Get the probability array
-							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 		
 							# If statement to check if there are spots for offpsring to stray to
 							if sum(probarray) != 0.0:
@@ -1069,7 +1067,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						elif homeattempt == 'stray_natalPop':
 							
 							# Get the probability array
-							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_natalPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_natalPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 		
 							# If statement to check if there are spots for offpsring to stray to
 							if sum(probarray) != 0.0:
@@ -1202,7 +1200,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# ---------------------------------------------------------
 			
 					# Get the probability array
-					probarray = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+					probarray = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 					
 					# If spots available to move to:
 					if sum(probarray) != 0.0:
@@ -2314,6 +2312,11 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					offspring_patch = np.around(offspring_patch * float(Nage_samp_ind_off)/sum(offspring_patch))
 					offspring_patch = np.asarray(offspring_patch,dtype='int')
 					noOffspring[mothers_patch_ind] = offspring_patch
+					# Fix for rounding error above 
+					if Nage_samp_ind_off > sum(offspring_patch):
+						diff_fix = Nage_samp_ind_off - sum(offspring_patch)
+						index_fix = np.random.choice(range(len(offspring_patch)),diff_fix)
+						offspring_patch[index_fix] = offspring_patch[index_fix] + 1		
 			
 			# Tracking numbers - no packing deaths
 			# ------------------------------------
@@ -2797,7 +2800,7 @@ def DoImmigration(SubpopIN,K,N0,natal,Fdispmoveno,Mdispmoveno,\
 Fxycdmatrix,Mxycdmatrix,gen,xgridcopy,\
 ygridcopy,cdevolveans,fitvals,subpopmigration,\
 SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,\
-StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,dispLocalparA,dispLocalparB,dispLocalparC,thresh_dispLocal,dispLocal_ScaleMin,dispLocal_ScaleMax,dispLocalno,noalleles,plasticans,burningen_plastic,timeplastic):
+StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,dispLocalparA,dispLocalparB,dispLocalparC,thresh_dispLocal,dispLocal_ScaleMin,dispLocal_ScaleMax,dispLocalno,noalleles,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
 
 	'''
 	DoImmigration()
@@ -2820,7 +2823,7 @@ StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population
 	Fxycdmatrix,Mxycdmatrix,gen,\
 	cdevolveans,fitvals,subpopmigration,\
 	SelectionDeaths,DisperseDeaths,\
-	burningen_cdevolve,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,noalleles,plasticans,burningen_plastic,timeplastic)
+	burningen_cdevolve,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,ithmcrundir,packpar1,noOffspring,Bearpairs,size_std,Femalepercent,sourcePop,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,loci,muterate,mtdna,mutationans,geneswap,allelst,homeattempt,timecdevolve,N_beforePack_Immi_pop,N_beforePack_Immi_age,SelectionDeathsImm_Age0s,patchvals,assortmateModel,inheritans_classfiles,PopTag,subpopmort_mat,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,noalleles,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 	
 	# Calculate Dispersal Metrics for strayers 'S' 
 	tempStrayS = CalculateDispersalMetrics(SubpopIN,xgridcopy,ygridcopy,\
