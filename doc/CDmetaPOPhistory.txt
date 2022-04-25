@@ -1,3 +1,9 @@
+Changes v1.71.2021.04.11T08:38:00 (tjs)
+0) added split of plasticans to check for new input format for plastians (e.g. Temp_dom_0) line 385 CDMetaPOP.py. Checks Temp/Hab and dom/rec/codom entered correctly
+1) emigration starting at ine 124: added split to plasticans with if statement to divide column inputs into the 3 options: 1) temp/hab, 2)dominance options: dom, rec, codom, 3) user defines the percentage reduction. % for avoidance. (0.0 complete avoidance, 1.0 no avoidance / no reduction in prob array). Temp/hab and dominance options created 6 total if statements. codom reduces the % avoidance by 1/2.
+2) added similar portions from (1) to immgration script at 184
+3) added the plasticans split to CDmetaPOP_Modules (line 139:152)
+
 Changes v1.71.2021.07.20T12:35:00 (ell/cday)
 0) Added Adriana's popmodel 'N' fix to DoImmigration
 1) For plastic module, pull out temperature in PopVars plasticans option into own field to allow for dynamic cdclimate link.

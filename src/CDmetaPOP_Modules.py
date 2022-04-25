@@ -135,8 +135,9 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 				Indgenes[plaloci_index[1]] = 1
 			
 	# Skip if delayed start time
-	if gen >= burningen_plastic and (plasticans == 'Temp'):
-		
+    
+	if gen >= burningen_plastic and plasticans.split('_')[0] == 'Temp':
+
 		# If patch temp values are greater than/equal to threshold and check to make sure the alleles are still 0 (not turned on)
 		# If patch temp values are greater than/equal to threshold
 		if (patchTemp >= plastic_signalresp):
@@ -148,10 +149,9 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 			if Indgenes[get_plaallele2_index] == 1:
 				Indgenes[get_plaallele2_index] = Indgenes[get_plaallele2_index]+1
                 
-	if gen >= burningen_plastic and (plasticans == 'Hab'):
+	if gen >= burningen_plastic and plasticans.split('_')[0] == 'Hab':
 		
-		if (patchHab >= plastic_signalresp):
-			
+		if (float(patchHab) >= plastic_signalresp):
 			get_plaallele1_index = plaloci_index[0]
 			if Indgenes[get_plaallele1_index] == 1:
 				Indgenes[get_plaallele1_index] = Indgenes[get_plaallele1_index]+1 

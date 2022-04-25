@@ -352,13 +352,20 @@ if __name__ == '__main__':
 			print('Warning: More than 2 alleles per locus specified. CDEVOLVE only considers first 2 alleles in selection models (except Hindex scenario).')
 		if plasticans != 'N' and alleles[0] != 2:
 			print('Warning: More than 2 alleles per locus specified. Plastic gene turned on and only considers first 2 alleles in this model.')
-		
+
 		# For Plastic answer
 		if plasticans != 'N':
 			# Split for temp
-			if (plasticans != 'Temp') and (plasticans != 'Hab'):
-				print('Plastic parameter not entered corectly, check user manual and example files.')
+			if ((plasticans.split('_')[0] != 'Temp') and (plasticans.split('_')[0] != 'Hab')):
+				print('Plastic type (Temp/Hab) not entered corectly, check user manual and example files.')
 				sys.exit(-1)
+                
+		if plasticans != 'N':
+			# Split for temp
+			if ((plasticans.split('_')[1] != 'dom') and (plasticans.split('_')[1] != 'rec') and (plasticans.split('_')[1] != 'codom')):
+				print('Plastic type (dom/codom/rec) not entered corectly, check user manual and example files.')
+				sys.exit(-1)       
+                
 		if plasticans != 'N':	
 			if ((timeplastic.find('Out') == -1) and (timeplastic.find('Back') == -1)):
 				print('Plastic timing must be specified (e.g., Out or Back).')
