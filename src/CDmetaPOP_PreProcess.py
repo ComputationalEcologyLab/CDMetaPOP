@@ -5,29 +5,14 @@
 # Description: This is the function/module file pre processing.
 # --------------------------------------------------------------------------------------------------
 
-# Import Modules with Except/Try statements
-
-# Numpy functions
-try:
-	import numpy as np 
-	from numpy.random import *
-except ImportError:
-	raise ImportError, "Numpy required."
-
-# Scipy function KDTree
-try:
-	from scipy.spatial import KDTree
-	scipyAvail = True
-except ImportError:
-	raise ImportError, "Scipy required."
-	scipyAvail = False
 from scipy.stats import truncnorm
-from scipy.linalg import eigh, cholesky
 from scipy.stats import norm
+import numpy as np 
 		
 # General python imports
-import os,sys,random,pdb,copy
+import os,sys,pdb,copy
 from ast import literal_eval 
+from CDmetaPOP_Modules import *
 
 # ---------------------------------------------------------------------------------------------------
 def count_unique(keys):
@@ -43,7 +28,7 @@ def w_choice_general(lst):
 	Weighted random draw from a list, probilities do not have to add to one.
 	'''
 	wtotal=sum(x[1] for x in lst)
-	n=random.uniform(0,wtotal)
+	n=np.random.uniform(0,wtotal)
 	count = 0
 	for item, weight in lst:
 		if n < weight:
@@ -65,7 +50,7 @@ def loadFile(filename, header_lines=0, delimiter=None, cdpop_inputvars=False): #
 	try:
 		inputfile = open(filename)
 	except (IOError,OSError) as e:
-		print("Load file: %s the file (%s) is not available!"%(e,filename))
+		print(("Load file: %s the file (%s) is not available!"%(e,filename)))
 		sys.exit(-1)
 	header_dict = {}
 	data_list = []
@@ -150,7 +135,7 @@ def ReadCDMatrix(cdmatrixfilename,function,threshold,A,B,C):
 		# Open file for reading
 		inputfile = open(cdmatrixfilename,'rU')
 	else:
-		print("CDmetaPOP ReadCDMatrix() error: open failed, could not open %s"%(cdmatrixfilename))
+		print(("CDmetaPOP ReadCDMatrix() error: open failed, could not open %s"%(cdmatrixfilename)))
 		sys.exit(-1)
 	
 	# Read lines from the file
@@ -194,9 +179,9 @@ def ReadCDMatrix(cdmatrixfilename,function,threshold,A,B,C):
 	cdmatrix = []
 	if function != '9':
 		# Fill up matrix with float value of array x
-		for j in xrange(nofiles):
+		for j in range(nofiles):
 			cdmatrix.append([])
-			for k in xrange(nofiles):
+			for k in range(nofiles):
 				
 				# For the linear function
 				if function == '1':
@@ -245,7 +230,7 @@ def ReadCDMatrix(cdmatrixfilename,function,threshold,A,B,C):
 				# Nearest neighbor function here
 				elif function == '3':
 					print('Nearest neighbor function is not currently implemented.')
-					print('You can use Linear function with neighbor threshold for approximation. Email Erin.')
+					print('You can use Linear function with neighbor threshold for approximation.')
 					sys.exit(-1)
 				
 				# Random function here
@@ -286,7 +271,7 @@ def ReadCDMatrix(cdmatrixfilename,function,threshold,A,B,C):
 				elif function == '6':
 					scale_min = 0.
 					scale_max = 1.
-					# Check if within the same subpopulation
+					# Check if within the same subpopulation/patch
 					if j == k:					
 						cdmatrix[j].append(1.0)
 					else:
@@ -407,9 +392,9 @@ def CreateAlleleList(loci,alleles,xgenes):
 	
 	# Store all information in a list [loci][allele#,probability]
 	allelst = []
-	for i in xrange(loci):
+	for i in range(loci):
 		allelst.append([])
-		for k in xrange(alleles[i]):
+		for k in range(alleles[i]):
 			allspot = sum(alleles[0:i]) + k + 1
 			#allelst[i].append([int(k),float(xgenes[alleles[i]*i+1+k][1])])
 			allelst[i].append([int(k),float(xgenes[allspot][1])])
@@ -427,14 +412,14 @@ def InitializeGenes(datadir,allefreqfilename,loci,alleles):
 	
 	allelst = []
 	# Loop through allelefrequency files
-	for ifile in xrange(len(allefreqfilename)):
+	for ifile in range(len(allefreqfilename)):
 		allelst.append([]) # add a spot for this patch 
 		
 		fileans = allefreqfilename[ifile]
 		fileans = fileans.split(';') # Here for a spatial separation use this deliminator check.
 				
 		# Then loop through each file
-		for i_splitpatch in xrange(len(fileans)):
+		for i_splitpatch in range(len(fileans)):
 			# If genetic structure intialized by a file...
 			if not (fileans[i_splitpatch] == 'random' or fileans[i_splitpatch] == 'random_var'):
 				
@@ -443,7 +428,7 @@ def InitializeGenes(datadir,allefreqfilename,loci,alleles):
 					# Open file for reading
 					inputfile = open(datadir+fileans[i_splitpatch],'rU')
 				else:
-					print("CDmetaPOP InitializeGenes() error: open failed, could not open %s"%(fileans[i_splitpatch]))
+					print(("CDmetaPOP InitializeGenes() error: open failed, could not open %s"%(fileans[i_splitpatch])))
 					sys.exit(-1)
 					
 				# Read lines from the file
@@ -457,7 +442,8 @@ def InitializeGenes(datadir,allefreqfilename,loci,alleles):
 				
 				# Split up each line in file and append to empty matrix, x
 				for i in lines:
-					thisline = i.strip('\n').strip('\r').strip(' ').split(',')
+					thisline = i.replace('"','')
+					thisline = thisline.strip('\n').strip('\r').strip(' ').split(',')
 					xgenes.append(thisline)
 				
 				# Error check here
@@ -477,8 +463,8 @@ def InitializeGenes(datadir,allefreqfilename,loci,alleles):
 				# Create even distribution
 				xgenes = []
 				xgenes.append(['Allele List','Frequency'])
-				for iloci in xrange(loci):
-					for iall in xrange(alleles[iloci]):
+				for iloci in range(loci):
+					for iall in range(alleles[iloci]):
 						xgenes.append(['L'+str(iloci)+'A'+str(iall),str(1.0/alleles[iloci])])
 				
 				# Call CreateAlleleList()
@@ -524,9 +510,12 @@ def InitializeAge(K,agefilename,datadir):
 	age_cap_out = []
 	age_cap_back = []	
 	lencheck = [] # temp error check
+	f_leslie = []
+	f_leslie_std = []
+	age_DispProb = []
 	
 	# Then loop through each file
-	for isub in xrange(len(agefilename)):
+	for isub in range(len(agefilename)):
 		
 		# Add spots for this patch
 		agelst.append([])
@@ -553,12 +542,15 @@ def InitializeAge(K,agefilename,datadir):
 		age_cap_out.append([])
 		age_cap_back.append([])
 		lencheck.append([])
+		f_leslie.append([])
+		f_leslie_std.append([])
+		age_DispProb.append([])
 		
 		fileans = agefilename[isub]
 		fileans = fileans.split(';') # For spatial separation use this deliminator check
 		
 		# The loop through each file
-		for i_splitpatch in xrange(len(fileans)):
+		for i_splitpatch in range(len(fileans)):
 		
 			# Add spot for this file
 			agelst[isub].append([]) # [age,probability] for age distribution
@@ -585,13 +577,16 @@ def InitializeAge(K,agefilename,datadir):
 			age_cap_out[isub].append([])
 			age_cap_back[isub].append([])
 			lencheck[isub].append([])
+			f_leslie[isub].append([])
+			f_leslie_std[isub].append([])
+			age_DispProb[isub].append([])
 			
 			# Check statements
 			if os.path.exists(datadir+fileans[i_splitpatch]):
 				# Open file for reading
 				inputfile = open(datadir+fileans[i_splitpatch],'rU')
 			else:
-				print("CDmetaPOP InitializeAge() error: open failed, could not open %s"%(datadir+fileans[i_splitpatch]))
+				print(("CDmetaPOP InitializeAge() error: open failed, could not open %s"%(datadir+fileans[i_splitpatch])))
 				sys.exit(-1)
 			
 			# Read lines from the file
@@ -606,18 +601,18 @@ def InitializeAge(K,agefilename,datadir):
 			# Split up each line in file and append to empty matrix, x
 			for i in lines:
 				thisline = i.strip('\n').strip('\r').strip(' ').split('\r')
-				for j in xrange(len(thisline)):
+				for j in range(len(thisline)):
 					xage.append(thisline[j].split(','))
 			lencheck[isub][i_splitpatch].append(len(xage)-1)
 			# Error on length of file
-			if len(xage[0]) != 20:
-				print('ClassVars file is not in the correct format (20 fields needed)')
+			if len(xage[0]) != 23:
+				print('ClassVars file is not in the correct format (23 fields needed)')
 				sys.exit(-1)
 			# Delete lines from earlier
 			del(lines)
 			
 			# Loop through file appending values
-			for i in xrange(len(xage)-1):	
+			for i in range(len(xage)-1):	
 				ageclass[isub][i_splitpatch].append(int(xage[i+1][0]))
 				age_size_mean[isub][i_splitpatch].append(float(xage[i+1][1]))
 				age_size_std[isub][i_splitpatch].append(float(xage[i+1][2]))
@@ -633,16 +628,19 @@ def InitializeAge(K,agefilename,datadir):
 				size_percmort_back_sd[isub][i_splitpatch].append(xage[i+1][12])
 				age_Mg[isub][i_splitpatch].append(xage[i+1][13])
 				age_S[isub][i_splitpatch].append(xage[i+1][14])
+				age_DispProb[isub][i_splitpatch].append(xage[i+1][15])
 				#M_mature[isub][i_splitpatch].append(float(xage[i+1][15]))
 				#F_mature[isub][i_splitpatch].append(float(xage[i+1][16]))
-				age_mature[isub][i_splitpatch].append(xage[i+1][15])
-				age_mu[isub][i_splitpatch].append(xage[i+1][16])
-				age_sigma[isub][i_splitpatch].append(xage[i+1][17])
-				age_cap_out[isub][i_splitpatch].append(xage[i+1][18])
-				age_cap_back[isub][i_splitpatch].append(xage[i+1][19])	
+				age_mature[isub][i_splitpatch].append(xage[i+1][16])
+				age_mu[isub][i_splitpatch].append(xage[i+1][17])
+				age_sigma[isub][i_splitpatch].append(xage[i+1][18])
+				f_leslie[isub][i_splitpatch].append(xage[i+1][19])
+				f_leslie_std[isub][i_splitpatch].append(xage[i+1][20])
+				age_cap_out[isub][i_splitpatch].append(xage[i+1][21])
+				age_cap_back[isub][i_splitpatch].append(xage[i+1][22])	
 			
 			# Get age distribution list
-			for i in xrange(len(ageno[isub][i_splitpatch])):
+			for i in range(len(ageno[isub][i_splitpatch])):
 				agelst[isub][i_splitpatch].append([ageclass[isub][i_splitpatch][i],ageno[isub][i_splitpatch][i]/sum(ageno[isub][i_splitpatch])])
 			
 			# Error check on sexratio
@@ -664,7 +662,7 @@ def InitializeAge(K,agefilename,datadir):
 	
 	# Return variables
 	tupAgeFile = agelst,age_percmort_out,age_percmort_back,age_Mg,age_S,\
-	sexratio,age_mu,age_size_mean,age_size_std,age_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd
+	sexratio,age_mu,age_size_mean,age_size_std,age_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,f_leslie,f_leslie_std,age_DispProb
 	
 	return tupAgeFile
 	#End::InitializeAge()
@@ -680,15 +678,15 @@ def InitializeID(K,N):
 	id = []
 	subpop = []
 	speciesID = []
-	for isub in xrange(len(K)):
-		if K[isub] > 0:
+	for isub in range(len(K)):
+		if int(K[isub]) > 0:
 			Nspecies = N[isub].split(';')
-			for ispec in xrange(len(Nspecies)): # Loop through each species group
-				for iind in xrange(int(Nspecies[ispec])): # Loop through each ind
+			for ispec in range(len(Nspecies)): # Loop through each species group
+				for iind in range(int(Nspecies[ispec])): # Loop through each ind
 					'''
 					# See if spot fills based on Nvals
 					probfill = float(N[isub]/float(K[isub]))
-					randno = rand()
+					randno = np.random.uniform()
 					if randno <= probfill:
 						# Get name
 						name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_m-1f-1'+'_P'+str(isub+1)+'_Y-1_U'+str(iind)
@@ -701,9 +699,8 @@ def InitializeID(K,N):
 					id.append(name)
 					subpop.append(isub+1)
 					speciesID.append(ispec+1)
-				
 	id = np.asarray(id)
-	subpop = np.asarray(subpop,dtype = '|S6')
+	subpop = np.asarray(subpop,dtype = '|U6')
 	speciesID = np.asarray(speciesID)
 	
 	return id,subpop,speciesID
@@ -726,9 +723,9 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 	layEggs = []
 	hindex = []
 	whichClassFile = []
-	
+	#pdb.set_trace()		
 	# Just loop through actual individuals, else this can take a long while - carful of indexing
-	for iind in xrange(len(subpop)):
+	for iind in range(len(subpop)):
 		
 		# ---------------
 		# Get patch number (minus 1 for indexing)
@@ -739,19 +736,9 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		# Get genes - For each loci:
 		# --------------------------		
 		genes.append([]) # And store genes information
-		# Match the 'species' ID with the allele frequency file
-		if len(N0[isub].split(';')) > 1:
-			# If more than one allele frequency file was given to match species ID
-			if len(allelst[isub]) > 1:
-				# Index possibly allele file matching species ID here
-				thisgenefile = speciesID[iind]-1
-			# Could have entered 'random' gene init
-			else:
-				thisgenefile = randint(len(allelst[isub]))
-		# 1 or less N0 value given
-		else:
-			thisgenefile = randint(len(allelst[isub]))
-		for j in xrange(loci):
+		# First check to see if there is more than one file that can be used for this patch and then randomly choose which one to initialize this individual; make sure this file is stored for ClassVars selection later
+		thisgenefile = np.random.randint(len(allelst[isub]))
+		for j in range(loci):
 							
 			# Take a random draw from the w_choice function at jth locus
 			rand1 = w_choice_general(allelst[isub][thisgenefile][j])[0]
@@ -764,7 +751,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			# 	1s = heterozygous at that locus
 			#	2s = homozygous at that locus
 			#	0s = absence of allele
-			for k in xrange(alleles[j]):
+			for k in range(alleles[j]):
 									
 				# Assignment of 2, the rest 0
 				if rand1 == rand2: 
@@ -797,9 +784,9 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			hindex.append(0.5)
 		else:
 			hindex.append(-9999)		
-		
+		#pdb.set_trace()
 		# -------------------------
-		# Store classvars file used
+		# Store classvars file used - Currently random selection from classvars, but passed in speciesID splits from N0, so could match N0 to thisfile here
 		# -------------------------
 		# First make sure to grab the correct ClassVars file - Then check cases
 		if len(allelst[isub]) == len(agelst[isub]):
@@ -808,9 +795,9 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			if len(agelst[isub]) == 1:
 				thisfile = 0 # only 1 class file use it
 			else:
-				thisfile = randint(len(agelst[isub])) # not ideal, but eg 3 genes and 2 classvars, randomly pick a class vars
+				thisfile = np.random.randint(len(agelst[isub])) # not ideal, but eg 3 genes and 2 classvars, randomly pick a class vars
 		else:
-			thisfile = randint(len(agelst[isub])) # not ideal, but eg 2 genes and 3 classvars, randomly pick a classvars
+			thisfile = np.random.randint(len(agelst[isub])) # not ideal, but eg 2 genes and 3 classvars, randomly pick a classvars
 		# Append the original patch and class vars file location for indexing to later.
 		whichClassFile.append('P'+str(isub)+'_CV'+str(thisfile))
 		# ---------------
@@ -826,8 +813,12 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		mu,sigma = age_size_mean[isub][thisfile][agetemp],age_size_std[isub][thisfile][agetemp]			
 		# Case here for sigma == 0
 		if sigma != 0:
-			lower, upper = 0,np.inf
-			sizesamp  = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)			
+			#lower, upper = 0,np.inf
+			#sizesamp  = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)			
+			sizesamp = np.random.normal(mu,sigma)
+			if sizesamp < 0:
+				sizesamp = 0.
+			
 		else:
 			sizesamp = mu
 		sizesamp = round(sizesamp,3)
@@ -857,7 +848,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			if float(sexratio[isub][thisfile][agetemp].split(';')[2]) != 0:
 				print('Wright Fisher option specified for sex ratios. YY individuals can not be considered.')
 				sys.exit(-1)			
-			offsex = int(2*rand())
+			offsex = int(2*np.random.uniform())
 			if offsex == 0:
 				offsex == 'XX'
 			else:
@@ -869,7 +860,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		# ------------------------
 		if cdinfect == 'Y':
 			# Append a random number 0 or 1
-			infection.append(int(2*rand()))
+			infection.append(int(2*np.random.uniform()))
 		else:
 			infection.append(0)	
 			
@@ -905,7 +896,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			else:
 				AgeMature = int(defaultAgeMature.split('~')[0])
 			
-		if agetemp >= AgeMature:
+		if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
 			matval = 1.0
 		else: # Run through options and get matval		
 			if sizeans == 'N': # Age control
@@ -1010,12 +1001,12 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 				sys.exit(-1)
 		
 		# Check probability and egg laying
-		randmat = rand()
+		randmat = np.random.uniform()
 		if randmat < matval:
 			mature.append(1)
-			randegglay = rand()
+			randegglay = np.random.uniform()
 			# If sexans 'Y' and female, check layEggs
-			if sexans == 'Y':
+			if sexans == 'Y' or sexans == 'H':
 				if offsex == 'XX':
 					if randegglay < eggFreq:
 						layEggs.append(1)
@@ -1031,7 +1022,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		else:
 			mature.append(0)
 			layEggs.append(0)
-	
+			
 	# Return Vars
 	return age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile
 	#End::InitializeVars()
@@ -1048,7 +1039,7 @@ def ReadXY(xyfilename):
 		# Open file for reading
 		inputfile = open(xyfilename,'rU')
 	else:
-		print("CDmetaPOP ReadXY() error: open failed, could not open %s"%(xyfilename))
+		print(("CDmetaPOP ReadXY() error: open failed, could not open %s"%(xyfilename)))
 		sys.exit(-1)
 	
 	# Read lines from the file
@@ -1073,7 +1064,7 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,outhabvals_pass,backhabvals_pass,plastic_signalres_pass,plastic_behaviorres_pass,plasticans):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
@@ -1390,19 +1381,34 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		else:
 			subpopmort_mat = subpopmort_pass
 			
-	# Plastic Temp/Hab values - plastic_signalres_pass,plastic_behaviorres_pass
-	if plasticans != 'N':
-		if isinstance(plastic_signalres_pass, (list,tuple)):
-			plastic_signalres = float(plastic_signalres_pass[icdtime])
-		else:
-			plastic_signalres = float(plastic_signalres_pass)
-		if isinstance(plastic_behaviorres_pass, (list,tuple)):
-			plastic_behaviorres = float(plastic_behaviorres_pass[icdtime])
-		else:
-			plastic_behaviorres = float(plastic_behaviorres_pass)
+	# ---------------------------------------------
+	# Read in Beta File for Multiple loci selection
+	# ---------------------------------------------
+	if isinstance(betaFile_selection,(list,tuple)):
+		tempbetaFile_selection = datadir+betaFile_selection[icdtime]
 	else:
-		plastic_signalres = plastic_signalres_pass
-		plastic_behaviorres  = plastic_behaviorres_pass
+		tempbetaFile_selection = datadir+betaFile_selection
+	tempbetas_selection = []	
+	if cdevolveans.split('_')[0] == 'P':
+		# Read in Beta File
+		betavals = ReadXY(tempbetaFile_selection)
+	
+		# Error check on beta file - should be x number of betas alleles * number of xvars * number of loci under selection
+		if (len(betavals)-1)*(len(betavals[0])-1) != int(cdevolveans.split('_')[3].split('A')[1])*int(cdevolveans.split('_')[1].split('X')[1])*int(cdevolveans.split('_')[2].split('L')[1]):
+			print('Beta file for selection is incorrect. Specify the beta for each variableXlociXallele combination.')
+			sys.exit(-1)
+		# Then extract betavals - in order of variable, loci, allele [var][loci][allele]
+		for ixvar in range(int(cdevolveans.split('_')[1].split('X')[1])):
+			tempbetas_selection.append([])
+			for iloci in range(int(cdevolveans.split('_')[2].split('L')[1])):
+				tempbetas_selection[ixvar].append([])
+				for iall in range(int(cdevolveans.split('_')[3].split('A')[1])):
+					tempbetas_selection[ixvar][iloci].append(float(betavals[iall+1][ixvar*(int(cdevolveans.split('_')[2].split('L')[1]))+iloci+1]))
+		# Add beta0 - will be the last spot in betas vars 
+		if len(betavals[0][0]) == 0:
+			tempbetas_selection.append(0.0)
+		else:
+			tempbetas_selection.append(float(betavals[0][0])) 
 	
 	# ----------------------
 	# Patch based parameters
@@ -1431,10 +1437,13 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	tempN0 = []
 	tempAllelefile = []
 	tempClassVarsfile = []
+	tempcompcoef = []
+	tempxvars_betas = []
 	tempouthabvals = []
 	tempbackhabvals = []
 	
-	for isub in xrange(len(K)):
+	for isub in range(len(K)):		
+		
 		if len(Str[isub].split('|')) > 1:
 			tempStr.append(float(Str[isub].split('|')[icdtime]))
 		else:
@@ -1544,12 +1553,21 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			tempClassVarsfile.append(classvarsfiles_pass[isub].split('|')[icdtime])
 		else: # No bar split, just one value
 			tempClassVarsfile.append(classvarsfiles_pass[isub])
-		
-		if len(fitvals) > 0:
 			
+		if len(comp_coef_pass[isub].split('|')) > 1: # More than one time value
+			tempcompcoef.append(comp_coef_pass[isub].split('|')[icdtime])
+		else: # No bar split, just one value
+			tempcompcoef.append(comp_coef_pass[isub])
+		
+		# 1 and 2 Locus Fitness Variables
+		if len(fitvals) > 0:			
 			tempfitvals.append([])
-			for i in xrange(len(fitvals[isub])):
+			for i in range(len(fitvals[isub])): # loop through 9 genotype combinations
 				if len(fitvals[isub][i].split('|')) > 1: # More than one time
+					# Error Check to make sure the times match
+					if len(fitvals[isub][i].split('|')) != len(cdclimgentime):
+						print('CDCLIMATE specified times - length of - does not match - length of - fitness values given.')
+						sys.exit(-1)
 					if len(fitvals[isub][i].split('|')[icdtime].split('~')) > 1: # G or M parameters []
 						tempfitvals[isub].append(fitvals[isub][i].split('|')[icdtime].split('~'))
 					else: # just fitness values 1 or 2
@@ -1558,8 +1576,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 					if len(fitvals[isub][i].split('~')) > 1: # G or M parameters []
 						tempfitvals[isub].append(fitvals[isub][i].split('~'))
 					else: # just fitness values
-						tempfitvals[isub].append(fitvals[isub][i])
-					
+						tempfitvals[isub].append(fitvals[isub][i])					
 			# Error checks
 			if cdevolveans == 'G':
 				if len(tempfitvals[isub][0][0].split(':')) != 6: 
@@ -1569,11 +1586,21 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 				if len(tempfitvals[isub][0][0].split(':')) != 2 and len(len(tempfitvals[isub][3][0].split(':'))) != 6:
 					print('CDEVOLVE answer is MG, 6 parameter values must be entered for growth equation and 2 for maturation equation, see user manual.')
 					sys.exit(-1)					
+		# MLocus Selection Variables
+		if len(xvars_betas_pass) > 0:		
+			tempxvars_betas.append([])
+			for i in range(len(xvars_betas_pass[isub])):
+				if len(xvars_betas_pass[isub][i].split('|')) > 1:
+					tempxvars_betas[isub].append(xvars_betas_pass[isub][i].split('|')[icdtime])
+				else:
+					tempxvars_betas[isub].append(xvars_betas_pass[isub][i])		
+		
 		# Error check on grow days, must be equal to 365 if both entered
 		if tempoutsize[isub] != 'N' and tempbacksize[isub] != 'N':
 			if float(tempoutgrow[isub]) + float(tempbackgrow[isub]) > 365.:
 				print('Grow days back and out must be <= 365.')
 				sys.exit(-1)
+				
 		if len(outhabvals_pass[isub].split('|')) > 1:
 			tempouthabvals.append(outhabvals_pass[isub].split('|')[icdtime])
 		else:
@@ -1717,12 +1744,12 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	tupClimate = matecdmatrix,FdispOutcdmatrix,MdispOutcdmatrix,FdispBackcdmatrix,MdispBackcdmatrix,\
 	StrBackcdmatrix,matemovethresh,\
 	FdispmoveOutthresh,MdispmoveOutthresh,\
-	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,FdispmoveOutparA,MdispmoveOutparA,FdispmoveOutparB,MdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparC,FdispmoveBackparA,MdispmoveBackparA,FdispmoveBackparB,MdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparC,dispLocalcdmatrix,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,dispLocal_ScaleMin,dispLocal_ScaleMax,tempouthabvals,tempbackhabvals, plastic_signalres,plastic_behaviorres	
+	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,FdispmoveOutparA,MdispmoveOutparA,FdispmoveOutparB,MdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparC,FdispmoveBackparA,MdispmoveBackparA,FdispmoveBackparB,MdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparC,dispLocalcdmatrix,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,dispLocal_ScaleMin,dispLocal_ScaleMax,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass	
 	return tupClimate
 	#End::DoCDClimate()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_percmort_back_mu_egg,age_percmort_back_sd_egg,cor_mat):	
+def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_percmort_back_mu_egg,age_percmort_back_sd_egg,cor_mat,age_mu, age_sigma,f_leslie_mu,f_leslie_std):	
 	'''
 	Here update any stochastic variables. Add in Todd and Ng method for unbias draw.
 	Generate correlated deviates
@@ -1743,15 +1770,18 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	
 	# For no cor_mat answer 'N'
 	if isinstance(cor_mat,str):			
-		for isub in xrange(len(K_mu)):
+		for isub in range(len(K_mu)):
 			# K ------------------
 			mu = K_mu[isub]
 			sigma = K_std[isub]
 			# Case here for sigma == 0
 			if sigma != 0:
 				# Call a truncated normal here
-				lower, upper = 0,np.inf
-				X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				#lower, upper = 0,np.inf
+				#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				X = np.random.normal(mu,sigma)
+				if X < 0:
+					X = 0.
 				K.append(int(X))
 			else:
 				K.append(int(mu))
@@ -1768,8 +1798,13 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				# Case here for sigma == 0
 				if sigma != 0:
 					# Call a truncated normal here
-					lower, upper = 0,100
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					#lower, upper = 0,100
+					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					X = np.random.normal(mu,sigma)
+					if X < 0:
+						X = 0.
+					elif X > 100:
+						X = 100.
 					popmort_out.append(round(X/100.,3))
 				else:
 					popmort_out.append(round(mu/100.,3))
@@ -1787,8 +1822,13 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				# Case here for sigma == 0
 				if sigma != 0:
 					# Call a truncated normal here
-					lower, upper = 0,100
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					#lower, upper = 0,100
+					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					X = np.random.normal(mu,sigma)
+					if X < 0:
+						X = 0.
+					elif X > 100:
+						X = 100.
 					popmort_back.append(round(X/100.,3))
 				else:
 					popmort_back.append(round(mu/100.,3))
@@ -1801,8 +1841,13 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 			# Case here for sigma == 0
 			if sigma != 0:
 				# Call a truncated normal here
-				lower, upper = 0,100
-				X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				#lower, upper = 0,100
+				#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+				X = np.random.normal(mu,sigma)
+				if X < 0:
+					X = 0.
+				elif X > 100:
+					X = 100.
 				eggmort_patch.append(round(X/100.,3))
 			else:
 				eggmort_patch.append(round(mu/100.,3))
@@ -1817,8 +1862,11 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				# Case here for sigma == 0
 				if sigma != 0:
 					# Call a truncated normal here
-					lower, upper = 0,50
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					#lower, upper = 0,50
+					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					X = np.random.normal(mu,sigma)
+					if X < 0:
+						X = 0.
 					outsizevals.append(round(X,3))
 				else:
 					outsizevals.append(mu)
@@ -1835,8 +1883,11 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				# Case here for sigma == 0
 				if sigma != 0:
 					# Call a truncated normal here
-					lower, upper = 0,50
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					#lower, upper = 0,50
+					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					X = np.random.normal(mu,sigma)
+					if X < 0:
+						X = 0.
 					backsizevals.append(round(X,3))
 				else:
 					backsizevals.append(mu)
@@ -1853,8 +1904,13 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				# Case here for sigma == 0
 				if sigma != 0:
 					# Call a truncated normal here
-					lower, upper = 0,365
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					#lower, upper = 0,365
+					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					X = np.random.normal(mu,sigma)
+					if X < 0:
+						X = 0.
+					elif X > 365:
+						X = 365.
 					outgrowdays.append(round(X,3))
 				else:
 					outgrowdays.append(mu)
@@ -1871,8 +1927,13 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				# Case here for sigma == 0
 				if sigma != 0:
 					# Call a truncated normal here
-					lower, upper = 0,365
-					X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					#lower, upper = 0,365
+					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+					X = np.random.normal(mu,sigma)
+					if X < 0:
+						X = 0.
+					elif X > 365:
+						X = 365.
 					backgrowdays.append(round(X,3))
 				else:
 					backgrowdays.append(mu)
@@ -1912,7 +1973,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 		patch_sd = np.asarray(patch_sd,dtype = 'float')
 		
 		# Create covariance matrix for each patch: D*R*D
-		for isub in xrange(len(K_mu)):
+		for isub in range(len(K_mu)):
 			D = np.diag(patch_sd[:,isub])
 			
 			cov_mat = np.dot(D,cor_mat)
@@ -1998,26 +2059,77 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	age_percmort_back = []
 	size_percmort_out = []
 	size_percmort_back = []
+	f_ind = []
+	f_leslie = []
 	# Split up into the subpops
-	for isub in xrange(len(age_percmort_back_mu)):
+	for isub in range(len(age_percmort_back_mu)):
 		age_percmort_out.append([])
 		age_percmort_back.append([])
 		size_percmort_out.append([])
 		size_percmort_back.append([])
+		f_ind.append([])
+		f_leslie.append([])
 		# Split up for patch values
-		for ifile in xrange(len(age_percmort_back_mu[isub])):
+		for ifile in range(len(age_percmort_back_mu[isub])):
 			age_percmort_out[isub].append([])
 			age_percmort_back[isub].append([])
 			size_percmort_out[isub].append([])
 			size_percmort_back[isub].append([])
+			f_ind[isub].append([])
+			f_leslie[isub].append([])
 			# Then loop through each class value
-			for iage in xrange(len(age_percmort_back_mu[isub][ifile])):		
+			for iage in range(len(age_percmort_back_mu[isub][ifile])):		
+				
+				# age mu or fecundity for each individual (mean eggs) -----------------no sex split
+				mu = age_mu[isub][ifile][iage]
+				sigma = age_sigma[isub][ifile][iage]
+				if mu != 'N':
+					mu = float(mu)
+					sigma = float(sigma)
+					# Case here for sigma == 0
+					if sigma != 0:
+						# Call a truncated normal here
+						#lower, upper = 0,np.inf
+						#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+						X = np.random.normal(mu,sigma)
+						if X < 0:
+							X = 0.
+						f_ind[isub][ifile].append(round(X,3))
+					else:
+						f_ind[isub][ifile].append(round(mu,3))
+					if f_ind[isub][ifile][iage] < 0:
+						f_ind[isub][ifile][iage] = 0
+				else:
+					f_ind[isub][ifile].append(mu) 
+					
+				# f leslie --- -----------------no sex split
+				mu = f_leslie_mu[isub][ifile][iage]
+				sigma = f_leslie_std[isub][ifile][iage]
+				if mu != 'N':
+					mu = float(mu)
+					sigma = float(sigma)
+					# Case here for sigma == 0
+					if sigma != 0:
+						# Call a truncated normal here
+						#lower, upper = 0,np.inf
+						#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+						X = np.random.normal(mu,sigma)
+						if X < 0:
+							X = 0.
+						f_leslie[isub][ifile].append(round(X,3))
+					else:
+						f_leslie[isub][ifile].append(round(mu,3))
+					if f_leslie[isub][ifile][iage] < 0:
+						f_leslie[isub][ifile][iage] = 0
+				else:
+					f_leslie[isub][ifile].append(mu) 				
+				
 				# age mort back ----------------
 				# Split if sex ratios given
 				temp_age_mu = age_percmort_back_mu[isub][ifile][iage].split('~')				
 				temp_age_sd = age_percmort_back_sd[isub][ifile][iage].split('~')				
 				temp_store_mu = []
-				for isex in xrange(len(temp_age_mu)):
+				for isex in range(len(temp_age_mu)):
 					mu = temp_age_mu[isex]
 					if mu != 'N':
 						mu = float(mu)
@@ -2030,43 +2142,30 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 						# Case here for sigma == 0
 						if sigma != 0.:
 							# Call a truncated normal here
-							lower, upper = 0.,100.
-							X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							#lower, upper = 0.,100.
+							#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							X = np.random.normal(mu,sigma)
+							if X < 0:
+								X = 0
+							elif X > 100:
+								X = 100.
 							temp_store_mu.append(str(round(X/100.,3)))
 						else:
 							temp_store_mu.append(str(round(mu/100.,3)))
-						if temp_store_mu[isex] < 0:
+						#pdb.set_trace()
+						if float(temp_store_mu[isex]) < 0:
 							temp_store_mu[isex] = '0'
 					else:
 						temp_store_mu.append(str(mu))
 				# condese with : 	
 				age_percmort_back[isub][ifile].append('~'.join(temp_store_mu))
-				'''
-				# Store previous code version without sex ratio here				
-				mu = age_percmort_back_mu[isub][ifile][iage]
-				sigma = age_percmort_back_sd[isub][ifile][iage]
-				pdb.set_trace()
-				if mu != 'N':
-					mu = float(mu)
-					# Case here for sigma == 0
-					if sigma != 0:
-						# Call a truncated normal here
-						lower, upper = 0,100
-						X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-						age_percmort_back[isub][ifile].append(round(X/100.,3))
-					else:
-						age_percmort_back[isub][ifile].append(round(mu/100.,3))
-					if age_percmort_back[isub][ifile][iage] < 0:
-						age_percmort_back[isub][ifile][iage] = 0
-				else:
-					age_percmort_back[isub][ifile].append(mu)
-				'''
+				
 				# age mort out ----------------
 				# Split if sex ratios given
 				temp_age_mu = age_percmort_out_mu[isub][ifile][iage].split('~')				
 				temp_age_sd = age_percmort_out_sd[isub][ifile][iage].split('~')				
 				temp_store_mu = []
-				for isex in xrange(len(temp_age_mu)):
+				for isex in range(len(temp_age_mu)):
 					mu = temp_age_mu[isex]
 					if mu != 'N':
 						mu = float(mu)
@@ -2079,12 +2178,17 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 						# Case here for sigma == 0
 						if sigma != 0.:
 							# Call a truncated normal here
-							lower, upper = 0.,100.
-							X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							#lower, upper = 0.,100.
+							#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							X = np.random.normal(mu,sigma)
+							if X < 0:
+								X = 0
+							elif X > 100:
+								X = 100.
 							temp_store_mu.append(str(round(X/100.,3)))
 						else:
 							temp_store_mu.append(str(round(mu/100.,3)))
-						if temp_store_mu[isex] < 0:
+						if float(temp_store_mu[isex]) < 0:
 							temp_store_mu[isex] = '0'
 					else:
 						temp_store_mu.append(str(mu))
@@ -2096,7 +2200,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				temp_age_mu = size_percmort_back_mu[isub][ifile][iage].split('~')				
 				temp_age_sd = size_percmort_back_sd[isub][ifile][iage].split('~')				
 				temp_store_mu = []
-				for isex in xrange(len(temp_age_mu)):
+				for isex in range(len(temp_age_mu)):
 					mu = temp_age_mu[isex]
 					if mu != 'N':
 						mu = float(mu)
@@ -2109,12 +2213,17 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 						# Case here for sigma == 0
 						if sigma != 0.:
 							# Call a truncated normal here
-							lower, upper = 0.,100.
-							X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							#lower, upper = 0.,100.
+							#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							X = np.random.normal(mu,sigma)
+							if X < 0:
+								X = 0
+							elif X > 100:
+								X = 100.
 							temp_store_mu.append(str(round(X/100.,3)))
 						else:
 							temp_store_mu.append(str(round(mu/100.,3)))
-						if temp_store_mu[isex] < 0:
+						if float(temp_store_mu[isex]) < 0:
 							temp_store_mu[isex] = '0'
 					else:
 						temp_store_mu.append(str(mu))
@@ -2126,7 +2235,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				temp_age_mu = size_percmort_out_mu[isub][ifile][iage].split('~')				
 				temp_age_sd = size_percmort_out_sd[isub][ifile][iage].split('~')				
 				temp_store_mu = []
-				for isex in xrange(len(temp_age_mu)):
+				for isex in range(len(temp_age_mu)):
 					mu = temp_age_mu[isex]
 					if mu != 'N':
 						mu = float(mu)
@@ -2139,12 +2248,17 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 						# Case here for sigma == 0
 						if sigma != 0.:
 							# Call a truncated normal here
-							lower, upper = 0.,100.
-							X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							#lower, upper = 0.,100.
+							#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+							X = np.random.normal(mu,sigma)
+							if X < 0:
+								X = 0
+							elif X > 100:
+								X = 100.
 							temp_store_mu.append(str(round(X/100.,3)))
 						else:
 							temp_store_mu.append(str(round(mu/100.,3)))
-						if temp_store_mu[isex] < 0:
+						if float(temp_store_mu[isex]) < 0:
 							temp_store_mu[isex] = '0'
 					else:
 						temp_store_mu.append(str(mu))
@@ -2159,19 +2273,24 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	# Case here for sigma == 0
 	if sigma != 0:
 		# Call a truncated normal here
-		lower, upper = 0,100
-		X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+		#lower, upper = 0,100
+		#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
+		X = np.random.normal(mu,sigma)
+		if X < 0:
+			X = 0
+		elif X > 100:
+			X = 100.
 		eggmort_age = round(X/100.,3)
 	else:
 		eggmort_age = round(mu/100.,3)	
 	if eggmort_age < 0:
 		eggmort_age = 0	
 		
-	return K,popmort_back,popmort_out,eggmort_patch,outsizevals,backsizevals,outgrowdays,backgrowdays,age_percmort_out,age_percmort_back,	size_percmort_out,size_percmort_back,eggmort_age
+	return K,popmort_back,popmort_out,eggmort_patch,outsizevals,backsizevals,outgrowdays,backgrowdays,age_percmort_out,age_percmort_back,	size_percmort_out,size_percmort_back,eggmort_age,f_ind,f_leslie
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature):
+def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,spcNO,ibatch,betaFile_selection):
 	'''
 	DoPreProcess()
 	This function does all the pre-processing work before
@@ -2179,9 +2298,8 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	'''
 	# ----------------------------
 	# Create directory
-	# ----------------------------		
-	ithmcrundir = outdir+'batchrun'+\
-	str(ibatch)+'mcrun'+str(ithmcrun)+'/'
+	# ----------------------------	
+	ithmcrundir = outdir+'run'+str(irun)+'batch'+str(ibatch)+'mc'+str(ithmcrun)+'species'+str(spcNO)+'/'
 	os.mkdir(ithmcrundir)
 	
 	# ------------------------------------------------------------------
@@ -2190,10 +2308,15 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	xy = ReadXY(xyfilename)
 	
 	# Error statement for column data
-	if len(xy[1]) != 47:
-		print('Patchvars.csv input file is not correct version, see example input files.')
-		sys.exit(-1)	
-	
+	if cdevolveans.split('_')[0] != 'P':
+		if len(xy[1]) != 48:
+			print('PatchVars input file is not correct version, see example input files.')
+			sys.exit(-1)
+	else: # MLoci selection is on, then extra columns possible in PatchVars
+		if (len(xy[1]) - int(cdevolveans.split('_')[1].split('X')[1])) != 48:
+			print('PatchVars input file must be 48 columns plus the specified number of variables operating in the multiple loci selection model; see example input files.')
+			sys.exit(-1)
+		
 	# Store all information in lists by variable name and store
 	Pop = []
 	xgridpop = []
@@ -2225,10 +2348,12 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	backgrowdays_sd = [] # grow days back
 	pop_capture_back_pass = [] # Grab first one to go into first DoUpdate
 	pop_capture_out = []
-	outhabvals = [] 
-	backhabvals = []
 	fitvals = [] # selection values
-	for i in xrange(len(xy)-1):
+	outhabvals = []
+	backhabvals = []
+	comp_coef_temp = [] # Competition coef by patch
+	xvars = [] # selection for multilocus/hindex options
+	for i in range(len(xy)-1):
 		Pop.append(xy[i+1][0])
 		xgridpop.append(float(xy[i+1][1]))
 		ygridpop.append(float(xy[i+1][2]))
@@ -2261,7 +2386,8 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 		pop_capture_back_pass.append(xy[i+1][29])
 		outhabvals.append(xy[i+1][30])
 		backhabvals.append(xy[i+1][31])
-		
+		comp_coef_temp.append(xy[i+1][47]) # Bar allowed here
+		xvars_indexspot = 48 # for getting the xvars spot for indexing
 		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray':
 			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34]])
 		elif cdevolveans == 'G':
@@ -2270,6 +2396,10 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 			fitvals.append([xy[i+1][38],xy[i+1][39],xy[i+1][40],xy[i+1][41],xy[i+1][42],xy[i+1][43],xy[i+1][44],xy[i+1][45],xy[i+1][46]])
 		elif cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link':
 			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34],xy[i+1][35],xy[i+1][36],xy[i+1][37]])
+		elif cdevolveans.split('_')[0] == 'P':
+			xvars.append([])
+			for ixvars in range(int(cdevolveans.split('_')[1].split('X')[1])):
+				xvars[i].append(xy[i+1][xvars_indexspot+ixvars])		
 			
 	# Delete x variable
 	del(xy)
@@ -2294,7 +2424,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	N0 = []
 	allefreqfiles = []
 	classvarsfiles = []
-	for isub in xrange(len(K_temp)):
+	for isub in range(len(K_temp)):
 		mu = int(K_temp[isub].split('|')[0])
 		sigma = int(Kstd_temp[isub].split('|')[0])
 		K.append(mu)
@@ -2309,7 +2439,8 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 			if natal[isub] == 0:
 				N0[isub] = '0'
 		elif int(N0[isub]) > 0 and natal[isub] == 0:
-			print('N0 specified in nonnatal grounds. Initializing N0 at patch ',str(isub+1),' to 0.')
+			stringout = 'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.'
+			logMsg(logfHndl,stringout)
 			N0[isub] = '0'		
 	
 	# --------------------------------
@@ -2347,6 +2478,9 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_percmort_back_sd = tupAgeFile[16]
 	size_percmort_out_sd = tupAgeFile[17]
 	size_percmort_back_sd = tupAgeFile[18]
+	f_leslie = tupAgeFile[19]
+	f_leslie_std = tupAgeFile[20]
+	age_DispProb = tupAgeFile[21]
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature...
@@ -2374,7 +2508,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	unisubpops = len(Pop)
 	
 	# Organize type data in SubpopIN - here return this and also update dynamically.
-	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int),('genes',('i',sum(alleles)))]
+	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int),('genes',('i',sum(alleles)))]
 	
 	# Get N here - N maybe slighlty different then specified due to random draws
 	N = []
@@ -2382,10 +2516,11 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	subpopimmigration.append([]) # There are tracking variables init here
 	
 	# Set class variable by list of populations
-	for isub in xrange(unisubpops):
+	for isub in range(unisubpops):
 		# Stick error statement here for multiple files of genes and classvars
 		if len(allelst[isub]) != len(agelst[isub]):
-			print('Warning: Number of gene files and ClassVars files specified for patch, '+str(isub)+'are not the same. Will continue with initialization using files given using first files.')	
+			stringout = 'Warning: Number of gene files and ClassVars files specified for patch, '+str(isub)+'are not the same. Will continue with initialization using files given using first files.'
+			logMsg(logfHndl,stringout)	
 	
 		# Storage variables
 		subpopemigration[0].append([0])
@@ -2419,7 +2554,8 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 			
 			# Loop through individuals in subpop
 			# ----------------------------------
-			for iind in xrange(noinsub):
+			
+			for iind in range(noinsub):
 				# Check if it is an NA spot
 				indspot = np.where(subpop == Pop[isub])[0][iind]
 							
@@ -2427,16 +2563,17 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 				# ---------------------------------				
 				# Update the Wright Fisher case for sex here
 				if sexratio[isub][0] == 'WrightFisher':				
-					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature, speciesID					
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
+					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature,newmature, speciesID					
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 					SubpopIN[isub].append(recd)
 				
 				# Not special Wright Fisher case
 				else:			
-					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature, newmature speciesID
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
+					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature, newmature speciesID
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 					SubpopIN[isub].append(recd)
-		# Convert to array with dytpe		
+		# Convert to array with dytpe	
+		#pdb.set_trace()
 		SubpopIN[isub] = np.asarray(SubpopIN[isub],dtype=dtype)
 	
 	# Clean up N
@@ -2450,14 +2587,43 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 		print('Subpopulation identification field can not have 0 values.')
 		sys.exit(-1)
 	tempcheck = []
-	for i in xrange(len(np.unique(Pop))):
+	for i in range(len(np.unique(Pop))):
 		tempcheck.append(int(np.unique(Pop)[i]))
 	tempcheck = np.sort(tempcheck)
 	if len(tempcheck) > 1:
-		for i in xrange(len(tempcheck)-1):
+		for i in range(len(tempcheck)-1):
 			if tempcheck[i+1]-tempcheck[i] > 1:
 				print('Subpopulation identification field must be labeled sequentially or a single value.')
-				sys.exit(-1)	
+				sys.exit(-1)
+
+	# ---------------------------------------------
+	# Read in Beta File for Multiple loci selection
+	# ---------------------------------------------
+	if isinstance(betaFile_selection,(list,tuple)):
+		tempbetaFile_selection = datadir+betaFile_selection[0] # Here read in first one in case multiple cdclimate
+	else:
+		tempbetaFile_selection = datadir+betaFile_selection
+	tempbetas_selection = []	
+	if cdevolveans.split('_')[0] == 'P':
+		# Read in Beta File
+		betavals = ReadXY(tempbetaFile_selection)
+	
+		# Error check on beta file - should be x number of betas alleles * number of xvars * number of loci under selection
+		if (len(betavals)-1)*(len(betavals[0])-1) != int(cdevolveans.split('_')[3].split('A')[1])*int(cdevolveans.split('_')[1].split('X')[1])*int(cdevolveans.split('_')[2].split('L')[1]):
+			print('Beta file for selection is incorrect. Specify the beta for each variableXlociXallele combination.')
+			sys.exit(-1)
+		# Then extract betavals - in order of variable, loci, allele [var][loci][allele]
+		for ixvar in range(int(cdevolveans.split('_')[1].split('X')[1])):
+			tempbetas_selection.append([])
+			for iloci in range(int(cdevolveans.split('_')[2].split('L')[1])):
+				tempbetas_selection[ixvar].append([])
+				for iall in range(int(cdevolveans.split('_')[3].split('A')[1])):
+					tempbetas_selection[ixvar][iloci].append(float(betavals[iall+1][ixvar*(int(cdevolveans.split('_')[2].split('L')[1]))+iloci+1]))
+		# Add beta0 - will be the last spot in betas vars 
+		if len(betavals[0][0]) == 0:
+			tempbetas_selection.append(0.0)
+		else:
+			tempbetas_selection.append(float(betavals[0][0]))
 	
 	# Delete other storage variables
 	del(size)
@@ -2481,7 +2647,7 @@ def DoPreProcess(outdir,datadir,ibatch,ithmcrun,xyfilename,loci,alleles,gen,logf
 	age_percmort_out,age_percmort_back,age_Mg,age_S,\
 	age_mu,age_size_mean,age_size_std,xgridpop,ygridpop,\
 	SubpopIN,N,K,dtype,outsizevals,backsizevals,\
-	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,age_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,outhabvals,backhabvals
+	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,age_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,comp_coef_temp,xvars,tempbetas_selection,outhabvals,backhabvals,f_leslie,f_leslie_std,age_DispProb 
 	
 	return tupPreProcess	
 	#End::DoPreProcess()
@@ -2520,7 +2686,7 @@ def DoUserInput(fileans):
 	#End::DoUserInput()
 
 # -------------------------------------------------------------------------	
-def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen_cdevolve,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen,PopTag,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature):
+def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen_cdevolve,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen,PopTag,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,logfHndl):
 	'''
 	AddIndividuals()
 	This function adds more individuals with given classvars 
@@ -2529,9 +2695,10 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	# ---------------------------------------------
 	# First error check on natal grounds and N0 > 0
 	# ---------------------------------------------
-	for isub in xrange(len(tempN0)):
-		if tempN0[isub] > 0 and natal[isub] == 0:
-			print('N0 specified in nonnatal grounds. Initializing N0 at patch ',str(isub+1),' to 0.')
+	for isub in range(len(tempN0)):
+		if int(tempN0[isub]) > 0 and natal[isub] == 0:
+			stringout = 'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.'
+			logMsg(logfHndl,stringout)
 			tempN0[isub] = 0
 	
 	# --------------------------------
@@ -2569,12 +2736,15 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	age_percmort_back_sd = tupAgeFile[16]
 	size_percmort_out_sd = tupAgeFile[17]
 	size_percmort_back_sd = tupAgeFile[18]
+	f_leslie = tupAgeFile[19]
+	f_leslie_std = tupAgeFile[20]
+	age_DispProb = tupAgeFile[21]
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,tempN0)
+	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,N0)
 	
 	# ---------------------------------------------
 	# Store class variable SubpopIN_add
@@ -2585,7 +2755,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	unisubpops = len(tempN0)
 	
 	# Set class variable by list of populations
-	for isub in xrange(unisubpops):
+	for isub in range(unisubpops):
 		SubpopIN_add = [] # Temp array to concatenate
 		
 		# Get each SubpopIN pop as array
@@ -2613,7 +2783,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 		
 			# Loop through individuals in subpop
 			# ----------------------------------
-			for iind in xrange(noinsub):				
+			for iind in range(noinsub):				
 				# Grab this index location
 				indspot = np.where(subpop == str(isub+1))[0][iind]
 				
@@ -2625,13 +2795,13 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 				# ---------------------------------				
 				# Update the Wright Fisher case for sex here
 				if sexratio[isub][0] == 'WrightFisher':				
-					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature,newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
+					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature,newmature
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 				
 				# Not special Wright Fisher case
 				else:			
-					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,capture,recapture,layeggs,genes,mature, newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
+					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature, newmature
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 				SubpopIN_add.append(recd)
 		
 		# Convert to array with dytpe		

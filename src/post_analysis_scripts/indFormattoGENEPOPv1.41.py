@@ -44,7 +44,7 @@ maxalleles = 36
 subpopno = 415
 
 # indfile index location for the start of locus 1 allele 1
-locus1spot = 17
+locus1spot = 20
 
 # -------------------------------	
 # Step 2: Prelimary work

@@ -1,67 +1,422 @@
-Changes v1.71.2021.07.20T12:35:00 (ell/cday)
-0) Added Adriana's popmodel 'N' fix to DoImmigration
-1) For plastic module, pull out temperature in PopVars plasticans option into own field to allow for dynamic cdclimate link.
-a) Added 2 new fields to PopVars 'plasticSignalResponse'	'plasticBehavioralResponse'
-b) Read in these new fields batchVars and allow for cdclimate module. 
-c) Remove any 'Temp' split calls in plasticgenans 
-d) Added plastic_signalres to DoUpdate, Added plastic_behaviorresp to DoImmigration, DoEmigration and corresponding functions.
-e) Usermanual not updated ***
+Changes 2.56.2022.06.20.T10:59:00 (ell/cday)
+0) Changed name of output folder to 'run0batch0mc0species0'
+1) Cleaning up inputfiles on github...
+2) ***Change mature_defualtAge max age to N if not wished. Maybe in future, but 3 values here from int to string then XX~XY~YY, so if/else statements become a mess. 
+3) Cleaning up usermanual more...
+4) KAdj_Emi Tracking renamed to PNratio_Emi; same for Immi
+5) Commented out #Kadj_track[gen].insert(0,sum(Kadj_track[gen])); so just tracking
+6) KAdj Emi first gen = 0 value update to ratio (was using K)
+7) 'N' for 'migrateout_cdmat' crashing ***ELL looking into. 
 
+Changes 2.55.2022.06.02.T12:59:00 (ell/cday)
+0) Still working on converting to full functioning plasticans (discuss with TS***)
+1) CDAY updates to the selection functions:
+a) All function options can be capitalized or lowercase (but this is not changed yet in the error in mainloop lines 264 - 280)
+b) All options are separated by underscores now, only parameters are separated by colons.
+-> Examples: FHindex_linear_1:2_linear_1:2, F_linear_1:2, Hindex_linear_1:2
+c) Negative values for either fitness or mortality can cause a problem when multiplying survivals in FHindex option. Added an inefficient check here (line 522) and need to decide whether to add this check to all options.
+2) Begin adding sexans option 'H'
+a) add sexans 'H' option and error checks for sexans in mainloop
+Notes: Basically individuals are XX (female) that self with some probability that instead of selfing, they mate with XY. 
+b) If sexans H, selfing must be a probability: add a error check for this in mainloop
+c) In PreProcess() when adding individuals, initialize Sex Ratio Class Vars file XX~XY individuals at propotion. ALl sexans == Y, also do sexans H, but check through biology
+-> if sexans == Y or sexans == H, then check for egglay frequency (so this parameter can be used here for skipped spawning for example). 
+d) sexans in GetMetrics(): no sexans check, so remove this reference. 
+e) Modules() -> AddAge0s() added same as in initializing individuals# If sexans 'Y' and female, check layEggs - if sexans == 'Y' or sexans == 'H':
+f) Mate(): sexans and selfing come in. 
+f.i) for now in tracking if sexans == Y or sexans == H keep the same.
+f.ii) assume only mature 'females' == 'hermaphrodites' and mature 'males' go into mate function. (all sexans == 'Y' for maturation checks make sexans == 'H'); so far Y and H have been the same. 
+f.iii) Noting that loop is still through number of hermaphrodites on landscapes (mature) to select 'mates')
+f.iv) ***Note selfing parameter not passed into cdclimate() add this?
+f.v) Added selfing options to all working f/m-replacement options.
 
-Changes v1.70.2021.07.12T12:07:00 (ell/cday)
-0) Updated option 2 multiple mortality
+v2.54 - TS branched and named***
 
-Changes v1.60.2020.12.28T00:00:00MST (ell/cday)
-0) Changed AddAge0s() burningen was set to 0, updated to gen for cdevolveans 'M' checks. 
+Changes 2.53.2022.04.20.T08:37:00 (ell/ts)
+0) Added updates for plastic answer from 1.71 from TS: TS edits
+-----line reference in old version of cdmetapop
+0) added split of plasticans to check for new input format for plastians (e.g. Temp_dom_0) line 385 CDMetaPOP.py. Checks Temp/Hab and dom/rec/codom entered correctly
+1) emigration starting at ine 124: added split to plasticans with if statement to divide column inputs into the 3 options: 1) temp/hab, 2)dominance options: dom, rec, codom, 3) user defines the percentage reduction. % for avoidance. (0.0 complete avoidance, 1.0 no avoidance / no reduction in prob array). Temp/hab and dominance options created 6 total if statements. codom reduces the % avoidance by 1/2.
+2) added similar portions from (1) to immgration script at 184
+3) added the plasticans split to CDmetaPOP_Modules (line 139:152) -> No change here except update to a float(patchHab)
+------> 
+***Don't think plasticans updates from TS fully converted still need to check with TS (e.g., see 2.54 version)
+4) MB: Note, doesn't look like popmodel N packingDeaths tracking working? Updated this.
 
-Changes v1.59.2020.12.14T00:00:00MST (ell/cday)
+Changes 2.52.2022.03.28T11:24:00 (ell/ccd)
+0) N0 by ';' linked to ClassVars***Still Working on this
+1) Error from BF with CDClimate Line 694
+
+Changes 2.51.2022.03.23.T02:56:00 (ccd/ell)
+0) Addressed error due to extinction with stragglers of the same sex
+a) Moved Q.put for extinct species from DoEmigration to DoImmigration
+b) Extinct species now puts list of lists (by age and patch) instead of a single list of N by patch
+
+Changes 2.50.2022.03.21.T09:33:00 (ell)
+0) Add addition popmodel; initialize with a cohort that continues to live; see output of Age0s from these parents, but Age0s have 100% mortality (Tumas project - Orchards); packans == 'N_keepeggs' option now will only apply the mortality to age 1+. 
+1) ***Issue with 2 species extiction (cday working on)
+2) Error with ImplementSelection option for age cohort (Line1966); Fixed with len() check on : split for cdevolve answers; added to DoEmigration 'Out' and rest of 'Back' DoImmigration sections
+
+Changes 2.49.2022.03.04T13:13:00 (ell/cday)
+0) ***Issue with hanging runs; CDay testing versions.
+a) Check Output Tracking varaibles (compare with packing)
+b) Only logistic; Only over 5 years; 2 species only; runs all the way through, doesn't end program.
+1) Kadj_track since updates in 2.44 was not being tracked, so added Pisub/sum(Nt); CDay checking output.
+2) CDay cleaning up test files: moved CDay versions to GitHub. 
+3) logistic model issue: when population size is too small relative to age structure, not getting enough older/larger fish needed to replicate or sustain population.
+a) add a rounding check: CDay fixed here for small pop sizes. ~line3028 in DoImmigration()
+4) Divide by 0 in DoImmigration() Pisub/sum(Nt); added if/else
+5) Add Linear function to Hindex cdevolveans 
+a) added checks in mainloop
+b) checks needed for FHindex *** in mainloop and information needed in usermanual ***
+6) Added implementSelection option for age cohort, e.g., Back:0 or Back:{AGE} or Out:{AGE}
+
+Changes 2.48.2022.02.07T12:02:00 (ell/cday)
+0) Added Dispersal Prob to ClassVars
+
+Changes 2.47.2022.01.27.T14:29:00 (ell/cday)
+0) Added localDispersal option in probarray - Brenna
+1) Changed Fh to Observerd Hom - Kaeli
+
+Changes 2.46.2021.12.06.T12:42:00 (ell/cday)
+0) Updating FHindexSelection() for Kaeli's project: ***Next version need to update to observed Ho.
+
+Changes 2.45.2021.11.08.T16:30:00 (cday/ell)
+0) Replaced all truncated normals to if statements to replace values exceeding threshold
+1) Updated logistic model to revise P in P/K ratio from Miller and Ankley 2004
+2) Added error and sys exit if Leslie matrix is invalid and results in dom eigenvalue = 0
+2) Other minor updates in logistic section for clean-up
+
+Changes 2.44.2021.09.15.T11:51:00 (cday/ell)
+0) Add hack for pdb in Modules()
+1) Updated logistic module with Walker citation (removed Jensen DD)
+2) Updated logistic Nselfpop to include totals without age0s
+3) Added logistic option for FSelection - Kaeli's project
+4) Added option cdevolveans FHindexSelection - Kaeli's project - checking needed here.
+
+Changes 2.43.2021.08.02.T11:14:00 (cday/ell)
+0) DoOffspring int(round()) np.rint returing float.
+1) Updated popmodel 'N' for checks with offspring selected less than and greater than specified amount (Adriana's project).
+
+Changes 2.42.2021.07.20.T12:44:00 (cday/ell)
+0) Change to Fh in Modules; added (len(genes)/2.)
+1) Pre_Processing; truncnorm to 0,np.inf added to f_ind, f_leslie
+2) In logistic code, removed (abs) and added: Ntplus1 = np.rint(Ntplus1) # Round; Ntplus1[Ntplus1<0] = 0 # Ensure not negative
+3) Normal option in Offspring returning float value for noOffspring, added np.rint	
+
+Changes 2.41.2021.07.12.T11:15:00 (ell/cday)
+0) Adriana: Noted popmodel == 'N' Ninit < Kpop. Founding rounding issue and added fix to Emigration for adding Age0s 'offspring_patch'. 
+1) Sierra: issues with File IO in cdclimate, however we can not replicate error. Following up to get input files. ***
+2) Kaeli: Potentially add in age specific F selection option. Following up with KD on specifics. Settled: no age changes needed.
+3) Removed 1-mortality to Fh in Modules. Survival calculation now.  
+
+Changes 2.40.2021.06.21T11:37:00 (ell/cday/rs)
+0) Move EHom to function in Modules, to be calculated when needed (e.g., Immigration, Emigration, etc).
+a) Added calc_EHom at beginning of Immigration and Emigration when FSelection On. 
+
+Changes 2.39.2021.05.24T10:59:00 (ell/cday/rs)
+0) Checking mortality options (2)
+a) ifile not updated in loop change made in LN528: SubpopIN_arr_sizeclass = SubpopIN_arr[Nsize_index] to SubpopIN_arr_sizeclass = SubpopIN_keep_thistype[Nsize_index]
+b) Briefly checked through mort option 1 and looks right because of indexing in loops. 
+
+Changes 2.38.2021.04.22T08:44:00 (ell/cday)
+0) Output summary files not written when pop crashes: There are no more females or males left from species 0 after year 77. No where to locally disperse to. All individuals will die. FIX: In DoImmigration after print statement where probarray is 0 remove sys.exit(-1) and continue on with loop
+1) np.random.sample to np.random.choice -> 2 instances (Mortality)
+2) int changed to round in DoOffspring()
+3) Updates to logistic from cday; DoImmigration()
+4) Moved Offspring, Immigration, Mortality from cday
+5) Removed logistic 'back' 'out' options; only allow to happen in DoImmigration for now. 
+6) fecundity updates; Add f-leslie column to ClassVars with f-leslie stdev (this will be used in logistic now); rename to f-individual
+7) Updated logistic with f_leslie_std values now Moved to DoStochasticUpdate()
+8) age_mu in DoStochasticUpdate() now, removed age_sigma in normal draw in DoOffspring() with size N, but not in size Y 
+9) Indenting errors and Nage referenced before assigned to PackingDeathsAge[gen][Ageclass].append(Nage - len(Nage_samp_ind[-1])) so added PackingDeathsAge[gen][Ageclass].append(0) to else statement when Ageclass is not hit.
+***Add ClassVars pars to CDClimate()
+***Check rand allele assignment of 0. KD graphs. 
+
+Changes 2.37.2021.04.21T13:16:00 (cday/ell)
+0) Updates to logistic
+a) add logistic_back, logistic_out to options for popvars
+b) Mortality modules will not run if logistic (for now; we can add switches for OUT and BACK in future)
+c) Updated logistic 'back' - DoImmigration with new version of matrix model Leslie - cday checking. 
+***not in 'out'; DoEmigration()
+***still need to add sigma mortality
+
+Changes 2.36.2021.04.19T13:19:00 (ell)
+0) When logistic, added DoMortality; adding in check for this. DoMortality can only occur during
+1) Logistic function now includes 0+ in DoImmigration, removed -1 indexing in equation 
+
+Changes 2.35.2021.04.14T14:38:00 (ell)
+0) Error testing string to float X field split by bar in PatchVars, checking cdclimate
+a) For gen == 0; bar splits need to be grabbed in global scale grab in GetMetrics() (However, worried about changing climate issues with global rescale?)
+b) logistic Kpop tracking gen>0 needed and gen-1 in Track_KadjImmi
+
+Changes 2.34.2021.04.14T09:33:00 (ell)
+0) Error with string to float conversion with allele freq file line 400 PreProcess. Format issue on .csv side with double quotes, but added a replace string line to xgenes readin in case this happens again. 
+1) random to np.random instances found by cday Postprocess.py line 45
+Mortality.py line 132
+Immigration.py line 2382
+
+Changes 2.33.2021.03.26.T11:43:00 (ell)
+-1) Habitat Out / Habitat Back PatchVars value added into MSpecies code PatchVars -> DoPreProcess 
+0) Check egg laying events (DGS2020) with MG-link turned on; N Breeding females way higher in output files than mature count, ie numbers off. CHecking tracking and PatchVars pulls. Checked through tracking in DoMate(), Updated output naming to MatureFemales, MatureMales. 
+1) Added in Assortative mate modules _gene and _hindex from original cdmetapop version.
+2) MG_link 'mature' check to 'layeggs' all combos added in this spot now. 
+3) if gen > 0 and implementcomp == 'Back': and implementcomp == 'Out' added to competition sections
+
+Changes 2.32.2021.03.16.T14:18:00 (ell)
+0) Continue adding in FSelection option.
+a) Continue with GetMetrics calculation to return sum(1-2piqi)...Return EHom from GetMetrics()
+b) Read EHom into Emigration and Immigatration and AddAge0s; DoFSelection updated. 
+
+Changes 2.31.2021.03.15.T16:06:00 (ell)
+0) Continue adding in MLoci selection module from CDPOP
+a) Add in 'betaFile_selection' field from PopVars to code, pass through CDClimate and out as 'betas_selection'
+b) Read in extra fields in PatchVars for XVars, add length checks in PreProcessing, pass out of PreProcessing xvars_betas_pass and into CDClimate() and out as 'xvars_betas'
+c) betas vars and xvars read into GetMetrics() to get maxfit and minfit for scaling. maxfit, minfit adding to tracking.
+d) Need to read in betas and file into PreProcessing, these values needed for the first GetMetrics(). 
+e) betas, xvars, and maxfit, minfit into GetMetrics to calculate one time global max/min scaling parameters into first GetMetrics()
+f) Adding DOMLocuSelection() to Emigration() and Immigration() and AddAge0s()
+g) DoMLocusSelection() verified and working. Sent to BF for SWWF project. 
+
+Changes 2.30.2021.03.15.T09:27:00 (ell/cday)
+0) Begin porting Mloci selection module from CDPOP. 
+a) Input parameters added: 
+i) betafiles folder in data folder
+ii) 'betaFile_selection' field in PopVars: test files added ***not added to code
+iii) cdevolveans now can be form 'M_X3_L3_A2_ModelX' -> Have to change to 'P_X3_L3_A2_ModelX' since 'M' options in cdevolveans already.
+iv) PatchVars file: if X3, then at end of patchvars file 3 columns added for these variables: test files added ***not added to code
+
+1) Checking through implementation of Out/Back competition: Updated Tracking sections for 'Out' to grab Immi gen-1. 
+a) CDay added Back to DoImmigration() rest of 'packing' options; added Out to DoEmigration rest of 'packing' options; leave 'logistic' as only 'Back' option - no option needed for logistic. 
+
+2) Continue adding FSelection option. 
+a) Check GetMetrics Calculations and return sum(1-2piqi) ***Not quite complete and still working on this. 
+
+Changes 2.29.2021.03.08T12:29:00 (ell/cday)
+0) start competition not working on first gen due to < sign. Checked through other gen >= burnin times.
+1) ***Add in N_Initial tacking updates
+2) Add Out:Back option for competition
+3) Add run0batch0mcrun0species0 folder naming to allow for multiple runs (rows in RunVars) and multiple batches (rows in PopVars)
+4) ***Add / Update logging for start of runs/batches/MCs
+5) Add 'implementcomp' to RunVars for Out, Back and Both. 
+
+Changes 2.28.2021.03.01T11:13:00 (ell/cday)
+0) Add in CDEVOLVE 'F' for Keller et al Inbreeding. Then DoFSelection() in DoEmigration
+a) ***Calculate E(H) PLINK in GetMetrics - Return for Emigration() and DoFSelection() FHj calculation
+
+Changes 2.27.2021.02.22T12:28:00 (ell/cday)
+0) Add Mother/Father ID for Pedigree calculation
+a) updated dtype and recd in PreProcessing, Emigration, Immigration, Offspring
+b) Added 2 columns MID and FID to ind files; update usermanual ***
+c) ***Might not need this long of str characters, consider chopping
+
+Changes v2.26.2021.02.19T11:54:00 (ell/cday)
+0) str to int compare: changed to int(tempN0[isub]) > 0 and natal[isub]
+1) str to int compare: int(K[isub]) > 0: change
+2) truncnorm array back to scalar change due to scipy 1.5.0 version needs to be 1.5.2
+3) in .py: add single species logoutput name
+4) multiprocessing.current_process().name == "MainProcess" added to multiprocessing.current_process().name == "S0" 
+
+Changes v2.25.2021.02.15T10:03:00 (ell/cday)
+0) Working on Python 3, 2 species errors...
+1) File IO errors with logMsg; pass in stringname of logfile instead of object
+2) Verified with 2 and 3 species. 
+3) ***Full testing still needed on suite of parameters for both Python 3 and multi-species. 
+
+Changes v2.24.2021.02.12T11:57:00 (ell/cday)
+0) Hit round() error due to trunc.rvs returning array([]); added [0] to end of these calls (31 in PreProcess and 1 in Offspring)
+1) isinstance with int changed to np.int32; ultimately import numbers to numbers.Integral
+2) Single species verified. 
+3) Testing 2 species...hit pickle and EOF error.
+
+Changes v2.23.2021.01.18T10:28:00 (ell/cday)
+0) Checking early sys.exit(-1) error checking; need way to terminate os.kill parent id with given errors (original sys.exit() statements. ***
+1) start converting code to python 3 ***
+a) print statements converted to print()
+b) Removed Try/Except import libraries
+c) xrange -> range()
+d) rand() to np.random.uniform()
+e) removing random replacing with np.random; careful with sample and checking with and without replacements.
+f) rand() replaced with np.random.uniform(); randint() to np.random.randint()
+
+Changes v2.22.2021.01.15T00:00:00MDT (cday)
+0) Fixing extinction
+a) When species is extinct, no longer write out ind files
+b) When all species extinct, print message and exit program
+c) Added queue variable extinctQ to track extinctions of each species
+d) Added queue variable global_extinctq to identify when all species are extinct
+1) Fixing logging and printing issues
+2) Edited to run for one species
+a) Ignore queues
+b) Ignore K adjustment
+c) Added these adjustments to all packing options
+
+Changes v2.21.2020.12.28T00:00:00MDT (ell/cday)
+0) Fixing some errors. 
+a) startcomp -> int() in CDmetaPOP.py
+b) For tempspeciesSum added isub index
+c) ispecNo to ispcNo change in Emigration()
+
+1) Move competition code to other density dependent models in DoEmigration()
+a) packing_1 updated in DoEmigration and DoImmigration()
+b) 'N' and 'N_keepeggs' updates in DoEmigration() and DoImmigration()
+c) checked logistic and updated DoEmgiration: Note logistic is the only one that has competition in DoImmigration()
+
+Changes v2.20.2020.12.28T00:00:00MST (ell/cday)
+0) Changed AddAge0s() burningen was set to 0, updated to gen for cdevolveans 'M' checks. (From original cdmetapop code)
+1) TodoList consolidated
+a) Continue validation checking (cday) ***
+b) Need to move code to all packans locations' wait for generalize code to move blocks
+c) Add more than 1 species/generalize
+d) Port any added code to other cdmetapop version here: 
+i) HabitatOut/HabitatBack PatchVars columns and corresponding code for plastic region is not in MSpecies versions ***
+ii) DGS2020 group Assortative mate options _gene and _hindex note added
+e) Need to check code for 1-species ***
+
+2) Begin working on generalizing 2 species
+a) Updated run/data files for 3species example. Added compcoef separated by ; in patchvars for now (consider matrix option).
+b) In CDmetaPOP.py added loop for Process, start, join
+c) Create XQ nSpecies x nSpecies array, removed Put/Get calls in mainloop...testing***
+d) comp_coef split from patchvars, happens on the fly with splits in packing loops
+e) added loops and sums for nspecies  - 1 in Kpop adjustment
+f) Removed references to get() and put in DoImmigration()
+g) Updated logistic in DoImmigration (***still concern that this is not matching density depend mort in DoEmigration module, but age 1+ maybe OK). 
+h) 3 species verified, pass off to Cday for more testing. 
+
+Changes v2.19.2020.12.14T00:00:00MST (ell/cday)
 0) Bug in DoEmigration: Added 'S' and 'Z' to check for migrants. 
-1) Added if len(assortmateModel.split('_')) > 1: to assortative mate section in _Mate()
-2) Updated all inputfiles for push to Github
+1) ***Note that DGS2020 group Assortative mate options _gene and _hindex note added
 
-Changes V1.58.2020.11.30T10:14:00MDT (ell/cday)
-0) Checking possible error with MG_link and maturation parameters (DGS2020 group); added burn in selection to 'MG' growth sections.
+Changes v2.18.2020.12.7T11:04:00MST (cday/ell)
+0) Update MSpecies code to reflect changes in other version of CDMetapop 'MG' cdevolveans updates/bug fixes. Age 0 maturation updated and burnin cdevolve added to MG section.
+1) Environmental competition effect -> added comp_coef to PatchVars now. Worried about generalizing this to mspecies and using matrix, may have to use deliminators. 
+2) HabitatOut/HabitatBack PatchVars columns and corresponding code for plastic region is not in MSpecies versions ***
 
-# -> ELL sent back to tjs for more testing on plastic and DGS for testing on sneaker size strategy
+Changes v2.17.2020.11.20T11:44:00MST (cday/ell)
+0) Continue updating mSpecies model
+a) add burn in time parameter for competition; to allow for starting competition after demographics settle
+i) Add parameter 'startcomp' to RunVars
 
-Changes V1.57.2020.07.31T15:32:00MST (ell)
--1) Removed warnings from init year/gen
-0) Check first through tjs errors
-a) Moved , habvals=None after geneswap=None in DoUpdate() pass in order. Seems to be working, will pass back to TJS
+Changes v2.16.2020.11.20T10:46:00MST (ell/cday)
+0) Continue updating mSpecies model
+a) Update competition so that it happens once a time step DoEmigration(); carry adjusted K to DoImmigration(), pushed to cday for checking. 
 
-1) Check DGS2020 error with delimitor in MG_link and growth function. 
-a) fitvals not initializing correctly due to habitat columns not entered correctly. Running fine. 
+Changes v2.15.2020.11.13T10:27:00MST (ell/cdy)
+0) Continue updating mSpecies model
+a) CDay issues with extinction too quickly; could be because mortality applied twice vs comparing to theorectical annual time step; adding code to Logistic model which is applied once a year for testing. ***cday looking in logistic equation a bit more Jensen 1995. Added to logistic, first pass, checking needed. 
 
-Changes V1.56.2020.07.31T00:00:00MST (ell/cday)
-0) Checking N0 for ';' split matching gene files ';' splits
+Changes v2.14.2020.11.09T11:34:00MST (ell/cday)
+0) Continue updating mSpecies coded
+a) Added error check for equal patches for both species
+b) Went through all modules, removed most print statements; added to log and checked logging, added warnings to log.
 
-# -> sent to Erin for troubleshooting
+Changes v2.13.2020.11.09T11:04:00MST (ell/cday)
+0) Continue updating mSpecies coded
+a) working on extinction of 1 or more species
+i) checking on single species output files, all output working.
+ii) Test with 2 species -> working!
+List of TODO:
+-) Continue validation checking (cday) ***
+-) Need to move code to all packans locations' wait for generalize code to move blocks *** 
+-) Add more than 1 species/generalize *** 
 
-Changes V1.55a.2020.07.23T00:00:00MST (tjs)
-0) CDmetaPOP.py: at 357, added 'or' to check if plastic parameter input from user is correct using either temp or hab within the popvar file
-1) Emigration: at line 124, added check for temp in plasticans
-2) Emigration: copied section of 124 but with check for hab in plasticans. at 188/195 changed tempthresh to habthresh
-3) Repeated 1 and 2 from above with CDimmigration at ~225-264
-4) Modules: 95, added patchHab to list based on patchTemp being in list for function args
-5) Modules: 138, at updatePlasticGenes def, Added if to updating genes based on user input. Added habitat section which mirrors temp section for turning switch on. PatchTemp is arg 6, new PatchHab is arg 10.
-6) Modules: 1623, updatePlasticGenes, added another argument to pull habitat values. the temp data seems to be coming from sizevals[isub] input from PreProcess (arg 6 based on line 95 of updatePlasticGenes def), which feeds into PatchTemp in updatePlasticGenes.
-7) Modules: 1361, added habvals=None to end of the list for DoUpdate, because that is the only place I see sizevals not have out/back in front of it within modules (arg 25 is sizevals)
-8) CDmetaPOP.py 862, due to 7, added backhabvals to the end of the 2nd do update
-9) CDmetaPOP.py 907, due to 7, added outhabvals to the end of the 3rd do update
+Changes v2.12.2020.10.23T10:08:00MDT (ell/cday)
+0) Continue updating multi-species code
+a) Working on extinction for 1 species
+i) Added to packing Kpop <= 0 check to make sure if Kpop is negative it will not continue into the packing algorithm section.
+ii) Reordered summary output files for chronologic order (Kadj emi and immi moved and Npop_addage0s moved in Emi sequence).
+iii) Stop the breaks for when a species goes extinct at a time, and continue through time loop until end with 0 pop. 
+iv) ***Step through each module, if extinct, then skip. 
+-> first pass is to output 0s if species 1 or 2 go extinct.
+-> Added all tracking variables, looping through 1 species full time now, writing out 0s.
+-> Tested with 2 species and gets hung up FIXED
+-> Also not output summary files FIXED
 
-Latest error:     updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample,habvals[isub]) #travis note, sizevales corresponds to the temp in def
-TypeError: 'NoneType' object has no attribute '__getitem__'
+Changes v2.11.2020.10.16T10:26:00MDT (ell/cday) 
+0) Continue updated multi-species code
+a) Create block for GetQ to not grab anything unless Q is nonempty
+b) Remove while loop check in GetQ
+to do list:
+c) Continue validation checking (cday) ***
+d) Need to move code to all packans locations ***
+e) Add checks for PatchVars files to make sure using same number of patches 
+f) Handling extinction for 1 species 
+g) Add more than 1 species/generalize ***
+h) Added Tracking variables: K adjusted for Emi and Immi 
 
-Changes V1.55.2020.07.22T00:00:00MST (ell/TS)
-0) Adding 2 columns to PatchVars for Habitat variable OUT/Back.
+Changes v2.10.2020.10.09T10:47:00MDT (ell/cday)
+0)Continue adding in multi-species functions to parallel code
+a) Add Put/Get or passing between Queues in DoEmigration/DoImmigration
+b) Start validation checking ***
+c) Start adding more than 2 species ***
 
-Changes V1.54.2020.07.10T00:00:00MST (ell/dgs2020)
-0) Fixed bugs with 4_gene tracking hindex vs genes.
+Changes v2.09.2020.10.02T10:30:00MDT (ell/cday)
+0) continue setting up parallel in cdmetapop
+a) use popvarsfile for each species file needed.
+	i) talked about combining species into POpVars file - each row is a species
+b) Created _mainloop function/module, 
+c) Create 2 log files, pass in to Process args
+d) Added call to Process for 2 species only right now
+	i) Make this a loop for more than 1 species ***
+e) Created batch0mcrun0species0 folders
+f) Tested, seems to be working 
+g) Next, add Put/Get for N0 and N1 calls or passing info between Queues. ***
 
-Changes v1.53.2020.07.06T00:00:00MST (ell/dgs2020)
-0) Update Assortative mating module to include first locus, provide option for hindex/gene
-a) 4_gene option provide; technical special case for sneaker male, not dominant preference. 
-b) only splitting this option right now for genes, letting group test
+
+Changes v2.08.2020.09.11T10:10:00MDT (ell/cday)
+0) Cday continue test script and moving into cdmetapop
+a) Runvars tells us the number of species; read in, and create Qs after this
+b) From Runvars, created list XQs, filled with Queue() object length of popvarsfile
+c) Next create 
+
+Changes v2.07.2020.08.31T11:20:00MDT (ell/cday)
+0) CDay tested parallel_test.py -> implement first 
+
+Changes v2.06.2020.07.24T10:33:00MDT (ell/cday)
+0) Continue adding multiprocessing/queue in CDmetaPop.py
+a) Convert Main cdmetapop to def to set up multiple processors.
+1) Start working in Python 3 and any conversions.
+
+Changes v2.05.2020.06.26T10:29:00MST (ell/cday/rks)
+0) CDay tests on egg_delay and initial competition code looks good!
+1) Begin adding second species. 
+1a) import multiprocessing/Queue packages; read in RunVars and store pars. 
+1b) Now ibatch will be controlled with RunVars; only one row in PopVars (***update this in usermanual)
+1c) ***Next add read in PopVars for each species/split noproc -> run cpu for each PopVars and idle at DoEmigration/DoImmigation swapping 'N' or 'Nage'? 
+
+Changes v2.04.2020.06.19T10:10:00MST (ell/cday/rks)
+0) CDay testing; BT, EBT models check out, but WCT gets an error in DoEmigration indexing noOffspring (fixed: Bearpairs_temp not deleted with egg mortality)
+1) Added comp_cof variable to PopVars (one for each species): competition coefficient
+2) Added in packing a dummy variable for second species to adjust Kpop for first species. Discussion on N2 for second species and what Ns to pull. First pass/version will follow flow of packing algorithm and pull in N2 (eggs + 1+) avoiding artificially high value of N2? 
+3) Next: CDay tests 2.04 single species comp_coef, then onto adding second species in parallel. 
+4) ***Looking into flatten()ing gene array in InheritGenes(). 
+
+Changes v2.03.2020.05.22T10:10:00MST (ell/cday/rks)
+0) Continue to add in field 'egg_delay'
+a) ***Expand noOffspring to nD-array appending offspring list to index spot of egg_delay. Reference this index spot for packing/AddAge0s in DoEmigration for egg_delay.
+b) Create noOffspring/Bearpairs initial 2D array/list in PreProcess/tracking section, 
+c) Append to in DoMate/DoOffpsring if egg delay == 1. If egg delay == 0, use index spot.
+d) Then use this index spot according to egg_delay for AddAge0s/DoEmigration module.
+d) Delete or overwrite (?) after DoEmigration module 
+
+Changes v2.02.2020.05.18T10:43:00MST (ell/cday/rks)
+0) First pass: Remove option 'N' in DoEmigration() ***Update usermanual to reflect this
+1) ***Add option for movement rules to skip and check other combinations of movement options (stray skip with local dispersal, etc.)
+2) Start to add in field 'egg_delay'
+
+Changes v2.01.2020.05.18T10:32:00MST (ell/cday/rks)
+0) Move/swap DoEmigration/DoImmigration packing algorithms; testing.
+-> Mismatch in tracking numbers; checking all pars read into Immigration/Emigration, deleting unused and moving/swapping Immi/Emi needed
+-> Tracking for 3 Immi packing Ns moved to Emi (SelectionDeaths_age0s moved to Emi) ***Need to update Usermanual
+-> Discuss when Emigration is "N" now, this causes error with tracking numbers currently N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s, but not sure this is what we want in logic for adding Age0s? 
+
+Changes v2.00.2020.05.15T13:26:00MST (ell/cday)
+0) Begin initial work/commit on multispecies.
+1) Create test files/move to github (cday)
+
+
+CDMetaPOP_MultiSpecies BRANCH
+# -----------------------------------------------------------------------------------------------------
 
 Changes v1.52.2020.03.27T12:31:00MST (ell)
 0) If plasticans is N then make sure InheritGenes() ignores this section.
@@ -209,8 +564,8 @@ Changes v1.34.2019.04.21T11:28:00MDT (ell/cday)
 0) Adding local dispersal movement option within DoImmigration().
 a) Add another surface, function number, 3 pars, and threshold option to PopVars file
 b) Changed name of dispOut dispBack to migrateOut, migrateBack. Stray stays the same. Now new option is 'disperse'. 
-c) ***Need to update usermanual, figures, flow diagrams, etc.
-d) Give the option for 'N' to skip.
+c) Updated usermanual, figures, flow diagrams, etc. ***check figures/flow diagrams
+d) Give the option for 'N' to skip. 
 
 1) N0 allowed to be above K upon initialization
 2) Swapped these in growth equations:

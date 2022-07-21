@@ -5,18 +5,11 @@
 # Description: This is the function/module file for offspring processes.
 # --------------------------------------------------------------------------------------------------
 
-# Numpy functions
-try:
-	from numpy.random import *
-	import numpy as np
-except ImportError:
-	raise ImportError, "Numpy required."
-import pdb,sys
-from sets import Set
-import random,copy
+import pdb,sys, copy, numbers
 from ast import literal_eval
 from scipy.stats import truncnorm
 from CDmetaPOP_Mortality import DoEggMortality
+import numpy as np
 
 # ---------------------------------------------------------------------------------------------------
 def count_unique(keys):
@@ -39,7 +32,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 	# Only if pairing occured
 	#if len(Bearpairs) != 1 and Bearpairs[0][0] != -9999:
 	#if len(Bearpairs[0][0]) != 1:
-	if not isinstance(Bearpairs[0][0],int):
+	if not (isinstance(Bearpairs[0][0],numbers.Integral)):
 	#if Bearpairs[0][0] != -9999:
 		
 		# Error check
@@ -49,7 +42,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 		count = 0	
 		# Loop through each mate pair
 		# ----------------------------
-		for i in xrange(len(Bearpairs)):
+		for i in range(len(Bearpairs)):
 			# -------------------------------------------------------
 			# Get parent's information for multiple classfiles
 			# if inheritans_classfiles is random use this information
@@ -69,7 +62,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 			
 			# And then loop through each offspring from that mate pair
 			# --------------------------------------------------------
-			for j in xrange(noOffspring[i]):
+			for j in range(noOffspring[i]):
 				
 				# ------------------------
 				# Mother's patch location
@@ -79,7 +72,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# ------------------------
 				# Get classfile assignment
 				# ------------------------
-				randno = rand() # Random number
+				randno = np.random.uniform() # Random number
 				if inheritans_classfiles == 'random':
 					if randno < 0.5:
 						natalP = fathers_natalP
@@ -107,10 +100,10 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# Case for Mendal from parents sex chromosomes
 				if Femalepercent == 'N':
 					mothers_sex = Bearpairs[i][0]['sex'] # It must be 'XX'
-					randindex = int(2*rand())
+					randindex = int(2*np.random.uniform())
 					from_mother = mothers_sex[randindex]
 					fathers_sex = Bearpairs[i][1]['sex'] # It can be XY or YY
-					randindex = int(2*rand())
+					randindex = int(2*np.random.uniform())
 					from_father = fathers_sex[randindex]
 					offsex = from_mother + from_father				
 				# Special case for WrightFisher
@@ -119,7 +112,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 					if Bearpairs[i][1]['sex'] == 'YY':
 						print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use N for Femalepercent_Egg.')
 						sys.exit(-1)
-					offsex = int(2*rand())
+					offsex = int(2*np.random.uniform())
 					if offsex == 0:
 						offsex = 'XX'
 					else:
@@ -130,7 +123,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 					#	print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use N for Femalepercent_Egg.')
 					#	sys.exit(-1)
 					# Select sex of the jth offspring - select a random number
-					randsex = int(100*rand())				
+					randsex = int(100*np.random.uniform())				
 					# If that random number is less the Femalepercent, assign it to be a female
 					if randsex < int(Femalepercent):
 						offsex = 'XX'
@@ -151,7 +144,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				if Bearpairs[i][0]['infection'] == 1 or\
 				Bearpairs[i][1]['infection'] == 1:			
 					# Get a random number
-					randinfection = rand()				
+					randinfection = np.random.uniform()				
 					# If random flip is less than transmissionprob
 					if randinfection < transmissionprob:				
 						# Then append infection status to offspring 
@@ -187,8 +180,11 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				mu,sigma = size_mean[natalP][theseclasspars][0],size_std[natalP][theseclasspars][0]			
 				# Case here for sigma == 0
 				if sigma != 0:
-					lower, upper = 0,np.inf
-					sizesamp  = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)			
+					#lower, upper = 0,np.inf
+					#sizesamp  = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)	
+					sizesamp = np.random.normal(mu,sigma)
+					if sizesamp < 0:
+						sizesamp = 0
 				else:
 					sizesamp = mu
 					
@@ -266,11 +262,11 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 								else:
 									matval = 0.0
 							
-				randmat = rand()
+				randmat = np.random.uniform()
 				if randmat < matval:
 					mature = 1
 					# Check if mature female, and if lays eggs
-					randegglay = rand()
+					randegglay = np.random.uniform()
 					if sexans == 'Y':
 						if offsex == 'XX':									
 							if randegglay < eggFreq:
@@ -291,8 +287,8 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				# --------------------------
 				# REcord information
 				# --------------------------			
-				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,capture,recapture,layeggs,Mothers Hindex, Fathers Hindex, ClassVars File,PopID,speciesID]
-				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'],Bearpairs[i][0]['species'])
+				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,motherid,fatherid,capture,recapture,layeggs,Mothers Hindex, Fathers Hindex, ClassVars File,PopID,speciesID]
+				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,Bearpairs[i][0]['name'],Bearpairs[i][1]['name'],0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'],Bearpairs[i][0]['species'])
 				offspring.append(recd)
 				count = count + 1 # For unique naming tracking				
 	# If there was not a pairing
@@ -313,11 +309,11 @@ def DoOffspringRandom(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_a
 	'''	
 	
 	# Loop through each mate pair
-	for i in xrange(len(Bearpairs)):			
+	for i in range(len(Bearpairs)):			
 			
 		# If female did not mate up, then assign 0 offspring
 		#if Bearpairs[i][1] == -9999:
-		if isinstance(Bearpairs[i][1],int):
+		if isinstance(Bearpairs[i][1],numbers.Integral):
 			littersamp = 0
 		
 		# If females did mate up, then assign random drawn number
@@ -349,7 +345,7 @@ def DoOffspringRandom(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_a
 				littersamp = 0
 			else:
 				# Set the litter size
-				littersamp = int(int((litter_mu))*rand())
+				littersamp = int(round((litter_mu)*np.random.uniform()))
 		
 		# Append Offspring number to end of Pairs [F,M,#offspring]
 		noOffspring.append(littersamp)	
@@ -367,16 +363,15 @@ def DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_
 	'''		
 	
 	# Loop through each mate pair
-	for i in xrange(len(Bearpairs)):
+	for i in range(len(Bearpairs)):
 	
 		# If female did not mate up, then assign 0 offspring
 		#if Bearpairs[i][1] == -9999:
-		if isinstance(Bearpairs[i][1],int):
+		if isinstance(Bearpairs[i][1],numbers.Integral):
 			littersamp = 0
 		
 		# If females did mate up, then assign random drawn number
-		else:
-		
+		else:		
 			
 			# If size control then use parameters for length age_mu and CV
 			if sizecall == 'size':
@@ -404,7 +399,7 @@ def DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_
 				littersamp = 0
 			else:
 				# Set the litter size
-				littersamp = int(poisson(litter_mu))
+				littersamp = int(round(np.random.poisson(litter_mu)))
 			
 		# Append Offspring number to end of Pairs [F,M,#offspring]	
 		noOffspring.append(littersamp)			
@@ -422,11 +417,11 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 	'''		
 	
 	# Loop through each mate pair
-	for i in xrange(len(Bearpairs)):
+	for i in range(len(Bearpairs)):
 		
 		# If female did not mate up, then assign 0 offspring
 		#if Bearpairs[i][1] == -9999:
-		if isinstance(Bearpairs[i][1],int):
+		if isinstance(Bearpairs[i][1],numbers.Integral):
 			littersamp = 0
 		
 		# If females did mate up, then assign random drawn number
@@ -435,7 +430,8 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 			# If size control then use parameters for length age_mu and CV
 			if sizecall == 'size':
 				if i == 0:
-					print('Warning: size control specified with offspring number that does not have standard deviation, using sigma from Agevars file.')
+					stringout = 'Warning: size control specified with offspring number that does not have standard deviation, using sigma from Agevars file.'
+					logMsg(logfHndl,stringout)
 				if egg_mean_ans == 'linear':
 					litter_mu = egg_mean_1 + egg_mean_2 * Bearpairs[i][0]['size']
 				elif egg_mean_ans == 'exp':
@@ -452,6 +448,11 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 				ageF = Bearpairs[i][0]['age']
 				#litter_sigma = np.mean(np.asarray(age_sigma[natalP][theseclasspars],dtype=float))
 				litter_sigma = float(age_sigma[natalP][theseclasspars][ageF])
+				if litter_mu <= 0.:				
+					littersamp = 0
+				else:
+					# Set the litter size
+					littersamp = round(np.random.normal(litter_mu,litter_sigma))
 			else: # Use the AgeVars given mu and sigma
 				# Grab the age or size of the female
 				ageF = Bearpairs[i][0]['age']
@@ -462,18 +463,14 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 				if ageF > len(age_mu[natalP][theseclasspars]) - 1:
 					ageF = len(age_mu[natalP][theseclasspars]) - 1
 				litter_mu = float(age_mu[natalP][theseclasspars][ageF])
-				litter_sigma = float(age_sigma[natalP][theseclasspars][ageF])
-				
-			if litter_mu <= 0.:				
-				littersamp = 0
-			else:
-				# Set the litter size
-				littersamp = int(np.random.normal(litter_mu,litter_sigma))
+				#litter_sigma = float(age_sigma[natalP][theseclasspars][ageF]) # Remove this as updated in DOStochastic
+				littersamp = litter_mu
+			
 			if littersamp < 0:
 				littersamp = 0
 	
 		# Append Offspring number to end of Pairs [F,M,#offspring]
-		noOffspring.append(littersamp)	
+		noOffspring.append(int(round(littersamp)))	
 		
 	# Variables returned
 	return noOffspring
@@ -488,11 +485,11 @@ def DoOffspringConstant(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean
 	'''	
 	
 	# Loop through each mate pair
-	for i in xrange(len(Bearpairs)):
+	for i in range(len(Bearpairs)):
 	
 		# If female did not mate up, then assign 0 offspring
 		#if Bearpairs[i][1] == -9999:
-		if isinstance(Bearpairs[i][1],int):
+		if isinstance(Bearpairs[i][1],numbers.Integral):
 			littersamp = 0
 		
 		# If females did mate up, then assign random drawn number
@@ -524,7 +521,7 @@ def DoOffspringConstant(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean
 				littersamp = 0
 			else:
 				# Set the litter size
-				littersamp = int(litter_mu)
+				littersamp = int(round(litter_mu))
 	
 		# Append Offspring number to end of Pairs [F,M,#offspring]
 		noOffspring.append(littersamp)	
@@ -550,13 +547,13 @@ def DoClutch(Bearpairs,dtype,noOffspring):
 		noOffspring = np.asarray(noOffspring)
 		
 		# Loop over unique mothers
-		for imo in xrange(len(unimo[0])):
+		for imo in range(len(unimo[0])):
 			# if there is more than one mate pair
 			if unimo[1][imo] != 1:
 				duplicateLoc = np.where(mothers['name']==unimo[0][imo])[0]
 				
 				# Divide the births
-				for ipairs in xrange(unimo[1][imo]):
+				for ipairs in range(unimo[1][imo]):
 					# Then divide the clutch size
 					noOffspring[duplicateLoc[ipairs]] = noOffspring[duplicateLoc[ipairs]] / unimo[1][imo]
 					# Case for when less births than pairings
@@ -566,7 +563,7 @@ def DoClutch(Bearpairs,dtype,noOffspring):
 	
 # ---------------------------------------------------------------------------------------------------	 
 def DoOffspring(offno,Bearpairs,Births,transmissionprob,gen,K,sourcePop,\
-age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,EggDeaths,eggmort_back,BirthsYY):
+age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,EggDeaths,eggmort_back,BirthsYY,egg_delay,noOffspring_temp):
 	'''
 	DoOffspring()
 	Choose number of Offspring for each mated pair 
@@ -579,9 +576,10 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 	
 	# Get unique number of subpops
 	nosubpops = len(K)
+	
 	# Tracking for offspring
 	noOffspring = []
-	
+		
 	# Get size or age control here
 	if sizeans == 'Y':
 		sizecall = 'size'
@@ -591,68 +589,82 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 		print('Specify Y or N for size control parameters.')
 		sys.exit(-1)
 	
-	# Only if pairings occurred
-	#if Bearpairs[0][0] != -9999:
-	if not isinstance(Bearpairs[0][0],int):
+	# Check for Population extinct here and skip
+	# ------------------------------------------
+	if len(Bearpairs) != 0:
+		
+		# Only if pairings occurred
+		#if Bearpairs[egg_delay][0][0] != -9999:
+		if not isinstance(Bearpairs[egg_delay][0][0],numbers.Integral):
+				
+			# Function 1 is a uniform random draw between 0 and lmdba number	
+			if (offno=='1'):
+				
+				noOffspring = DoOffspringRandom(Bearpairs[egg_delay],age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
 			
-		# Function 1 is a uniform random draw between 0 and lmdba number	
-		if (offno=='1'):
+			# Function 2 is a Poisson draw
+			elif (offno=='2'):
 			
-			noOffspring = DoOffspringRandom(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
-		
-		# Function 2 is a Poisson draw
-		elif (offno=='2'):
-		
-			noOffspring = DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
+				noOffspring = DoOffspringPoisson(Bearpairs[egg_delay],age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
+				
+			# Function 3 is a constant of lmbda offspring per each pairing
+			elif (offno=='3'):
 			
-		# Function 3 is a constant of lmbda offspring per each pairing
-		elif (offno=='3'):
+				noOffspring = DoOffspringConstant(Bearpairs[egg_delay],age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
+			
+			# Function 4 is a normal draw
+			elif (offno=='4'):
+				noOffspring = DoOffspringNormal(Bearpairs[egg_delay],age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
+			
+			# Other functions
+			else:
+				print('This offspring birth rate option (offno) does not exist.')
+				sys.exit(-1)
+			
+			# If equal clutch size is turned on
+			if equalClutch == 'Y':		
+				noOffspring = DoClutch(Bearpairs[egg_delay],dtype,noOffspring)
+
+		# Make sure as array
+		noOffspring = np.asarray(noOffspring)
 		
-			noOffspring = DoOffspringConstant(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
+		# Check if there were 0 litter size events, delete those Bearpairs[egg_delay]
+		if len(np.where(noOffspring == 0)[0]) > 0:
+			# Get index of 0 births for mothers
+			ind0 = np.where(noOffspring == 0)[0]
+			# Delete Bearpairs[egg_delay] and offspring no
+			Bearpairs[egg_delay] = np.delete(Bearpairs[egg_delay],ind0,0)	
+			noOffspring = np.delete(noOffspring,ind0)
+			if len(Bearpairs[egg_delay]) == 0:
+				Bearpairs[egg_delay] = [[-9999,-9999]]
 		
-		# Function 4 is a normal draw
-		elif (offno=='4'):
-			noOffspring = DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
+		# -------------------------------------
+		# Call DoEggMortality()
+		# -------------------------------------	
 		
-		# Other functions
-		else:
-			print('This offspring birth rate option (offno) does not exist.')
-			sys.exit(-1)
+		noOffspring = DoEggMortality(Bearpairs[egg_delay],eggmort_patch,EggDeaths,gen,K,eggmort_back,noOffspring,Births,BirthsYY)
 		
-		# If equal clutch size is turned on
-		if equalClutch == 'Y':		
-			noOffspring = DoClutch(Bearpairs,dtype,noOffspring)
-	
-	# Make sure as array
-	noOffspring = np.asarray(noOffspring)
-	
-	# Check if there were 0 litter size events, delete those Bearpairs
-	if len(np.where(noOffspring == 0)[0]) > 0:
-		# Get index of 0 births for mothers
-		ind0 = np.where(noOffspring == 0)[0]
-		# Delete bearpairs and offspring no
-		Bearpairs = np.delete(Bearpairs,ind0,0)	
-		noOffspring = np.delete(noOffspring,ind0)
-		if len(Bearpairs) == 0:
-			Bearpairs = [[-9999,-9999]]
-	
-	# -------------------------------------
-	# Call DoEggMortality()
-	# -------------------------------------	
-	
-	noOffspring = DoEggMortality(Bearpairs,eggmort_patch,EggDeaths,gen,K,eggmort_back,noOffspring,Births,BirthsYY)
-	
-	# Check if there were 0 litter size events, delete those Bearpairs
-	if len(np.where(noOffspring == 0)[0]) > 0:
-		# Get index of 0 births for mothers
-		ind0 = np.where(noOffspring == 0)[0]
-		# Delete bearpairs and offspring no
-		Bearpairs = np.delete(Bearpairs,ind0,0)	
-		noOffspring = np.delete(noOffspring,ind0)
-		if len(Bearpairs) == 0:
-			Bearpairs = [[-9999,-9999]]
-	
-	# Return variables from this argument
-	return noOffspring,Bearpairs
+		# Check if there were 0 litter size events, delete those Bearpairs[egg_delay]
+		if len(np.where(noOffspring == 0)[0]) > 0:
+			# Get index of 0 births for mothers
+			ind0 = np.where(noOffspring == 0)[0]
+			# Delete Bearpairs[egg_delay] and offspring no
+			Bearpairs[egg_delay] = np.delete(Bearpairs[egg_delay],ind0,0)	
+			noOffspring = np.delete(noOffspring,ind0)
+			if len(Bearpairs[egg_delay]) == 0:
+				Bearpairs[egg_delay] = [[-9999,-9999]]
 		
+		# ---------------------------------------------------------------
+		# Update for egg_delay; create n-D noOffspring array for indexing
+		# ---------------------------------------------------------------
+		noOffspring_temp[egg_delay] = noOffspring	
+	
+	# Population extinct
+	else:
+		noOffspring_temp = []
+		Births.append([0 for x in range(0,len(K)+1)] )
+		BirthsYY.append([ 0 for x in range(0,len(K)+1)] )
+		EggDeaths.append( [0 for x in range(0,len(K)+1)] )
+	
+	return noOffspring_temp, Bearpairs
 	# End::DoOffspring()
