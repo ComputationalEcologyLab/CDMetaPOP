@@ -3603,7 +3603,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	SelectionDeaths[gen].insert(0,sum(SelectionDeaths[gen]))
 	DisperseDeaths[gen].insert(0,sum(DisperseDeaths[gen]))
 	PackingDeaths[gen].insert(0,sum(PackingDeaths[gen]))
-	#Kadj_track[gen].insert(0,sum(Kadj_track[gen]))
+	Kadj_track[gen].insert(0,sum(Kadj_track[gen]))
 	Track_YYSelectionPackDeaths[gen].insert(0,sum(Track_YYSelectionPackDeaths[gen]))
 	Track_WildSelectionPackDeaths[gen].insert(0,sum(Track_WildSelectionPackDeaths[gen]))
 	ProbSuccess[gen] = sum(ProbSuccess[gen])
@@ -3857,7 +3857,8 @@ StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population
 	else: # Population Extinct, return tracking variables 0 only
 		# Population variables here
 		Population.append( [0 for x in range(0,len(SubpopIN)+1)] )
-		Kadj_track.append( [0 for x in range(0,len(SubpopIN))] )
+		#Kadj_track.append( [0 for x in range(0,len(SubpopIN))] )
+		Kadj_track.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		SelectionDeaths.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		DisperseDeaths.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		PackingDeaths.append( [0 for x in range(0,len(SubpopIN)+1)] )

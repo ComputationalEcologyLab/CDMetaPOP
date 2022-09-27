@@ -1112,7 +1112,7 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 		for j in range(len(DisperseDeathsEmi[i])):
 			outputfile.write(str(DisperseDeathsEmi[i][j])+'|')
 		outputfile.write(',')
-		for j in range(nosubpops+1):
+		for j in range(len(Track_KadjEmi[i])): # changed from nosubpops + 1 no longer lenght time - 1
 			outputfile.write(str(Track_KadjEmi[i][j])+'|') # This tracker is length time - 1 long
 		outputfile.write(',')
 		for j in range(len(N_beforePack_pop[i])):
@@ -1147,7 +1147,7 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 			outputfile.write(str(DisperseDeathsImm[i][j])+'|')
 		outputfile.write(',')
 		# Adjusted K for Immigration
-		for j in range(nosubpops+1):
+		for j in range(len(Track_KadjImmi[i])): # changed from nosubpops+1
 			outputfile.write(str(Track_KadjImmi[i][j])+'|') # This tracker is only length time - 1 long
 		outputfile.write(',')
 		for j in range(len(PackingDeathsImm[i])):

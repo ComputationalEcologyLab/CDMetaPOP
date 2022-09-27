@@ -962,8 +962,8 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 			if gen == 0 and implementcomp == 'Back':
 				Kadj_track[gen].append(1.0)
 			elif gen > 0 and implementcomp == 'Back':
-				Kpop = Track_KadjImmi[gen-1][isub+1] # Grab Kpop adjustment from previous Immi module (gen-1) stored
-				
+				#Kpop = Track_KadjImmi[gen-1][isub+1]
+				Kpop = Track_KadjImmi[gen-1][isub]
 				Kadj_track[gen].append(Kpop) # For Tracking
 			
 			# Tracking N before packing
@@ -1329,8 +1329,8 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 			
 			# Overwrite Kpop to K adjusted tracking from DoEmigration that was updated from competition - careful of indexing Tracking variable is patch + 1, first value is total
 			if gen > 0 and implementcomp == 'Back':
-				Kpop = Track_KadjImmi[gen-1][isub+1] # Grab Kpop adjustment from previous Immi module (gen-1) stored
-			
+				#Kpop = Track_KadjImmi[gen-1][isub+1]
+				Kpop = Track_KadjImmi[gen-1][isub]
 			if implementcomp == 'Out':			
 				#if multiprocessing.current_process().name == "S1":
 				#	pdb.set_trace()	
@@ -1705,8 +1705,8 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 			
 			# Overwrite Kpop to K adjusted tracking from DoEmigration that was updated from competition - careful of indexing Tracking variable is patch + 1, first value is total
 			if gen > 0 and implementcomp == 'Back':
-				Kpop = Track_KadjImmi[gen-1][isub+1] # Grab Kpop adjustment from previous Immi module (gen-1) stored
-			
+				#Kpop = Track_KadjImmi[gen-1][isub+1]
+				Kpop = Track_KadjImmi[gen-1][isub]
 			if implementcomp == 'Out':				
 				# -----------------
 				# Adjustment for K if more than one species
@@ -1944,8 +1944,8 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 			
 			# Overwrite Kpop to K adjusted tracking from DoEmigration that was updated from competition - careful of indexing Tracking variable is patch + 1, first value is total
 			if gen > 0 and implementcomp == 'Back':
-				Kpop = Track_KadjImmi[gen-1][isub+1] # Grab Kpop adjustment from previous Immi module (gen-1) stored
-			
+				#Kpop = Track_KadjImmi[gen-1][isub+1]
+				Kpop = Track_KadjImmi[gen-1][isub]
 			if implementcomp == 'Out':				
 				# -----------------
 				# Adjustment for K if more than one species
@@ -2077,7 +2077,9 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 			
 			# Overwrite Kpop with K adjusted from DoEmigration that was updated from competition - careful of indexing Tracking variable is patch + 1, first value is total
 			if gen > 0:
-				Kpop = Track_KadjImmi[gen-1][isub+1]
+				#pdb.set_trace()
+				#Kpop = Track_KadjImmi[gen-1][isub+1]
+				Kpop = Track_KadjImmi[gen-1][isub]
 			Kadj_track[gen].append(Kpop) # For Tracking
 			
 			# Count up each uniages
@@ -2152,7 +2154,7 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 	DisperseDeaths[gen].insert(0,sum(DisperseDeaths[gen]))
 	PackingDeaths[gen].insert(0,sum(PackingDeaths[gen]))
 	N_beforePack_pop[gen].insert(0,sum(N_beforePack_pop[gen]))
-	#Kadj_track[gen].insert(0,sum(Kadj_track[gen]))
+	Kadj_track[gen].insert(0,sum(Kadj_track[gen]))
 	Track_YYSelectionPackDeaths[gen].insert(0,sum(Track_YYSelectionPackDeaths[gen]))
 	Track_WildSelectionPackDeaths[gen].insert(0,sum(Track_WildSelectionPackDeaths[gen]))
 	ProbSuccess[gen] = sum(ProbSuccess[gen])
@@ -2347,7 +2349,8 @@ def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,
 		# Population variables here
 		Population.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		N_beforePack_pop.append( [0 for x in range(0,len(SubpopIN)+1)] )
-		Kadj_track.append( [0 for x in range(0,len(SubpopIN))] )
+		#Kadj_track.append( [0 for x in range(0,len(SubpopIN))] )
+		Kadj_track.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		SelectionDeaths.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		DisperseDeaths.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		PackingDeaths.append( [0 for x in range(0,len(SubpopIN)+1)] )
