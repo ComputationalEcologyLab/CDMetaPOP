@@ -417,7 +417,7 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 	from a Normal distribution for a mated pair.
 	'''		
 	
-	# Loop through each mate pair
+	# Loop through each mate pair 
 	for i in range(len(Bearpairs)):
 		
 		# If female did not mate up, then assign 0 offspring
