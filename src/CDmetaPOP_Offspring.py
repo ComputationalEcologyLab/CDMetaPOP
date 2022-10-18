@@ -430,9 +430,9 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 		
 			# If size control then use parameters for length age_mu and CV
 			if sizecall == 'size':
-				if i == 0:
-					stringout = 'Warning: size control specified with offspring number that does not have standard deviation, using sigma from Agevars file.'
-					logMsg(logfHndl,stringout)
+				#if i == 0:
+					#stringout = 'Warning: size control specified with offspring number that does not have standard deviation, using sigma from Agevars file.'
+					#logMsg(logfHndl,stringout)
 				if egg_mean_ans == 'linear':
 					litter_mu = egg_mean_1 + egg_mean_2 * Bearpairs[i][0]['size']
 				elif egg_mean_ans == 'exp':
