@@ -9,6 +9,7 @@ import pdb,sys, copy, numbers
 from ast import literal_eval
 from scipy.stats import truncnorm
 from CDmetaPOP_Mortality import DoEggMortality
+from CDmetaPOP_Modules import logMsg
 import numpy as np
 
 # ---------------------------------------------------------------------------------------------------
