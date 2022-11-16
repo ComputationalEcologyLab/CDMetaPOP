@@ -772,16 +772,28 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 				# Add to genes list
 				#genes[iind][j].append(tempindall)
 				genes[iind].append(tempindall)
-		
+		#pdb.set_trace()
 		# ---------------------------------------------
 		# Get AA / aa p value for genetag
 		# ---------------------------------------------
-		if genes[iind][0] == 2:
+		'''
+		lower, upper = 0,1
+		X = truncnorm.rvs((lower - allelst[isub][thisgenefile][0][1][1]) / 0.1, (upper - allelst[isub][thisgenefile][0][1][1]) / 0.1, loc=allelst[isub][thisgenefile][0][1][1], scale=0.1)
+		#X = np.random.normal(mu,sigma)
+		if X < 0:
+			X = 0
+		elif X > 1:
+			X = 1.
+		hindex.append(X) # first locus/second allele
+		'''
+		
+		if genes[iind][0] == 2: # 1/0 in gene init file
 			hindex.append(1.0)
-		elif genes[iind][1] == 2:
+		elif genes[iind][1] == 2: # 0/1
 			hindex.append(0.0)
-		elif genes[iind][0] == 1 and genes[iind][1] == 1:
+		elif genes[iind][0] == 1 and genes[iind][1] == 1:# 0.5/0.5 gene init file
 			hindex.append(0.5)
+		
 		else:
 			hindex.append(-9999)		
 		#pdb.set_trace()

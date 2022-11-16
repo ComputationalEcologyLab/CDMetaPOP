@@ -1616,11 +1616,14 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 				mothers_patch = Bearpairs[:,0]
 				mothers_patch_ind = np.where(mothers_patch['NatalPop']==str(isub+1))[0]
 				mothers_patch_file = mothers_patch[mothers_patch_ind]['classfile']
+				mothers_patch_hindex = mothers_patch[mothers_patch_ind]['hindex']
 				fathers_patch_file = Bearpairs[:,1][mothers_patch_ind]['classfile']
+				fathers_patch_hindex = Bearpairs[:,1][mothers_patch_ind]['hindex']
 			
 				# Get the offspring in patch
 				offspring_patch = noOffspring[mothers_patch_ind]
 				Popoffspring = sum(offspring_patch)
+				offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
 				
 				# Get fry sizes - from mothers classfile
 				offspring_size = [] # sizes

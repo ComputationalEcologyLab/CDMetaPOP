@@ -1,6 +1,7 @@
 Changes 2.57.2022.09.27.T17:16:00 (ell)
 0) Track_AdjImmi and Track_AdjEmi needed to be len() long not len() -1; added total to index 0; updated DoImmigration, DoEmigration, made sure the extinction sections also add a spot and in PostProcess. Also #Kpop = Track_KadjImmi[gen-1][isub+1]
 to Kpop = Track_KadjImmi[gen-1][isub] in all locations of DoEMigration and vice versa for DoImmigration
+1) ccd fixed bug with HIndex for 'N' option for pop model
 
 Changes 2.56.2022.06.20.T10:59:00 (ell/cday)
 0) Changed name of output folder to 'run0batch0mc0species0'

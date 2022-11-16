@@ -9,6 +9,7 @@ import pdb,sys, copy, numbers
 from ast import literal_eval
 from scipy.stats import truncnorm
 from CDmetaPOP_Mortality import DoEggMortality
+from CDmetaPOP_Modules import logMsg
 import numpy as np
 
 # ---------------------------------------------------------------------------------------------------
@@ -431,7 +432,7 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 			if sizecall == 'size':
 				if i == 0:
 					stringout = 'Warning: size control specified with offspring number that does not have standard deviation, using sigma from Agevars file.'
-					logMsg(logfHndl,stringout)
+					#logMsg(logfHndl,stringout)
 				if egg_mean_ans == 'linear':
 					litter_mu = egg_mean_1 + egg_mean_2 * Bearpairs[i][0]['size']
 				elif egg_mean_ans == 'exp':
@@ -447,7 +448,12 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 				theseclasspars = int(Bearpairs[i][0]['classfile'].split('_')[1].split('CV')[1])
 				ageF = Bearpairs[i][0]['age']
 				#litter_sigma = np.mean(np.asarray(age_sigma[natalP][theseclasspars],dtype=float))
-				litter_sigma = float(age_sigma[natalP][theseclasspars][ageF])
+				#pdb.set_trace()
+				# Casey edit to account for when age is larger than number of age classes
+				if ageF > len(age_sigma[natalP][theseclasspars])-1:
+					litter_sigma = float(age_sigma[natalP][theseclasspars][len(age_sigma[natalP][theseclasspars])-1])
+				else:
+					litter_sigma = float(age_sigma[natalP][theseclasspars][ageF])
 				if litter_mu <= 0.:				
 					littersamp = 0
 				else:
