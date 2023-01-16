@@ -2756,7 +2756,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,N0)
+	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,tempN0)
 	
 	# ---------------------------------------------
 	# Store class variable SubpopIN_add

@@ -1,3 +1,6 @@
+Changes 2.58.2022.01.16.T105300 (cday/ell)
+0) PreProcess ln2750 N0 to tempN0 in AddIndividuals()
+
 Changes 2.57.2022.09.27.T17:16:00 (ell)
 0) Track_AdjImmi and Track_AdjEmi needed to be len() long not len() -1; added total to index 0; updated DoImmigration, DoEmigration, made sure the extinction sections also add a spot and in PostProcess. Also #Kpop = Track_KadjImmi[gen-1][isub+1]
 to Kpop = Track_KadjImmi[gen-1][isub] in all locations of DoEMigration and vice versa for DoImmigration
