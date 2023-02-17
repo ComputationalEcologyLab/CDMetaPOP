@@ -3337,7 +3337,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# Then get the Age0 index
 					Nage_samp_ind_age0s = np.where(SubpopIN_arr['age'] == 0)[0]
 					# Concate these together
-					Nage_samp_ind = np.concatenate(Nage_samp_ind_age0s,Nage_samp_ind_adults)
+					Nage_samp_ind = np.concatenate((Nage_samp_ind_age0s,np.asarray(Nage_samp_ind_adults)))
 				'''# else do nothing if Npop is below Kpop
 				if Npop <= Kpop:	
 					# Append all information to temp SubpopKeep variable

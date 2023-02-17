@@ -1,3 +1,8 @@
+Changes 2.59.2022.01.30T11:40:00 (ell)
+0) Packans N_Keepeggs np.concatenate error, tuple needed ((a,a)). Ln 3340 to Nage_samp_ind = np.concatenate((Nage_samp_ind_age0s,np.asarray(Nage_samp_ind_adults)))
+1) Added mutation rate to cdclimate module. Updated error statements for tuple; 
+2) Check mutational models for forward/backward. Updated these and checked all. ***Need to test for more than 2 alleles 
+
 Changes 2.58.2022.01.16.T105300 (cday/ell)
 0) PreProcess ln2750 N0 to tempN0 in AddIndividuals()
 

@@ -401,7 +401,7 @@ def DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_
 			else:
 				# Set the litter size
 				littersamp = int(round(np.random.poisson(litter_mu)))
-			
+	
 		# Append Offspring number to end of Pairs [F,M,#offspring]	
 		noOffspring.append(littersamp)			
 		
@@ -528,7 +528,7 @@ def DoOffspringConstant(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean
 			else:
 				# Set the litter size
 				littersamp = int(round(litter_mu))
-	
+		
 		# Append Offspring number to end of Pairs [F,M,#offspring]
 		noOffspring.append(littersamp)	
 			
@@ -630,7 +630,7 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 			# If equal clutch size is turned on
 			if equalClutch == 'Y':		
 				noOffspring = DoClutch(Bearpairs[egg_delay],dtype,noOffspring)
-
+		
 		# Make sure as array
 		noOffspring = np.asarray(noOffspring)
 		

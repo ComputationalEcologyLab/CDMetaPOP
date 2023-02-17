@@ -1009,7 +1009,8 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 						M1 = np.where(mothergenes[possiblealleles] == 1)[0]
 						FALL = np.concatenate((F2,F2,F1),axis=0) # 2 copies of 2s
 						MALL = np.concatenate((M2,M2,M1),axis=0) # 2 copies of 2s		
-						
+						if len(FALL) == 0 or len(MALL) == 0:
+							pdb.set_trace()
 						# Sample allele from each parent						
 						FsampleAlleles = np.random.choice(FALL,1).tolist()
 						MsampleAlleles = np.random.choice(MALL,1).tolist()
@@ -1073,12 +1074,11 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 							
 							# Check if random number is less than muterate
 							if mutationrandnos[iall] < muterate:
-								
-								# First remove this allele from offgenes
-								offgenes[thisloci[iall]] = offgenes[thisloci[iall]] - 1
 																
 								# If random kth allele model
 								if mutationans == 'random':
+									# First remove this allele from offgenes
+									offgenes[thisloci[iall]] = offgenes[thisloci[iall]] - 1
 									# Randomly choose another allele, but not what allele it was									
 									movealleleTO = np.random.choice(possiblealleles[np.where(thisloci[iall] != possiblealleles)[0]],1)[0]
 									# Index into offgenes and add 1
@@ -1086,26 +1086,40 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 																		
 								# If just forward mutation
 								elif mutationans == 'forward':
-									# Move allele forward unless it is the last one
-									if thisloci[iall] != possiblealleles[-1]:
+									# Move allele forward if it is the first one and there are alleles there
+									if iall == 0 and offgenes[possiblealleles][0] != 0:
+										# First remove this allele from offgenes
+										offgenes[thisloci[iall]] = offgenes[thisloci[iall]] - 1
+										# Then move it forwards		
 										offgenes[thisloci[iall]+1] = offgenes[thisloci[iall]+1] + 1
 																		
 								# If just forward mutation
 								elif mutationans == 'backward':
-									# Move allele backward unless it is the first one
-									if thisloci[iall] != possiblealleles[0]:
+									# Move allele backward only if second allele (not first one) 
+									# and second allele spot has alleles to move
+									if iall == 1 and offgenes[possiblealleles][1] != 0:
+										# First remove this allele from offgenes
+										offgenes[thisloci[iall]] = offgenes[thisloci[iall]] - 1
+										# THen move it backwards
 										offgenes[thisloci[iall]-1] = offgenes[thisloci[iall]-1] + 1
-										
+									if len(np.where(offgenes > 2)[0]) > 0:
+										pdb.set_trace()
 								# If forward and backward mutation
 								elif mutationans == 'forwardbackward':
 									# Then random forward or backward step
 									randstep = np.random.uniform()
 									# To go left, but it can't be the first allele
-									if randstep < 0.5 and thisloci[iall] != possiblealleles[0]:
+									if randstep < 0.5 and iall == 1:
+										# First remove this allele from offgenes
+										offgenes[thisloci[iall]] = offgenes[thisloci[iall]] - 1
+										# Then move left or backwards
 										offgenes[thisloci[iall]-1] = offgenes[thisloci[iall]-1] + 1
 										
 									# To go right, but it can't be the last allele
-									elif randstep >= 0.5 and thisloci[iall] != possiblealleles[-1]:
+									elif randstep >= 0.5 and iall == 0:
+										# First remove this allele from offgenes
+										offgenes[thisloci[iall]] = offgenes[thisloci[iall]] - 1
+										# Then move right or forwards										
 										offgenes[thisloci[iall]+1] = offgenes[thisloci[iall]+1] + 1
 										
 								# If forward mutation in A and backward mutation for b (A -> a, b -> B)
@@ -1194,7 +1208,8 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					hindex = 0.5
 				else:
 					hindex = -9999			
-			
+			if sum(offgenes) != 4:
+				pdb.set_trace()
 			# Then record new offspring information to Subpop location [subpop-ofmother,subpop of mother,NASubpop,EmiCD,ImmiCD,age,sex,size,mataure,infection,name,capture,layeggs,hindex,classfile,speciesID,genes]
 			offpop = offspring[i]['NatalPop']
 			name = offspring[i]['name']

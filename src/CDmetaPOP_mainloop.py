@@ -105,7 +105,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		inheritans_classfiles = batchVars['offans_InheritClassVars'][ibatch]
 		equalClutch = batchVars['equalClutchSize'][ibatch]
 		eggFreq = float(batchVars['eggFrequency'][ibatch])
-		muterate = float(batchVars['muterate'][ibatch])
+		muterate_pass = batchVars['muterate'][ibatch]
 		mutationans = batchVars['mutationtype'][ibatch]
 		loci = int(batchVars['loci'][ibatch])
 		alleles = batchVars['alleles'][ibatch]
@@ -350,11 +350,16 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		if not (inheritans_classfiles == 'random' or inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'):
 			print('Inherit answer for multiple class files is not correct: enter either random or Hindex.')
 			sys.exit(-1)
-			
+		
 		# If inherit answer uses Hindex, mutation can't be on
-		if muterate != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'):
-			print('Currently, mutation is not operating with Hindex inheritance options.')
-			sys.exit(-1)
+		if len(muterate_pass) > 1:
+			if sum(np.asarray(muterate_pass,dtype=float)) != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'):
+				print('Mutation is not operating with Hindex inheritance options in this version.')
+				sys.exit(-1)
+		else:
+			if sum(np.asarray([muterate_pass],dtype=float)) != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'):
+				print('Mutation is not operating with Hindex inheritance options in this version.')
+				sys.exit(-1)
 			
 		# If egg_delay is gretter than 1
 		if egg_delay > 1:
@@ -708,7 +713,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				for icdtime in range(len(cdclimgentime)): 
 					if gen == int(cdclimgentime[icdtime]):
 						tupClimate = DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,\
-						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass)	
+						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate_pass)	
 
 						cdmatrix_mate = tupClimate[0]
 						cdmatrix_FOut = tupClimate[1]
@@ -794,7 +799,8 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 						age_mu = tupClimate[81]	# Not updated in cdclimate yet
 						age_sigma = tupClimate[82]	# Not updated in cdclimate yet
 						f_leslie_mu = tupClimate[83] # Not updated in cdclimate yet	
-						f_leslie_std = tupClimate[84]	# Not updated in cdclimate yet					
+						f_leslie_std = tupClimate[84]	# Not updated in cdclimate yet	
+						muterate = tupClimate[85]						
 						
 						# ----------------------------------------
 						# Introduce new individuals
@@ -850,7 +856,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				# ---------------------------------------
 				# Call DoOffspring()
 				# ---------------------------------------
-				#pdb.set_trace()
+				
 				# Timing events: start
 				start_time1 = datetime.datetime.now()			
 				noOffspring_temp, Bearpairs_temp = DoOffspring(offno,Bearpairs_temp,\
