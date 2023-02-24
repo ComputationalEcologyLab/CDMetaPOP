@@ -116,7 +116,7 @@ def calc_EHom(SubpopIN):
 	#End::calc_EHom()
 
 # ---------------------------------------------------------------------------------------------------
-def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,plasticans,timeplastic, gridsample, patchHab):
+def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,plasticans,timeplastic, gridsample, patchHab,plastic_signalresp):
 	'''
 	This function will check and update the plastic gene region.
 	'''
@@ -159,15 +159,12 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 				Indgenes[plaloci_index[1]] = 1
 			
 	# Skip if delayed start time
-	if gen >= burningen_plastic and (plasticans.split('_')[0] == 'Temp'):
-		
-		# Get the plastic signal response threshold
-		plasticSignalThreshold = float(plasticans.split('_')[1].split(':')[0])
-		
+    
+	if gen >= burningen_plastic and plasticans.split('_')[0] == 'Temp':
+
 		# If patch temp values are greater than/equal to threshold and check to make sure the alleles are still 0 (not turned on)
-		#if (patchTemp >= plasticSignalThreshold) and (sum(Indgenes[plaloci_index]) == 0):
 		# If patch temp values are greater than/equal to threshold
-		if (patchTemp >= plasticSignalThreshold):
+		if (patchTemp >= plastic_signalresp):
 			
 			get_plaallele1_index = plaloci_index[0]
 			if Indgenes[get_plaallele1_index] == 1:
@@ -176,13 +173,9 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 			if Indgenes[get_plaallele2_index] == 1:
 				Indgenes[get_plaallele2_index] = Indgenes[get_plaallele2_index]+1
                 
-	if gen >= burningen_plastic and (plasticans.split('_')[0] == 'Hab'):
+	if gen >= burningen_plastic and plasticans.split('_')[0] == 'Hab':
 		
-		# Get the plastic signal response threshold
-		plasticSignalThreshold = float(plasticans.split('_')[1].split(':')[0])
-		
-		if (float(patchHab) >= plasticSignalThreshold):
-			
+		if (float(patchHab) >= plastic_signalresp):
 			get_plaallele1_index = plaloci_index[0]
 			if Indgenes[get_plaallele1_index] == 1:
 				Indgenes[get_plaallele1_index] = Indgenes[get_plaallele1_index]+1 
@@ -1029,24 +1022,21 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 						M1 = np.where(mothergenes[possiblealleles] == 1)[0]
 						FALL = np.concatenate((F2,F2,F1),axis=0) # 2 copies of 2s
 						MALL = np.concatenate((M2,M2,M1),axis=0) 		
-						
-						# Sample allele from each parent						
-						FsampleAlleles = np.random.choice(FALL,1).tolist()
-						MsampleAlleles = np.random.choice(MALL,1).tolist()
-						
-						# Fill in alleles corresponding to sampled spots
-						offgenes[possiblealleles[FsampleAlleles[0]]] = offgenes[possiblealleles[FsampleAlleles[0]]] + 1
-						offgenes[possiblealleles[MsampleAlleles[0]]] = offgenes[possiblealleles[MsampleAlleles[0]]] + 1
-						
-						# Check if offspring inherited a 2 from mother or father, reset to 1
-						if offgenes[possiblealleles[FsampleAlleles[0]]] == 2:
-							offgenes[possiblealleles[FsampleAlleles[0]]] = 1
-						if offgenes[possiblealleles[MsampleAlleles[0]]] == 2:
-							offgenes[possiblealleles[MsampleAlleles[0]]] = 1					
-				
-				#pdb.set_trace()
-				
-				
+												
+						# Check if 0 0
+						if len(FALL) != 0:
+							# Sample allele from each parent						
+							FsampleAlleles = np.random.choice(FALL,1).tolist()
+							# Fill in alleles corresponding to sampled spots
+							offgenes[possiblealleles[FsampleAlleles[0]]] = offgenes[possiblealleles[FsampleAlleles[0]]] + 1
+							# Check if offspring inherited a 2 from mother or father, reset to 1
+							if offgenes[possiblealleles[FsampleAlleles[0]]] == 2:
+								offgenes[possiblealleles[FsampleAlleles[0]]] = 1
+						if len(MALL) != 0:
+							MsampleAlleles = np.random.choice(MALL,1).tolist()
+							offgenes[possiblealleles[MsampleAlleles[0]]] = offgenes[possiblealleles[MsampleAlleles[0]]] + 1
+							if offgenes[possiblealleles[MsampleAlleles[0]]] == 2:
+								offgenes[possiblealleles[MsampleAlleles[0]]] = 1
 				
 				# mtDNA is turned on
 				# ------------------
@@ -1136,6 +1126,19 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 										# Index into offgenes and add 1
 										offgenes[movealleleTO] = offgenes[movealleleTO] + 1
 																		
+								# Special case for plastic loci only
+								elif mutationans == 'plastic':
+									if cdevolveans != 'N':
+										print('Check mutation model and cdevolve and plastic locations')
+										sys.exit(-1)
+									# Check first loci and if allele in this iall
+									if iloci == 0 and offgenes[possiblealleles][iall] != 0: 
+										# First remove this allele from offgenes
+										offgenes[thisloci[iall]] = offgenes[thisloci[iall]] - 1
+										# THen move it forward, unless last allele
+										if iall == 0:
+											offgenes[thisloci[iall]+1] = offgenes[thisloci[iall]+1] + 1					
+								
 								# No other mutation models matched
 								else:
 									print('The mutation model does not exist.')
@@ -1208,8 +1211,7 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 					hindex = 0.5
 				else:
 					hindex = -9999			
-			if sum(offgenes) != 4:
-				pdb.set_trace()
+			
 			# Then record new offspring information to Subpop location [subpop-ofmother,subpop of mother,NASubpop,EmiCD,ImmiCD,age,sex,size,mataure,infection,name,capture,layeggs,hindex,classfile,speciesID,genes]
 			offpop = offspring[i]['NatalPop']
 			name = offspring[i]['name']
@@ -1684,7 +1686,7 @@ def capInd(lastage,SubpopIN,isub,iind,sizecall,size_mean,ClasscapProb,PopcapProb
 	#End::capInd()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,plasticans=None,burningen_plastic=None,timeplastic=None,geneswap = None,habvals=None,age_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None,YYmat_int=None,YYmat_slope=None,YYmat_set=None):
+def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,plasticans=None,burningen_plastic=None,timeplastic=None,plastic_signalresp=None,geneswap = None,habvals=None,age_mature=None,Mmat_slope=None,Mmat_int=None,Fmat_slope=None,Fmat_int=None,Mmat_set=None,Fmat_set=None,YYmat_int=None,YYmat_slope=None,YYmat_set=None):
 	
 	'''
 	DoUpdate()
@@ -1948,7 +1950,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# -------------------------------------------------------
 				if (plasticans != 'N') and (((gridsample == 'Middle') and (timeplastic.find('Back') != -1)) or (((gridsample == 'Sample') or (gridsample == 'N')) and (timeplastic.find('Out') != -1))):
 					
-					updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample,habvals[isub])
+					updatePlasticGenes(SubpopIN[isub][iind],cdevolveans,gen,geneswap,burningen_plastic,sizevals[isub],plasticans,timeplastic,gridsample,habvals[isub],plastic_signalresp)
 									
 				# ---------------------------------
 				# Capture here - Middle and Sample

@@ -81,7 +81,7 @@ def count_unique(keys):
 	#End::count_unique()
 	
 # ---------------------------------------------------------------------------------------------------	
-def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic):
+def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
 	'''
 	GetProbArray()
 	This function gets indices for F and M specific cdmatrix values
@@ -191,9 +191,9 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 			else: # Same probability/cost to make it back, then assume it migrates back
 				probarray = [1.0]
 	
-	# Check plastic response here for temperature response and dominant "allele"
+# Check plastic response here for temperature response and dominant "allele"
 	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans.split('_')[0] == 'Temp') and (plasticans.split('_')[1] == "dom"):
-		
+
 		# Get location in genes array for plastic region
 		# ----------------------------------------------
 		Indgenes = currentoff['genes']
@@ -202,7 +202,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 			# Then the first l loci are for selection, next for plastic region
 			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 				selloci = int(cdevolveans.split('_')[2].split('L')[1])
-			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex' or cdevolveans == 'FHindex':
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
 				selloci = 1
 			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
 				selloci = 2
@@ -215,24 +215,239 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 		# Get number of plastic loci
 		plaloci = 1
 		# Get index for plastic region
-		plaloci_index = list(range(selloci*2,selloci*2+plaloci*2))
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
 		
 		# Get the plastic behaviorial response threshold
 		# ----------------------------------------------
-		tempthresh = float(plasticans.split('_')[1].split(':')[1])
 		
 		# Does this individual have the allele for response (2,2) or (2,0) or (0,2)
 		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
 					
 			if answer == 'immigrator': # probarray is length 1
 				# Only check patchvals in natalsubpop, which is where this individual is going if probarray is 1
-				if patchvals[natalsubpop] >= tempthresh:
+				if patchvals[natalsubpop] >= plastic_behaviorresp:
 					probarray = [0.0]
 				
 			else: # probarray is length patch dim
 				# Whereever temperature threshold, turn prob to 0
-				probarray[np.where(np.asarray(patchvals) >= tempthresh)[0]] = 0.
+				probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2]))
 	
+    	# Check plastic response here for temperature response and recessive "allele"
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans.split('_')[0] == 'Temp') and (plasticans.split('_')[1] == "rec"):
+
+		# Get location in genes array for plastic region
+		# ----------------------------------------------
+		Indgenes = currentoff['genes']
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+		
+		# Get the plastic behaviorial response threshold
+		# ----------------------------------------------
+		
+		# Does this individual have the allele for response (2,2) or (2,0) or (0,2)
+		if Indgenes[plaloci_index][0] == 2 and Indgenes[plaloci_index][1] == 2:
+					
+			if answer == 'immigrator': # probarray is length 1
+				# Only check patchvals in natalsubpop, which is where this individual is going if probarray is 1
+				if patchvals[natalsubpop] >= plastic_behaviorresp:
+					probarray = [0.0]
+				
+			else: # probarray is length patch dim
+				# Whereever temperature threshold, turn prob to 0
+				probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2]))
+    
+        	# Check plastic response here for temperature response and intermediate response
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans.split('_')[0] == 'Temp') and (plasticans.split('_')[1] == "codom"):
+
+		# Get location in genes array for plastic region
+		# ----------------------------------------------
+		Indgenes = currentoff['genes']
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+		
+		# Get the plastic behaviorial response threshold
+		# ----------------------------------------------
+		
+		# Does this individual have the allele to intiate response
+		# 2 in both = 0, one 2 = 50% reduction
+		if Indgenes[plaloci_index][0] == 2 and Indgenes[plaloci_index][1] == 2:
+		
+			# Whereever temperature threshold, turn prob to value input as third part of plasticans
+			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2]))
+            
+		if Indgenes[plaloci_index][0] == 1 and Indgenes[plaloci_index][1] == 2:
+		
+			# Whereever temperature threshold, reduce probably y 50% of the value input as the third part of plasticans
+			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = ( (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2])) + probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)] ) /2
+            
+		if Indgenes[plaloci_index][0] == 2 and Indgenes[plaloci_index][1] == 1:
+		
+			# Whereever temperature threshold, reduce probably y 50% of the value input as the third part of plasticans
+			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = ( (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2])) + probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)] ) /2
+    
+    
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1) and (plasticans.split('_')[0] == 'Hab') and (plasticans.split('_')[1] == "dom"):
+		
+		# Get location in genes array for plastic region
+		# ----------------------------------------------
+		Indgenes = currentoff['genes']
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+		
+		# Get the plastic behaviorial response threshold
+		# ----------------------------------------------
+		
+		# Does this individual have the allele for response (2,2) or (2,0) or (0,2)
+		if Indgenes[plaloci_index][0] == 2 or Indgenes[plaloci_index][1] == 2:
+					
+			if answer == 'immigrator': # probarray is length 1
+				# Only check patchvals in natalsubpop, which is where this individual is going if probarray is 1
+				if patchvals[natalsubpop] >= plastic_behaviorresp:
+					probarray = [0.0]
+				
+			else: # probarray is length patch dim
+				# Whereever temperature threshold, turn prob to 0
+				probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2]))
+                
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1) and (plasticans.split('_')[0] == 'Hab') and (plasticans.split('_')[1] == "rec"):
+		
+		# Get location in genes array for plastic region
+		# ----------------------------------------------
+		Indgenes = currentoff['genes']
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+		
+		# Get the plastic behaviorial response threshold
+		# ----------------------------------------------
+		
+		# Does this individual have the allele for response (2,2)
+		if Indgenes[plaloci_index][0] == 2 and Indgenes[plaloci_index][1] == 2:
+					
+			if answer == 'immigrator': # probarray is length 1
+				# Only check patchvals in natalsubpop, which is where this individual is going if probarray is 1
+				if patchvals[natalsubpop] >= plastic_behaviorresp:
+					probarray = [0.0]
+				
+			else: # probarray is length patch dim
+				# Whereever temperature threshold, turn prob to 0
+				probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2]))
+                
+	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Back') != -1) and (plasticans.split('_')[0] == 'Hab') and (plasticans.split('_')[1] == "codom"):
+		
+		# Get location in genes array for plastic region
+		# ----------------------------------------------
+		Indgenes = currentoff['genes']
+		# If cdevolve is on
+		if cdevolveans != 'N':
+			# Then the first l loci are for selection, next for plastic region
+			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
+				selloci = int(cdevolveans.split('_')[2].split('L')[1])
+			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
+				selloci = 1
+			elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
+				selloci = 2
+			else:
+				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
+				sys.exit(-1)
+		# If selection is not on
+		else:
+			selloci = 0 # zero loci in selection
+		# Get number of plastic loci
+		plaloci = 1
+		# Get index for plastic region
+		plaloci_index = range(selloci*2,selloci*2+plaloci*2)
+		
+		# Get the plastic behaviorial response threshold
+		# ----------------------------------------------
+		
+		# Does this individual have the allele to intiate response
+		# 2 in both = 0, one 2 = 50% reduction
+		if Indgenes[plaloci_index][0] == 2 and Indgenes[plaloci_index][1] == 2:
+		
+			# Whereever temperature threshold, turn prob to value input as third part of plasticans
+			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2]))
+            
+		if Indgenes[plaloci_index][0] == 1 and Indgenes[plaloci_index][1] == 2:
+		
+			# Whereever temperature threshold, reduce probably y 50% (calc by mean) of the value input as the third part of plasticans
+			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = ( (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2])) + probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)] ) /2
+            
+		if Indgenes[plaloci_index][0] == 2 and Indgenes[plaloci_index][1] == 1:
+		
+			# Whereever temperature threshold, reduce probably y 50% (calc by mean) of the value input as the third part of plasticans
+			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = ( (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2])) + probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)] ) /2
+                
+
+
+
 	return probarray
 	
 	# End::GetProbArray()
@@ -241,7 +456,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 def Immigration(SubpopIN,K,natal,Fxycdmatrix,Mxycdmatrix,gen,\
 cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,\
 burningen_cdevolve,ProbPatch,ProbSuccess,\
-cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,cdmatrix_dispLocal,plasticans,burningen_plastic,timeplastic,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb):
+cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,cdmatrix_dispLocal,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb):
 	
 	'''
 	Immigration()
@@ -386,7 +601,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# ---------------------------------------------------------
 					
 					# Get the probability array
-					probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+					probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 											
 					# If spot available to stray to
 					if sum(probarray) != 0.0:
@@ -645,7 +860,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# Attempt to move back to natal grounds
 					
 					# - Use partial cdmatrix - only natal supopulation values - should be only one number - check K = 0 and natal ground indeed 1
-					probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,'immigrator',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+					probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,'immigrator',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 					
 					# Here check if makes it back
 					randback = np.random.uniform()
@@ -695,7 +910,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 							# ---------------------------------------------------------
 							
 							# Get the probability array - be careful not to overwrite previous if statement!
-							probarray_LD = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'localDispersal',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+							probarray_LD = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'localDispersal',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 							
 							# If spots available to move to:
 							if sum(probarray_LD) != 0.0:
@@ -1428,7 +1643,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						elif homeattempt == 'stray_emiPop':
 
 							# Get the probability array
-							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 		
 							# If statement to check if there are spots for offpsring to stray to
 							if sum(probarray) != 0.0:
@@ -1655,7 +1870,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						elif homeattempt == 'stray_natalPop':
 							
 							# Get the probability array
-							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_natalPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)
+							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_natalPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
 		
 							# If statement to check if there are spots for offpsring to stray to
 							if sum(probarray) != 0.0:
@@ -1925,7 +2140,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# ---------------------------------------------------------
 					
 					# Get the probability array
-					probarray = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'localDispersal',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic)					
+					probarray = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'localDispersal',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)					
 				
 					# If spots available to move to:
 					if sum(probarray) != 0.0:
@@ -3803,7 +4018,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 def DoImmigration(SubpopIN,K,natal,Fdispmoveno,Mdispmoveno,\
 Fxycdmatrix,Mxycdmatrix,gen,cdevolveans,fitvals,subpopmigration,\
 SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,\
-StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,dispLocalparA,dispLocalparB,dispLocalparC,thresh_dispLocal,dispLocal_ScaleMin,dispLocal_ScaleMax,dispLocalno,plasticans,burningen_plastic,timeplastic,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb):
+StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,dispLocalparA,dispLocalparB,dispLocalparC,thresh_dispLocal,dispLocal_ScaleMin,dispLocal_ScaleMax,dispLocalno,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb):
 
 	'''
 	DoImmigration()
@@ -3830,7 +4045,7 @@ StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population
 		Fxycdmatrix,Mxycdmatrix,gen,\
 		cdevolveans,fitvals,\
 		SelectionDeaths,DisperseDeaths,\
-		burningen_cdevolve,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,plasticans,burningen_plastic,timeplastic,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb)
+		burningen_cdevolve,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb)
 		
 		# Calculate Dispersal Metrics for strayers 'S' 
 		tempStrayS = CalculateDispersalMetrics(SubpopIN,StrBackno,StrBackno,cdmatrix_StrBack,cdmatrix_StrBack,\

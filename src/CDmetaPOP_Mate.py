@@ -249,6 +249,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 
 			# Linear hindex preference mating
 			elif assortmateModel == '5':
+				female_hindex = np.around(females[intfemale]['hindex'],1)											 
 				# Get the males Hindex and frequency of each
 				males_hindex = np.around(patchmales['hindex'],1)
 				males_hindex_count = count_unique(males_hindex)

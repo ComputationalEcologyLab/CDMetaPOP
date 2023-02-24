@@ -1,3 +1,26 @@
+Changes 2.61.2023.02.22T14:12:00MT (ell)
+ELL5) 
+-> plastic_signalresp need to come into DoUpdate; added 
+-> plastic_behaviorresp needs to be read into Immigration and Emigration; added
+-> Aslo added to updatePlasticGenes() - note copied this function over from v1.72 into v2.60
+-> Looks like tjs added plastic_behaviorresp to GetProbArray() - have him check; just needed to be read into Immigration/Emigration and GetProbArray calls.
+-> Check AddAge0s
+***tjs update PopVars files in example_files with 2 additional fields
+-> More np.asarry() around behaviorresp value in Emigration and Immigration
+-> special mutation model added for tsj so that 0 0 can exist
+-> Updated InheritGenes() for plastic region to be able to be 0 0
+CDAY6) Brought in Mate.pyh from cday "variable female_hindex referenced before assignment. I added a fix at line 253"
+
+Changes 2.60.2022.02.22T5:12:024 (tjs) (cday) (ell)
+0) added to main loop the additional columns for plasticity from 1.72
+1) in main loop, added lines 717 to 804 to update plastic with cdclimate, updates lines after with appropriate subset number []
+	giving error, sent ELL for help. specifically added plastic_signalresp_pass[],plastic_behaviorresp_pass[], and in tupClimate added plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans
+	*ELL: not added to the return DoCDClimate() module, fixed in 2.61 
+2) in Modules, added new split argument for new parameters (dom, rec, codom + temp or hab)
+3) added new plasticity options to Immigration and Emmigration for the 6 options (dom, rec, codom + temp or hab)
+4) added "# Plastic Temp/Hab values - plastic_signalres_pass,plastic_behaviorres_pass" section at 1396, as well as plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans to def DoCDClimate (1079) to PreProcess based on existing 1.72 coded
+
+
 Changes 2.59.2022.01.30T11:40:00 (ell)
 0) Packans N_Keepeggs np.concatenate error, tuple needed ((a,a)). Ln 3340 to Nage_samp_ind = np.concatenate((Nage_samp_ind_age0s,np.asarray(Nage_samp_ind_adults)))
 1) Added mutation rate to cdclimate module. Updated error statements for tuple; 

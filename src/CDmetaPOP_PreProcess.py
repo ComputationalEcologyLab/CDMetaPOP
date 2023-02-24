@@ -1076,7 +1076,7 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate_pass):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate_pass):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
@@ -1392,6 +1392,20 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 				sys.exit(-1)
 		else:
 			subpopmort_mat = subpopmort_pass
+			
+	# Plastic Temp/Hab values - plastic_signalres_pass,plastic_behaviorres_pass
+	if plasticans != 'N':
+		if isinstance(plastic_signalresp_pass, (list,tuple)):
+			plastic_signalresp = float(plastic_signalresp_pass[icdtime])
+		else:
+			plastic_signalresp = float(plastic_signalresp_pass)
+		if isinstance(plastic_behaviorresp_pass, (list,tuple)):
+			plastic_behaviorresp = float(plastic_behaviorresp_pass[icdtime])
+		else:
+			plastic_behaviorresp = float(plastic_behaviorresp_pass)
+	else:
+		plastic_signalresp = plastic_signalresp_pass
+		plastic_behaviorresp  = plastic_behaviorresp_pass
 			
 	# Mutation Rate
 	if isinstance(muterate_pass, (list,tuple)):
@@ -1762,7 +1776,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	tupClimate = matecdmatrix,FdispOutcdmatrix,MdispOutcdmatrix,FdispBackcdmatrix,MdispBackcdmatrix,\
 	StrBackcdmatrix,matemovethresh,\
 	FdispmoveOutthresh,MdispmoveOutthresh,\
-	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,FdispmoveOutparA,MdispmoveOutparA,FdispmoveOutparB,MdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparC,FdispmoveBackparA,MdispmoveBackparA,FdispmoveBackparB,MdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparC,dispLocalcdmatrix,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,dispLocal_ScaleMin,dispLocal_ScaleMax,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate	
+	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,FdispmoveOutparA,MdispmoveOutparA,FdispmoveOutparB,MdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparC,FdispmoveBackparA,MdispmoveBackparA,FdispmoveBackparB,MdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparC,dispLocalcdmatrix,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,dispLocal_ScaleMin,dispLocal_ScaleMax,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,			plastic_behaviorresp,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate	
 	return tupClimate
 	#End::DoCDClimate()
 

@@ -114,10 +114,14 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		cdevolveans = batchVars['cdevolveans'][ibatch]
 		burningen_cdevolve = int(batchVars['startSelection'][ibatch])
 		timecdevolve = batchVars['implementSelection'][ibatch]
-		betaFile_selection = batchVars['betaFile_selection'][ibatch]		
+		betaFile_selection = batchVars['betaFile_selection'][ibatch]
+		
 		plasticans = batchVars['plasticgeneans'][ibatch]
+		plastic_signalresp_pass = batchVars['plasticSignalResponse'][ibatch]
+		plastic_behaviorresp_pass = batchVars['plasticBehavioralResponse'][ibatch]
 		burningen_plastic = int(batchVars['startPlasticgene'][ibatch])
-		timeplastic = batchVars['implementPlasticgene'][ibatch]		
+		timeplastic = batchVars['implementPlasticgene'][ibatch]
+		
 		cdinfect = batchVars['cdinfect'][ibatch]
 		transmissionprob = float(batchVars['transmissionprob'][ibatch])
 		growans = batchVars['growth_option'][ibatch]
@@ -713,7 +717,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				for icdtime in range(len(cdclimgentime)): 
 					if gen == int(cdclimgentime[icdtime]):
 						tupClimate = DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,\
-						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate_pass)	
+						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg_pass,Str_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate_pass)	
 
 						cdmatrix_mate = tupClimate[0]
 						cdmatrix_FOut = tupClimate[1]
@@ -796,11 +800,13 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 						xvars_betas = tupClimate[78]
 						outhabvals = tupClimate[79]
 						backhabvals = tupClimate[80]
-						age_mu = tupClimate[81]	# Not updated in cdclimate yet
-						age_sigma = tupClimate[82]	# Not updated in cdclimate yet
-						f_leslie_mu = tupClimate[83] # Not updated in cdclimate yet	
-						f_leslie_std = tupClimate[84]	# Not updated in cdclimate yet	
-						muterate = tupClimate[85]						
+						plastic_signalresp = tupClimate[81] #ts added
+						plastic_behaviorresp = tupClimate[82] #ts added, note that plasticans not listed here, but present in tupClimate. in 1.72, present in tupClimate as last piece but not defined down here.
+						age_mu = tupClimate[83]	# Not updated in cdclimate yet
+						age_sigma = tupClimate[84]	# Not updated in cdclimate yet
+						f_leslie_mu = tupClimate[85] # Not updated in cdclimate yet	
+						f_leslie_std = tupClimate[86]	# Not updated in cdclimate yet	
+						muterate = tupClimate[87]
 						
 						# ----------------------------------------
 						# Introduce new individuals
@@ -874,7 +880,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				#pdb.set_trace()
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
-				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,'Middle',growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,sizeans,age_size_mean,Track_N_back_age,eggFreq,backsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,backgrowdays,sourcePop,plasticans,burningen_plastic,timeplastic,geneswap,backhabvals)
+				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,'Middle',growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,sizeans,age_size_mean,Track_N_back_age,eggFreq,backsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,backgrowdays,sourcePop,plasticans,burningen_plastic,timeplastic,plastic_signalresp,geneswap,backhabvals)
 												
 				# Print to log
 				stringout = 'Second DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -889,7 +895,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				SubpopIN = DoEmigration(SubpopIN,K,FdispOutno,\
 				MdispOutno,cdmatrix_FOut,cdmatrix_MOut,gen,F_EmiDist,M_EmiDist,cdevolveans,fitvals,F_EmiDist_sd,M_EmiDist_sd,subpopemigration,\
 				SelectionDeathsEmi,DisperseDeathsEmi,burningen_cdevolve,Mg,\
-				MgSuccess,AdultNoMg,age_Mg,thresh_FOut,thresh_MOut,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,FdispOut_ScaleMax,FdispOut_ScaleMin,MdispOut_ScaleMax,MdispOut_ScaleMin,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,packans,PackingDeathsEmiAge,packpar1,timecdevolve,age_percmort_out,migrate,outsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,noOffspring_temp,Bearpairs_temp,age_size_std,Femalepercent_egg,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_slope,YYmat_int,YYmat_set,alleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Track_KadjEmi,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit)
+				MgSuccess,AdultNoMg,age_Mg,thresh_FOut,thresh_MOut,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,FdispOut_ScaleMax,FdispOut_ScaleMin,MdispOut_ScaleMax,MdispOut_ScaleMin,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC,packans,PackingDeathsEmiAge,packpar1,timecdevolve,age_percmort_out,migrate,outsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring_temp,Bearpairs_temp,age_size_std,Femalepercent_egg,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_slope,YYmat_int,YYmat_set,alleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Track_KadjEmi,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit)
 				
 				# Delete the noOffspring_temp and Bearpairs_temp egg_delay spots used: the first spot in list
 				if len(noOffspring_temp) != 0: # But check for extinction
@@ -921,7 +927,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				# ----------------------------------------------------
 				#pdb.set_trace()
 				start_time1 = datetime.datetime.now() # Timing events: start
-				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,'EmiPop',plasticans,burningen_plastic,timeplastic,geneswap,outhabvals,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_int,YYmat_slope,YYmat_set)
+				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,defaultAgeMature,fitvals,burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,'EmiPop',plasticans,burningen_plastic,timeplastic,plastic_signalresp,geneswap,outhabvals,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_int,YYmat_slope,YYmat_set)
 					
 				# Print to log
 				stringout = 'Third DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -936,7 +942,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				MdispBackno,cdmatrix_FBack,cdmatrix_MBack,gen,cdevolveans,fitvals,subpopimmigration,\
 				SelectionDeathsImm,DisperseDeathsImm,burningen_cdevolve,Str,\
 				StrSuccess,\
-				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,packpar1,homeattempt,timecdevolve,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,backsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,dispLocalparA,dispLocalparB,dispLocalparC,thresh_dispLocal,dispLocal_ScaleMin,dispLocal_ScaleMax,dispLocalno,plasticans,burningen_plastic,timeplastic,age_percmort_back,comp_coef,XQs,Track_KadjImmi,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb)
+				Strno,cdmatrix_StrBack,age_S,thresh_FBack,thresh_MBack,thresh_Str,N_Immigration_pop,dtype,sizeans,age_size_mean,PackingDeathsImm,N_Immigration_age,FdispBack_ScaleMax,FdispBack_ScaleMin,MdispBack_ScaleMax,MdispBack_ScaleMin,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC,Str_ScaleMax,Str_ScaleMin,StrBackparA,StrBackparB,StrBackparC,packans,PackingDeathsImmAge,packpar1,homeattempt,timecdevolve,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,backsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,dispLocalparA,dispLocalparB,dispLocalparC,thresh_dispLocal,dispLocal_ScaleMin,dispLocal_ScaleMax,dispLocalno,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort_back,comp_coef,XQs,Track_KadjImmi,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb)
 				
 				# Print to log
 				stringout = 'DoImmigration(): '+str(datetime.datetime.now() -start_time1) + ''
