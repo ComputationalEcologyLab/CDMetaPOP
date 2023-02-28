@@ -58,16 +58,16 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 	
 	# Check Assortative Mate model for Hindex or Gene here
 	# ----------------------------------------------------
-	if len(assortmateModel.split('_')) > 1:
-		if assortmateModel.split('_')[1] == 'gene':
+	if assortmateModel not in ['1','2','3a','3b','4_gene','4','5','6']:
+		#if assortmateModel.split('_')[1] == 'gene':
 			# Get this females genes for assortative mating potential 
-			female_genes = females[intfemale]['genes'][0:2]
-		elif assortmateModel.split('_')[1] == 'hindex':
+		#	female_genes = females[intfemale]['genes'][0:2]
+		#elif assortmateModel.split('_')[1] == 'hindex':
 			# Get this females genes/hindex for assortive mating potential - round to nearest 10th
-			female_hindex = np.around(females[intfemale]['hindex'],1)
-		else:
-			print('Assortative Mate option entered wrong.')
-			sys.exit(-1)
+		#	female_hindex = np.around(females[intfemale]['hindex'],1)
+	
+		print('Assortative Mate option entered wrong.')
+		sys.exit(-1)
 	
 	# Extract each male patch probability that female can mate with - careful of indexing
 	probarray = xycdmatrix[:,int(femalepop)-1]
@@ -136,13 +136,38 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 			
 			# There are males in this patch, randomly select one while checking for self preference	
 			#else:
-				
 			# Index into the males
-			patchmales = males[patchindex]
+			patchmales = males[patchindex]	
+			if assortmateModel == '1': #Random mating
+				
+				# Randomly select a male in patch
+				malemate = np.random.choice(patchmales,1)[0]
+			
+				# And store the mated pair information.						
+				Bearpairs.append([females[intfemale],malemate])
+				# Get female genes
+				female_genes = females[intfemale]['genes'][0:2]
+					
+				# Tracking
+				femalesmated.append(1)
+				# Tracking mating to verify if truly random
+				if (female_genes[0] == 2 and malemate['genes'][1] == 2) or (female_genes[1] == 2 and malemate['genes'][0] == 2):
+					AAaaMates.append(1)
+				elif (female_genes[0] == 2 and malemate['genes'][0] == 2):
+					AAAAMates.append(1)
+				elif (female_genes[1] == 2 and malemate['genes'][1] == 2):
+					aaaaMates.append(1)
+				elif (female_genes[0] == 2 and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)) or (malemate['genes'][0] == 2 and (female_genes[0] == 1 and female_genes[1] == 1)):
+					AAAaMates.append(1)
+				elif (female_genes[1] == 2 and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)) or (malemate['genes'][1] == 2 and (female_genes[0] == 1 and female_genes[1] == 1)):
+					aaAaMates.append(1)
+				elif ((female_genes[0] == 1 and female_genes[1] == 1) and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)):
+					AaAaMates.append(1)
 			
 			# Strict self mating option (that is, AA with AA, Aa with Aa, and aa with aa, but using Hindex
 			if assortmateModel == '2':
 				# Get the males hindex 
+				female_hindex = np.around(females[intfemale]['hindex'],1)
 				males_hindex = np.around(patchmales['hindex'],1)
 				
 				# Check for matching males
@@ -158,10 +183,31 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				else:
 					# Then randomly choose one of the self males
 					patchmales = patchmales[males_self]
-											
+				# Randomly select a male in patch
+				malemate = np.random.choice(patchmales,1)[0]
+			
+				# And store the mated pair information.						
+				Bearpairs.append([females[intfemale],malemate])
+			
+				# Tracking
+				femalesmated.append(1)
+				#Tracking
+				if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
+					AAaaMates.append(1)
+				elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
+					AAAAMates.append(1)
+				elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
+					aaaaMates.append(1)
+				elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+					AAAaMates.append(1)
+				elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+					aaAaMates.append(1)
+				elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
+					AaAaMates.append(1)
 			# Self-preference mating 
 			elif assortmateModel == '3a':
 				# Get the males Hindex and frequency of each
+				female_hindex = np.around(females[intfemale]['hindex'],1)
 				males_hindex = np.around(patchmales['hindex'],1)
 				males_hindex_count = count_unique(males_hindex)
 				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
@@ -176,10 +222,32 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 					
 				# Get selected males of preferential hindex
 				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
+				# Randomly select a male in patch
+				malemate = np.random.choice(patchmales,1)[0]
+				
+				# And store the mated pair information.						
+				Bearpairs.append([females[intfemale],malemate])
+			
+				# Tracking
+				femalesmated.append(1)
+				#Tracking
+				if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
+					AAaaMates.append(1)
+				elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
+					AAAAMates.append(1)
+				elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
+					aaaaMates.append(1)
+				elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+					AAAaMates.append(1)
+				elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+					aaAaMates.append(1)
+				elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
+					AaAaMates.append(1)
 				
 			# Self-preference mating option - multiple species option
 			elif assortmateModel == '3b':
 				# Get the males Hindex and frequency of each
+				female_hindex = np.around(females[intfemale]['hindex'],1)
 				males_hindex = np.around(patchmales['hindex'],1)
 				males_hindex_count = count_unique(males_hindex)
 				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
@@ -204,11 +272,33 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 					
 				# Get selected males of preferential hindex
 				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
+				# Randomly select a male in patch
+				malemate = np.random.choice(patchmales,1)[0]
+			
+				# And store the mated pair information.						
+				Bearpairs.append([females[intfemale],malemate])
+			
+				# Tracking
+				femalesmated.append(1)
+				#Tracking
+				if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
+					AAaaMates.append(1)
+				elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
+					AAAAMates.append(1)
+				elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
+					aaaaMates.append(1)
+				elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+					AAAaMates.append(1)
+				elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+					aaAaMates.append(1)
+				elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
+					AaAaMates.append(1)
 				
 			# Dominant-preference mating - 
-			elif assortmateModel == '4_gene' or assortmateModel == '4_hindex':
-				if assortmateModel == '4_hindex':
+			elif assortmateModel == '4_gene' or assortmateModel == '4':
+				if assortmateModel == '4': #hindex option
 					# Get the males Hindex and frequency of each
+					female_hindex = np.around(females[intfemale]['hindex'],1)
 					males_hindex = np.around(patchmales['hindex'],1)
 					males_hindex_count = count_unique(males_hindex)
 					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
@@ -230,9 +320,33 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 						
 					# Get selected males of preferential hindex
 					patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
+					# Randomly select a male in patch
+					malemate = np.random.choice(patchmales,1)[0]
+			
+					# And store the mated pair information.						
+					Bearpairs.append([females[intfemale],malemate])
+			
+					# Tracking
+					femalesmated.append(1)
+					#Tracking
+					if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
+						AAaaMates.append(1)
+					elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
+						AAAAMates.append(1)
+					elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
+						aaaaMates.append(1)
+					elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+						AAAaMates.append(1)
+					elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+						aaAaMates.append(1)
+					elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
+						AaAaMates.append(1)
 				
 				# Special case for sneaker Males - technically not the dominant preference model
 				elif assortmateModel == '4_gene':
+					# Get female genes
+					#pdb.set_trace()
+					female_genes = females[intfemale]['genes'][0:2]
 					# Get the males Genes and frequency of each
 					males_genes = patchmales['genes'][:,0:2]
 					males_genes_count = count_unique(males_genes[:,0])
@@ -246,7 +360,27 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 					
 					# Get selected males of preferential hindex
 					patchmales = patchmales[np.where(males_genes[:,0]==males_genes_count[0][selectMaleGenotype])[0]]
-
+					# Randomly select a male in patch
+					malemate = np.random.choice(patchmales,1)[0]
+			
+					# And store the mated pair information.						
+					Bearpairs.append([females[intfemale],malemate])
+			
+					# Tracking
+					femalesmated.append(1)
+					#Tracking
+					if (female_genes[0] == 2 and malemate['genes'][1] == 2) or (female_genes[1] == 2 and malemate['genes'][0] == 2):
+						AAaaMates.append(1)
+					elif (female_genes[0] == 2 and malemate['genes'][0] == 2):
+						AAAAMates.append(1)
+					elif (female_genes[1] == 2 and malemate['genes'][1] == 2):
+						aaaaMates.append(1)
+					elif (female_genes[0] == 2 and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)) or (malemate['genes'][0] == 2 and (female_genes[0] == 1 and female_genes[1] == 1)):
+						AAAaMates.append(1)
+					elif (female_genes[1] == 2 and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)) or (malemate['genes'][1] == 2 and (female_genes[0] == 1 and female_genes[1] == 1)):
+						aaAaMates.append(1)
+					elif ((female_genes[0] == 1 and female_genes[1] == 1) and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)):
+						AaAaMates.append(1)
 			# Linear hindex preference mating
 			elif assortmateModel == '5':
 				female_hindex = np.around(females[intfemale]['hindex'],1)											 
@@ -265,7 +399,27 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 					
 				# Get selected males of preferential hindex
 				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
-									
+				# Randomly select a male in patch
+				malemate = np.random.choice(patchmales,1)[0]
+			
+				# And store the mated pair information.						
+				Bearpairs.append([females[intfemale],malemate])
+			
+				# Tracking
+				femalesmated.append(1)
+				#Tracking
+				if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
+					AAaaMates.append(1)
+				elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
+					AAAAMates.append(1)
+				elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
+					aaaaMates.append(1)
+				elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+					AAAaMates.append(1)
+				elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
+					aaAaMates.append(1)
+				elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
+					AaAaMates.append(1)
 			# 'Community' option, select males that are of same 'species' of female
 			elif assortmateModel == '6':
 				
@@ -280,8 +434,15 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 					# Continue to check next patch					
 					tempprobarray[itemselect] = 0. # Replace probarray with a zero, no males of this species here
 					continue 
-								
-			# Randomly select a male in patch
+				# Randomly select a male in patch
+				malemate = np.random.choice(patchmales,1)[0]
+			
+				# And store the mated pair information.						
+				Bearpairs.append([females[intfemale],malemate])
+			
+				# Tracking
+				femalesmated.append(1)				
+			'''# Randomly select a male in patch
 			malemate = np.random.choice(patchmales,1)[0]
 			
 			# And store the mated pair information.						
@@ -316,7 +477,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 						aaAaMates.append(1)
 					elif ((female_genes[0] == 1 and female_genes[1] == 1) and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)):
 						AaAaMates.append(1)
-				
+				'''
 			# Then break from patch search loop
 			break
 					
