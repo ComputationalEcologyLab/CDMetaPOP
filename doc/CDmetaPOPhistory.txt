@@ -10,6 +10,7 @@ ELL5)
 -> special mutation model added for tsj so that 0 0 can exist
 -> Updated InheritGenes() for plastic region to be able to be 0 0
 CDAY6) Brought in Mate.pyh from cday "variable female_hindex referenced before assignment. I added a fix at line 253"
+-> ccd - updated DoSexual to fix bugs/inconsistencies with assortative mate model and update user manual to match. Moved tracking of mating events inside each option for assortmatemodel.
 
 Changes 2.60.2022.02.22T5:12:024 (tjs) (cday) (ell)
 0) added to main loop the additional columns for plasticity from 1.72
