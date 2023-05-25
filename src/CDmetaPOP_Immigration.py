@@ -81,7 +81,7 @@ def count_unique(keys):
 	#End::count_unique()
 	
 # ---------------------------------------------------------------------------------------------------	
-def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
+def GetProbArray(offspring,answer,K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXX,cdmatrix_MXY,cdmatrix_MYY,cdmatrix_FYY):
 	'''
 	GetProbArray()
 	This function gets indices for F and M specific cdmatrix values
@@ -94,17 +94,19 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 	# Subpopulation current offspring is in - index - 1
 	currentsubpop = int(currentoff['EmiPop']) - 1
 	natalsubpop = int(currentoff['NatalPop']) - 1
-	indSex = currentoff['sex']
-	
+	indSex = currentoff['sex']	
+
 	# If straying process - use full cdmatrix
 	if answer == 'strayer_emiPop':
 		# Append the freegrid probabilities for the offspring choice
-		if indSex == 'XX': # Female 
-			probarray = copy.deepcopy(Fxycdmatrix[currentsubpop])
-		elif indSex == 'XY': # Male 
-			probarray = copy.deepcopy(Mxycdmatrix[currentsubpop])
-		elif indSex == 'YY': # Male 
-			probarray = copy.deepcopy(Mxycdmatrix[currentsubpop])
+		if indSex == 'FXX': # Female offspring
+			probarray = copy.deepcopy(cdmatrix_FXX[currentsubpop])
+		elif indSex == 'MXY': # Male offspring
+			probarray = copy.deepcopy(cdmatrix_MXY[currentsubpop])
+		elif indSex == 'MYY': # Male YY
+			probarray = copy.deepcopy(cdmatrix_MYY[currentsubpop])
+		elif indSex == 'FYY': # FeMale YY
+			probarray = copy.deepcopy(cdmatrix_FYY[currentsubpop])
 		else:
 			print('Invalid offspring list.')
 			sys.exit(-1)
@@ -118,40 +120,46 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 	elif answer == 'strayer_natalPop':
 		
 		# Append the freegrid probabilities for the offspring choice
-		if indSex == 'XX': # Female 
-			probarray = copy.deepcopy(Fxycdmatrix[natalsubpop])
-		elif indSex == 'XY': # Male 
-			probarray = copy.deepcopy(Mxycdmatrix[natalsubpop])
-		elif indSex == 'YY': # Male 
-			probarray = copy.deepcopy(Mxycdmatrix[natalsubpop])
+		if indSex == 'FXX': # Female offspring
+			probarray = copy.deepcopy(cdmatrix_FXX[natalsubpop])
+		elif indSex == 'MXY': # Male offspring
+			probarray = copy.deepcopy(cdmatrix_MXY[natalsubpop])
+		elif indSex == 'MYY': # Male YY
+			probarray = copy.deepcopy(cdmatrix_MYY[natalsubpop])
+		elif indSex == 'FYY': # FeMale YY
+			probarray = copy.deepcopy(cdmatrix_FYY[natalsubpop])
 		else:
 			print('Invalid offspring list.')
-			sys.exit(-1)
-		
+			sys.exit(-1)		
+				
 		# Where natal grounds = 0, set prob to 0
 		probarray[np.where(np.asarray(natal)==0)[0]] = 0.
 		# Where K = 0, set prob to 0
 		probarray[np.where(np.asarray(K)==0)[0]] = 0.
 		
 		# Where currentpop to 0 probabilities set to zero
-		if indSex == 'XX': # Female 
-			nothere = copy.deepcopy(Fxycdmatrix[currentsubpop])
-		elif indSex == 'XY': # Male 
-			nothere = copy.deepcopy(Mxycdmatrix[currentsubpop])
-		elif indSex == 'YY': # Male 
-			nothere = copy.deepcopy(Mxycdmatrix[currentsubpop])
+		if indSex == 'FXX': # Female 
+			nothere = copy.deepcopy(cdmatrix_FXX[currentsubpop])
+		elif indSex == 'MXY': # Male 
+			nothere = copy.deepcopy(cdmatrix_MXY[currentsubpop])
+		elif indSex == 'MYY': # Male 
+			nothere = copy.deepcopy(cdmatrix_MYY[currentsubpop])
+		elif indSex == 'FYY': # FeMale YY
+			nothere = copy.deepcopy(cdmatrix_FYY[currentsubpop])
 		probarray[np.where(nothere == 0.)[0]] = 0.
 		
 	# If local dispersal process
 	elif answer == 'localDispersal':
 		
 		# Append the freegrid probabilities for the offspring choice
-		if indSex == 'XX': # Female 
-			probarray = copy.deepcopy(Fxycdmatrix[natalsubpop])
-		elif indSex == 'XY': # Male 
-			probarray = copy.deepcopy(Mxycdmatrix[natalsubpop])
-		elif indSex == 'YY': # Male 
-			probarray = copy.deepcopy(Mxycdmatrix[natalsubpop])
+		if indSex == 'FXX': # Female offspring
+			probarray = copy.deepcopy(cdmatrix_FXX[natalsubpop])
+		elif indSex == 'MXY': # Male offspring
+			probarray = copy.deepcopy(cdmatrix_MXY[natalsubpop])
+		elif indSex == 'MYY': # Male YY
+			probarray = copy.deepcopy(cdmatrix_MYY[natalsubpop])
+		elif indSex == 'FYY': # FeMale YY
+			probarray = copy.deepcopy(cdmatrix_FYY[natalsubpop])
 		else:
 			print('Invalid offspring list.')
 			sys.exit(-1)
@@ -168,18 +176,22 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 			probarray = [0.0]
 		else:
 			# Append the freegrid probabilities for the offspring choice
-			if indSex == 'XX': # Female 
+			if indSex == 'FXX': # Female 
 				# Get probarray from current to natal - only one number!
-				probarray_BA = [copy.deepcopy(Fxycdmatrix[currentsubpop][natalsubpop])]
-				probarray_AB = [copy.deepcopy(Fxycdmatrix[natalsubpop][currentsubpop])]
-			elif indSex == 'XY': # Male 
+				probarray_BA = [copy.deepcopy(cdmatrix_FXX[currentsubpop][natalsubpop])]
+				probarray_AB = [copy.deepcopy(cdmatrix_FXX[natalsubpop][currentsubpop])]
+			elif indSex == 'MXY': # Male 
 				# Get probarray from current to natal - only one number!
-				probarray_BA = [copy.deepcopy(Mxycdmatrix[currentsubpop][natalsubpop])]
-				probarray_AB = [copy.deepcopy(Mxycdmatrix[natalsubpop][currentsubpop])]
-			elif indSex == 'YY': # Male 
+				probarray_BA = [copy.deepcopy(cdmatrix_MXY[currentsubpop][natalsubpop])]
+				probarray_AB = [copy.deepcopy(cdmatrix_MXY[natalsubpop][currentsubpop])]
+			elif indSex == 'MYY': # Male 
 				# Get probarray from current to natal - only one number!
-				probarray_BA = [copy.deepcopy(Mxycdmatrix[currentsubpop][natalsubpop])]
-				probarray_AB = [copy.deepcopy(Mxycdmatrix[natalsubpop][currentsubpop])]
+				probarray_BA = [copy.deepcopy(cdmatrix_MYY[currentsubpop][natalsubpop])]
+				probarray_AB = [copy.deepcopy(cdmatrix_MYY[natalsubpop][currentsubpop])]
+			elif indSex == 'FYY': # FeMale YY 
+				# Get probarray from current to natal - only one number!
+				probarray_BA = [copy.deepcopy(cdmatrix_FYY[currentsubpop][natalsubpop])]
+				probarray_AB = [copy.deepcopy(cdmatrix_FYY[natalsubpop][currentsubpop])]			
 			else:
 				print('Invalid offspring list.')
 				sys.exit(-1)
@@ -446,17 +458,12 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,answer,K,natal,patchvals,cdev
 			probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)[0]] = ( (probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)]) * (float(plasticans.split('_')[2])) + probarray[np.where(np.asarray(patchvals) >= plastic_behaviorresp)] ) /2
                 
 
-
-
 	return probarray
 	
 	# End::GetProbArray()
 	
 # ---------------------------------------------------------------------------------------------------	
-def Immigration(SubpopIN,K,natal,Fxycdmatrix,Mxycdmatrix,gen,\
-cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,\
-burningen_cdevolve,ProbPatch,ProbSuccess,\
-cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,cdmatrix_dispLocal,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb):
+def Immigration(SubpopIN,K,natal,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,ProbPatch,ProbSuccess,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD,sexchromo):
 	
 	'''
 	Immigration()
@@ -500,7 +507,16 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			originalpop = outpool['NatalPop']
 			emipop = outpool['EmiPop']
 			outpool_genes = outpool['genes']
-			Indsex = outpool['sex']
+			indSex = outpool['sex']
+			# For indexing into 
+			if indSex == 'FXX':
+				sxspot = 0
+			elif indSex == 'MXY':
+				sxspot = 1
+			elif indSex == 'MYY':
+				sxspot = 2
+			else:
+				sxspot = 3
 
 			# Get this individuals original ClassVars file and bins for indexing
 			natalP = int(SubpopIN[isub][iind]['classfile'].split('_')[0].split('P')[1])
@@ -558,24 +574,15 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						if Find > len(ProbAge[natalP][theseclasspars]) - 1:
 							Find = len(ProbAge[natalP][theseclasspars]) - 1 # Make last age
 						Str_Class = ProbAge[natalP][theseclasspars][Find]
-
+				
 				# Get sex class options if given
-				if Indsex == 'XX': # Female
+				if len(Str_Class.split('~')) == 1:
 					Str_Class = float(Str_Class.split('~')[0])
-				elif Indsex == 'XY': #Male
-					# Check if more than value here
-					if len(Str_Class.split('~')) > 1:
-						Str_Class = float(Str_Class.split('~')[1])
-					else:
-						Str_Class = float(Str_Class.split('~')[0])
-				else: # YY male
-					# Check if more than value here
-					if len(Str_Class.split('~')) == 3:
-						Str_Class = float(Str_Class.split('~')[2])
-					elif len(Str_Class.split('~')) == 2:
-						Str_Class = float(Str_Class.split('~')[1])
-					else:
-						Str_Class = float(Str_Class.split('~')[0])
+				elif len(Str_Class.split('~')) != sexchromo:
+					print('Number of age-specific probability parameters must match sex_chromo.')
+					sys.exit(-1)
+				else:
+					Str_Class = float(Str_Class.split('~')[sxspot])
 				
 				# Then multiply these together
 				indProb = Str_Patch * Str_Class
@@ -601,7 +608,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# ---------------------------------------------------------
 					
 					# Get the probability array
-					probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
+					probarray = GetProbArray(outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr)
 											
 					# If spot available to stray to
 					if sum(probarray) != 0.0:
@@ -860,7 +867,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# Attempt to move back to natal grounds
 					
 					# - Use partial cdmatrix - only natal supopulation values - should be only one number - check K = 0 and natal ground indeed 1
-					probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,'immigrator',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
+					probarray = GetProbArray(outpool,'immigrator',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack)
 					
 					# Here check if makes it back
 					randback = np.random.uniform()
@@ -884,20 +891,34 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 							Find = indexofProb
 						# Check for ages over last age
 						if Find > len(ageDispProb[natalP][theseclasspars]) - 1:
-							Find = len(ageDispProb[natalP][theseclasspars]) - 1 # Make last age
-						indProb = float(ageDispProb[natalP][theseclasspars][Find])
+							Find = len(ageDispProb[natalP][theseclasspars]) - 1 # Make last age					
+						
+						# Get sex class options if given
+						if len(ageDispProb[natalP][theseclasspars][Find].split('~')) == 1:
+							indProb = float(ageDispProb[natalP][theseclasspars][Find].split('~')[0])
+						elif len(ageDispProb[natalP][theseclasspars][Find].split('~')) != sexchromo:
+							print('Number of age-specific capture probability parameters must match sex_chromo.')
+							sys.exit(-1)
+						else:
+							indProb = float(ageDispProb[natalP][theseclasspars][Find].split('~')[sxspot])
 						
 						# Decide if disperse?
 						randProb = np.random.uniform()	# Get a random number			
+						
+						'''
+						# -----------------------------------
+						# For stray - hindex relationship
+						# --------Currently HardCoded option
+						#if cdevolveans == 'LDHindex':
+						if outpool['hindex'] == 0.5:
+							indProb = 1.0
+						'''	
+						
 						# Flip the coin for patch stray
 						if randProb < indProb:									
 							# Then Disperse
 							indProbans = True
-							# Also check to make sure want to local disperse entire populaion
-							if not isinstance(cdmatrix_dispLocal,str):
-								indProbans = True
-							else:
-								indProbans = False
+							
 						# Patch stray not a success
 						else:
 							indProbans = False
@@ -910,7 +931,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 							# ---------------------------------------------------------
 							
 							# Get the probability array - be careful not to overwrite previous if statement!
-							probarray_LD = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'localDispersal',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
+							probarray_LD = GetProbArray(outpool,'localDispersal',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD)
 							
 							# If spots available to move to:
 							if sum(probarray_LD) != 0.0:
@@ -1643,7 +1664,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						elif homeattempt == 'stray_emiPop':
 
 							# Get the probability array
-							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
+							probarray = GetProbArray(outpool,'strayer_emiPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr)
 		
 							# If statement to check if there are spots for offpsring to stray to
 							if sum(probarray) != 0.0:
@@ -1870,7 +1891,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						elif homeattempt == 'stray_natalPop':
 							
 							# Get the probability array
-							probarray = GetProbArray(cdmatrix_StrBack,cdmatrix_StrBack,outpool,'strayer_natalPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
+							probarray = GetProbArray(outpool,'strayer_natalPop',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr)
 		
 							# If statement to check if there are spots for offpsring to stray to
 							if sum(probarray) != 0.0:
@@ -2114,8 +2135,16 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					Find = indexofProb
 				# Check for ages over last age
 				if Find > len(ageDispProb[natalP][theseclasspars]) - 1:
-					Find = len(ageDispProb[natalP][theseclasspars]) - 1 # Make last age
-				indProb = float(ageDispProb[natalP][theseclasspars][Find])
+					Find = len(ageDispProb[natalP][theseclasspars]) - 1 # Make last age					
+						
+				# Get sex class options if given
+				if len(ageDispProb[natalP][theseclasspars][Find].split('~')) == 1:
+					indProb = float(ageDispProb[natalP][theseclasspars][Find].split('~')[0])
+				elif len(ageDispProb[natalP][theseclasspars][Find].split('~')) != sexchromo:
+					print('Number of age-specific dispersal probability parameters must match sex_chromo.')
+					sys.exit(-1)
+				else:
+					indProb = float(ageDispProb[natalP][theseclasspars][Find].split('~')[sxspot])
 				
 				# Decide if disperse?
 				randProb = np.random.uniform()	# Get a random number			
@@ -2123,11 +2152,6 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				if randProb < indProb:									
 					# Then Disperse
 					indProbans = True
-					# Also check to make sure want to local disperse entire populaion
-					if not isinstance(cdmatrix_dispLocal,str):
-						indProbans = True
-					else:
-						indProbans = False
 				# Patch stray not a success
 				else:
 					indProbans = False
@@ -2140,7 +2164,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 					# ---------------------------------------------------------
 					
 					# Get the probability array
-					probarray = GetProbArray(cdmatrix_dispLocal,cdmatrix_dispLocal,outpool,'localDispersal',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)					
+					probarray = GetProbArray(outpool,'localDispersal',K,natal,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD)					
 				
 					# If spots available to move to:
 					if sum(probarray) != 0.0:
@@ -3414,13 +3438,13 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				# Adjustment for K if more than one species
 				# -----------------
 				#Ignore K adjustment if only one species
-				if len(XQs) > 0:
+				'''if len(XQs) > 0:
 					alphas = comp_coef[isub].split(';') # Extracting alphas
 					if gen >= startcomp: # Check timing 
 						tempspeciesSum = [] # Create sum list for  >= 2 species
 						for ispecies in range(len(Nother_pop)):
 							tempspeciesSum.append(Nother_pop[ispecies][isub]*float(alphas[ispecies]))
-						Kpop = int(Kpop - sum(tempspeciesSum)) # Adjustment or K
+						Kpop = int(Kpop - sum(tempspeciesSum)) # Adjustment or K'''
 			Kadj_track[gen].append(Kpop) # For Tracking
 			
 			if Npop == 0 or Kpop == 0:
@@ -3437,7 +3461,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			
 				else:
 					# Grab a random draw of Kage from numbers
-					Nage_samp_ind = np.random.choice(np.arange(len(SubpopIN_arr)),Kpop,replace=False).tolist()
+					Nage_samp_ind = np.random.choice(np.arange(len(SubpopIN_arr)),int(Kpop),replace=False).tolist()
 					PackingDeaths[gen][isub] = len(SubpopIN_arr) -Kpop	
 			
 			# Append all information to temp SubpopKeep variable
@@ -3663,8 +3687,8 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 			Nt = Ntself_pop[isub]
 			# Keep track of P for logistic P/K 
 			Pisub = sum(Nt)
-			#if multiprocessing.current_process().name == "S0":
-			#	ForkablePdb().set_trace()
+			#if multiprocessing.current_process().name == "S1":
+				#ForkablePdb().set_trace()
 			# ----------------------------
 			# Parameters for Second species (comp_coef = alpha2_1)
 			# ----------------------------
@@ -3677,7 +3701,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 						#if Ntother_pop[ispecies][isub] == 0:
 							#tempspeciesSum.append(0)						
 						# Multiply Nt of other species times alpha
-						#else:
+						#else:						
 						tempspeciesSum.append(sum(Ntother_pop[ispecies][isub])*float(alphas[ispecies]))
 							#tempspeciesSum.append(Ntother_pop[ispecies][isub]*float(alphas[ispecies]))
 							
@@ -3703,15 +3727,22 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 				Nage_samp_ind = []
 				# Define Leslie matrix M; Jensen 1995 Eco Modelling
 				
+				# Error check here for more than 1 class vars - move to preprocessing eventually
+				if len(f_leslie[isub]) > 1:
+					print('Leslie matrix option does not allow for multiple classvars.')
+					sys.exit(-1)
 				fecund = np.asarray(f_leslie[isub][0], dtype=float) #Import from classvars
 				#if multiprocessing.current_process().name == "S0":
 				#	ForkablePdb().set_trace()	
 								
-				Mb = [] # Create N x N-1 matrix
+				Mb = [] # Create N x N-1 matrix				
 				for idx in range(len(fecund)-1): 
 					for idx2 in range(len(fecund)):
 						if idx==idx2:
-							Mb.append(1-float(age_percmort[isub][0][idx]))
+							if age_percmort[isub][0][idx].split('~')[0] != age_percmort[isub][0][idx].split('~')[1]:
+								print('Leslie matrix option does not allow for sex specific mortality.')
+								sys.exit(-1)
+							Mb.append(1-float(age_percmort[isub][0][idx].split('~')[0]))
 						else:
 							Mb.append(0.)
 				# Add the final row for complete N x N
@@ -3834,8 +3865,7 @@ cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,Popul
 	# End::DoImmigration()
 	
 # ---------------------------------------------------------------------------------------------------	
-def CalculateDispersalMetrics(OffDisperseIN,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,FDispDistCD,MDispDistCD,\
-FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC):
+def CalculateDispersalMetrics(OffDisperseIN,FDispDistCD,MDispDistCD,FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,cdmatrix_FXX,cdmatrix_MXY,cdmatrix_MYY,cdmatrix_FYY,thresh_FXX,thresh_MXY,thresh_MYY,thresh_FYY,scalemin_FXX,scalemin_MXY,scalemin_MYY,scalemin_FYY,scalemax_FXX,scalemax_MXY,scalemax_MYY,scalemax_FYY,parA_FXX,parA_MXY,parA_MYY,parA_FYY,parB_FXX,parB_MXY,parB_MYY,parB_FYY,parC_FXX,parC_MXY,parC_MYY,parC_FYY,moveno_FXX,moveno_MXY,moveno_MYY,moveno_FYY):
 	'''
 	CalculateDispersalMetrics()
 	This function calculates how far disperses are moving.
@@ -3892,49 +3922,53 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 			indTo = Ind[topop][ioff]
 			indSex = Ind['sex'][ioff]
 						
+			# Ignore FYY and MYY - only calculate for FXX and MXY
+			if indSex == 'FYY' or indSex == 'MYY':
+				continue
+			
 			# Store migration numbers
 			if name != 'All':
 				if indTo != indFrom:
 					subpopmigration[gen][int(indTo)-1].append(1)
 			
 			# If female - CD distances
-			if indSex == 'XX':
+			if indSex == 'FXX':
 				Fcount = Fcount + 1
-				probval = Fxycdmatrix[int(indFrom)-1][int(indTo)-1]
+				probval = cdmatrix_FXX[int(indFrom)-1][int(indTo)-1]
 				
 				# If panmictic
-				if Fdispmoveno == '4' or Fdispmoveno == '6': 
+				if moveno_FXX == '4' or moveno_FXX == '6': 
 					cdval = 0.0
 				# If prob matrix or FIDIMO
-				elif Fdispmoveno == '9' or Fdispmoveno == '11':
+				elif moveno_FXX == '9' or moveno_FXX == '11':
 					cdval = probval
 					
 				# If linear
-				elif Fdispmoveno == '1':
-					cdval = (probval - 1.) * (-Fthreshold)				
+				elif moveno_FXX == '1':
+					cdval = (probval - 1.) * (-thresh_FXX)				
 				
 				# If inverse square
-				elif Fdispmoveno == '2':
+				elif moveno_FXX == '2':
 					if probval == 1.0:
 						cdval = 0.0
 					else:	
-						cdval = np.sqrt(1. / (probval * (FScaleMax - FScaleMin) + FScaleMin))
+						cdval = np.sqrt(1. / (probval * (scalemax_FXX - scalemin_FXX) + scalemin_FXX))
 					
 				# If neg exponetial
-				elif Fdispmoveno == '5':
-					cdval = np.log((probval * (FScaleMax-FScaleMin) + FScaleMin)/float(FA)) / (-float(FB) * np.log(10))
+				elif moveno_FXX == '5':
+					cdval = np.log((probval * (scalemax_FXX-scalemin_FXX) + scalemin_FXX)/float(parA_FXX)) / (-float(parB_FXX) * np.log(10))
 					
-				elif Fdispmoveno == '7':
-					cdval = float(FB) + np.sqrt(-2*float(FC)**2 * np.log((probval*(FScaleMax-FScaleMin)+FScaleMin)/float(FA)))
+				elif moveno_FXX == '7':
+					cdval = float(parB_FXX) + np.sqrt(-2*float(parC_FXX)**2 * np.log((probval*(scalemax_FXX-scalemin_FXX)+scalemin_FXX)/float(parA_FXX)))
 					
-				elif Fdispmoveno == '8':
-					cdval = (1.-probval)*(FScaleMax-FScaleMin)+FScaleMin
+				elif moveno_FXX == '8':
+					cdval = (1.-probval)*(scalemax_FXX-scalemin_FXX)+scalemin_FXX
 				# If pareto
-				elif Fdispmoveno == '10':
-					if probval == max(Fxycdmatrix[isub]):
+				elif moveno_FXX == '10':
+					if probval == max(cdmatrix_FXX[isub]):
 						cdval = 0.0
 					else:
-						cdval = pow(((float(FA)*float(FB)**float(FA))/probval),(1/(float(FA)+1))) - float(FB)
+						cdval = pow(((float(parA_FXX)*float(parB_FXX)**float(parA_FXX))/probval),(1/(float(parA_FXX)+1))) - float(parB_FXX)
 				else:
 					print('Movement function does not exist')
 					sys.exit(-1)
@@ -3942,41 +3976,41 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 				FtempAvgDispDistCD.append(cdval)				
 					
 			# Else if Male
-			elif indSex == 'XY' or indSex == 'YY': # assume males same movement matrix 	
+			elif indSex == 'MXY': # assume males same movement matrix 	
 				Mcount = Mcount + 1
-				probval = Mxycdmatrix[int(indFrom)-1][int(indTo)-1]
+				probval = cdmatrix_MXY[int(indFrom)-1][int(indTo)-1]
 				
 				# If panmictic
-				if Mdispmoveno == '4' or Mdispmoveno == '6': 
+				if moveno_MXY == '4' or moveno_MXY == '6': 
 					cdval = 0.0
 				# If prob matrix or FIDIMO
-				elif Mdispmoveno == '9' or Mdispmoveno == '11':
+				elif moveno_MXY == '9' or moveno_MXY == '11':
 					cdval = probval
 					
 				# If linear
-				elif Mdispmoveno == '1':					
-					cdval = (probval - 1.) * (-Mthreshold)
+				elif moveno_MXY == '1':					
+					cdval = (probval - 1.) * (-thresh_MXY)
 					
 				# If inverse square
-				elif Mdispmoveno == '2':
+				elif moveno_MXY == '2':
 					if probval == 1.0:
 						cdval = 0.0
 					else:	
-						cdval = np.sqrt(1. / (probval * (MScaleMax - MScaleMin) + MScaleMin))
+						cdval = np.sqrt(1. / (probval * (scalemax_MXY - scalemin_MXY) + scalemin_MXY))
 					
 				# If neg exponetial
-				elif Mdispmoveno == '5':
-					cdval = np.log((probval * (MScaleMax-MScaleMin) + MScaleMin)/float(MA)) / (-float(MB) * np.log(10))
-				elif Mdispmoveno == '7':
-					cdval = float(MB) + np.sqrt(-2*float(MC)**2 * np.log((probval*(MScaleMax-MScaleMin)+MScaleMin)/float(MA)))
-				elif Mdispmoveno == '8':
-					cdval = (1. - probval)*(MScaleMax-MScaleMin)+MScaleMin
+				elif moveno_MXY == '5':
+					cdval = np.log((probval * (scalemax_MXY-scalemin_MXY) + scalemin_MXY)/float(parA_MXY)) / (-float(parB_MXY) * np.log(10))
+				elif moveno_MXY == '7':
+					cdval = float(parB_MXY) + np.sqrt(-2*float(parC_MXY)**2 * np.log((probval*(scalemax_MXY-scalemin_MXY)+scalemin_MXY)/float(parA_MXY)))
+				elif moveno_MXY == '8':
+					cdval = (1. - probval)*(scalemax_MXY-scalemin_MXY)+scalemin_MXY
 				# If pareto
-				elif Mdispmoveno == '10':
-					if probval == max(Mxycdmatrix[isub]):
+				elif moveno_MXY == '10':
+					if probval == max(cdmatrix_MXY[isub]):
 						cdval = 0.0
 					else:
-						cdval = pow(((float(MA)*float(MB)**float(MA))/probval),(1/(float(MA)+1))) - float(MB)
+						cdval = pow(((float(parA_MXY)*float(parB_MXY)**float(parA_MXY))/probval),(1/(float(parA_MXY)+1))) - float(parB_MXY)
 				else:
 					print('Movement function does not exist')
 					sys.exit(-1)
@@ -4015,10 +4049,7 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,name,gen,Fthreshold,Mthreshold,FSc
 	# End::CalculateDispersalMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoImmigration(SubpopIN,K,natal,Fdispmoveno,Mdispmoveno,\
-Fxycdmatrix,Mxycdmatrix,gen,cdevolveans,fitvals,subpopmigration,\
-SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,\
-StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,StrScaleMax,StrScaleMin,StrA,StrB,StrC,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,dispLocalparA,dispLocalparB,dispLocalparC,thresh_dispLocal,dispLocal_ScaleMin,dispLocal_ScaleMax,dispLocalno,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb):
+def DoImmigration(SubpopIN,K,natal,gen,cdevolveans,fitvals,subpopmigration,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,ProbAge,Population,dtype,sizeans,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack,thresh_FXXBack,thresh_MXYBack,thresh_MYYBack,thresh_FYYBack,scalemin_FXXBack,scalemin_MXYBack,scalemin_MYYBack,scalemin_FYYBack,scalemax_FXXBack,scalemax_MXYBack,scalemax_MYYBack,scalemax_FYYBack,parA_FXXBack,parA_MXYBack,parA_MYYBack,parA_FYYBack,parB_FXXBack,parB_MXYBack,parB_MYYBack,parB_FYYBack,parC_FXXBack,parC_MXYBack,parC_MYYBack,parC_FYYBack,moveno_FXXBack,moveno_MXYBack,moveno_MYYBack,moveno_FYYBack,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,thresh_FXXStr,thresh_MXYStr,thresh_MYYStr,thresh_FYYStr,scalemin_FXXStr,scalemin_MXYStr,scalemin_MYYStr,scalemin_FYYStr,scalemax_FXXStr,scalemax_MXYStr,scalemax_MYYStr,scalemax_FYYStr,parA_FXXStr,parA_MXYStr,parA_MYYStr,parA_FYYStr,parB_FXXStr,parB_MXYStr,parB_MYYStr,parB_FYYStr,parC_FXXStr,parC_MXYStr,parC_MYYStr,parC_FYYStr,moveno_FXXStr,moveno_MXYStr,moveno_MYYStr,moveno_FYYStr,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD,thresh_FXXLD,thresh_MXYLD,thresh_MYYLD,thresh_FYYLD,scalemin_FXXLD,scalemin_MXYLD,scalemin_MYYLD,scalemin_FYYLD,scalemax_FXXLD,scalemax_MXYLD,scalemax_MYYLD,scalemax_FYYLD,parA_FXXLD,parA_MXYLD,parA_MYYLD,parA_FYYLD,parB_FXXLD,parB_MXYLD,parB_MYYLD,parB_FYYLD,parC_FXXLD,parC_MXYLD,parC_MYYLD,parC_FYYLD,moveno_FXXLD,moveno_MXYLD,moveno_MYYLD,moveno_FYYLD,sexchromo):
 
 	'''
 	DoImmigration()
@@ -4041,27 +4072,17 @@ StrBackno,cdmatrix_StrBack,ProbAge,Fthreshold,Mthreshold,Strthreshold,Population
 			print('Specify Y or N for size control parameters.')
 			sys.exit(-1)
 		
-		SubpopIN = Immigration(SubpopIN,K,natal,\
-		Fxycdmatrix,Mxycdmatrix,gen,\
-		cdevolveans,fitvals,\
-		SelectionDeaths,DisperseDeaths,\
-		burningen_cdevolve,Prob,ProbSuccess,cdmatrix_StrBack,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,cdmatrix_dispLocal,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb)
+		SubpopIN = Immigration(SubpopIN,K,natal,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,\
+		burningen_cdevolve,Prob,ProbSuccess,ProbAge,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD,sexchromo)
 		
 		# Calculate Dispersal Metrics for strayers 'S' 
-		tempStrayS = CalculateDispersalMetrics(SubpopIN,StrBackno,StrBackno,cdmatrix_StrBack,cdmatrix_StrBack,\
-		F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,subpopmigration,'S',gen,Strthreshold,Strthreshold,StrScaleMax,StrScaleMin,StrScaleMax,StrScaleMin,StrA,StrB,StrC,StrA,StrB,StrC)
+		tempStrayS = CalculateDispersalMetrics(SubpopIN,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,subpopmigration,'S',gen,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,thresh_FXXStr,thresh_MXYStr,thresh_MYYStr,thresh_FYYStr,scalemin_FXXStr,scalemin_MXYStr,scalemin_MYYStr,scalemin_FYYStr,scalemax_FXXStr,scalemax_MXYStr,scalemax_MYYStr,scalemax_FYYStr,parA_FXXStr,parA_MXYStr,parA_MYYStr,parA_FYYStr,parB_FXXStr,parB_MXYStr,parB_MYYStr,parB_FYYStr,parC_FXXStr,parC_MXYStr,parC_MYYStr,parC_FYYStr,moveno_FXXStr,moveno_MXYStr,moveno_MYYStr,moveno_FYYStr)
 		
 		# Calculate Dispersal Metrics for strayers 'Z' 
-		tempStrayZ = CalculateDispersalMetrics(SubpopIN,StrBackno,StrBackno,cdmatrix_StrBack,cdmatrix_StrBack,\
-		F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,subpopmigration,'Z',gen,Strthreshold,Strthreshold,StrScaleMax,StrScaleMin,StrScaleMax,StrScaleMin,StrA,StrB,StrC,StrA,StrB,StrC)
-		'''
-		# Calculate Dispersal Metrics for immigrators only 'I'
-		tempImmiI = CalculateDispersalMetrics(SubpopIN,	Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,\
-		F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,subpopmigration,'I',gen,Fthreshold,Mthreshold,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC)
-		'''
+		tempStrayZ = CalculateDispersalMetrics(SubpopIN,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,subpopmigration,'Z',gen,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,thresh_FXXStr,thresh_MXYStr,thresh_MYYStr,thresh_FYYStr,scalemin_FXXStr,scalemin_MXYStr,scalemin_MYYStr,scalemin_FYYStr,scalemax_FXXStr,scalemax_MXYStr,scalemax_MYYStr,scalemax_FYYStr,parA_FXXStr,parA_MXYStr,parA_MYYStr,parA_FYYStr,parB_FXXStr,parB_MXYStr,parB_MYYStr,parB_FYYStr,parC_FXXStr,parC_MXYStr,parC_MYYStr,parC_FYYStr,moveno_FXXStr,moveno_MXYStr,moveno_MYYStr,moveno_FYYStr)
+		
 		# Calculate Dispersal Metrics for local dispersers only 'ID' and 'RD'
-		tempImmiD = CalculateDispersalMetrics(SubpopIN,dispLocalno,dispLocalno,cdmatrix_dispLocal,cdmatrix_dispLocal,\
-		F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,subpopmigration,'D',gen,thresh_dispLocal,thresh_dispLocal,dispLocal_ScaleMax,dispLocal_ScaleMin,dispLocal_ScaleMax,dispLocal_ScaleMin,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalparA,dispLocalparB,dispLocalparC)
+		tempImmiD = CalculateDispersalMetrics(SubpopIN,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,subpopmigration,'D',gen,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD,thresh_FXXLD,thresh_MXYLD,thresh_MYYLD,thresh_FYYLD,scalemin_FXXLD,scalemin_MXYLD,scalemin_MYYLD,scalemin_FYYLD,scalemax_FXXLD,scalemax_MXYLD,scalemax_MYYLD,scalemax_FYYLD,parA_FXXLD,parA_MXYLD,parA_MYYLD,parA_FYYLD,parB_FXXLD,parB_MXYLD,parB_MYYLD,parB_FYYLD,parC_FXXLD,parC_MXYLD,parC_MYYLD,parC_FYYLD,moveno_FXXLD,moveno_MXYLD,moveno_MYYLD,moveno_FYYLD)
 				
 		# Track Subpopulation migration numbers here
 		subpopmigration.append([]) # This adds a spot for next generation

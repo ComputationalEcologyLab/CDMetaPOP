@@ -6,8 +6,8 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP in3formation
 appName = "CDmetaPOP"
-appVers = "version 2.61"
-appRele = "2023.02.22-11:24:01"
+appVers = "version 2.62"
+appRele = "2023.03.07-11:24:01"
 authorNames = "Erin L Landguth, Casey Day, Andrew Bearlin, Ryan Simmons, Travis Seaborn, et al."
 
 # ---------------

@@ -27,7 +27,7 @@ def count_unique(keys):
 	#End::count_unique()
 
 # ----------------------------------------------------------------------------------------------	 
-def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths):
+def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths,sexchromo):
 	'''
 	ConstantMortality_Add()
 	Additive model P(A) + P(B) 
@@ -201,22 +201,23 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 								for thisone in range(Nage): # Loop through each spot
 									# Check the sex on individual and if sex options for this mortality were given
 									Indsex = SubpopIN_keeppop[thistype_index[Nage_index[thisone]]]['sex']
-									if Indsex == 'XX': # Female
-										thisoneMortAge = MortAge.split('~')[0]
-									elif Indsex == 'XY': # Male
-										# Check if more than one value given
-										if len(MortAge.split('~')) > 1:
-											thisoneMortAge = MortAge.split('~')[1]
-										else:
-											thisoneMortAge = MortAge.split('~')[0]
-									else: # YY male
-										# Check if more than one value given
-										if len(MortAge.split('~')) == 3:
-											thisoneMortAge = MortAge.split('~')[2]
-										elif len(MortAge.split('~')) == 2:
-											thisoneMortAge = MortAge.split('~')[1]
-										else:
-											thisoneMortAge = MortAge.split('~')[0]
+									if Indsex == 'FXX':
+										sxspot = 0
+									elif Indsex == 'MXY':
+										sxspot = 1
+									elif Indsex == 'MYY':
+										sxspot = 2
+									else:
+										sxspot = 3
+									# MortAge
+									#if len(MortAge.split('~')) == 1:
+									#	thisoneMortAge = MortAge
+									#elif len(MortAge.split('~')) != sexchromo:
+									#	print('Number of class mortality parameters must match sex_chromo.')
+									#	sys.exit(-1)
+									#else:
+									thisoneMortAge = MortAge.split('~')[sxspot]
+																									
 									# Could be a N value
 									if thisoneMortAge == 'N': # Survives
 										# Then store index of survivor
@@ -291,22 +292,23 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 								for thisone in range(Nage): # Loop through each spot
 									# Check the sex on individual and if sex options for this mortality were given
 									Indsex = SubpopIN_keeppop[thistype_index[Nage_index[thisone]]]['sex']
-									if Indsex == 'XX': # Female
-										thisoneMortAge = MortAge.split('~')[0]
-									elif Indsex == 'XY': # Male
-										# Check if more than one value given
-										if len(MortAge.split('~')) > 1:
-											thisoneMortAge = MortAge.split('~')[1]
-										else:
-											thisoneMortAge = MortAge.split('~')[0]
-									else: # YY male
-										# Check if more than one value given
-										if len(MortAge.split('~')) == 3:
-											thisoneMortAge = MortAge.split('~')[2]
-										elif len(MortAge.split('~')) == 2:
-											thisoneMortAge = MortAge.split('~')[1]
-										else:
-											thisoneMortAge = MortAge.split('~')[0]
+									if Indsex == 'FXX':
+										sxspot = 0
+									elif Indsex == 'MXY':
+										sxspot = 1
+									elif Indsex == 'MYY':
+										sxspot = 2
+									else:
+										sxspot = 3
+									# MortAge
+									#if len(MortAge.split('~')) == 1:
+										#thisoneMortAge = MortAge
+									#elif len(MortAge.split('~')) != sexchromo:
+										#print('Number of class mortality paramters must match sex_chromo.')
+										#sys.exit(-1)
+									#else:
+									thisoneMortAge = MortAge.split('~')[sxspot]
+									
 									# Could be a N value
 									if thisoneMortAge == 'N': # Survives
 										# Then store index of survivor
@@ -368,13 +370,13 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 	# End::DoConstantMortality_Add()
 
 # ----------------------------------------------------------------------------------------------	 
-def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths):
+def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths,sexchromo):
 	'''
 	ConstantMortality()
 	Constant mortality applied to each age within each population.
 	Returns: Updated SubpopIN and new N for each subpop.	
 	'''
-	
+	#pdb.set_trace()
 	# Get number of population deaths 
 	SubpopIN_keep = []
 	Population.append([]) # Add spot for generation
@@ -553,7 +555,8 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 							
 							# Then apply mortality for all perc - check on N cases
 							# ----------------------------------------------------
-							# If there are all N
+							# If there are all 'N' - no mortality
+							#pdb.set_trace()
 							if len(np.asarray([i for i, val in enumerate(MortAge) if 'N' in val])) == len(MortAge.split('~')) and len(np.asarray([i for i, val in enumerate(MortSize) if 'N' in val])) == len(MortSize.split('~')) and MortPatch == 'N':
 								# Keep them all   - no mortality
 								N_samp_ind = N_samp_ind + Nsize_age_index.tolist()
@@ -563,35 +566,29 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 								for thisone in range(Nage): # Loop through each spot
 									# Check the sex on individual and if sex options for this mortality were given
 									Indsex = SubpopIN_arr[thistype_index[Nage_index[thisone]]]['sex']
-									if Indsex == 'XX': # Female
-										thisoneMortAge = MortAge.split('~')[0]
-										thisoneMortSize = MortSize.split('~')[0]
-									elif Indsex == 'XY': # Male
-										# Check if more than one value given
-										if len(MortAge.split('~')) > 1:
-											thisoneMortAge = MortAge.split('~')[1]
-										else:
-											thisoneMortAge = MortAge.split('~')[0]
-										# Check if more than one value given
-										if len(MortSize.split('~')) > 1:
-											thisoneMortSize = MortSize.split('~')[1]
-										else:
-											thisoneMortSize = MortSize.split('~')[0]
-									else: # YY male
-										# Check if more than one value given
-										if len(MortAge.split('~')) == 3:
-											thisoneMortAge = MortAge.split('~')[2]
-										elif len(MortAge.split('~')) == 2:
-											thisoneMortAge = MortAge.split('~')[1]
-										else:
-											thisoneMortAge = MortAge.split('~')[0]
-										# Check if more than one value given
-										if len(MortSize.split('~')) == 3:
-											thisoneMortSize = MortSize.split('~')[2]
-										elif len(MortSize.split('~')) == 2:
-											thisoneMortSize = MortSize.split('~')[1]
-										else:
-											thisoneMortSize = MortSize.split('~')[0]
+									if Indsex == 'FXX':
+										sxspot = 0
+									elif Indsex == 'MXY':
+										sxspot = 1
+									elif Indsex == 'MYY':
+										sxspot = 2
+									else:
+										sxspot = 3
+									# MortAge									
+									#if len(MortAge.split('~')) == 1:
+										#thisoneMortAge = MortAge
+									#elif len(MortAge.split('~')) != sexchromo:
+										#print('Number of age mortality values by sex must match sex_chromo.')
+										#sys.exit(-1)
+									
+									thisoneMortAge = MortAge.split('~')[sxspot]
+									# MortSize
+									#if len(MortSize.split('~')) == 1:
+										#thisoneMortSize = MortSize
+									#elif len(MortAge.split('~')) != sexchromo:
+										#print('Number of size mortality values by sex must match sex_chromo.')
+										#sys.exit(-1)
+									thisoneMortSize = MortSize.split('~')[sxspot]
 									
 									# Then get total mort values
 									if thisoneMortSize == 'N' and thisoneMortAge == 'N' and MortPatch == 'N':
@@ -655,7 +652,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 	# End::DoConstantMortality_Multiply()
 	
 # ----------------------------------------------------------------------------------------------	 
-def DoMortality(SubpopIN,K,PopDeaths,pop_percmort,age_percmort,gen,Population,AgeDeaths,sizeans,size_mean,size_percmort,SizeDeaths,constMortans,packans,timingans):
+def DoMortality(SubpopIN,K,PopDeaths,pop_percmort,age_percmort,gen,Population,AgeDeaths,sizeans,size_mean,size_percmort,SizeDeaths,constMortans,packans,timingans,sexchromo):
 	'''
 	DoMortality()
 	Mortality functions for population.
@@ -677,9 +674,9 @@ def DoMortality(SubpopIN,K,PopDeaths,pop_percmort,age_percmort,gen,Population,Ag
 		
 		# Straight mortality percentages split by age
 		if constMortans == '1': # This is the additive model
-			tupMort = ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths)
+			tupMort = ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths,sexchromo)
 		else: # This is the multiplicative model
-			tupMort = ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths)	
+			tupMort = ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths,sexchromo)	
 		
 		SubpopIN = tupMort[0]
 		N = tupMort[1]
@@ -716,7 +713,7 @@ def DoMortality(SubpopIN,K,PopDeaths,pop_percmort,age_percmort,gen,Population,Ag
 	# End::DoMortality()
 		
 # ----------------------------------------------------------------------------------------------	 
-def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffspring,Births,BirthsYY):
+def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffspring,Births,BirthsMYY,BirthsFYY):
 	'''
 	DoEggMortality()
 	Mortality functions for age 0 class.
@@ -725,8 +722,9 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 	# Storage for egg deaths
 	Age0Deaths.append([])
 	Births.append([]) # Spot for generation
-	BirthsYY.append([]) # Spot for generation, note this is the offspring number after egg deaths. 
-	tempoffloc = []
+	BirthsMYY.append([]) # Spot for generation, note this is the offspring number from a MYY after egg deaths.
+	BirthsFYY.append([]) # Spot for generation, note this is the offspring number after egg deaths. 	
+	tempoffloc = []	
 	# Loop through each patch
 	for i in range(len(K)):
 	
@@ -776,7 +774,8 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 			# -------------------
 			Age0Deaths[gen].append(Popoffspring - sum(offspring_patch))
 			Births[gen].append(Popoffspring)
-			BirthsYY[gen].append( sum(noOffspring[mothers_patch_ind[np.where(Bearpairs[mothers_patch_ind,1]['sex']=='YY')[0]]]) )
+			BirthsMYY[gen].append( sum(noOffspring[mothers_patch_ind[np.where(Bearpairs[mothers_patch_ind,1]['sex']=='MYY')[0]]]) )
+			BirthsFYY[gen].append( sum(noOffspring[mothers_patch_ind[np.where(Bearpairs[mothers_patch_ind,1]['sex']=='FYY')[0]]]) )
 			#BirthsYY[gen].append(sum(noOffspring[mothers_patch_ind[np.where(Bearpairs[mothers_patch_ind[np.where(Bearpairs[mothers_patch_ind,1]['sex']=='YY')[0]],1]['age']==0)[0]]]) )
 		# if a pairing did not occur, for tracking
 		else:
@@ -786,11 +785,14 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 			# -------------------
 			Age0Deaths[gen].append(0)
 			Births[gen].append(0)
-			BirthsYY[gen].append(0)
+			BirthsMYY[gen].append(0)
+			BirthsFYY[gen].append(0)
+			#BirthsYY[gen].append(0)
 			
 	Age0Deaths[gen].insert(0,sum(Age0Deaths[gen])) # Total the deaths
 	Births[gen].insert(0,sum(Births[gen]))
-	BirthsYY[gen].insert(0,sum(BirthsYY[gen]))
+	BirthsMYY[gen].insert(0,sum(BirthsMYY[gen]))
+	BirthsFYY[gen].insert(0,sum(BirthsFYY[gen]))
 		
 	return noOffspring
 	

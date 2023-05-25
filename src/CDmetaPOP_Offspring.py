@@ -21,7 +21,7 @@ def count_unique(keys):
 	#End::count_unique()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std,inheritans_classfiles,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set):
+def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizeans,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
 	'''
 	DoOffspringVars()
 	This function assigns the age (0), sex, and size of each offspring.
@@ -29,7 +29,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 	
 	# Create empty variable for storing individual offspring information
 	offspring=[]
-		
+	
 	# Only if pairing occured
 	#if len(Bearpairs) != 1 and Bearpairs[0][0] != -9999:
 	#if len(Bearpairs[0][0]) != 1:
@@ -97,46 +97,77 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				
 				# --------------------------
 				# Assign sex here
-				# --------------------------				
-				# Case for Mendal from parents sex chromosomes
-				if Femalepercent == 'N':
-					mothers_sex = Bearpairs[i][0]['sex'] # It must be 'XX'
-					randindex = int(2*np.random.uniform())
-					from_mother = mothers_sex[randindex]
-					fathers_sex = Bearpairs[i][1]['sex'] # It can be XY or YY
-					randindex = int(2*np.random.uniform())
-					from_father = fathers_sex[randindex]
-					offsex = from_mother + from_father				
+				# --------------------------								
 				# Special case for WrightFisher
-				elif Femalepercent == 'WrightFisher':
+				if Femalepercent == 'WrightFisher':
 					# Error with YYs here:
-					if Bearpairs[i][1]['sex'] == 'YY':
-						print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use N for Femalepercent_Egg.')
+					if Bearpairs[i][1]['sex'] == 'MYY' or Bearpairs[i][0]['sex'] == 'FYY':
+						print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use probability value for Femaleprob_Egg.')
 						sys.exit(-1)
 					offsex = int(2*np.random.uniform())
 					if offsex == 0:
-						offsex = 'XX'
+						offsex = 'FXX'
 					else:
-						offsex = 'XY'
-				elif isinstance(int(Femalepercent),int):
-					# Error with YYs here:
-					#if Bearpairs[i][1]['sex'] == 'YY':
-					#	print('Wright Fisher option specified for sex ratios. YY individuals should not be considered; use N for Femalepercent_Egg.')
-					#	sys.exit(-1)
-					# Select sex of the jth offspring - select a random number
-					randsex = int(100*np.random.uniform())				
-					# If that random number is less the Femalepercent, assign it to be a female
-					if randsex < int(Femalepercent):
-						offsex = 'XX'
-					# If the random number is greater than the Femalepercent, assign it to be a male
+						offsex = 'MXY'
+				# Else Prob given
+				elif isinstance(float(Femalepercent),float):
+					mothers_sex = Bearpairs[i][0]['sex']
+					fathers_sex = Bearpairs[i][1]['sex'] 
+					
+					# FXX and MXY
+					if mothers_sex == 'FXX' and fathers_sex == 'MXY':
+						randsex = np.random.uniform()				
+						# If that random number is less the Femalepercent/prob, assign it to be a female
+						if randsex < float(Femalepercent):
+							offsex = 'FXX'
+						# If the random number is greater than the Femalepercent/prob, assign it to be a male
+						else:
+							offsex = 'MXY'
+					# FXX and MYY
+					elif mothers_sex == 'FXX' and fathers_sex == 'MYY':
+						offsex = 'MXY'
+					# FYY and MXY
+					elif mothers_sex == 'FYY' and fathers_sex == 'MXY':
+						randsex = np.random.uniform()				
+						# If that random number is less the Femalepercent/prob, assign it to be a female
+						if randsex < float(Femalepercent):
+							offsex = 'MXY'
+						# If the random number is greater than the Femalepercent/prob, assign it to be a male
+						else:
+							offsex = 'MYY'
+					# FYY and MYY
+					elif mothers_sex == 'FYY' and fathers_sex == 'MYY':
+						offsex = 'MYY'
+					elif sexans == 'H':
+						if mothers_sex == 'FXX' and fathers_sex == 'FXX':
+							offsex = 'FXX'
+						else:
+							randsex = np.random.uniform()				
+							# If that random number is less the Femalepercent/prob, assign it to be a female
+							if randsex < float(Femalepercent):
+								offsex = 'FXX'
+							# If the random number is greater than the Femalepercent/prob, assign it to be a male
+							else:
+								offsex = 'MXY'
+						
 					else:
-						offsex = 'XY'
+						pdb.set_trace()
+						print('Error in sex assignment.')
+						sys.exit(-1)
+					#print(fathers_sex)	
 				# Error check
 				else:
-					print('Egg_Femalepercent is not correct.')
+					print('Egg_Femaleprob is not correct data type.')
 					sys.exit(-1)
-				# Make sure XY not YX for asexual cases
-				offsex = ''.join(sorted(offsex))
+				# Indexing used later for sex splits
+				if offsex == 'FXX':
+					sxspot = 0
+				elif offsex == 'MXY':
+					sxspot = 1
+				elif offsex == 'MYY':
+					sxspot = 2
+				else:
+					sxspot = 3
 				
 				# --------------------------
 				# Assign infection here
@@ -188,108 +219,137 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 						sizesamp = 0
 				else:
 					sizesamp = mu
-					
+				
 				# --------------------------
 				# Assign maturity here
 				# --------------------------
-				# Assign maturity: age or size switch, then male or female mature switch
-				if sizecall == 'age':			
-					if offsex == 'XX': # Female check 
-						if Fmat_set == 'N': # Use prob value
-							matval = float(age_mature[natalP][theseclasspars][0].split('~')[0])
-						else: # Use set age
-							if int(Fmat_set) == 0: # Age of offspring is 0
+				matval = 0.0 # Initialize
+				agetemp = 0
+				# Check default age/size for maturity
+				if offsex == 'FXX':
+					if FXXmat_set != 'N':
+						if len(FXXmat_set.split('age')) == 2: # Maturation value set for age
+							AgeMature = int(FXXmat_set.split('age')[1])
+							if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
 								matval = 1.0
-							else:
+							else: 
 								matval = 0.0
-					elif offsex == 'XY': # Male			
-						if Mmat_set == 'N': # Use prob value
-							# Check if more than 1 value is given for sex classes
-							if len(age_mature[natalP][theseclasspars][0].split('~')) > 1: 
-								matval = float(age_mature[natalP][theseclasspars][0].split('~')[1])
-							else:	
-								matval = float(age_mature[natalP][theseclasspars][0].split('~')[0])
-						else: # Use set age
-							if int(Mmat_set) == 0: # Age of offspring is 0
+						elif len(FXXmat_set.split('size')) == 2: # Maturation value set for size
+							SizeMature = int(FXXmat_set.split('size')[1])
+							if sizesamp >= SizeMature:
 								matval = 1.0
-							else:
+							else: 
 								matval = 0.0
-					else: # YY male - will never be a YY male, but leaving this for completeness
-						if sexans == 'Y':
-							print('YY offspring produced, warning, this should not occur.')
-							sys.exit(-1)
 						else:
-							if YYmat_set == 'N': # Use prob value
-								# Check if more than 1 value is given for sex classes
-								if len(age_mature[natalP][theseclasspars][0].split('~')) == 3: 
-									matval = float(age_mature[natalP][theseclasspars][0].split('~')[2])
-								elif len(age_mature[natalP][theseclasspars][0].split('~')) == 2: 
-									matval = float(age_mature[natalP][theseclasspars][0].split('~')[1])
-								else:	
-									matval = float(age_mature[natalP][theseclasspars][0].split('~')[0])
-							else: # Use set age
-								if int(YYmat_set) == 0: # Age of offspring is 0
-									matval = 1.0
-								else:
-									matval = 0.0											
+							print('Female XX Maturation default set values age or size not specified in PopVars.')
+							sys.exit(-1)
+				elif offsex == 'MXY':
+					if MXYmat_set != 'N':
+						if len(MXYmat_set.split('age')) == 2: # Maturation value set for age
+							AgeMature = int(MXYmat_set.split('age')[1])
+							if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
+								matval = 1.0
+							else: 
+								matval = 0.0
+						elif len(MXYmat_set.split('size')) == 2: # Maturation value set for size
+							SizeMature = int(MXYmat_set.split('size')[1])
+							if sizesamp >= SizeMature:
+								matval = 1.0
+							else: 
+								matval = 0.0
+						else:
+							print('Male XY Maturation default set values age or size not specified in PopVars.')
+							sys.exit(-1)
+				elif offsex == 'MYY':
+					if MYYmat_set != 'N':
+						if len(MYYmat_set.split('age')) == 2: # Maturation value set for age
+							AgeMature = int(MYYmat_set.split('age')[1])
+							if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
+								matval = 1.0
+							else: 
+								matval = 0.0
+						elif len(MYYmat_set.split('size')) == 2: # Maturation value set for size
+							SizeMature = int(MYYmat_set.split('size')[1])
+							if sizesamp >= SizeMature:
+								matval = 1.0
+							else: 
+								matval = 0.0
+						else:
+							print('Male YY Maturation default set values age or size not specified in PopVars.')
+							sys.exit(-1)
+				elif offsex == 'FYY':
+					if FYYmat_set != 'N':
+						if len(FYYmat_set.split('age')) == 2: # Maturation value set for age
+							AgeMature = int(FYYmat_set.split('age')[1])
+							if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
+								matval = 1.0
+							else: 
+								matval = 0.0
+						elif len(FYYmat_set.split('size')) == 2: # Maturation value set for size
+							SizeMature = int(FYYmat_set.split('size')[1])
+							if sizesamp >= SizeMature:
+								matval = 1.0
+							else: 
+								matval = 0.0
+						else:
+							print('Female YY Maturation default set values age or size not specified in PopVars.')
+							sys.exit(-1)
 					
-				else: # If size control				
-					if offsex == 'XX':	# Female check
-						if Fmat_set == 'N': # Use equation - size
-							matval = np.exp(Fmat_int + Fmat_slope * sizesamp) / (1 + np.exp(Fmat_int + Fmat_slope * sizesamp))
-						else: # Use set size
-							if sizesamp >= int(Fmat_set):
-								matval = 1.0
-							else:
-								matval = 0.0
-					elif offsex == 'XY': # Male check
-						if Mmat_set == 'N': # Use equation - size
-							matval = np.exp(Mmat_int + Mmat_slope * sizesamp) / (1 + np.exp(Mmat_int + Mmat_slope * sizesamp))
-						else: # Use set size
-							if sizesamp >= int(Mmat_set):
-								matval = 1.0
-							else:
-								matval = 0.0
-					else: ## YY, will never be a YY male, but leaving this for completeness
-						if sexans == 'Y':
-							print('YY offspring produced, warning, this should not occur.')
-							sys.exit(-1)
+				# If mat val is not 1, then run size/age probs
+				if matval != 1.0:		
+					# Check age values for mature
+					if sizeans == 'age': # Age control
+						if len(age_mature[natalP][theseclasspars][agetemp].split('~')) == 1:
+							matval = float(age_mature[natalP][theseclasspars][agetemp].split('~')[0])
+						elif len(age_mature[natalP][theseclasspars][agetemp].split('~')) != sexchromo:
+							print('ClassVars age maturation probabilities must be length 1 or length of number of sex_chromo specified.')
+							sys.exit(-1)							
 						else:
-							if YYmat_set == 'N': # Use equation - size
-								matval = np.exp(YYmat_int + YYmat_slope * sizesamp) / (1 + np.exp(YYmat_int + YYmat_slope * sizesamp))
-							else: # Use set size
-								if sizesamp >= int(YYmat_set):
-									matval = 1.0
-								else:
-									matval = 0.0
-							
+							matval = float(age_mature[natalP][theseclasspars][agetemp].split('~')[sxspot])
+						
+					# If size control specified, grab slope/int values from PopVars	
+					elif sizeans == 'size': # Size control							
+						if offsex == 'FXX': # Female		
+							matval = np.exp(float(FXXmat_int) + float(FXXmat_slope) * sizesamp) / (1 + np.exp(float(FXXmat_int) + float(FXXmat_slope) * sizesamp))
+						elif offsex == 'MXY': # Male			
+							matval = np.exp(float(MXYmat_int) + float(MXYmat_slope) * sizesamp) / (1 + np.exp(float(MXYmat_int) + float(MXYmat_slope) * sizesamp))
+						elif offsex == 'MYY': # Male			
+							matval = np.exp(float(MYYmat_int) + float(MYYmat_slope) * sizesamp) / (1 + np.exp(float(MYYmat_int) + float(MYYmat_slope) * sizesamp))
+						elif offsex == 'FYY': # Male			
+							matval = np.exp(float(FYYmat_int) + float(FYYmat_slope) * sizesamp) / (1 + np.exp(float(FYYmat_int) + float(FYYmat_slope) * sizesamp))	
+					# Error check 	
+					else:
+						print('Size control option not correct, N or Y.')
+						sys.exit(-1)
+				
+				# Check probability and egg laying
 				randmat = np.random.uniform()
 				if randmat < matval:
 					mature = 1
-					# Check if mature female, and if lays eggs
 					randegglay = np.random.uniform()
-					if sexans == 'Y':
-						if offsex == 'XX':									
+					# If sexans 'Y' and female, check layEggs
+					if sexans == 'Y' or sexans == 'H':
+						if offsex == 'FXX' or offsex == 'FYY':
 							if randegglay < eggFreq:
-								offlayeggs = 1 # Lays eggs next year
+								offlayeggs = 1
 							else:
-								offlayeggs = 0	# Does not lay eggs next year
+								offlayeggs = 0
 						else:
-							offlayeggs = 0	# Does not lay eggs next year
-					else:
+							offlayeggs = 0
+					else:				
 						if randegglay < eggFreq:
-							offlayeggs = 1 # Lays eggs next year
+							offlayeggs = 1
 						else:
-							offlayeggs = 0	# Does not lay eggs next year
-				else: # Not mature
+							offlayeggs = 0
+				else:
 					mature = 0
 					offlayeggs = 0
-				
+								
 				# --------------------------
 				# REcord information
 				# --------------------------			
 				# And then recd new information of offspring [Mothergenes,Fathergenes,natalpop,emipop,immipop,emicd,immicd,age0,sex,size,mature,newmature,infection,id,motherid,fatherid,capture,recapture,layeggs,Mothers Hindex, Fathers Hindex, ClassVars File,PopID,speciesID]
-				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,0,offsex,sizesamp,mature,mature,infect,id,Bearpairs[i][0]['name'],Bearpairs[i][1]['name'],0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'],Bearpairs[i][0]['species'])
+				recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],Bearpairs[i][0][sourcePop],'NA','NA',-9999,-9999,agetemp,offsex,sizesamp,mature,mature,infect,id,Bearpairs[i][0]['name'],Bearpairs[i][1]['name'],0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'],Bearpairs[i][0]['species'])
 				offspring.append(recd)
 				count = count + 1 # For unique naming tracking				
 	# If there was not a pairing
@@ -401,6 +461,8 @@ def DoOffspringPoisson(Bearpairs,age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_
 			else:
 				# Set the litter size
 				littersamp = int(round(np.random.poisson(litter_mu)))
+				if littersamp < 0:
+					pdb.set_trace()
 	
 		# Append Offspring number to end of Pairs [F,M,#offspring]	
 		noOffspring.append(littersamp)			
@@ -568,8 +630,8 @@ def DoClutch(Bearpairs,dtype,noOffspring):
 	# End::DoClutch()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoOffspring(offno,Bearpairs,Births,transmissionprob,gen,K,sourcePop,\
-age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,EggDeaths,eggmort_back,BirthsYY,egg_delay,noOffspring_temp):
+def DoOffspring(offno,Bearpairs,transmissionprob,gen,K,sourcePop,\
+age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,EggDeaths,eggmort_back,egg_delay,noOffspring_temp,Births,BirthsMYY,BirthsFYY):
 	'''
 	DoOffspring()
 	Choose number of Offspring for each mated pair 
@@ -611,7 +673,7 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 			# Function 2 is a Poisson draw
 			elif (offno=='2'):
 			
-				noOffspring = DoOffspringPoisson(Bearpairs[egg_delay],age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)
+				noOffspring = DoOffspringPoisson(Bearpairs[egg_delay],age_mu,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans,noOffspring)				
 				
 			# Function 3 is a constant of lmbda offspring per each pairing
 			elif (offno=='3'):
@@ -647,8 +709,7 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 		# -------------------------------------
 		# Call DoEggMortality()
 		# -------------------------------------	
-		
-		noOffspring = DoEggMortality(Bearpairs[egg_delay],eggmort_patch,EggDeaths,gen,K,eggmort_back,noOffspring,Births,BirthsYY)
+		noOffspring = DoEggMortality(Bearpairs[egg_delay],eggmort_patch,EggDeaths,gen,K,eggmort_back,noOffspring,Births,BirthsMYY,BirthsFYY)
 		
 		# Check if there were 0 litter size events, delete those Bearpairs[egg_delay]
 		if len(np.where(noOffspring == 0)[0]) > 0:
@@ -664,12 +725,13 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 		# Update for egg_delay; create n-D noOffspring array for indexing
 		# ---------------------------------------------------------------
 		noOffspring_temp[egg_delay] = noOffspring	
-	
+		
 	# Population extinct
 	else:
 		noOffspring_temp = []
 		Births.append([0 for x in range(0,len(K)+1)] )
-		BirthsYY.append([ 0 for x in range(0,len(K)+1)] )
+		BirthsMYY.append([ 0 for x in range(0,len(K)+1)] )
+		BirthsFYY.append([ 0 for x in range(0,len(K)+1)] )
 		EggDeaths.append( [0 for x in range(0,len(K)+1)] )
 	
 	return noOffspring_temp, Bearpairs

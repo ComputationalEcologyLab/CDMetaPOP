@@ -1,3 +1,68 @@
+Changes 2.63.2023.05.04T12:58:00 (ell/cday)
+Casey testing example files for version 2.62
+0) Updated example files
+a) Created generic popvars.csv and patchvars.csv. S1, S2, and S3 are exclusively for multispecies applications
+b) Created AddMyy scenario 
+c) Removed RunVars_3species.csv, since there is a 3 species application in RunVars_multispecies.csv
+1) Bug fix for variable matemovethreshpass and matemovethresh - Preprocess line 1140
+2) Big fix associated with hermaphroditic option and same sex of both parents. Added checks to mainloop.py line 355.
+3) Bug where age/size mortality were getting overwritten with 4 values (e.g., N~N~N~N) and then later hitting conflicting checks. Removed checks so that age/size mortality get checked by sexsplit() only, but we left checks for maturation/fecundity/capture in classvars as those aren't checked by sexsplit()
+4) Bug fix for conversion of Kpop to int() in DoEmigration line 1940 and a few other places
+5) Bug fix for converting slopes and intercepts to float. Sometimes were called without being converted in the equations, so moved float conversion to inside the equations. Several places - Preprocess 1020, Offspring 313, Modules 1754. 
+6) Missed one BirthsYY not changed to BirthsMyy and Births Fyy, mortality 790
+7) Bug fix to cap egg mortality at 1 if > 1 and avoid negative offspring, Mortality 729
+8) Removed queue sections from exponential option 'N' for now
+9) Other minor bug fixes
+
+
+Changes 2.62.2023.03.07T12:58:00 (ell/cday)
+0) Begin adding in Fyy ***
+a) Set up example files: Number of sex options by Sex Ratio separated by /tilda, then the number of other field options must match, else one value given.
+b) Simplify age/size defaults for maturation; if size control == N (age driven), classvars dictates maturation of each age class, then option to set length based default in popvars. If size control == Y (length driven), equations in popvars dictates maturation for each size class, then option to set age based default in popvars. Field now 'mature_default' ***update all PopVars files in example_files
+-> One field now but add eg age6~size100 to split by either age or size. 
+-> PreProcessing updated with mat_set values
+-> Next DoUpdate - 'Initial' - cleaned up this function first call
+-> Created function call sexsplit() in Modules
+-> CDClimate updating all parameters for sex splits, including cdmatrix; biggest changes in move options, 4 sex splits for cdmatrix, threshold, A,B,C, no, output for Scale Min and Max as well as converted thresholds.
+-> Checked through AddIndividuals() ; Note to check cdclimate and classvars as well as addindividuals to see how age_Mg, etc., classvars parameters are getting updated.
+-> DoStochastic() age/size mortality back/out checked/updated for sexsplits; Added stochastic_update function to Modules to condesnse DoStochastic calls; update this function to be more general, currently for age specific vars
+-> DoMate() - Add Fyy variables
+-> DoOffspring() - Added Track_BirthsMYY and Track_BirthsFYY to be updated for PostProcessing outputs.
+***Note that no sexsplit differences for female pars where FXX and FYY might be different (egg numbers by size) 
+-> DoUpdate() second call; growInd(), still working on matureInd() - check in third call, capInd() updated
+-> DoEmigration: Updated probarray(), AddAge0s() - cdevolve answer for M and matration checks when genes added, DoOffspringVars() - sex assignment and maturation checks, CalculateDispersalMetrics() - only updated cdmatrix/pars for FXX and MXY, did not add tracking for FYY  and MYY. age_percmort_out not used here; Check MG_Class prob splits
+-> DoMortality() - Concerned about /100 and percents to probs: check files with 1 for full mortality vs. 1/100
+-> DoUpdate() third call; check carefully maturation and any /100 to prob values, like capture
+-> DoImmigration(): check age_percmort_back usage here - added error checks if leslie option, then no sex splits allowed as well as multiple class vars files; Update new sex specific movement pars (cdmatrix, thresh, etc) naming and ordering in function calls; Check class sex splits on prob movement Str, LD; GetProbArray() updated for 4 sex splits; CalculateDispersalMetrics() updated for S,Z,D options - still only tracking for FXX and MXY.
+-> Second DoMortality() nothing updated (already update with first call)
+-> GetMetrics() nothing updated
+-> CDClimate() and classvars; check classvars changing vars with 'bars' and cdclimate and then check how offspring are inheriting. ***Check how addindividuals is readinging in new classvars with cdclimate
+Check all pars in classvars to swap during cdclimate: Age Mortality Out %	Age Mortality Out StDev	Age Mortality Back %	Age Mortality Back StDev	Size Mortality Out %	Size Mortality Out StDev	Size Mortality Back %	Size Mortaltiy Back StDev	Migration	Straying	Dispersal Prob	Maturation	Fecundity Ind	Fecundity Ind StDev	Fecundity Leslie	Fecundity Leslie StDev	Capture Out Probability	Capture Back Probability
+-> PreProcess - read in classvars and only variables needed/used (eg sex ratio, distribution, sizes) -> CDClimate - read in classvars and update all vars, output in cdclimate
+-> think through cdclimate vs addindividual '|' usage for classvars (one or the other?). Also think through inheriting classvars vars. Thinking through classvars splits by ';' and hindex as well.  
+-> In PreProcess() match speciesID (splits from N0 ; for each patch) and genes and classvars (allelst and agelst)
+
+-> Added error for if ';' in N0 column, then ';' needed for genes init and classvars field - in InitializeVars()
+-> Added error in cdclimate for if N0 split by | for Add individual applications, then must have matching gene files and classvars files.
+
+-> Hitting invalid offspring list error in Immigration-ProbArray - dtype for offspring sex set to str,3; fixed
+-> sum(np.asarray(tempN0[isub].split(';'),int)) added to AddIndividuals error check
+-> (neg dims in Emigration 1037). ***Only saw once, pdb placed
+-> PostProcess() Track_ToTYYFemales,Track_BirthsFYY,Track_BreedYYFemales added to output DoOutput_AllTimePatch() and when outputans is Y  for output files for given file ***Need to add these 3 trackers to usermanual
+-> *** Note in PostProcess to add error check around genespot - hard coded.
+
+
+
+Notes for updates later
+-> Hindex on YYs: N_yy = len(np.where(hindex_arr == 0.)[0]) update for indSex call for 'YY' (cdevolveans hindex)
+
+1) Begin adding in Mspecies hybridization/mating ***
+
+2) Update grid format options (genalex, structure, etc) to pass in a global var for index to loci first spot (e.g., 20 at current version, genespot)
+3) Added pdb to begininning of PostProcess to check for length of output files matching. ***
+4) Genepop outputfile.write(str(ipop+1)+', ') for ID replaced.
+5) Converted all original percentage values to prob values ***check for /100. calls
+
 Changes 2.61.2023.02.22T14:12:00MT (ell)
 ELL5) 
 -> plastic_signalresp need to come into DoUpdate; added 

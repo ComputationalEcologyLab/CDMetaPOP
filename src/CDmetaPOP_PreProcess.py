@@ -13,6 +13,7 @@ import numpy as np
 import os,sys,pdb,copy
 from ast import literal_eval 
 from CDmetaPOP_Modules import *
+from inspect import currentframe, getframeinfo
 
 # ---------------------------------------------------------------------------------------------------
 def count_unique(keys):
@@ -115,8 +116,7 @@ def GetMaxCDValue(threshold,cdmatrix):
 		if len(threshold.strip('max')) == 0:
 			threshold = np.amax(cdmatrix)
 		else:
-			threshold = (float(threshold.strip('max'))/100.)\
-			*np.amax(cdmatrix)
+			threshold = (float(threshold.strip('max'))/100.)*np.amax(cdmatrix)
 	else:
 		threshold = float(threshold)
 	
@@ -503,8 +503,6 @@ def InitializeAge(K,agefilename,datadir):
 	age_mu = []
 	age_size_mean = []
 	age_size_std = []
-	#M_mature = []
-	#F_mature = []
 	age_mature = []
 	age_sigma = []
 	age_cap_out = []
@@ -535,8 +533,6 @@ def InitializeAge(K,agefilename,datadir):
 		age_mu.append([])
 		age_size_mean.append([])
 		age_size_std.append([])
-		#M_mature.append([])
-		#F_mature.append([])
 		age_mature.append([])
 		age_sigma.append([])
 		age_cap_out.append([])
@@ -547,7 +543,7 @@ def InitializeAge(K,agefilename,datadir):
 		age_DispProb.append([])
 		
 		fileans = agefilename[isub]
-		fileans = fileans.split(';') # For spatial separation use this deliminator check
+		fileans = fileans.split(';') # Patch split by 'species' - or hindex applications
 		
 		# The loop through each file
 		for i_splitpatch in range(len(fileans)):
@@ -570,8 +566,6 @@ def InitializeAge(K,agefilename,datadir):
 			age_mu[isub].append([])
 			age_size_mean[isub].append([])
 			age_size_std[isub].append([])
-			#M_mature[isub].append([])
-			#F_mature[isub].append([])
 			age_mature[isub].append([])
 			age_sigma[isub].append([])
 			age_cap_out[isub].append([])
@@ -629,8 +623,6 @@ def InitializeAge(K,agefilename,datadir):
 				age_Mg[isub][i_splitpatch].append(xage[i+1][13])
 				age_S[isub][i_splitpatch].append(xage[i+1][14])
 				age_DispProb[isub][i_splitpatch].append(xage[i+1][15])
-				#M_mature[isub][i_splitpatch].append(float(xage[i+1][15]))
-				#F_mature[isub][i_splitpatch].append(float(xage[i+1][16]))
 				age_mature[isub][i_splitpatch].append(xage[i+1][16])
 				age_mu[isub][i_splitpatch].append(xage[i+1][17])
 				age_sigma[isub][i_splitpatch].append(xage[i+1][18])
@@ -661,8 +653,10 @@ def InitializeAge(K,agefilename,datadir):
 	del(lencheck)	
 	
 	# Return variables
-	tupAgeFile = agelst,age_percmort_out,age_percmort_back,age_Mg,age_S,\
-	sexratio,age_mu,age_size_mean,age_size_std,age_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,f_leslie,f_leslie_std,age_DispProb
+	tupAgeFile = agelst,age_size_mean,age_size_std,sexratio,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_Mg,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back	
+	
+	
+	#agelst,age_percmort_out,age_percmort_back,age_Mg,age_S,sexratio,age_mu,age_size_mean,age_size_std,age_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,f_leslie,f_leslie_std,age_DispProb
 	
 	return tupAgeFile
 	#End::InitializeAge()
@@ -674,12 +668,12 @@ def InitializeID(K,N):
 	This function initializes the location of each individuals for the id varialbe
 	{Initial,Residor,Immigrant,Emigrant,Stayor}_{Year born}_{Natal Pop}_{Numeric ID}_{species ID} and produces the subpop temp list with corresponding PopTag ID and Species ID
 	'''
-	
 	id = []
 	subpop = []
 	speciesID = []
 	for isub in range(len(K)):
-		if int(K[isub]) > 0:
+		if sum(np.asarray(np.asarray(K,str)[isub].split(';'),int)) > 0: # split checks for AddIndividual call; tempN0 is read in
+		#if int(K[isub]) > 0:
 			Nspecies = N[isub].split(';')
 			for ispec in range(len(Nspecies)): # Loop through each species group
 				for iind in range(int(Nspecies[ispec])): # Loop through each ind
@@ -707,7 +701,8 @@ def InitializeID(K,N):
 	#End::InitializeID()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,addans,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,N0):
+def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,cdevolveans,fitvals,burningen_cdevolve,addans,sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
+
 	'''
 	InitializeVars()
 	This function initializes the age,sex,infection,genes of each individual based for the id variable
@@ -732,34 +727,36 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		# ----------------
 		isub = int(subpop[iind]) - 1
 		
+		# Error checks on ; splits for N0, classvars file and allele frequency file
+		if len(N0[isub].split(';')) != len(allelst[isub]):
+			print('gene files split by species with ; length must equal gene init file split by ;')
+			sys.exit(-1)
+		if len(N0[isub].split(';')) != len(agelst[isub]):
+			print('N0 split by species with ; length must equal classvars file split by ;')
+			sys.exit(-1)
+		
 		# --------------------------
 		# Get genes - For each loci:
 		# --------------------------		
 		genes.append([]) # And store genes information
 		# First check to see if there is more than one file that can be used for this patch and then randomly choose which one to initialize this individual; make sure this file is stored for ClassVars selection later
-		thisgenefile = np.random.randint(len(allelst[isub]))
-		for j in range(loci):
-							
+		#thisgenefile = np.random.randint(len(allelst[isub]))
+		thisgenefile = speciesID[iind]-1 # Match the speciesID (subtract 1 to start from 0) to the gene file order		
+		for j in range(loci):							
 			# Take a random draw from the w_choice function at jth locus
 			rand1 = w_choice_general(allelst[isub][thisgenefile][j])[0]
-			rand2 = w_choice_general(allelst[isub][thisgenefile][j])[0]
-			
-			# Store genes loci spot
-			#genes[iind].append([])
-			
+			rand2 = w_choice_general(allelst[isub][thisgenefile][j])[0]			
 			# Append assignment onto indall array - run through each condition for assignment of 1s or 2s or 0s
 			# 	1s = heterozygous at that locus
 			#	2s = homozygous at that locus
 			#	0s = absence of allele
-			for k in range(alleles[j]):
-									
+			for k in range(alleles[j]):									
 				# Assignment of 2, the rest 0
 				if rand1 == rand2: 
 					if k < rand1 or k > rand1:
 						tempindall = 0
 					elif k == rand1:
-						tempindall = 2
-					
+						tempindall = 2					
 				# Assignment of 1s, the rest 0
 				if rand1 != rand2:
 					if k < min(rand1,rand2) or k > max(rand1,rand2):
@@ -767,38 +764,24 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 					elif k == rand1 or k == rand2:
 						tempindall = 1
 					else:
-						tempindall = 0
-							
+						tempindall = 0							
 				# Add to genes list
-				#genes[iind][j].append(tempindall)
 				genes[iind].append(tempindall)
 		#pdb.set_trace()
 		# ---------------------------------------------
 		# Get AA / aa p value for genetag
 		# ---------------------------------------------
-		'''
-		lower, upper = 0,1
-		X = truncnorm.rvs((lower - allelst[isub][thisgenefile][0][1][1]) / 0.1, (upper - allelst[isub][thisgenefile][0][1][1]) / 0.1, loc=allelst[isub][thisgenefile][0][1][1], scale=0.1)
-		#X = np.random.normal(mu,sigma)
-		if X < 0:
-			X = 0
-		elif X > 1:
-			X = 1.
-		hindex.append(X) # first locus/second allele
-		'''
-		
 		if genes[iind][0] == 2: # 1/0 in gene init file
 			hindex.append(1.0)
 		elif genes[iind][1] == 2: # 0/1
 			hindex.append(0.0)
 		elif genes[iind][0] == 1 and genes[iind][1] == 1:# 0.5/0.5 gene init file
-			hindex.append(0.5)
-		
+			hindex.append(0.5)		
 		else:
 			hindex.append(-9999)		
-		#pdb.set_trace()
+		
 		# -------------------------
-		# Store classvars file used - Currently random selection from classvars, but passed in speciesID splits from N0, so could match N0 to thisfile here
+		# Store classvars file used - passed in speciesID splits from N0, so match N0 to thisfile here
 		# -------------------------
 		# First make sure to grab the correct ClassVars file - Then check cases
 		if len(allelst[isub]) == len(agelst[isub]):
@@ -844,15 +827,18 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			# Get each sex prob, add index, convert to prob
 			tempratios = sexratio[isub][thisfile][agetemp].split('~')
 			# Error check, must add to 100 and must be 3 values
-			if len(tempratios) != 3:
-				print('Must specify percentages for 3 sex classes in ClassVars file. Length is not 3.')
+			if len(tempratios) != sexchromo:
+				print('Must specify percentages for sex ratio in ClassVars equal to field sex_chromo in PopVars.')
 				sys.exit(-1)
-			if float(tempratios[0])+float(tempratios[1])+float(tempratios[2]) != 100.:
-				print('3 sex class percentages must equal 100 in ClassVars file.')
+			if sum(np.asarray(tempratios,dtype=float)) != 1.:
+				print('Sex ratio classes must sum to 1 in ClassVars file.')
 				sys.exit(-1)
-			ratiolst = [['XX',float(tempratios[0])/100.],['XY',float(tempratios[1])/100.],['YY',float(tempratios[2])/100.]]
-			offsex = w_choice_general(ratiolst)[0] 
-										
+			ratiolst = []
+			tempstrlst = ['FXX','MXY','MYY','FYY']
+			for iratiolst in range(len(tempratios)):
+				ratiolst.append([tempstrlst[iratiolst],float(tempratios[iratiolst])])
+			#pdb.set_trace()
+			offsex = w_choice_general(ratiolst)[0] 										
 			sex.append(offsex)
 		# Special case for WrightFisher
 		else: 
@@ -862,11 +848,19 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 				sys.exit(-1)			
 			offsex = int(2*np.random.uniform())
 			if offsex == 0:
-				offsex == 'XX'
+				offsex == 'FXX'
 			else:
-				offsex == 'XY'
+				offsex == 'MXY'
 			sex.append(offsex) # temporary fill
-		
+		# Indexing used later for sex splits
+		if offsex == 'FXX':
+			sxspot = 0
+		elif offsex == 'MXY':
+			sxspot = 1
+		elif offsex == 'MYY':
+			sxspot = 2
+		else:
+			sxspot = 3
 		# ------------------------
 		# Set the infection status
 		# ------------------------
@@ -889,64 +883,93 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		# ---------------------------------------------
 		# Set maturity Y or N and get egg lay last year
 		# ---------------------------------------------		
-		
-		# Check default age for maturity
-		if offsex == 'XX':
-			AgeMature = int(defaultAgeMature.split('~')[0])
-		elif offsex == 'XY': 
-			# Check if more than 1 value
-			if len(defaultAgeMature.split('~')) > 1:
-				AgeMature = int(defaultAgeMature.split('~')[1])
-			else:
-				AgeMature = int(defaultAgeMature.split('~')[0])
-		else:
-			# Check if more than 1 value
-			if len(defaultAgeMature.split('~')) == 3:
-				AgeMature = int(defaultAgeMature.split('~')[2])
-			elif len(defaultAgeMature.split('~')) == 2:
-				AgeMature = int(defaultAgeMature.split('~')[1])
-			else:
-				AgeMature = int(defaultAgeMature.split('~')[0])
+		matval = 0.0 # Initialize
+		# Check default age/size for maturity
+		if offsex == 'FXX':
+			if FXXmat_set != 'N':
+				if len(FXXmat_set.split('age')) == 2: # Maturation value set for age
+					AgeMature = int(FXXmat_set.split('age')[1])
+					if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
+						matval = 1.0
+					else: 
+						matval = 0.0
+				elif len(FXXmat_set.split('size')) == 2: # Maturation value set for size
+					SizeMature = int(FXXmat_set.split('size')[1])
+					if sizesamp >= SizeMature:
+						matval = 1.0
+					else: 
+						matval = 0.0
+				else:
+					print('Female XX Maturation default set values age or size not specified in PopVars.')
+					sys.exit(-1)
+		elif offsex == 'MXY':
+			if MXYmat_set != 'N':
+				if len(MXYmat_set.split('age')) == 2: # Maturation value set for age
+					AgeMature = int(MXYmat_set.split('age')[1])
+					if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
+						matval = 1.0
+					else: 
+						matval = 0.0
+				elif len(MXYmat_set.split('size')) == 2: # Maturation value set for size
+					SizeMature = int(MXYmat_set.split('size')[1])
+					if sizesamp >= SizeMature:
+						matval = 1.0
+					else: 
+						matval = 0.0
+				else:
+					print('Male XY Maturation default set values age or size not specified in PopVars.')
+					sys.exit(-1)
+		elif offsex == 'MYY':
+			if MYYmat_set != 'N':
+				if len(MYYmat_set.split('age')) == 2: # Maturation value set for age
+					AgeMature = int(MYYmat_set.split('age')[1])
+					if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
+						matval = 1.0
+					else: 
+						matval = 0.0
+				elif len(MYYmat_set.split('size')) == 2: # Maturation value set for size
+					SizeMature = int(MYYmat_set.split('size')[1])
+					if sizesamp >= SizeMature:
+						matval = 1.0
+					else: 
+						matval = 0.0
+				else:
+					print('Male YY Maturation default set values age or size not specified in PopVars.')
+					sys.exit(-1)
+		elif offsex == 'FYY':
+			if FYYmat_set != 'N':
+				if len(FYYmat_set.split('age')) == 2: # Maturation value set for age
+					AgeMature = int(FYYmat_set.split('age')[1])
+					if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
+						matval = 1.0
+					else: 
+						matval = 0.0
+				elif len(FYYmat_set.split('size')) == 2: # Maturation value set for size
+					SizeMature = int(FYYmat_set.split('size')[1])
+					if sizesamp >= SizeMature:
+						matval = 1.0
+					else: 
+						matval = 0.0
+				else:
+					print('Female YY Maturation default set values age or size not specified in PopVars.')
+					sys.exit(-1)
 			
-		if agetemp >= AgeMature: # If the age is > than default mature value, then becomes mature.
-			matval = 1.0
-		else: # Run through options and get matval		
+		# If mat val is not 1, then run size/age probs
+		if matval != 1.0:		
+			# Check age values for mature
 			if sizeans == 'N': # Age control
-				if offsex == 'XX': # Female
-					if Fmat_set == 'N': # Use prob value
-						matval = float(age_mature[isub][thisfile][agetemp].split('~')[0])
-					else: # Use set age
-						if agetemp >= int(Fmat_set): # Age check
-							matval = 1.0
-						else:
-							matval = 0.0				
-				elif offsex == 'XY': # Male			
-					if Mmat_set == 'N': # Use prob value
-						# Check if more than 1 value is given for sex classes
-						if len(age_mature[isub][thisfile][agetemp].split('~')) > 1: 
-							matval = float(age_mature[isub][thisfile][agetemp].split('~')[1])
-						else:	
-							matval = float(age_mature[isub][thisfile][agetemp].split('~')[0])
-					else: # Use set age
-						if agetemp >= int(Mmat_set): # Age check
-							matval = 1.0
-						else:
-							matval = 0.0
-				else: # YY male
-					if YYmat_set == 'N': # Use prob value
-						# Check if more than 1 value is given for sex classes
-						if len(age_mature[isub][thisfile][agetemp].split('~')) == 3: # Use YY value
-							matval = float(age_mature[isub][thisfile][agetemp].split('~')[2])
-						elif len(age_mature[isub][thisfile][agetemp].split('~')) == 2: # Use male value
-							matval = float(age_mature[isub][thisfile][agetemp].split('~')[1])
-						else:	
-							matval = float(age_mature[isub][thisfile][agetemp].split('~')[0])
-					else: # Use set age
-						if agetemp >= int(YYmat_set): # Age check
-							matval = 1.0
-						else:
-							matval = 0.0
+				
+				if len(age_mature[isub][thisfile][agetemp].split('~')) == 1:
+					matval = float(age_mature[isub][thisfile][agetemp].split('~')[0])
+				elif len(age_mature[isub][thisfile][agetemp].split('~')) != sexchromo:
+					print('ClassVars age maturation probabilities must be length 1 or length of number of sex_chromo specified.')
+					sys.exit(-1)
+				else:
+					matval = float(age_mature[isub][thisfile][agetemp].split('~')[sxspot])
+					
+			# If size control specified, grab slope/int values from PopVars	
 			elif sizeans == 'Y': # Size control
+
 				if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and burningen_cdevolve <= 0: # cdevolve answer mature
 					tempgenes = genes[iind]
 					if tempgenes[0] == 2: # AA
@@ -970,44 +993,37 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 					else:
 						print('2 alleles only with M options in cdevolveans.')
 						sys.exit(-1)
-					# Then Replace mat vals	
-					if offsex == 'XX':
-						tempmat = tempvals[0].split(':')
-						Fmat_slope = float(tempmat[0])
-						Fmat_int = float(tempmat[1])						
-					elif offsex == 'XY':
-						tempmat = tempvals[1].split(':')
-						Mmat_slope = float(tempmat[0])
-						Mmat_int = float(tempmat[1])					
-					elif offsex == 'YY':
-						tempmat = tempvals[2].split(':')
-						YYmat_slope = float(tempmat[0])
-						YYmat_int = float(tempmat[1])
 					
-				if offsex == 'XX': # Female
-					if Fmat_set == 'N': # Use equation - size
-						matval = np.exp(Fmat_int + Fmat_slope * sizesamp) / (1 + np.exp(Fmat_int + Fmat_slope * sizesamp))
-					else: # Use set size
-						if sizesamp >= int(Fmat_set):
-							matval = 1.0
-						else:
-							matval = 0.0				
-				elif offsex == 'XY': # Male			
-					if Mmat_set == 'N': # Use equation - size
-						matval = np.exp(Mmat_int + Mmat_slope * sizesamp) / (1 + np.exp(Mmat_int + Mmat_slope * sizesamp))
-					else: # Use set size
-						if sizesamp >= int(Mmat_set):
-							matval = 1.0
-						else:
-							matval = 0.0
-				else: # YY Male			
-					if Mmat_set == 'N': # Use equation - size
-						matval = np.exp(YYmat_int + YYmat_slope * sizesamp) / (1 + np.exp(YYmat_int + YYmat_slope * sizesamp))
-					else: # Use set size
-						if sizesamp >= int(YYmat_set):
-							matval = 1.0
-						else:
-							matval = 0.0
+					# Then Replace mat vals	0.1:1.0~0.2:0.5~0.1:1.0~0.2:0.5|0.1:1.0~0.2:0.5~0.1:1.0~0.2:0.5
+					# tempvals ['0.1:1.0','0.2:0.5','0.1:1.0','0.2:0.5']					
+					if len(tempvals) == 1:
+						tempmat = tempvals[0].split(':')
+					elif len(tempvals) != sexchromo:
+						print('PopVars fitness values for cdevolveans M or MG must be length 1 or length of number of sex_chromo specified.')
+						sys.exit(-1)							
+					else:
+						tempmat = tempvals[sxspot].split(':')
+					if offsex == 'FXX':
+						FXXmat_slope = float(tempmat[0])
+						FXXmat_int = float(tempmat[1])						
+					elif offsex == 'MXY':
+						MXYmat_slope = float(tempmat[0])
+						MXYmat_int = float(tempmat[1])					
+					elif offsex == 'MYY':
+						MYYmat_slope = float(tempmat[0])
+						MYYmat_int = float(tempmat[1])
+					elif offsex == 'FYY':
+						FYYmat_slope = float(tempmat[0])
+						FYYmat_int = float(tempmat[1])				
+				if offsex == 'FXX': # Female		
+					matval = np.exp(float(FXXmat_int) + float(FXXmat_slope) * sizesamp) / (1 + np.exp(float(FXXmat_int) + float(FXXmat_slope) * sizesamp))
+				elif offsex == 'MXY': # Male			
+					matval = np.exp(float(MXYmat_int) + float(MXYmat_slope) * sizesamp) / (1 + np.exp(float(MXYmat_int) + float(MXYmat_slope) * sizesamp))
+				elif offsex == 'MYY': # Male			
+					matval = np.exp(float(MYYmat_int) + float(MYYmat_slope) * sizesamp) / (1 + np.exp(float(MYYmat_int) + float(MYYmat_slope) * sizesamp))
+				elif offsex == 'FYY': # Male			
+					matval = np.exp(float(FYYmat_int) + float(FYYmat_slope) * sizesamp) / (1 + np.exp(float(FYYmat_int) + float(FYYmat_slope) * sizesamp))	
+			# Error check 	
 			else:
 				print('Size control option not correct, N or Y.')
 				sys.exit(-1)
@@ -1019,7 +1035,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			randegglay = np.random.uniform()
 			# If sexans 'Y' and female, check layEggs
 			if sexans == 'Y' or sexans == 'H':
-				if offsex == 'XX':
+				if offsex == 'FXX' or offsex == 'FYY':
 					if randegglay < eggFreq:
 						layEggs.append(1)
 					else:
@@ -1076,7 +1092,7 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate_pass):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
@@ -1092,277 +1108,426 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			print('If not using CDClimate option, set begin time loop with cdclimgentime at 0.')
 			sys.exit(-1)
 	
-	#----------------------------
-	# Population-based parameters
-	# ---------------------------
-	# Matrix files first -----------------------------
+	#---------------------------------------
+	# Population-based parameters - PopVars
+	# --------------------------------------
+	
+	# ------------------------------------------------
+	# Mating ----------------------------------
 	if isinstance(matecdmatfile, (list,tuple)):
 		matecdmatfile = datadir+matecdmatfile[icdtime]
 	else:	
 		matecdmatfile = datadir+matecdmatfile
-	if isinstance(dispOutcdmatfile, (list,tuple)):
-		if dispOutcdmatfile[icdtime] != 'N': # Check if skipped
-			dispOutcdmatfile = datadir+dispOutcdmatfile[icdtime]
-		else:
-			dispOutcdmatfile = dispOutcdmatfile[icdtime]
-	else:
-		if dispOutcdmatfile != 'N': # CHeck if skipped.
-			dispOutcdmatfile = datadir+dispOutcdmatfile
-	if isinstance(dispBackcdmatfile, (list,tuple)):
-		dispBackcdmatfile = datadir+dispBackcdmatfile[icdtime]
-	else:
-		dispBackcdmatfile = datadir+dispBackcdmatfile
-	if isinstance(straycdmatfile, (list,tuple)):
-		straycdmatfile = datadir+straycdmatfile[icdtime]
-	else:
-		straycdmatfile = datadir+straycdmatfile
-	if isinstance(dispLocalcdmatfile, (list,tuple)):
-		if dispLocalcdmatfile[icdtime] != 'N': # Check if skipped
-			dispLocalcdmatfile = datadir+dispLocalcdmatfile[icdtime]
-		else:
-			dispLocalcdmatfile = dispLocalcdmatfile[icdtime]
-	else:
-		if dispLocalcdmatfile != 'N': # CHeck if skipped.
-			dispLocalcdmatfile = datadir+dispLocalcdmatfile			
-	
 	# Function numbers next ----------------
 	if isinstance(matemoveno, (list,tuple)):
 		matemoveno = matemoveno[icdtime]
-	if isinstance(StrBackno, (list,tuple)):
-		StrBackno = StrBackno[icdtime]
-	if isinstance(dispLocalno, (list,tuple)):
-		dispLocalno = dispLocalno[icdtime]
-	if isinstance(dispmoveOutno, (list,tuple)):
-		dispmoveOutno = dispmoveOutno[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveOutno.split('~')) == 1:
-		FdispmoveOutno = dispmoveOutno.split('~')[0]
-		MdispmoveOutno = dispmoveOutno.split('~')[0]
-		YYdispmoveOutno = dispmoveOutno.split('~')[0]
-	elif len(dispmoveOutno.split('~')) == 2:
-		FdispmoveOutno = dispmoveOutno.split('~')[0]
-		MdispmoveOutno = dispmoveOutno.split('~')[1]
-		YYdispmoveOutno = dispmoveOutno.split('~')[1]
-	elif len(dispmoveOutno.split('~')) == 3:
-		FdispmoveOutno = dispmoveOutno.split('~')[0]
-		MdispmoveOutno = dispmoveOutno.split('~')[1]
-		YYdispmoveOutno = dispmoveOutno.split('~')[2]
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
-	if isinstance(dispmoveBackno, (list,tuple)):
-		dispmoveBackno = dispmoveBackno[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveBackno.split('~')) == 1:
-		FdispmoveBackno = dispmoveBackno.split('~')[0]
-		MdispmoveBackno = dispmoveBackno.split('~')[0]
-		YYdispmoveBackno = dispmoveBackno.split('~')[0]
-	elif len(dispmoveBackno.split('~')) == 2:
-		FdispmoveBackno = dispmoveBackno.split('~')[0]
-		MdispmoveBackno = dispmoveBackno.split('~')[1]
-		YYdispmoveBackno = dispmoveBackno.split('~')[1]
-	elif len(dispmoveBackno.split('~')) == 3:
-		FdispmoveBackno = dispmoveBackno.split('~')[0]
-		MdispmoveBackno = dispmoveBackno.split('~')[1]
-		YYdispmoveBackno = dispmoveBackno.split('~')[2]
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
-	
-	# Par A next --------------------------------------
+	# A, B, C pars next --------------------
 	if isinstance(matemoveparA, (list,tuple)):
 		matemoveparA = float(matemoveparA[icdtime])
 	else:
 		matemoveparA = float(matemoveparA)
-	if isinstance(StrBackparA, (list,tuple)):
-		StrBackparA = float(StrBackparA[icdtime])
-	else:
-		StrBackparA = float(StrBackparA)
-	if isinstance(dispLocalparA, (list,tuple)):
-		dispLocalparA = float(dispLocalparA[icdtime])
-	else:
-		dispLocalparA = float(dispLocalparA)
-	if isinstance(dispmoveOutparA, (list,tuple)):
-		dispmoveOutparA = dispmoveOutparA[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveOutparA.split('~')) == 1:
-		FdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
-		MdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
-		YYdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
-	elif len(dispmoveOutparA.split('~')) == 2:
-		FdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
-		MdispmoveOutparA = float(dispmoveOutparA.split('~')[1])
-		YYdispmoveOutparA = float(dispmoveOutparA.split('~')[1])
-	elif len(dispmoveOutparA.split('~')) == 3:
-		FdispmoveOutparA = float(dispmoveOutparA.split('~')[0])
-		MdispmoveOutparA = float(dispmoveOutparA.split('~')[1])
-		YYdispmoveOutparA = float(dispmoveOutparA.split('~')[2])
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
-	if isinstance(dispmoveBackparA, (list,tuple)):
-		dispmoveBackparA = dispmoveBackparA[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveBackparA.split('~')) == 1:
-		FdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
-		MdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
-		YYdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
-	elif len(dispmoveBackparA.split('~')) == 2:
-		FdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
-		MdispmoveBackparA = float(dispmoveBackparA.split('~')[1])
-		YYdispmoveBackparA = float(dispmoveBackparA.split('~')[1])
-	elif len(dispmoveBackparA.split('~')) == 3:
-		FdispmoveBackparA = float(dispmoveBackparA.split('~')[0])
-		MdispmoveBackparA = float(dispmoveBackparA.split('~')[1])
-		YYdispmoveBackparA = float(dispmoveBackparA.split('~')[2])
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
-	
-	# Par B next ---------------------------------
 	if isinstance(matemoveparB, (list,tuple)):
 		matemoveparB = float(matemoveparB[icdtime])
 	else:
 		matemoveparB = float(matemoveparB)
-	if isinstance(StrBackparB, (list,tuple)):
-		StrBackparB = float(StrBackparB[icdtime])
-	else:
-		StrBackparB = float(StrBackparB)
-	if isinstance(dispLocalparB, (list,tuple)):
-		dispLocalparB = float(dispLocalparB[icdtime])
-	else:
-		dispLocalparB = float(dispLocalparB)
-	if isinstance(dispmoveOutparB, (list,tuple)):
-		dispmoveOutparB = dispmoveOutparB[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveOutparB.split('~')) == 1:
-		FdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
-		MdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
-		YYdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
-	elif len(dispmoveOutparB.split('~')) == 2:
-		FdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
-		MdispmoveOutparB = float(dispmoveOutparB.split('~')[1])
-		YYdispmoveOutparB = float(dispmoveOutparB.split('~')[1])
-	elif len(dispmoveOutparB.split('~')) == 3:
-		FdispmoveOutparB = float(dispmoveOutparB.split('~')[0])
-		MdispmoveOutparB = float(dispmoveOutparB.split('~')[1])
-		YYdispmoveOutparB = float(dispmoveOutparB.split('~')[2])
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
-	if isinstance(dispmoveBackparB, (list,tuple)):
-		dispmoveBackparB = dispmoveBackparB[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveBackparB.split('~')) == 1:
-		FdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
-		MdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
-		YYdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
-	elif len(dispmoveBackparB.split('~')) == 2:
-		FdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
-		MdispmoveBackparB = float(dispmoveBackparB.split('~')[1])
-		YYdispmoveBackparB = float(dispmoveBackparB.split('~')[1])
-	elif len(dispmoveBackparB.split('~')) == 3:
-		FdispmoveBackparB = float(dispmoveBackparB.split('~')[0])
-		MdispmoveBackparB = float(dispmoveBackparB.split('~')[1])
-		YYdispmoveBackparB = float(dispmoveBackparB.split('~')[2])
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
-		
-	# Par C next -----------------------------------
 	if isinstance(matemoveparC, (list,tuple)):
 		matemoveparC = float(matemoveparC[icdtime])
 	else:
-		matemoveparC = float(matemoveparC)			
-	if isinstance(StrBackparC, (list,tuple)):
-		StrBackparC = float(StrBackparC[icdtime])
-	else:
-		StrBackparC = float(StrBackparC)
-	if isinstance(dispLocalparC, (list,tuple)):
-		dispLocalparC = float(dispLocalparC[icdtime])
-	else:
-		dispLocalparC = float(dispLocalparC)
-	if isinstance(dispmoveOutparC, (list,tuple)):
-		dispmoveOutparC = dispmoveOutparC[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveOutparC.split('~')) == 1:
-		FdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
-		MdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
-		YYdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
-	elif len(dispmoveOutparC.split('~')) == 2:
-		FdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
-		MdispmoveOutparC = float(dispmoveOutparC.split('~')[1])
-		YYdispmoveOutparC = float(dispmoveOutparC.split('~')[1])
-	elif len(dispmoveOutparC.split('~')) == 3:
-		FdispmoveOutparC = float(dispmoveOutparC.split('~')[0])
-		MdispmoveOutparC = float(dispmoveOutparC.split('~')[1])
-		YYdispmoveOutparC = float(dispmoveOutparC.split('~')[2])
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
-	if isinstance(dispmoveBackparC, (list,tuple)):
-		dispmoveBackparC = dispmoveBackparC[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveBackparC.split('~')) == 1:
-		FdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
-		MdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
-		YYdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
-	elif len(dispmoveBackparC.split('~')) == 2:
-		FdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
-		MdispmoveBackparC = float(dispmoveBackparC.split('~')[1])
-		YYdispmoveBackparC = float(dispmoveBackparC.split('~')[1])
-	elif len(dispmoveBackparC.split('~')) == 3:
-		FdispmoveBackparC = float(dispmoveBackparC.split('~')[0])
-		MdispmoveBackparC = float(dispmoveBackparC.split('~')[1])
-		YYdispmoveBackparC = float(dispmoveBackparC.split('~')[2])
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
-	
-	# Threshold par next ---------------------------------
+		matemoveparC = float(matemoveparC)
+	# Threshold ----------------------------------------
 	if isinstance(matemovethresh, (list,tuple)):
-		matemovethresh = matemovethresh[icdtime]
-	if isinstance(StrBackthresh, (list,tuple)):
-		StrBackthresh = StrBackthresh[icdtime]
-	if isinstance(dispLocalthresh, (list,tuple)):
-		dispLocalthresh = dispLocalthresh[icdtime]
-	if isinstance(dispmoveOutthresh, (list,tuple)):
-		dispmoveOutthresh = dispmoveOutthresh[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveOutthresh.split('~')) == 1:
-		FdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
-		MdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
-		YYdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
-	elif len(dispmoveOutthresh.split('~')) == 2:
-		FdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
-		MdispmoveOutthresh = dispmoveOutthresh.split('~')[1]
-		YYdispmoveOutthresh = dispmoveOutthresh.split('~')[1]
-	elif len(dispmoveOutthresh.split('~')) == 3:
-		FdispmoveOutthresh = dispmoveOutthresh.split('~')[0]
-		MdispmoveOutthresh = dispmoveOutthresh.split('~')[1]
-		YYdispmoveOutthresh = dispmoveOutthresh.split('~')[2]
+		matemovethreshpass = matemovethresh[icdtime]
 	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)		
-	if isinstance(dispmoveBackthresh, (list,tuple)):
-		dispmoveBackthresh = dispmoveBackthresh[icdtime]
-	# Check for sex ratio options
-	if len(dispmoveBackthresh.split('~')) == 1:
-		FdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
-		MdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
-		YYdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
-	elif len(dispmoveBackthresh.split('~')) == 2:
-		FdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
-		MdispmoveBackthresh = dispmoveBackthresh.split('~')[1]
-		YYdispmoveBackthresh = dispmoveBackthresh.split('~')[1]
-	elif len(dispmoveBackthresh.split('~')) == 3:
-		FdispmoveBackthresh = dispmoveBackthresh.split('~')[0]
-		MdispmoveBackthresh = dispmoveBackthresh.split('~')[1]
-		YYdispmoveBackthresh = dispmoveBackthresh.split('~')[2]
-	else:
-		print('Dispersal move value in wrong format.')
-		sys.exit(-1)
+		matemovethreshpass = matemovethresh
+	# ---------------------------------------
+	# Read in cdmatrix.csv - For Mating
+	# ---------------------------------------	
+	tupReadMat = ReadCDMatrix(matecdmatfile,matemoveno,\
+	matemovethreshpass,matemoveparA,matemoveparB,matemoveparC)
+	matecdmatrix = np.asarray(tupReadMat[0])
+	matemovethresh = tupReadMat[1]
+	mate_ScaleMin = tupReadMat[2]
+	mate_ScaleMax = tupReadMat[3]
 	
+	# ------------------------------------------------
+	# Dispersal out ----------------------------------
+	if isinstance(dispOutcdmatfile, (list,tuple)): # tuple and cdclimate call
+		tupVal = sexsplit(dispOutcdmatfile[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispOutcdmatfile,sexchromo) # single string
+	FXXdispOutcdmatfile = datadir+tupVal[0]
+	MXYdispOutcdmatfile = datadir+tupVal[1]
+	MYYdispOutcdmatfile = datadir+tupVal[2]
+	FYYdispOutcdmatfile = datadir+tupVal[3]
+	# Function numbers next ----------------
+	if isinstance(dispmoveOutno, (list,tuple)):
+		tupVal = sexsplit(dispmoveOutno[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveOutno,sexchromo) # single string
+	FXXdispmoveOutno = tupVal[0]
+	MXYdispmoveOutno = tupVal[1]
+	MYYdispmoveOutno = tupVal[2]
+	FYYdispmoveOutno = tupVal[3]	
+	# A, B, C next ---------------------------------------
+	if isinstance(dispmoveOutparA, (list,tuple)):
+		tupVal = sexsplit(dispmoveOutparA[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveOutparA,sexchromo) # single string
+	FXXdispmoveOutparA = tupVal[0]
+	MXYdispmoveOutparA = tupVal[1]
+	MYYdispmoveOutparA = tupVal[2]
+	FYYdispmoveOutparA = tupVal[3]
+	if isinstance(dispmoveOutparB, (list,tuple)):
+		tupVal = sexsplit(dispmoveOutparB[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveOutparB,sexchromo) # single string
+	FXXdispmoveOutparB = tupVal[0]
+	MXYdispmoveOutparB = tupVal[1]
+	MYYdispmoveOutparB = tupVal[2]
+	FYYdispmoveOutparB = tupVal[3]
+	if isinstance(dispmoveOutparC, (list,tuple)):
+		tupVal = sexsplit(dispmoveOutparC[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveOutparC,sexchromo) # single string
+	FXXdispmoveOutparC = tupVal[0]
+	MXYdispmoveOutparC = tupVal[1]
+	MYYdispmoveOutparC = tupVal[2]
+	FYYdispmoveOutparC = tupVal[3]
+	# Threshold -------------------------------------------
+	if isinstance(dispmoveOutthresh, (list,tuple)):
+		tupVal = sexsplit(dispmoveOutthresh[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveOutthresh,sexchromo) # single string
+	FXXdispmoveOutthreshpass = tupVal[0]
+	MXYdispmoveOutthreshpass = tupVal[1]
+	MYYdispmoveOutthreshpass = tupVal[2]
+	FYYdispmoveOutthreshpass = tupVal[3]	
+	# --------------------------------------
+	# Read in cdmatrix.csv - Dispersal Out
+	# --------------------------------------
+	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
+		# For FXX
+		tupReadMat = ReadCDMatrix(FXXdispOutcdmatfile,FXXdispmoveOutno,FXXdispmoveOutthreshpass,float(FXXdispmoveOutparA),float(FXXdispmoveOutparB),float(FXXdispmoveOutparC))
+		FXXdispOutcdmatrix = np.asarray(tupReadMat[0])
+		FXXdispOutthresh = tupReadMat[1]
+		FXXdispOut_ScaleMin = tupReadMat[2]
+		FXXdispOut_ScaleMax = tupReadMat[3]
+		# For MXY
+		tupReadMat = ReadCDMatrix(MXYdispOutcdmatfile,MXYdispmoveOutno,MXYdispmoveOutthreshpass,float(MXYdispmoveOutparA),float(MXYdispmoveOutparB),float(MXYdispmoveOutparC))
+		MXYdispOutcdmatrix = np.asarray(tupReadMat[0])
+		MXYdispOutthresh = tupReadMat[1]
+		MXYdispOut_ScaleMin = tupReadMat[2]
+		MXYdispOut_ScaleMax = tupReadMat[3]	
+		# For MYY
+		MYYdispOutcdmatrix = 'N'
+		MYYdispOutthresh = 'N'
+		MYYdispOut_ScaleMin = 'N'
+		MYYdispOut_ScaleMax = 'N'
+		# For FYY		
+		FYYdispOutcdmatrix = 'N'
+		FYYdispOutthresh = 'N'
+		FYYdispOut_ScaleMin = 'N'
+		FYYdispOut_ScaleMax = 'N'
+	if sexchromo == 3 or sexchromo == 4:
+		# For MYY
+		tupReadMat = ReadCDMatrix(MYYdispOutcdmatfile,MYYdispmoveOutno,MYYdispmoveOutthreshpass,float(MYYdispmoveOutparA),float(MYYdispmoveOutparB),float(MYYdispmoveOutparC))
+		MYYdispOutcdmatrix = np.asarray(tupReadMat[0])
+		MYYdispOutthresh = tupReadMat[1]
+		MYYdispOut_ScaleMin = tupReadMat[2]
+		MYYdispOut_ScaleMax = tupReadMat[3]	
+	if sexchromo == 4:
+		# For FYY
+		tupReadMat = ReadCDMatrix(FYYdispOutcdmatfile,FYYdispmoveOutno,FYYdispmoveOutthreshpass,float(FYYdispmoveOutparA),float(FYYdispmoveOutparB),float(FYYdispmoveOutparC))
+		FYYdispOutcdmatrix = np.asarray(tupReadMat[0])
+		FYYdispOutthresh = tupReadMat[1]
+		FYYdispOut_ScaleMin = tupReadMat[2]
+		FYYdispOut_ScaleMax = tupReadMat[3]	
+	
+	# -------------------------------------------------
+	# Dispersal back ----------------------------------
+	if isinstance(dispBackcdmatfile, (list,tuple)): # tuple and cdclimate call
+		tupVal = sexsplit(dispBackcdmatfile[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispBackcdmatfile,sexchromo) # single string
+	FXXdispBackcdmatfile = datadir+tupVal[0]
+	MXYdispBackcdmatfile = datadir+tupVal[1]
+	MYYdispBackcdmatfile = datadir+tupVal[2]
+	FYYdispBackcdmatfile = datadir+tupVal[3]	
+	# Function numbers next ----------------
+	if isinstance(dispmoveBackno, (list,tuple)):
+		tupVal = sexsplit(dispmoveBackno[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveBackno,sexchromo) # single string
+	FXXdispmoveBackno = tupVal[0]
+	MXYdispmoveBackno = tupVal[1]
+	MYYdispmoveBackno = tupVal[2]
+	FYYdispmoveBackno = tupVal[3]
+	# A, B, C next ---------------------------------------
+	if isinstance(dispmoveBackparA, (list,tuple)):
+		tupVal = sexsplit(dispmoveBackparA[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveBackparA,sexchromo) # single string
+	FXXdispmoveBackparA = tupVal[0]
+	MXYdispmoveBackparA = tupVal[1]
+	MYYdispmoveBackparA = tupVal[2]
+	FYYdispmoveBackparA = tupVal[3]
+	if isinstance(dispmoveBackparB, (list,tuple)):
+		tupVal = sexsplit(dispmoveBackparB[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveBackparB,sexchromo) # single string
+	FXXdispmoveBackparB = tupVal[0]
+	MXYdispmoveBackparB = tupVal[1]
+	MYYdispmoveBackparB = tupVal[2]
+	FYYdispmoveBackparB = tupVal[3]
+	if isinstance(dispmoveBackparC, (list,tuple)):
+		tupVal = sexsplit(dispmoveBackparC[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveBackparC,sexchromo) # single string
+	FXXdispmoveBackparC = tupVal[0]
+	MXYdispmoveBackparC = tupVal[1]
+	MYYdispmoveBackparC = tupVal[2]
+	FYYdispmoveBackparC = tupVal[3]
+	# Threshold -------------------------------------------
+	if isinstance(dispmoveBackthresh, (list,tuple)):
+		tupVal = sexsplit(dispmoveBackthresh[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispmoveBackthresh,sexchromo) # single string
+	FXXdispmoveBackthreshpass = tupVal[0]
+	MXYdispmoveBackthreshpass = tupVal[1]
+	MYYdispmoveBackthreshpass = tupVal[2]
+	FYYdispmoveBackthreshpass = tupVal[3]
+	# --------------------------------------
+	# Read in cdmatrix.csv - Dispersal Back
+	# --------------------------------------
+	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
+		# For FXX
+		tupReadMat = ReadCDMatrix(FXXdispBackcdmatfile,FXXdispmoveBackno,FXXdispmoveBackthreshpass,float(FXXdispmoveBackparA),float(FXXdispmoveBackparB),float(FXXdispmoveBackparC))
+		FXXdispBackcdmatrix = np.asarray(tupReadMat[0])
+		FXXdispBackthresh = tupReadMat[1]
+		FXXdispBack_ScaleMin = tupReadMat[2]
+		FXXdispBack_ScaleMax = tupReadMat[3]
+		# For MXY
+		tupReadMat = ReadCDMatrix(MXYdispBackcdmatfile,MXYdispmoveBackno,MXYdispmoveBackthreshpass,float(MXYdispmoveBackparA),float(MXYdispmoveBackparB),float(MXYdispmoveBackparC))
+		MXYdispBackcdmatrix = np.asarray(tupReadMat[0])
+		MXYdispBackthresh = tupReadMat[1]
+		MXYdispBack_ScaleMin = tupReadMat[2]
+		MXYdispBack_ScaleMax = tupReadMat[3]	
+		# For MYY
+		MYYdispBackcdmatrix = 'N'
+		MYYdispBackthresh = 'N'
+		MYYdispBack_ScaleMin = 'N'
+		MYYdispBack_ScaleMax = 'N'
+		# For FYY
+		FYYdispBackcdmatrix = 'N'
+		FYYdispBackthresh = 'N'
+		FYYdispBack_ScaleMin = 'N'
+		FYYdispBack_ScaleMax = 'N'
+	if sexchromo == 3 or sexchromo == 4:
+		# For MYY
+		tupReadMat = ReadCDMatrix(MYYdispBackcdmatfile,MYYdispmoveBackno,MYYdispmoveBackthreshpass,float(MYYdispmoveBackparA),float(MYYdispmoveBackparB),float(MYYdispmoveBackparC))
+		MYYdispBackcdmatrix = np.asarray(tupReadMat[0])
+		MYYdispBackthresh = tupReadMat[1]
+		MYYdispBack_ScaleMin = tupReadMat[2]
+		MYYdispBack_ScaleMax = tupReadMat[3]	
+	if sexchromo == 4:
+		# For FYY
+		tupReadMat = ReadCDMatrix(FYYdispBackcdmatfile,FYYdispmoveBackno,FYYdispmoveBackthreshpass,float(FYYdispmoveBackparA),float(FYYdispmoveBackparB),float(FYYdispmoveBackparC))
+		FYYdispBackcdmatrix = np.asarray(tupReadMat[0])
+		FYYdispBackthresh = tupReadMat[1]
+		FYYdispBack_ScaleMin = tupReadMat[2]
+		FYYdispBack_ScaleMax = tupReadMat[3]	
+	
+	# -------------------------------------------
+	# Straying ----------------------------------
+	if isinstance(straycdmatfile, (list,tuple)): # tuple and cdclimate call
+		tupVal = sexsplit(straycdmatfile[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(straycdmatfile,sexchromo) # single string
+	FXXStrcdmatfile = datadir+tupVal[0]
+	MXYStrcdmatfile = datadir+tupVal[1]
+	MYYStrcdmatfile = datadir+tupVal[2]
+	FYYStrcdmatfile = datadir+tupVal[3]		
+	# Function numbers next ----------------
+	if isinstance(StrBackno, (list,tuple)):
+		tupVal = sexsplit(StrBackno[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(StrBackno,sexchromo) # single string
+	FXXStrno = tupVal[0]
+	MXYStrno = tupVal[1]
+	MYYStrno = tupVal[2]
+	FYYStrno = tupVal[3]
+	# A, B, C next ---------------------------------------
+	if isinstance(StrBackparA, (list,tuple)):
+		tupVal = sexsplit(StrBackparA[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(StrBackparA,sexchromo) # single string
+	FXXStrparA = tupVal[0]
+	MXYStrparA = tupVal[1]
+	MYYStrparA = tupVal[2]
+	FYYStrparA = tupVal[3]
+	if isinstance(StrBackparB, (list,tuple)):
+		tupVal = sexsplit(StrBackparB[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(StrBackparB,sexchromo) # single string
+	FXXStrparB = tupVal[0]
+	MXYStrparB = tupVal[1]
+	MYYStrparB = tupVal[2]
+	FYYStrparB = tupVal[3]
+	if isinstance(StrBackparC, (list,tuple)):
+		tupVal = sexsplit(StrBackparC[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(StrBackparC,sexchromo) # single string
+	FXXStrparC = tupVal[0]
+	MXYStrparC = tupVal[1]
+	MYYStrparC = tupVal[2]
+	FYYStrparC = tupVal[3]
+	# Threshold -------------------------------------------
+	if isinstance(StrBackthresh, (list,tuple)):
+		tupVal = sexsplit(StrBackthresh[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(StrBackthresh,sexchromo) # single string
+	FXXStrthreshpass = tupVal[0]
+	MXYStrthreshpass = tupVal[1]
+	MYYStrthreshpass = tupVal[2]
+	FYYStrthreshpass = tupVal[3]	
+	# --------------------------------------
+	# Read in cdmatrix.csv - Straying
+	# --------------------------------------
+	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
+		# For FXX
+		tupReadMat = ReadCDMatrix(FXXStrcdmatfile,FXXStrno,FXXStrthreshpass,float(FXXStrparA),float(FXXStrparB),float(FXXStrparC))
+		FXXStrcdmatrix = np.asarray(tupReadMat[0])
+		FXXStrthresh = tupReadMat[1]
+		FXXStr_ScaleMin = tupReadMat[2]
+		FXXStr_ScaleMax = tupReadMat[3]
+		# For MXY
+		tupReadMat = ReadCDMatrix(MXYStrcdmatfile,MXYStrno,MXYStrthreshpass,float(MXYStrparA),float(MXYStrparB),float(MXYStrparC))
+		MXYStrcdmatrix = np.asarray(tupReadMat[0])
+		MXYStrthresh = tupReadMat[1]
+		MXYStr_ScaleMin = tupReadMat[2]
+		MXYStr_ScaleMax = tupReadMat[3]	
+		# For MYY
+		MYYStrcdmatrix = 'N'
+		MYYStrthresh = 'N'
+		MYYStr_ScaleMin = 'N'
+		MYYStr_ScaleMax = 'N'
+		# For FYY
+		FYYStrcdmatrix = 'N'
+		FYYStrthresh = 'N'
+		FYYStr_ScaleMin = 'N'
+		FYYStr_ScaleMax = 'N'
+	if sexchromo == 3 or sexchromo == 4:
+		# For MYY
+		tupReadMat = ReadCDMatrix(MYYStrcdmatfile,MYYStrno,MYYStrthreshpass,float(MYYStrparA),float(MYYStrparB),float(MYYStrparC))
+		MYYStrcdmatrix = np.asarray(tupReadMat[0])
+		MYYStrthresh = tupReadMat[1]
+		MYYStr_ScaleMin = tupReadMat[2]
+		MYYStr_ScaleMax = tupReadMat[3]	
+	if sexchromo == 4:
+		# For FYY
+		tupReadMat = ReadCDMatrix(FYYStrcdmatfile,FYYStrno,FYYStrthreshpass,float(FYYStrparA),float(FYYStrparB),float(FYYStrparC))
+		FYYStrcdmatrix = np.asarray(tupReadMat[0])
+		FYYStrthresh = tupReadMat[1]
+		FYYStr_ScaleMin = tupReadMat[2]
+		FYYStr_ScaleMax = tupReadMat[3]	
+	
+	#---------------------------------------------------	
+	# Local Dispersal ----------------------------------
+	if isinstance(dispLocalcdmatfile, (list,tuple)): # tuple and cdclimate call
+		tupVal = sexsplit(dispLocalcdmatfile[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispLocalcdmatfile,sexchromo) # single string
+	FXXdispLocalcdmatfile = datadir+tupVal[0]
+	MXYdispLocalcdmatfile = datadir+tupVal[1]
+	MYYdispLocalcdmatfile = datadir+tupVal[2]
+	FYYdispLocalcdmatfile = datadir+tupVal[3]	
+	# Function numbers next ----------------
+	if isinstance(dispLocalno, (list,tuple)):
+		tupVal = sexsplit(dispLocalno[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispLocalno,sexchromo) # single string
+	FXXdispLocalno = tupVal[0]
+	MXYdispLocalno = tupVal[1]
+	MYYdispLocalno = tupVal[2]
+	FYYdispLocalno = tupVal[3]
+	# A, B, C next ---------------------------------------
+	if isinstance(dispLocalparA, (list,tuple)):
+		tupVal = sexsplit(dispLocalparA[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispLocalparA,sexchromo) # single string
+	FXXdispLocalparA = tupVal[0]
+	MXYdispLocalparA = tupVal[1]
+	MYYdispLocalparA = tupVal[2]
+	FYYdispLocalparA = tupVal[3]
+	if isinstance(dispLocalparB, (list,tuple)):
+		tupVal = sexsplit(dispLocalparB[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispLocalparB,sexchromo) # single string
+	FXXdispLocalparB = tupVal[0]
+	MXYdispLocalparB = tupVal[1]
+	MYYdispLocalparB = tupVal[2]
+	FYYdispLocalparB = tupVal[3]
+	if isinstance(dispLocalparC, (list,tuple)):
+		tupVal = sexsplit(dispLocalparC[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispLocalparC,sexchromo) # single string
+	FXXdispLocalparC = tupVal[0]
+	MXYdispLocalparC = tupVal[1]
+	MYYdispLocalparC = tupVal[2]
+	FYYdispLocalparC = tupVal[3]
+	# Threshold -------------------------------------------
+	if isinstance(dispLocalthresh, (list,tuple)):
+		tupVal = sexsplit(dispLocalthresh[icdtime],sexchromo)
+	else:
+		tupVal = sexsplit(dispLocalthresh,sexchromo) # single string
+	FXXdispLocalthreshpass = tupVal[0]
+	MXYdispLocalthreshpass = tupVal[1]
+	MYYdispLocalthreshpass = tupVal[2]
+	FYYdispLocalthreshpass = tupVal[3]
+	# --------------------------------------
+	# Read in cdmatrix.csv - Local Dispersal
+	# --------------------------------------
+	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
+		# For FXX
+		tupReadMat = ReadCDMatrix(FXXdispLocalcdmatfile,FXXdispLocalno,FXXdispLocalthreshpass,float(FXXdispLocalparA),float(FXXdispLocalparB),float(FXXdispLocalparC))
+		FXXdispLocalcdmatrix = np.asarray(tupReadMat[0])
+		FXXdispLocalthresh = tupReadMat[1]
+		FXXdispLocal_ScaleMin = tupReadMat[2]
+		FXXdispLocal_ScaleMax = tupReadMat[3]
+		# For MXY
+		tupReadMat = ReadCDMatrix(MXYdispLocalcdmatfile,MXYdispLocalno,MXYdispLocalthreshpass,float(MXYdispLocalparA),float(MXYdispLocalparB),float(MXYdispLocalparC))
+		MXYdispLocalcdmatrix = np.asarray(tupReadMat[0])
+		MXYdispLocalthresh = tupReadMat[1]
+		MXYdispLocal_ScaleMin = tupReadMat[2]
+		MXYdispLocal_ScaleMax = tupReadMat[3]	
+		# For MYY
+		MYYdispLocalcdmatrix = 'N'
+		MYYdispLocalthresh = 'N'
+		MYYdispLocal_ScaleMin = 'N'
+		MYYdispLocal_ScaleMax = 'N'
+		# For FYY
+		FYYdispLocalcdmatrix = 'N'
+		FYYdispLocalthresh = 'N'
+		FYYdispLocal_ScaleMin = 'N'
+		FYYdispLocal_ScaleMax = 'N'
+	if sexchromo == 3 or sexchromo == 4:
+		# For MYY
+		tupReadMat = ReadCDMatrix(MYYdispLocalcdmatfile,MYYdispLocalno,MYYdispLocalthreshpass,float(MYYdispLocalparA),float(MYYdispLocalparB),float(MYYdispLocalparC))
+		MYYdispLocalcdmatrix = np.asarray(tupReadMat[0])
+		MYYdispLocalthresh = tupReadMat[1]
+		MYYdispLocal_ScaleMin = tupReadMat[2]
+		MYYdispLocal_ScaleMax = tupReadMat[3]	
+	if sexchromo == 4:
+		# For FYY
+		tupReadMat = ReadCDMatrix(FYYdispLocalcdmatfile,FYYdispLocalno,FYYdispLocalthreshpass,float(FYYdispLocalparA),float(FYYdispLocalparB),float(FYYdispLocalparC))
+		FYYdispLocalcdmatrix = np.asarray(tupReadMat[0])
+		FYYdispLocalthresh = tupReadMat[1]
+		FYYdispLocal_ScaleMin = tupReadMat[2]
+		FYYdispLocal_ScaleMax = tupReadMat[3]	
+	
+	#----------------------------------------------------------
+	# Continue PopVars variable
+	# ---------------------------------------------------------
 	# Assortative mating model pars ---------------------------
 	if isinstance(assortmateModel_pass, (list,tuple)):
 		assortmateModel = str(assortmateModel_pass[icdtime])
@@ -1473,9 +1638,13 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	tempxvars_betas = []
 	tempouthabvals = []
 	tempbackhabvals = []
-	
-	for isub in range(len(K)):		
-		
+	for isub in range(len(K)):
+
+		# For addindividual applications N0 split must have matching classvars and genefile splits
+		if len(allefreqfiles_pass[isub].split('|')) != len(N0_pass[isub].split('|')) != len(classvarsfiles_pass[isub].split('|')):
+			print('N0 split by | for Add Individual applications, must have matching Gene Initialization files and ClassVars files split by | - cdclimate.')
+			sys.exit(-1)
+			
 		if len(Str[isub].split('|')) > 1:
 			tempStr.append(float(Str[isub].split('|')[icdtime]))
 		else:
@@ -1491,8 +1660,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		if len(backsizevals[isub].split('|')) > 1:
 			tempbacksize.append(backsizevals[isub].split('|')[icdtime])
 		else:
-			tempbacksize.append(backsizevals[isub])
-		
+			tempbacksize.append(backsizevals[isub])		
 		if len(outgrowdays[isub].split('|')) > 1:
 			tempoutgrow.append(outgrowdays[isub].split('|')[icdtime])
 		else:
@@ -1572,6 +1740,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			temppopCapOut.append(pop_capture_out[isub])			
 		
 		if len(N0_pass[isub].split('|')) > 1:
+			
 			tempN0.append(N0_pass[isub].split('|')[icdtime])
 		else:
 			tempN0.append(N0_pass[isub])
@@ -1641,147 +1810,73 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			tempbackhabvals.append(backhabvals_pass[isub].split('|')[icdtime])
 		else:
 			tempbackhabvals.append(backhabvals_pass[isub])
+			
+	# -----------------------------------------------------
+	# Class Vars
+	# -----------------------------------------------------
+	tupAgeFile = InitializeAge(K,tempClassVarsfile,datadir)	
+	#agelst = tupAgeFile[0]
+	#age_size_mean = tupAgeFile[1]
+	#age_size_std = tupAgeFile[2]
+	#sexratio = tupAgeFile[3]	
+	age_percmort_out = tupAgeFile[4]
+	age_percmort_out_sd = tupAgeFile[5]
+	age_percmort_back = tupAgeFile[6]
+	age_percmort_back_sd = tupAgeFile[7]
+	size_percmort_out = tupAgeFile[8]
+	size_percmort_out_sd = tupAgeFile[9]
+	size_percmort_back = tupAgeFile[10]
+	size_percmort_back_sd = tupAgeFile[11]
+	age_Mg = tupAgeFile[12]
+	age_S = tupAgeFile[13]
+	age_DispProb = tupAgeFile[14]
+	age_mature = tupAgeFile[15]
+	age_mu = tupAgeFile[16]
+	age_sigma = tupAgeFile[17]
+	f_leslie = tupAgeFile[18]
+	f_leslie_std = tupAgeFile[19]
+	age_cap_out = tupAgeFile[20]
+	age_cap_back = tupAgeFile[21]
 		
-	# ---------------------------------------------------------
-	# Read in cdmatrix.csv and convert to a probability matrix
-	# ---------------------------------------------------------	
-	# If mate and disp are the same, then only read in once.
-	if (matecdmatfile == dispOutcdmatfile == dispBackcdmatfile == straycdmatfile == dispLocalcdmatfile) \
-	and (FdispmoveOutno == MdispmoveOutno == matemoveno == FdispmoveBackno == MdispmoveBackno == StrBackno == dispLocalno) \
-	and (FdispmoveOutthresh == MdispmoveOutthresh == matemovethresh == FdispmoveBackthresh == MdispmoveBackthresh == StrBackthresh == dispLocalthresh):
-		tupReadMat = ReadCDMatrix(matecdmatfile,matemoveno,\
-		matemovethresh,matemoveparA,matemoveparB,matemoveparC)
-		
-		# Unpack tuple
-		matecdmatrix = np.asarray(tupReadMat[0])
-		matemovethresh = tupReadMat[1]
-		mate_ScaleMin = tupReadMat[2]
-		mate_ScaleMax = tupReadMat[3]
-		
-		# Then Set disp = mate
-		FdispOutcdmatrix = copy.deepcopy(matecdmatrix)
-		MdispOutcdmatrix = copy.deepcopy(matecdmatrix)
-		FdispmoveOutthresh = copy.deepcopy(matemovethresh)
-		MdispmoveOutthresh = copy.deepcopy(matemovethresh)
-		FdispBackcdmatrix = copy.deepcopy(matecdmatrix)
-		MdispBackcdmatrix = copy.deepcopy(matecdmatrix)
-		FdispmoveBackthresh = copy.deepcopy(matemovethresh)
-		MdispmoveBackthresh = copy.deepcopy(matemovethresh)
-		StrBackcdmatrix = copy.deepcopy(matecdmatrix)
-		StrBackthresh = copy.deepcopy(matemovethresh)
-		Str_ScaleMin = copy.deepcopy(mate_ScaleMin)
-		Str_ScaleMax = copy.deepcopy(mate_ScaleMax)
-		FdispBack_ScaleMin = copy.deepcopy(mate_ScaleMin)
-		FdispBack_ScaleMax = copy.deepcopy(mate_ScaleMax)
-		MdispBack_ScaleMin = copy.deepcopy(mate_ScaleMin)
-		MdispBack_ScaleMax = copy.deepcopy(mate_ScaleMax)
-		FdispOut_ScaleMin = copy.deepcopy(mate_ScaleMin)
-		FdispOut_ScaleMax = copy.deepcopy(mate_ScaleMax)
-		MdispOut_ScaleMin = copy.deepcopy(mate_ScaleMin)
-		MdispOut_ScaleMax = copy.deepcopy(mate_ScaleMax)
-		dispLocalcdmatrix = copy.deepcopy(matecdmatrix)
-		dispLocalthresh = copy.deepcopy(matemovethresh)
-		dispLocal_ScaleMin = copy.deepcopy(mate_ScaleMin)
-		dispLocal_ScaleMax = copy.deepcopy(mate_ScaleMax)
-
-	# Else if anything is different	
-	else: 
-		# ---------------------------------------
-		# Read in cdmatrix.csv - For Mating
-		# ---------------------------------------	
-		tupReadMat = ReadCDMatrix(matecdmatfile,matemoveno,\
-		matemovethresh,matemoveparA,matemoveparB,matemoveparC)
-		matecdmatrix = np.asarray(tupReadMat[0])
-		matemovethresh = tupReadMat[1]
-		mate_ScaleMin = tupReadMat[2]
-		mate_ScaleMax = tupReadMat[3]
-		
-		# ------------------------------------------
-		# Read in cdmatrix.csv - For Local Dispersal
-		# ------------------------------------------	
-		if dispLocalcdmatfile != 'N': # Do not skip this module
-			tupReadMat = ReadCDMatrix(dispLocalcdmatfile,dispLocalno,\
-			dispLocalthresh,dispLocalparA,dispLocalparB,dispLocalparC)
-			dispLocalcdmatrix = np.asarray(tupReadMat[0])
-			dispLocalthresh = tupReadMat[1]
-			dispLocal_ScaleMin = tupReadMat[2]
-			dispLocal_ScaleMax = tupReadMat[3]
-		else:
-			dispLocalcdmatrix = 'N'
-			dispLocalthresh = 'N'
-			dispLocal_ScaleMin = 'N'
-			dispLocal_ScaleMax = 'N'						
-	
-		# ------------------------------------------------
-		# Read in cdmatrix.csv - For Female Dispersal Out
-		# ------------------------------------------------
-		if dispOutcdmatfile != 'N': # DO not skip this module
-			tupReadMat = ReadCDMatrix(dispOutcdmatfile,FdispmoveOutno,\
-			FdispmoveOutthresh,FdispmoveOutparA,FdispmoveOutparB,FdispmoveOutparC)
-			FdispOutcdmatrix = np.asarray(tupReadMat[0])
-			FdispmoveOutthresh = tupReadMat[1]
-			FdispOut_ScaleMin = tupReadMat[2]
-			FdispOut_ScaleMax = tupReadMat[3]
-
-			# ----------------------------------------------
-			# Read in cdmatrix.csv - For Male Dispersal Out
-			# ----------------------------------------------		
-			tupReadMat = ReadCDMatrix(dispOutcdmatfile,MdispmoveOutno,\
-			MdispmoveOutthresh,MdispmoveOutparA,MdispmoveOutparB,MdispmoveOutparC)
-			MdispOutcdmatrix = np.asarray(tupReadMat[0])
-			MdispmoveOutthresh = tupReadMat[1]
-			MdispOut_ScaleMin = tupReadMat[2]
-			MdispOut_ScaleMax = tupReadMat[3]
-		else: # Skip this module
-			FdispOutcdmatrix = 'N'
-			FdispmoveOutthresh = 'N'
-			FdispOut_ScaleMin = 'N'
-			FdispOut_ScaleMax = 'N'
-			MdispOutcdmatrix = 'N'
-			MdispmoveOutthresh = 'N'
-			MdispOut_ScaleMin = 'N'
-			MdispOut_ScaleMax = 'N'
-		
-		# ------------------------------------------------
-		# Read in cdmatrix.csv - For Female Dispersal Back
-		# ------------------------------------------------	
-		tupReadMat = ReadCDMatrix(dispBackcdmatfile,FdispmoveBackno,\
-		FdispmoveBackthresh,FdispmoveBackparA,FdispmoveBackparB,FdispmoveBackparC)
-		FdispBackcdmatrix = np.asarray(tupReadMat[0])
-		FdispmoveBackthresh = tupReadMat[1]
-		FdispBack_ScaleMin = tupReadMat[2]
-		FdispBack_ScaleMax = tupReadMat[3]
-
-		# ----------------------------------------------
-		# Read in cdmatrix.csv - For Male Dispersal Back
-		# ----------------------------------------------	
-		tupReadMat = ReadCDMatrix(dispBackcdmatfile,MdispmoveBackno,\
-		MdispmoveBackthresh,MdispmoveBackparA,MdispmoveBackparB,MdispmoveBackparC)
-		MdispBackcdmatrix = np.asarray(tupReadMat[0])
-		MdispmoveBackthresh = tupReadMat[1]
-		MdispBack_ScaleMin = tupReadMat[2]
-		MdispBack_ScaleMax = tupReadMat[3]
-	
-		# --------------------------------------------------------------
-		# Read in cdmatrix.csv - For Straying back (immigration process)
-		# --------------------------------------------------------------	
-		tupReadMat = ReadCDMatrix(straycdmatfile,StrBackno,\
-		StrBackthresh,StrBackparA,StrBackparB,StrBackparC)
-		StrBackcdmatrix = np.asarray(tupReadMat[0])
-		StrBackthresh = tupReadMat[1]
-		Str_ScaleMin = tupReadMat[2]
-		Str_ScaleMax = tupReadMat[3]
-	
-	# Return this functions variables
-	tupClimate = matecdmatrix,FdispOutcdmatrix,MdispOutcdmatrix,FdispBackcdmatrix,MdispBackcdmatrix,\
-	StrBackcdmatrix,matemovethresh,\
-	FdispmoveOutthresh,MdispmoveOutthresh,\
-	FdispmoveBackthresh,MdispmoveBackthresh,StrBackthresh,tempMg,tempStr,Str_ScaleMin,Str_ScaleMax,FdispBack_ScaleMin,FdispBack_ScaleMax,MdispBack_ScaleMin,MdispBack_ScaleMax,FdispOut_ScaleMin,FdispOut_ScaleMax,MdispOut_ScaleMin,MdispOut_ScaleMax,mate_ScaleMin,mate_ScaleMax,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,matemoveno,FdispmoveOutno,MdispmoveOutno,FdispmoveBackno,MdispmoveBackno,StrBackno,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,FdispmoveOutparA,MdispmoveOutparA,FdispmoveOutparB,MdispmoveOutparB,FdispmoveOutparC,MdispmoveOutparC,FdispmoveBackparA,MdispmoveBackparA,FdispmoveBackparB,MdispmoveBackparB,FdispmoveBackparC,MdispmoveBackparC,dispLocalcdmatrix,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,dispLocal_ScaleMin,dispLocal_ScaleMax,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,			plastic_behaviorresp,age_mu_pass,age_sigma_pass,f_leslie_pass,f_leslie_std_pass,muterate	
+	# Return this functions variables - mate, dispOut, dispBack, Str, dispLocal (order 1) FXX, MXY, MYY, FYY (order 2) matrix,thresh,scalemin,scalemax,a,b,c,no
+	tupClimate = matecdmatrix,FXXdispOutcdmatrix,MXYdispOutcdmatrix,MYYdispOutcdmatrix,FYYdispOutcdmatrix,\
+	FXXdispBackcdmatrix,MXYdispBackcdmatrix,MYYdispBackcdmatrix,FYYdispBackcdmatrix,\
+	FXXStrcdmatrix, MXYStrcdmatrix,MYYStrcdmatrix, FYYStrcdmatrix,\
+	FXXdispLocalcdmatrix, MXYdispLocalcdmatrix,MYYdispLocalcdmatrix,FYYdispLocalcdmatrix,\
+	matemovethresh,FXXdispOutthresh,MXYdispOutthresh,MYYdispOutthresh,FYYdispOutthresh,\
+	FXXdispOutthresh,MXYdispOutthresh,MYYdispOutthresh,FYYdispOutthresh,\
+	FXXStrthresh,MXYStrthresh,MYYStrthresh,FYYStrthresh,\
+	FXXdispLocalthresh,MXYdispLocalthresh,MYYdispLocalthresh,FYYdispLocalthresh,\
+	mate_ScaleMin,FXXdispOut_ScaleMin,MXYdispOut_ScaleMin,MYYdispOut_ScaleMin,FYYdispOut_ScaleMin,\
+	FXXdispBack_ScaleMin,MXYdispBack_ScaleMin,MYYdispBack_ScaleMin,FYYdispBack_ScaleMin,\
+	FXXStr_ScaleMin,MXYStr_ScaleMin,MYYStr_ScaleMin,FYYStr_ScaleMin,\
+	FXXdispLocal_ScaleMin,MXYdispBack_ScaleMin,MYYdispBack_ScaleMin,FYYdispBack_ScaleMin,\
+	mate_ScaleMax,FXXdispOut_ScaleMax,MXYdispOut_ScaleMax,MYYdispOut_ScaleMax,FYYdispOut_ScaleMax,\
+	FXXdispBack_ScaleMax,MXYdispBack_ScaleMax,MYYdispBack_ScaleMax,FYYdispBack_ScaleMax,\
+	FXXStr_ScaleMax,MXYStr_ScaleMax,MYYStr_ScaleMax,FYYStr_ScaleMax,\
+	FXXdispLocal_ScaleMax,MXYdispBack_ScaleMax,MYYdispBack_ScaleMax,FYYdispBack_ScaleMax,\
+	matemoveparA,FXXdispmoveOutparA,MXYdispmoveOutparA,MYYdispmoveOutparA,FYYdispmoveOutparA,\
+	FXXdispmoveBackparA,MXYdispmoveBackparA,MYYdispmoveBackparA,FYYdispmoveBackparA,\
+	FXXStrparA,MXYStrparA,MYYStrparA,FYYStrparA,\
+	FXXdispLocalparA,MXYdispLocalparA,MYYdispLocalparA,FYYdispLocalparA,\
+	matemoveparB,FXXdispmoveOutparB,MXYdispmoveOutparB,MYYdispmoveOutparB,FYYdispmoveOutparB,\
+	FXXdispmoveBackparB,MXYdispmoveBackparB,MYYdispmoveBackparB,FYYdispmoveBackparB,\
+	FXXStrparB,MXYStrparB,MYYStrparB,FYYStrparB,\
+	FXXdispLocalparB,MXYdispLocalparB,MYYdispLocalparB,FYYdispLocalparB,\
+	matemoveparC,FXXdispmoveOutparC,MXYdispmoveOutparC,MYYdispmoveOutparC,FYYdispmoveOutparC,\
+	FXXdispmoveBackparC,MXYdispmoveBackparC,MYYdispmoveBackparC,FYYdispmoveBackparC,\
+	FXXStrparC,MXYStrparC,MYYStrparC,FYYStrparC,\
+	FXXdispLocalparC,MXYdispLocalparC,MYYdispLocalparC,FYYdispLocalparC,\
+	matemoveno,FXXdispmoveOutno,MXYdispmoveOutno,MYYdispmoveOutno,FYYdispmoveOutno,\
+	FXXdispmoveBackno,MXYdispmoveBackno,MYYdispmoveBackno,FYYdispmoveBackno,\
+	FXXStrno,MXYStrno,MYYStrno,FYYStrno,\
+	FXXdispLocalno,MXYdispLocalno,MYYdispLocalno,FYYdispLocalno,\
+	tempMg,tempStr,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_Mg,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back	
 	return tupClimate
 	#End::DoCDClimate()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_percmort_back_mu_egg,age_percmort_back_sd_egg,cor_mat,age_mu, age_sigma,f_leslie_mu,f_leslie_std):	
+def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_percmort_back_mu_egg,age_percmort_back_sd_egg,cor_mat,age_mu, age_sigma,f_leslie_mu,f_leslie_std,sexchromo):	
 	'''
 	Here update any stochastic variables. Add in Todd and Ng method for unbias draw.
 	Generate correlated deviates
@@ -1804,129 +1899,17 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	if isinstance(cor_mat,str):			
 		for isub in range(len(K_mu)):
 			# K ------------------
-			mu = K_mu[isub]
-			sigma = K_std[isub]
-			# Case here for sigma == 0
-			if sigma != 0:
-				# Call a truncated normal here
-				#lower, upper = 0,np.inf
-				#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				X = np.random.normal(mu,sigma)
-				if X < 0:
-					X = 0.
-				K.append(int(X))
-			else:
-				K.append(int(mu))
-			if K[isub] < 0:
-				K[isub] = 0
+			stochastic_update(K_mu[isub],K_std[isub],K)
 			# mort out --------------
-			mu = popmort_out_mu[isub]
-			sigma = popmort_out_sd[isub]
-			# If not N
-			if mu == 'N' or mu == 'E':
-				popmort_out.append(mu)
-			else:
-				mu = float(mu)
-				# Case here for sigma == 0
-				if sigma != 0:
-					# Call a truncated normal here
-					#lower, upper = 0,100
-					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-					X = np.random.normal(mu,sigma)
-					if X < 0:
-						X = 0.
-					elif X > 100:
-						X = 100.
-					popmort_out.append(round(X/100.,3))
-				else:
-					popmort_out.append(round(mu/100.,3))
-				if popmort_out[isub] < 0:
-					popmort_out[isub] = 0
-				
+			stochastic_update(popmort_out_mu[isub],popmort_out_sd[isub],popmort_out)
 			# mort back ---------------
-			mu = popmort_back_mu[isub]
-			sigma = popmort_back_sd[isub]
-			# If not N
-			if mu == 'N' or mu == 'E':
-				popmort_back.append(mu)
-			else:
-				mu = float(mu)
-				# Case here for sigma == 0
-				if sigma != 0:
-					# Call a truncated normal here
-					#lower, upper = 0,100
-					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-					X = np.random.normal(mu,sigma)
-					if X < 0:
-						X = 0.
-					elif X > 100:
-						X = 100.
-					popmort_back.append(round(X/100.,3))
-				else:
-					popmort_back.append(round(mu/100.,3))
-				if popmort_back[isub] < 0:
-					popmort_back[isub] = 0
-		
+			stochastic_update(popmort_back_mu[isub],popmort_back_sd[isub],popmort_back)
 			# egg mort ------------------
-			mu = eggmort_mu[isub]
-			sigma = eggmort_sd[isub]
-			# Case here for sigma == 0
-			if sigma != 0:
-				# Call a truncated normal here
-				#lower, upper = 0,100
-				#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-				X = np.random.normal(mu,sigma)
-				if X < 0:
-					X = 0.
-				elif X > 100:
-					X = 100.
-				eggmort_patch.append(round(X/100.,3))
-			else:
-				eggmort_patch.append(round(mu/100.,3))
-			if eggmort_patch[isub] < 0:
-				eggmort_patch[isub] = 0
+			stochastic_update(eggmort_mu[isub],eggmort_sd[isub],eggmort_patch)
 			# temp vals out ----------------
-			mu = outsizevals_mu[isub]
-			sigma = outsizevals_sd[isub]
-			if mu != 'N':
-				mu = float(mu)
-				sigma = float(sigma)
-				# Case here for sigma == 0
-				if sigma != 0:
-					# Call a truncated normal here
-					#lower, upper = 0,50
-					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-					X = np.random.normal(mu,sigma)
-					if X < 0:
-						X = 0.
-					outsizevals.append(round(X,3))
-				else:
-					outsizevals.append(mu)
-				if outsizevals[isub] < 0:
-					outsizevals[isub] = 0
-			else:
-				outsizevals.append(mu)
+			stochastic_update(outsizevals_mu[isub],outsizevals_sd[isub],outsizevals, True)
 			# temp vals back ----------------
-			mu = backsizevals_mu[isub]
-			sigma = backsizevals_sd[isub]
-			if mu != 'N':
-				mu = float(mu)
-				sigma = float(sigma)
-				# Case here for sigma == 0
-				if sigma != 0:
-					# Call a truncated normal here
-					#lower, upper = 0,50
-					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-					X = np.random.normal(mu,sigma)
-					if X < 0:
-						X = 0.
-					backsizevals.append(round(X,3))
-				else:
-					backsizevals.append(mu)
-				if backsizevals[isub] < 0:
-					backsizevals[isub] = 0
-			else:
-				backsizevals.append(mu)
+			stochastic_update(backsizevals_mu[isub],backsizevals_sd[isub],backsizevals, True)
 			# grow days out ----------------
 			mu = outgrowdays_mu[isub]
 			sigma = outgrowdays_sd[isub]
@@ -1945,9 +1928,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 						X = 365.
 					outgrowdays.append(round(X,3))
 				else:
-					outgrowdays.append(mu)
-				if outgrowdays[isub] < 0:
-					outgrowdays[isub] = 0				
+					outgrowdays.append(mu)				
 			else:
 				outgrowdays.append(mu)
 			# grow days back ----------------
@@ -1969,8 +1950,6 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 					backgrowdays.append(round(X,3))
 				else:
 					backgrowdays.append(mu)
-				if backgrowdays[isub] < 0:
-					backgrowdays[isub] = 0
 			else:
 				backgrowdays.append(mu)
 	
@@ -2038,7 +2017,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 			if y[1] == 'N' or y[1] == 'E':
 				popmort_out.append(y[1])
 			else:
-				popmort_out.append(round(float(y[1])/100.,3))
+				popmort_out.append(round(float(y[1]),3))
 				if popmort_out[isub] < 0:
 					popmort_out[isub] = 0		
 			# temperautre out---------
@@ -2060,7 +2039,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 			if y[4] == 'N' or y[4] == 'E':
 				popmort_back.append(y[4])
 			else:
-				popmort_back.append(round(float(y[4])/100.,3))
+				popmort_back.append(round(float(y[4]),3))
 				if popmort_back[isub] < 0:
 					popmort_back[isub] = 0	
 			# temperature back--------
@@ -2080,10 +2059,10 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				backgrowdays[isub] = 0
 			# eggmort-----------------
 			y[7]
-			eggmort_patch.append(round(float(y[7])/100.,3))
+			eggmort_patch.append(round(float(y[7]),3))
 			if eggmort_patch[isub] < 0:
 				eggmort_patch[isub] = 0
-		
+	
 	# --------------------------------
 	# For the age specific parameters
 	# -------------------------------
@@ -2110,219 +2089,70 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 			f_ind[isub].append([])
 			f_leslie[isub].append([])
 			# Then loop through each class value
-			for iage in range(len(age_percmort_back_mu[isub][ifile])):		
-				
+			for iage in range(len(age_percmort_back_mu[isub][ifile])):				
 				# age mu or fecundity for each individual (mean eggs) -----------------no sex split
-				mu = age_mu[isub][ifile][iage]
-				sigma = age_sigma[isub][ifile][iage]
-				if mu != 'N':
-					mu = float(mu)
-					sigma = float(sigma)
-					# Case here for sigma == 0
-					if sigma != 0:
-						# Call a truncated normal here
-						#lower, upper = 0,np.inf
-						#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-						X = np.random.normal(mu,sigma)
-						if X < 0:
-							X = 0.
-						f_ind[isub][ifile].append(round(X,3))
-					else:
-						f_ind[isub][ifile].append(round(mu,3))
-					if f_ind[isub][ifile][iage] < 0:
-						f_ind[isub][ifile][iage] = 0
-				else:
-					f_ind[isub][ifile].append(mu) 
-					
+				# ---------------------------------------------------------------------------------
+				stochastic_update(age_mu[isub][ifile][iage],age_sigma[isub][ifile][iage],f_ind[isub][ifile])
+								
 				# f leslie --- -----------------no sex split
-				mu = f_leslie_mu[isub][ifile][iage]
-				sigma = f_leslie_std[isub][ifile][iage]
-				if mu != 'N':
-					mu = float(mu)
-					sigma = float(sigma)
-					# Case here for sigma == 0
-					if sigma != 0:
-						# Call a truncated normal here
-						#lower, upper = 0,np.inf
-						#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-						X = np.random.normal(mu,sigma)
-						if X < 0:
-							X = 0.
-						f_leslie[isub][ifile].append(round(X,3))
-					else:
-						f_leslie[isub][ifile].append(round(mu,3))
-					if f_leslie[isub][ifile][iage] < 0:
-						f_leslie[isub][ifile][iage] = 0
-				else:
-					f_leslie[isub][ifile].append(mu) 				
+				# ------------------------------------------
+				stochastic_update(f_leslie_mu[isub][ifile][iage],f_leslie_std[isub][ifile][iage],f_leslie[isub][ifile])			
 				
 				# age mort back ----------------
 				# Split if sex ratios given
-				temp_age_mu = age_percmort_back_mu[isub][ifile][iage].split('~')				
-				temp_age_sd = age_percmort_back_sd[isub][ifile][iage].split('~')				
+				temp_age_mu = sexsplit(age_percmort_back_mu[isub][ifile][iage],sexchromo)
+				temp_age_sd = sexsplit(age_percmort_back_sd[isub][ifile][iage],sexchromo)
 				temp_store_mu = []
 				for isex in range(len(temp_age_mu)):
-					mu = temp_age_mu[isex]
-					if mu != 'N':
-						mu = float(mu)
-						# Case here for a single value in sigma
-						if len(temp_age_sd) != len(temp_age_mu):
-							# Use first value
-							sigma = float(temp_age_sd[0])
-						else:
-							sigma = float(temp_age_sd[isex]) # Use corresponding sex class option
-						# Case here for sigma == 0
-						if sigma != 0.:
-							# Call a truncated normal here
-							#lower, upper = 0.,100.
-							#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-							X = np.random.normal(mu,sigma)
-							if X < 0:
-								X = 0
-							elif X > 100:
-								X = 100.
-							temp_store_mu.append(str(round(X/100.,3)))
-						else:
-							temp_store_mu.append(str(round(mu/100.,3)))
-						#pdb.set_trace()
-						if float(temp_store_mu[isex]) < 0:
-							temp_store_mu[isex] = '0'
-					else:
-						temp_store_mu.append(str(mu))
-				# condese with : 	
-				age_percmort_back[isub][ifile].append('~'.join(temp_store_mu))
+					stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
+				# Merge back with ~ 	
+				age_percmort_back[isub][ifile].append('~'.join(np.asarray(temp_store_mu,str)))
 				
 				# age mort out ----------------
 				# Split if sex ratios given
-				temp_age_mu = age_percmort_out_mu[isub][ifile][iage].split('~')				
-				temp_age_sd = age_percmort_out_sd[isub][ifile][iage].split('~')				
+				temp_age_mu = sexsplit(age_percmort_out_mu[isub][ifile][iage],sexchromo)
+				temp_age_sd = sexsplit(age_percmort_out_sd[isub][ifile][iage],sexchromo)
 				temp_store_mu = []
 				for isex in range(len(temp_age_mu)):
-					mu = temp_age_mu[isex]
-					if mu != 'N':
-						mu = float(mu)
-						# Case here for a single value in sigma
-						if len(temp_age_sd) != len(temp_age_mu):
-							# Use first value
-							sigma = float(temp_age_sd[0])
-						else:
-							sigma = float(temp_age_sd[isex]) # Use corresponding sex class option
-						# Case here for sigma == 0
-						if sigma != 0.:
-							# Call a truncated normal here
-							#lower, upper = 0.,100.
-							#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-							X = np.random.normal(mu,sigma)
-							if X < 0:
-								X = 0
-							elif X > 100:
-								X = 100.
-							temp_store_mu.append(str(round(X/100.,3)))
-						else:
-							temp_store_mu.append(str(round(mu/100.,3)))
-						if float(temp_store_mu[isex]) < 0:
-							temp_store_mu[isex] = '0'
-					else:
-						temp_store_mu.append(str(mu))
-				# condese with : 	
-				age_percmort_out[isub][ifile].append('~'.join(temp_store_mu))
+					stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
+				# Merge back with ~ 	
+				age_percmort_out[isub][ifile].append('~'.join(np.asarray(temp_store_mu,str)))
 				
 				# size mort back  ----------------
 				# Split if sex ratios given
-				temp_age_mu = size_percmort_back_mu[isub][ifile][iage].split('~')				
-				temp_age_sd = size_percmort_back_sd[isub][ifile][iage].split('~')				
-				temp_store_mu = []
+				temp_age_mu = sexsplit(size_percmort_back_mu[isub][ifile][iage],sexchromo)
+				temp_age_sd = sexsplit(size_percmort_back_sd[isub][ifile][iage],sexchromo)
+				temp_store_mu = []				
 				for isex in range(len(temp_age_mu)):
-					mu = temp_age_mu[isex]
-					if mu != 'N':
-						mu = float(mu)
-						# Case here for a single value in sigma
-						if len(temp_age_sd) != len(temp_age_mu):
-							# Use first value
-							sigma = float(temp_age_sd[0])
-						else:
-							sigma = float(temp_age_sd[isex]) # Use corresponding sex class option
-						# Case here for sigma == 0
-						if sigma != 0.:
-							# Call a truncated normal here
-							#lower, upper = 0.,100.
-							#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-							X = np.random.normal(mu,sigma)
-							if X < 0:
-								X = 0
-							elif X > 100:
-								X = 100.
-							temp_store_mu.append(str(round(X/100.,3)))
-						else:
-							temp_store_mu.append(str(round(mu/100.,3)))
-						if float(temp_store_mu[isex]) < 0:
-							temp_store_mu[isex] = '0'
-					else:
-						temp_store_mu.append(str(mu))
-				# condese with : 	
-				size_percmort_back[isub][ifile].append('~'.join(temp_store_mu))
-				
+					stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
+				# Merge back with ~ 	
+				size_percmort_back[isub][ifile].append('~'.join(np.asarray(temp_store_mu,str)))
+								
 				# size mort out ----------------
 				# Split if sex ratios given
-				temp_age_mu = size_percmort_out_mu[isub][ifile][iage].split('~')				
-				temp_age_sd = size_percmort_out_sd[isub][ifile][iage].split('~')				
+				temp_age_mu = sexsplit(size_percmort_out_mu[isub][ifile][iage],sexchromo)
+				temp_age_sd = sexsplit(size_percmort_out_sd[isub][ifile][iage],sexchromo)
 				temp_store_mu = []
 				for isex in range(len(temp_age_mu)):
-					mu = temp_age_mu[isex]
-					if mu != 'N':
-						mu = float(mu)
-						# Case here for a single value in sigma
-						if len(temp_age_sd) != len(temp_age_mu):
-							# Use first value
-							sigma = float(temp_age_sd[0])
-						else:
-							sigma = float(temp_age_sd[isex]) # Use corresponding sex class option
-						# Case here for sigma == 0
-						if sigma != 0.:
-							# Call a truncated normal here
-							#lower, upper = 0.,100.
-							#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-							X = np.random.normal(mu,sigma)
-							if X < 0:
-								X = 0
-							elif X > 100:
-								X = 100.
-							temp_store_mu.append(str(round(X/100.,3)))
-						else:
-							temp_store_mu.append(str(round(mu/100.,3)))
-						if float(temp_store_mu[isex]) < 0:
-							temp_store_mu[isex] = '0'
-					else:
-						temp_store_mu.append(str(mu))
-				# condese with : 	
-				size_percmort_out[isub][ifile].append('~'.join(temp_store_mu))
+					stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
+				# Merge back with ~ 	
+				size_percmort_out[isub][ifile].append('~'.join(np.asarray(temp_store_mu,str)))
 			
 	# ----------------------------------
-	# For one numbers
+	# For one numbers - PopVars
 	# ----------------------------------
-	mu = age_percmort_back_mu_egg
-	sigma = age_percmort_back_sd_egg
-	# Case here for sigma == 0
-	if sigma != 0:
-		# Call a truncated normal here
-		#lower, upper = 0,100
-		#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
-		X = np.random.normal(mu,sigma)
-		if X < 0:
-			X = 0
-		elif X > 100:
-			X = 100.
-		eggmort_age = round(X/100.,3)
-	else:
-		eggmort_age = round(mu/100.,3)	
-	if eggmort_age < 0:
-		eggmort_age = 0	
-		
+	temp_store_mu = []		
+	stochastic_update(age_percmort_back_mu_egg,age_percmort_back_sd_egg,temp_store_mu)
+	eggmort_age = temp_store_mu[0]
+	if eggmort_age > 1.:
+		eggmort_age = 1.
+			
 	return K,popmort_back,popmort_out,eggmort_patch,outsizevals,backsizevals,outgrowdays,backgrowdays,age_percmort_out,age_percmort_back,	size_percmort_out,size_percmort_back,eggmort_age,f_ind,f_leslie
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,spcNO,ibatch,betaFile_selection):
+def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
+
 	'''
 	DoPreProcess()
 	This function does all the pre-processing work before
@@ -2488,41 +2318,21 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	# ------------------------------------------------
 	# Initialize age structure - file and distribution
 	# ------------------------------------------------ 	
-	tupAgeFile = InitializeAge(K,classvarsfiles,datadir)
+	tupAgeFile = InitializeAge(K,classvarsfiles,datadir)	
 	agelst = tupAgeFile[0]
-	age_percmort_out = tupAgeFile[1]
-	age_percmort_back = tupAgeFile[2]
-	age_Mg = tupAgeFile[3]
-	age_S = tupAgeFile[4]
-	sexratio = tupAgeFile[5]
-	age_mu = tupAgeFile[6]
-	age_size_mean = tupAgeFile[7]
-	age_size_std = tupAgeFile[8]
-	#M_mature = tupAgeFile[9]
-	#F_mature = tupAgeFile[10]
-	age_mature = tupAgeFile[9]
-	age_sigma = tupAgeFile[10]
-	age_capture_out = tupAgeFile[11]
-	age_capture_back = tupAgeFile[12]
-	size_percmort_out = tupAgeFile[13]
-	size_percmort_back = tupAgeFile[14]
-	age_percmort_out_sd = tupAgeFile[15]
-	age_percmort_back_sd = tupAgeFile[16]
-	size_percmort_out_sd = tupAgeFile[17]
-	size_percmort_back_sd = tupAgeFile[18]
-	f_leslie = tupAgeFile[19]
-	f_leslie_std = tupAgeFile[20]
-	age_DispProb = tupAgeFile[21]
+	age_size_mean = tupAgeFile[1]
+	age_size_std = tupAgeFile[2]
+	sexratio = tupAgeFile[3]	
+	age_mature = tupAgeFile[15]
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature...
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'N',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,N0)
+	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,cdevolveans,fitvals,burningen_cdevolve,'N',sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo)
 	
 	# ------------------------------------
 	# For multiple files, error check here
-	# ------------------------------------
+	# ------------------------------------	
 	if inheritans_classfiles == 'Hindex':
 		# Assume first patch has all of the information
 		if allelst[0][0][0][0][1] != 1.0:
@@ -2540,7 +2350,7 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	unisubpops = len(Pop)
 	
 	# Organize type data in SubpopIN - here return this and also update dynamically.
-	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int),('genes',('i',sum(alleles)))]
+	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int),('genes',('i',sum(alleles)))]
 	
 	# Get N here - N maybe slighlty different then specified due to random draws
 	N = []
@@ -2580,8 +2390,8 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 				# Then create half males and females and shuffle
 				sex = np.append(np.zeros(noinsub/2,"int"),np.ones(noinsub/2,"int"))
 				sex = np.asarray(sex,dtype=str)
-				sex[np.where(sex == '0')[0]] = 'XX'
-				sex[np.where(sex == '1')[0]] = 'XY'
+				sex[np.where(sex == '0')[0]] = 'FXX'
+				sex[np.where(sex == '1')[0]] = 'MXY'
 				np.random.shuffle(sex)
 			
 			# Loop through individuals in subpop
@@ -2675,11 +2485,9 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	
 	# Return this functions variables
 	tupPreProcess = ithmcrundir,\
-	fitvals,allelst,subpopemigration,subpopimmigration,\
-	age_percmort_out,age_percmort_back,age_Mg,age_S,\
-	age_mu,age_size_mean,age_size_std,xgridpop,ygridpop,\
+	fitvals,allelst,subpopemigration,subpopimmigration,age_size_mean,age_size_std,xgridpop,ygridpop,\
 	SubpopIN,N,K,dtype,outsizevals,backsizevals,\
-	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,age_mature,age_sigma,outgrowdays,backgrowdays,K_temp,age_capture_out,age_capture_back,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,comp_coef_temp,xvars,tempbetas_selection,outhabvals,backhabvals,f_leslie,f_leslie_std,age_DispProb 
+	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,outgrowdays,backgrowdays,K_temp,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,comp_coef_temp,xvars,tempbetas_selection,outhabvals,backhabvals 
 	
 	return tupPreProcess	
 	#End::DoPreProcess()
@@ -2718,17 +2526,18 @@ def DoUserInput(fileans):
 	#End::DoUserInput()
 
 # -------------------------------------------------------------------------	
-def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen_cdevolve,fitvals,eggFreq,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,dtype,N,natal,gen,PopTag,sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,logfHndl):
+def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen_cdevolve,fitvals,eggFreq,dtype,N,natal,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
 	'''
 	AddIndividuals()
 	This function adds more individuals with given classvars 
 	allele frequency file information.
 	'''
+	
 	# ---------------------------------------------
 	# First error check on natal grounds and N0 > 0
 	# ---------------------------------------------
 	for isub in range(len(tempN0)):
-		if int(tempN0[isub]) > 0 and natal[isub] == 0:
+		if sum(np.asarray(tempN0[isub].split(';'),int)) > 0 and natal[isub] == 0:
 			stringout = 'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.'
 			logMsg(logfHndl,stringout)
 			tempN0[isub] = 0
@@ -2747,36 +2556,18 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	# Initialize age structure - file and distribution
 	# ------------------------------------------------
 	tupAgeFile = InitializeAge(tempN0,tempClassVarsfile,datadir)
+		
 	agelst = tupAgeFile[0]
-	age_percmort_out = tupAgeFile[1]
-	age_percmort_back = tupAgeFile[2]
-	age_Mg = tupAgeFile[3]
-	age_S = tupAgeFile[4]
-	sexratio = tupAgeFile[5]
-	age_mu = tupAgeFile[6]
-	age_size_mean = tupAgeFile[7]
-	age_size_std = tupAgeFile[8]
-	#M_mature = tupAgeFile[9]
-	#F_mature = tupAgeFile[10]
-	age_mature = tupAgeFile[9]
-	age_sigma = tupAgeFile[10]
-	age_capture_out = tupAgeFile[11]
-	age_capture_back = tupAgeFile[12]
-	size_percmort_out = tupAgeFile[13]
-	size_percmort_back = tupAgeFile[14]
-	age_percmort_out_sd = tupAgeFile[15]
-	age_percmort_back_sd = tupAgeFile[16]
-	size_percmort_out_sd = tupAgeFile[17]
-	size_percmort_back_sd = tupAgeFile[18]
-	f_leslie = tupAgeFile[19]
-	f_leslie_std = tupAgeFile[20]
-	age_DispProb = tupAgeFile[21]
+	age_size_mean = tupAgeFile[1]
+	age_size_std = tupAgeFile[2]
+	sexratio = tupAgeFile[3]	
+	age_mature = tupAgeFile[15]
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,Fmat_set,Mmat_set,Fmat_int,Fmat_slope,Mmat_int,Mmat_slope,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,YYmat_set,YYmat_slope,YYmat_int,defaultAgeMature,speciesID,tempN0)
+	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,speciesID,tempN0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo)
 	
 	# ---------------------------------------------
 	# Store class variable SubpopIN_add

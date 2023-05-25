@@ -142,7 +142,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				
 				# Randomly select a male in patch
 				malemate = np.random.choice(patchmales,1)[0]
-			
+								
 				# And store the mated pair information.						
 				Bearpairs.append([females[intfemale],malemate])
 				# Get female genes
@@ -442,42 +442,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 			
 				# Tracking
 				femalesmated.append(1)				
-			'''# Randomly select a male in patch
-			malemate = np.random.choice(patchmales,1)[0]
 			
-			# And store the mated pair information.						
-			Bearpairs.append([females[intfemale],malemate])
-			
-			# Tracking
-			femalesmated.append(1)
-			if len(assortmateModel.split('_')) > 1:
-				if assortmateModel.split('_')[1] == 'hindex':
-					if (female_hindex == 1.0 and malemate['hindex'] == 0.0) or (female_hindex == 0.0 and malemate['hindex'] == 1.0):
-						AAaaMates.append(1)
-					elif (female_hindex == 1.0 and malemate['hindex'] == 1.0):
-						AAAAMates.append(1)
-					elif (female_hindex == 0.0 and malemate['hindex'] == 0.0):
-						aaaaMates.append(1)
-					elif (female_hindex == 1.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 1.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
-						AAAaMates.append(1)
-					elif (female_hindex == 0.0 and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)) or (malemate['hindex'] == 0.0 and (female_hindex != 0.0 or female_hindex != 1.0)):
-						aaAaMates.append(1)
-					elif ((female_hindex != 0.0 or female_hindex != 1.0) and (malemate['hindex'] != 0.0 or malemate['hindex'] != 1.0)):
-						AaAaMates.append(1)
-				else:
-					if (female_genes[0] == 2 and malemate['genes'][1] == 2) or (female_genes[1] == 2 and malemate['genes'][0] == 2):
-						AAaaMates.append(1)
-					elif (female_genes[0] == 2 and malemate['genes'][0] == 2):
-						AAAAMates.append(1)
-					elif (female_genes[1] == 2 and malemate['genes'][1] == 2):
-						aaaaMates.append(1)
-					elif (female_genes[0] == 2 and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)) or (malemate['genes'][0] == 2 and (female_genes[0] == 1 and female_genes[1] == 1)):
-						AAAaMates.append(1)
-					elif (female_genes[1] == 2 and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)) or (malemate['genes'][1] == 2 and (female_genes[0] == 1 and female_genes[1] == 1)):
-						aaAaMates.append(1)
-					elif ((female_genes[0] == 1 and female_genes[1] == 1) and (malemate['genes'][0] == 1 and malemate['genes'][1] == 1)):
-						AaAaMates.append(1)
-				'''
 			# Then break from patch search loop
 			break
 					
@@ -493,11 +458,11 @@ males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,count=
 	DoSexualNN()
 	This function is the mating function for
 	sexual reproduction
-	females	with replacement
-	males with replacement
+	females	without replacement
+	males without replacement
 	'''	
 	# Assortmate 
-	print('Not operating currently')
+	print('Sexual NN Not operating currently, add assortmate options.')
 	sys.exit(-1)
 	
 	# For Sexual reproduction NY (count is provided)
@@ -600,7 +565,7 @@ males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,count=
 	# End::DoSexualNN()		
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,eggFreq,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,egg_delay,Bearpairs_temp):
+def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,eggFreq,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,BreedYYFemales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,ToTYYFemales,egg_delay,Bearpairs_temp):
 
 	'''
 	DoMate()
@@ -624,9 +589,11 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	BreedMales.append([]) #Storage add spot for generation
 	BreedFemales.append([]) #Storage add spot for generation
 	BreedYYMales.append([])
+	BreedYYFemales.append([])
 	ToTMales.append([]) #Storage add spot for generation
 	ToTFemales.append([]) #Storage add spot for generation
 	ToTYYMales.append([])
+	ToTYYFemales.append([])
 	MatureCount.append([])
 	ImmatureCount.append([])
 	
@@ -637,55 +604,68 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# Storage variables for breeding age males and females
 	#females = []		# These are the zeros or XX
 	#males = []			# These are the ones or XY
-	
+	#pdb.set_trace() # Check number of females/males
 	# Loop through and grab each female and male for probability of mature and probability to lay eggs
 	for isub in range(len(K)):
-		indexF = np.where(SubpopIN[isub]['sex']=='XX')[0]
-		indexM = np.where(SubpopIN[isub]['sex']=='XY')[0]
-		indexYY = np.where(SubpopIN[isub]['sex']=='YY')[0]
+		indexF = np.where(SubpopIN[isub]['sex']=='FXX')[0]
+		indexM = np.where(SubpopIN[isub]['sex']=='MXY')[0]
+		indexMYY = np.where(SubpopIN[isub]['sex']=='MYY')[0]
+		indexFYY = np.where(SubpopIN[isub]['sex']=='FYY')[0]
 		allfemales = SubpopIN[isub][indexF]
 		allmales = SubpopIN[isub][indexM]
-		allYYmales = SubpopIN[isub][indexYY]
+		allYYmales = SubpopIN[isub][indexMYY]
+		allYYfemales = SubpopIN[isub][indexFYY]
 		# Index for mature - breeding individuals
 		if sexans == 'Y' or sexans == 'H':
 			indexFage = np.where(allfemales['mature'] == 1)[0]
 			indexMage = np.where(allmales['mature'] == 1)[0]
-			indexYYage = np.where(allYYmales['mature'] == 1)[0]
+			indexMYYage = np.where(allYYmales['mature'] == 1)[0]
+			indexFYYage = np.where(allYYfemales['mature'] == 1)[0]
 		else:
 			indexFage = np.where(allfemales['layeggs'] == 1)[0]
 			indexMage = np.where(allmales['layeggs'] == 1)[0]
-			indexYYage = np.where(allYYmales['layeggs'] == 1)[0]
+			indexMYYage = np.where(allYYmales['layeggs'] == 1)[0]
+			indexFYYage = np.where(allYYfemales['layeggs'] == 1)[0]
 		# Store For Tracking
 		if sexans == 'Y' or sexans == 'H':
 			# Storage tracking
 			ToTMales[gen].append(len(indexM)) 
 			ToTFemales[gen].append(len(indexF))
-			ToTYYMales[gen].append(len(indexYY))
+			ToTYYMales[gen].append(len(indexMYY))
+			ToTYYFemales[gen].append(len(indexFYY))
 			BreedMales[gen].append(len(indexMage))
 			BreedFemales[gen].append(len(indexFage))
-			BreedYYMales[gen].append(len(indexYYage))
+			BreedYYMales[gen].append(len(indexMYYage))
+			BreedYYFemales[gen].append(len(indexFYYage))
 		else:
 			# Storage tracking
-			ToTMales[gen].append(len(indexM)+len(indexF)+len(indexYY)) 
-			ToTFemales[gen].append(len(indexM)+len(indexF)+len(indexYY))
-			ToTYYMales[gen].append(len(indexM)+len(indexF)+len(indexYY))
-			BreedMales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
-			BreedFemales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
-			BreedYYMales[gen].append(len(indexMage)+len(indexFage)+len(indexYYage))
+			ToTMales[gen].append(len(indexM)+len(indexF)+len(indexMYY)+len(indexFYY)) 
+			ToTFemales[gen].append(len(indexM)+len(indexF)+len(indexMYY)+len(indexFYY))
+			ToTYYMales[gen].append(len(indexM)+len(indexF)+len(indexMYY)+len(indexFYY))
+			ToTYYFemales[gen].append(len(indexM)+len(indexF)+len(indexMYY)+len(indexFYY))
+			BreedMales[gen].append(len(indexMage)+len(indexFage)+len(indexMYYage)+len(indexFYYage))
+			BreedFemales[gen].append(len(indexMage)+len(indexFage)+len(indexMYYage)+len(indexFYYage))
+			BreedYYMales[gen].append(len(indexMage)+len(indexFage)+len(indexMYYage)+len(indexFYYage))
+			BreedYYFemales[gen].append(len(indexMage)+len(indexFage)+len(indexMYYage)+len(indexFYYage))
 		MatureCount[gen].append(sum(SubpopIN[isub]['mature']))
 		ImmatureCount[gen].append(len(SubpopIN[isub]['mature'])-sum(SubpopIN[isub]['mature']))
 		
 		# Then get mature females and mature males together for rest of function
-		#females.append(list(allfemales[indexFage]))
 		# For males, assume YY and XY are the same
-		indexM = np.concatenate((indexM,indexYY),axis=0) # Here, assume all males the same.
+		indexM = np.concatenate((indexM,indexMYY),axis=0) # Here, assume all males the same.
 		allmales = SubpopIN[isub][indexM]		
 		if sexans == 'Y' or sexans == 'H':
 			indexMage = np.where(allmales['mature'] == 1)[0] 
 		else:
 			indexMage = np.where(allmales['layeggs'] == 1)[0]
+		
+		# For females, assume YY and XX are the same
+		indexF = np.concatenate((indexF,indexFYY),axis=0)
+		allfemales = SubpopIN[isub][indexF]
 		# Overwirte indexFage here with 'layeggs'
 		indexFage = np.where(allfemales['layeggs'] == 1)[0] # Use layeggs for choosing breeding Bearpairs
+		
+		# For all patches, append females/males
 		if isub == 0:	
 			females = allfemales[indexFage]
 			males = allmales[indexMage]
@@ -697,16 +677,18 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	ToTMales[gen].insert(0,sum(ToTMales[gen]))
 	ToTFemales[gen].insert(0,sum(ToTFemales[gen]))
 	ToTYYMales[gen].insert(0,sum(ToTYYMales[gen]))
+	ToTYYFemales[gen].insert(0,sum(ToTYYFemales[gen]))
 	BreedMales[gen].insert(0,sum(BreedMales[gen]))
 	BreedFemales[gen].insert(0,sum(BreedFemales[gen]))
 	BreedYYMales[gen].insert(0,sum(BreedYYMales[gen]))
+	BreedYYFemales[gen].insert(0,sum(BreedYYFemales[gen]))
 	
 	# Add Count totals
 	MatureCount[gen] = sum(MatureCount[gen])
 	ImmatureCount[gen] = sum(ImmatureCount[gen])
 	
 	# Error statement here in case no females or males, then break from loop 
-	if ToTFemales[gen][0]==0 or (ToTMales[gen][0] + ToTYYMales[gen][0])==0:			
+	if (ToTFemales[gen][0]==0 + ToTYYFemales[gen][0]==0) or (ToTMales[gen][0] + ToTYYMales[gen][0])==0:			
 		MateDistCD.append(0)
 		MateDistCDstd.append(0)
 		Female_BreedEvents.append(0)
@@ -820,7 +802,8 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	
 	# Loop through each CDpair
 	for ipair in range(len(Bearpairs)):
-		
+		#if Bearpairs[ipair][1]['sex'] != 'MXY':
+			#pdb.set_trace()
 		# else calculate average distances
 		if isinstance(Bearpairs[ipair][1],np.void):
 		#Bearpairs[ipair][1]!=-9999: # Make sure a mate pair occurred.

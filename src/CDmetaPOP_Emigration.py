@@ -82,7 +82,7 @@ def w_choice_item(lst):
 	#End::w_choice_item()
 	
 # ---------------------------------------------------------------------------------------------------	
-def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp):
+def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut):
 	'''
 	GetProbArray()
 	This function gets indices for F and M specific cdmatrix values
@@ -99,12 +99,14 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patch
 	indSex = currentoff['sex']
 	
 	# Append the freegrid probabilities for the offspring choice
-	if indSex == 'XX': # Female offspring
-		probarray = copy.deepcopy(Fxycdmatrix[currentsubpop])
-	elif indSex == 'XY': # Male offspring
-		probarray = copy.deepcopy(Mxycdmatrix[currentsubpop])
-	elif indSex == 'YY': # Assume same as XY
-		probarray = copy.deepcopy(Mxycdmatrix[currentsubpop])
+	if indSex == 'FXX': # Female offspring
+		probarray = copy.deepcopy(cdmatrix_FXXOut[currentsubpop])
+	elif indSex == 'MXY': # Male offspring
+		probarray = copy.deepcopy(cdmatrix_MXYOut[currentsubpop])
+	elif indSex == 'MYY': # Male YY
+		probarray = copy.deepcopy(cdmatrix_MYYOut[currentsubpop])
+	elif indSex == 'FYY': # FeMale YY
+		probarray = copy.deepcopy(cdmatrix_FYYOut[currentsubpop])
 	else:
 		print('Invalid offspring list.')
 		sys.exit(-1)		
@@ -377,7 +379,7 @@ def GetProbArray(Fxycdmatrix,Mxycdmatrix,offspring,currentsubpop,K,migrate,patch
 	# End::GetProbArray()
 	
 # ---------------------------------------------------------------------------------------------------	
-def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring,Bearpairs,size_std,Femalepercent,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_slope,YYmat_int,YYmat_set,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit):
+def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring,Bearpairs,size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut):
 
 	'''
 	DoEmigration()
@@ -421,7 +423,15 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 			outpool = SubpopIN[isub][iind]
 			originalpop = outpool[sourcePop]
 			Indsex = outpool['sex']
-			
+			# For indexing into 
+			if Indsex == 'FXX':
+				sxspot = 0
+			elif Indsex == 'MXY':
+				sxspot = 1
+			elif Indsex == 'MYY':
+				sxspot = 2
+			else:
+				sxspot = 3
 			# Get this individuals original ClassVars file and bins for indexing
 			natalP = int(SubpopIN[isub][iind]['classfile'].split('_')[0].split('P')[1])
 			theseclasspars = int(SubpopIN[isub][iind]['classfile'].split('_')[1].split('CV')[1])
@@ -449,24 +459,14 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 				if Find > len(ProbAge[natalP][theseclasspars]) - 1:
 					Find = len(ProbAge[natalP][theseclasspars]) - 1 # Make last age					
 				Mg_Class = ProbAge[natalP][theseclasspars][Find]
-				
 				# Get sex class options if given
-				if Indsex == 'XX': # Female
+				if len(Mg_Class.split('~')) == 1:
 					Mg_Class = float(Mg_Class.split('~')[0])
-				elif Indsex == 'XY': #Male
-					# Check if more than value here
-					if len(Mg_Class.split('~')) > 1:
-						Mg_Class = float(Mg_Class.split('~')[1])
-					else:
-						Mg_Class = float(Mg_Class.split('~')[0])
-				else: # YY male
-					# Check if more than value here
-					if len(Mg_Class.split('~')) == 3:
-						Mg_Class = float(Mg_Class.split('~')[2])
-					elif len(Mg_Class.split('~')) == 2:
-						Mg_Class = float(Mg_Class.split('~')[1])
-					else:
-						Mg_Class = float(Mg_Class.split('~')[0])
+				elif len(Mg_Class.split('~')) != sexchromo:
+					print('Number of age-specific probability parameters must match sex_chromo.')
+					sys.exit(-1)
+				else:
+					Mg_Class = float(Mg_Class.split('~')[sxspot])
 				
 				# Then multiply these together
 				indProb = Mg_Patch * Mg_Class
@@ -485,7 +485,7 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 				
 				# Then Migrate Out....			
 				# Create a function here that gets indices for male and female
-				probarray = GetProbArray(Fxycdmatrix,Mxycdmatrix,outpool,originalpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp)
+				probarray = GetProbArray(outpool,originalpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut)
 										
 				# If statement to check if there are spots for offpsring to disperse to
 				if sum(probarray) != 0.0:
@@ -1015,6 +1015,9 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 				offspring_patch = noOffspring[mothers_patch_ind]
 				Popoffspring = sum(offspring_patch)
 				offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
+				if len(np.where(noOffspring < 0)[0]) >= 1:
+					print('Issue with number of offspring less than zero.')
+					pdb.set_trace()
 				
 				offspring_size = [] # sizes
 				#offspring_file = [] # files assigned
@@ -1041,8 +1044,7 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 					if inheritans_classfiles == 'random': # random assignment
 						# Where the numbers are < 0.5, assign fathers class file information
 						offspring_mu[np.where(randnos < 0.5)[0]] = size_mean[fathers_natalP][fathers_theseclasspars][0]
-						offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]
-												
+						offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]				
 						# Else assign to mother
 						offspring_mu[np.where(randnos >= 0.5)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
 						offspring_sigma[np.where(randnos >= 0.5)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
@@ -1936,7 +1938,7 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 				# If more than Kpop, grab random number
 				else:
 					# Get index for all
-					Nage_samp_ind_all = np.asarray(np.random.choice(Nage_ind_all,Kpop,replace=False).tolist())
+					Nage_samp_ind_all = np.asarray(np.random.choice(Nage_ind_all,int(Kpop),replace=False).tolist())
 					# Get just the adults
 					index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
 					Nage_samp_ind_adults = Nage_samp_ind_all[index]
@@ -2277,19 +2279,19 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 	else:
 		print('See user manual for population model options.')
 		sys.exit(-1)
-	#pdb.set_trace()
+	
 	# ------------------------------
 	# Get the survived SubpopIN_Age0
 	# ------------------------------
-	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,noOffspring,size_std,inheritans_classfiles,eggFreq,sexans,YYmat_slope,YYmat_int,YYmat_set)
+	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo)
 	
 	# Get dtype for offspring - first check to see if any Bearpairs exist.
 	#if Bearpairs[0][0] != -9999:
 	#if len(Bearpairs[0][0]) != 1:
 	if not (isinstance(Bearpairs[0][0],numbers.Integral)): # Checks for -9999 here and could be int or np.int32	
-		offdtype = [('Mother',('i',len(Bearpairs[0][0]['genes']))),('Father',('i',len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
+		offdtype = [('Mother',('i',len(Bearpairs[0][0]['genes']))),('Father',('i',len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
 	else:
-		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,2)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
+		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
 
 	offspring = np.asarray(offspring,dtype=offdtype) # Convert to array with dytpe
 	
@@ -2302,20 +2304,20 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 		# Then create half males and females and shuffle
 		offsex = np.append(np.zeros(len(offspring)/2,"int"),np.ones(len(offspring)/2,"int"))
 		offsex = np.asarray(offsex,dtype=str)
-		offsex[np.where(offsex == '0')[0]] = 'XX'
-		offsex[np.where(offsex == '1')[0]] = 'XY'
+		offsex[np.where(offsex == '0')[0]] = 'FXX'
+		offsex[np.where(offsex == '1')[0]] = 'MXY'
 		np.random.shuffle(offsex)
 		# And reassign the sex to offspring list
 		offspring['sex'] = offsex
-
+	
 	# ---------------------------------------------------
 	# Call AddAge0() and InheritGenes() and track numbers
 	# ---------------------------------------------------
 	if (cdevolveans.split('_')[0] == 'F' or cdevolveans.split('_')[0] == 'FHindex') and (timecdevolve.find('Eggs') != -1) and (burningen_cdevolve <= gen):
 
-		SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq,Fmat_set,Mmat_set,YYmat_set,EHom)
+		SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,EHom)
 	else:
-		SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq,Fmat_set,Mmat_set,YYmat_set)
+		SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo)
 	del offspring
 	
 	# ---------------
@@ -2341,12 +2343,12 @@ def Emigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,cd
 	# End::DoEmigration()
 	
 # ---------------------------------------------------------------------------------------------------	
-def CalculateDispersalMetrics(OffDisperseIN,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,FDispDistCD,MDispDistCD,\
-FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC):
+def CalculateDispersalMetrics(OffDisperseIN,FDispDistCD,MDispDistCD,FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut):
 	'''
 	CalculateDispersalMetrics()
 	This function calculates how far disperses are moving.
 	'''		
+	
 	# Store the average dispersal distance offspring went
 	# temp variable to store offspring dispersal distance
 	FtempAvgDispDistED = []
@@ -2374,86 +2376,90 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 			indTo = Ind['EmiPop'][ioffspring]
 			indSex = Ind['sex'][ioffspring]
 			
+			# Ignore FYY and MYY - only calculate for FXX and MXY
+			if indSex == 'FYY' or indSex == 'MYY':
+				continue
+			
 			# Store migration numbers
 			if indTo != indFrom:
 				subpopmigration[gen][int(indTo)-1].append(1)			
 			
 			# If female - CD distances			
-			if indSex == 'XX':
+			if indSex == 'FXX':
 				Fcount = Fcount + 1			
-				probval = Fxycdmatrix[int(indFrom)-1][int(indTo)-1]
+				probval = cdmatrix_FXXOut[int(indFrom)-1][int(indTo)-1]
 				
 				# If panmictic
-				if Fdispmoveno == '4' or Fdispmoveno == '6': 
+				if moveno_FXXOut == '4' or moveno_FXXOut == '6': 
 					cdval = 0.
 					
 				# If prob matrix or FIDIMO
-				elif Fdispmoveno == '9' or Fdispmoveno == '11': 
+				elif moveno_FXXOut == '9' or moveno_FXXOut == '11': 
 					cdval = probval
 				
 				# If linear
-				elif Fdispmoveno == '1':
-					cdval = (probval - 1.) * (-Fthreshold)				
+				elif moveno_FXXOut == '1':
+					cdval = (probval - 1.) * (-thresh_FXXOut)				
 				
 				# If inverse square
-				elif Fdispmoveno == '2':
+				elif moveno_FXXOut == '2':
 					if probval == 1.0:
 						cdval = 0.0
 					else:	
-						cdval = np.sqrt(1. / (probval * (FScaleMax - FScaleMin) + FScaleMin))
+						cdval = np.sqrt(1. / (probval * (scalemax_FXXOut - scalemin_FXXOut) + scalemin_FXXOut))
 					
 				# If neg exponetial
-				elif Fdispmoveno == '5':
-					cdval = np.log((probval * (FScaleMax-FScaleMin) + FScaleMin)/float(FA)) / (-float(FB) * np.log(10))
+				elif moveno_FXXOut == '5':
+					cdval = np.log((probval * (scalemax_FXXOut-scalemin_FXXOut) + scalemin_FXXOut)/float(parA_FXXOut)) / (-float(parB_FXXOut) * np.log(10))
 				# If Gaussian	
-				elif Fdispmoveno == '7':
-					cdval = float(FB) + np.sqrt(-2*float(FC)**2 * np.log((probval*(FScaleMax-FScaleMin)+FScaleMin)/float(FA)))
+				elif moveno_FXXOut == '7':
+					cdval = float(parB_FXXOut) + np.sqrt(-2*float(parC_FXXOut)**2 * np.log((probval*(scalemax_FXXOut-scalemin_FXXOut)+scalemin_FXXOut)/float(parA_FXXOut)))
 				# If matrix
-				elif Fdispmoveno == '8':
-					cdval = (1. - probval)*(FScaleMax-FScaleMin)+FScaleMin
+				elif moveno_FXXOut == '8':
+					cdval = (1. - probval)*(scalemax_FXXOut-scalemin_FXXOut)+scalemin_FXXOut
 				# If pareto
-				elif Fdispmoveno == '10':
+				elif moveno_FXXOut == '10':
 					if probval == max(Fxycdmatrix[isub]):
 						cdval = 0.0
 					else:
-						cdval = pow(((float(FA)*float(FB)**float(FA))/probval),(1/(float(FA)+1))) - float(FB)
+						cdval = pow(((float(parA_FXXOut)*float(parB_FXXOut)**float(parA_FXXOut))/probval),(1/(float(parA_FXXOut)+1))) - float(parB_FXXOut)
 				# Write to temp	
 				FtempAvgDispDistCD.append(cdval)				
 					
 			# Else if Male
-			elif indSex == 'XY' or indSex == 'YY': # assume males same movement matrix 			
+			elif indSex == 'MXY': 			
 				Mcount = Mcount + 1
-				probval = Mxycdmatrix[int(indFrom)-1][int(indTo)-1]
+				probval = cdmatrix_MXYOut[int(indFrom)-1][int(indTo)-1]
 				
 				# If panmictic
-				if Mdispmoveno == '4' or Mdispmoveno == '6': 
+				if moveno_MXYOut == '4' or moveno_MXYOut == '6': 
 					cdval = 0.0
-				elif Mdispmoveno == '9' or Mdispmoveno == '11':
+				elif moveno_MXYOut == '9' or moveno_MXYOut == '11':
 					cdval = probval
 				# If linear
-				elif Mdispmoveno == '1':					
-					cdval = (probval - 1.) * (-Mthreshold)
+				elif moveno_MXYOut == '1':					
+					cdval = (probval - 1.) * (-thresh_MXYOut)
 					
 				# If inverse square
-				elif Mdispmoveno == '2':
+				elif moveno_MXYOut == '2':
 					if probval == 1.0:
 						cdval = 0.0
 					else:	
-						cdval = np.sqrt(1. / (probval * (MScaleMax - MScaleMin) + MScaleMin))
+						cdval = np.sqrt(1. / (probval * (scalemax_MXYOut - scalemin_MXYOut) + scalemin_MXYOut))
 					
 				# If neg exponetial
-				elif Mdispmoveno == '5':
-					cdval = np.log((probval * (MScaleMax-MScaleMin) + MScaleMin)/float(MA)) / (-float(MB) * np.log(10))
-				elif Mdispmoveno == '7':
-					cdval = float(MB) + np.sqrt(-2*float(MC)**2 * np.log((probval*(MScaleMax-MScaleMin)+MScaleMin)/float(MA)))
-				elif Mdispmoveno == '8':
-					cdval = (1. - probval)*(MScaleMax-MScaleMin)+MScaleMin
+				elif moveno_MXYOut == '5':
+					cdval = np.log((probval * (scalemax_MXYOut-scalemin_MXYOut) + scalemin_MXYOut)/float(parA_MXYOut)) / (-float(parB_MXYOut) * np.log(10))
+				elif moveno_MXYOut == '7':
+					cdval = float(parB_MXYOut) + np.sqrt(-2*float(parC_MXYOut)**2 * np.log((probval*(scalemax_MXYOut-scalemin_MXYOut)+scalemin_MXYOut)/float(parA_MXYOut)))
+				elif moveno_MXYOut == '8':
+					cdval = (1. - probval)*(scalemax_MXYOut-scalemin_MXYOut)+scalemin_MXYOut
 				# If pareto
-				elif Mdispmoveno == '10':
+				elif moveno_MXYOut == '10':
 					if probval == max(Mxycdmatrix[isub]):
 						cdval = 0.0
 					else:
-						cdval = pow(((float(MA)*float(MB)**float(MA))/probval),(1/(float(MA)+1))) - float(MB)
+						cdval = pow(((float(parA_MXYOut)*float(parB_MXYOut)**float(parA_MXYOut))/probval),(1/(float(parA_MXYOut)+1))) - float(parB_MXYOut)
 				MtempAvgDispDistCD.append(cdval)
 			
 			# Store the traveled distance - carefully index here
@@ -2486,7 +2492,8 @@ FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,Fthreshold,Mthreshold,FScaleMa
 	# End::CalculateDispersalMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Fthreshold,Mthreshold,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC,packans,PackingDeathsAge,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring,Bearpairs,size_std,Femalepercent,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_slope,YYmat_int,YYmat_set,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit):
+def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring,Bearpairs,size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut):
+
 	'''
 	DoEmigration()
 	Disperse the individuals to patch locations
@@ -2506,15 +2513,11 @@ def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,
 			print('Specify Y or N for size control parameters.')
 			sys.exit(-1)	
 		
-		SubpopIN = Emigration(SubpopIN,K,Fdispmoveno,\
-		Mdispmoveno,\
-		Fxycdmatrix,Mxycdmatrix,gen,\
-		cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,age_percmort,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring[0],Bearpairs[0],size_std,Femalepercent,transmissionprob,age_mature,Mmat_slope,Mmat_int,Fmat_slope,Fmat_int,Mmat_set,Fmat_set,YYmat_slope,YYmat_int,YYmat_set,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit)
+		SubpopIN = Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring[0],Bearpairs[0],size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut)
 		
 		# Calculate Dispersal Metrics for movers out
-		CalculateDispersalMetrics(SubpopIN,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,\
-		FDispDistCD,MDispDistCD,FDispDistCDstd,MDispDistCDstd,subpopmigration,\
-		gen,Fthreshold,Mthreshold,FScaleMax,FScaleMin,MScaleMax,MScaleMin,FA,FB,FC,MA,MB,MC)
+		CalculateDispersalMetrics(SubpopIN,FDispDistCD,MDispDistCD,FDispDistCDstd,MDispDistCDstd,subpopmigration,\
+		gen,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut)
 	
 	else: # Population Extinct, return tracking variables 0 only
 		# Population variables here
@@ -2561,6 +2564,7 @@ def DoEmigration(SubpopIN,K,Fdispmoveno,Mdispmoveno,Fxycdmatrix,Mxycdmatrix,gen,
 						sys.exit(-1)
 					popcount = popcount + 1		'''
 		#print("Species "+str(spcNO)+ " went extinct")
+	
 	# Return variables from this argument
 	return SubpopIN
 	
