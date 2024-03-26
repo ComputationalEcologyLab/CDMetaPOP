@@ -1,0 +1,7 @@
+Age class,Body Size Mean (mm),Body Size Std (mm),Distribution,Sex Ratio,Age Mortality Out %,Age Mortality Out StDev,Age Mortality Back %,Age Mortality Back StDev,Size Mortality Out %,Size Mortality Out StDev,Size Mortality Back %,Size Mortaltiy Back StDev,Migration,Straying,Maturation,Fecundity_mu,Fecundity_sigma,Capture Out Probability,Capture Back Probability
+0,20,0,1,50~50~0,0,0,0,0,0,0,0,0,1,1,0,0,0,N,N
+1,40,5,1,50~50~0,0,0,0,0,0,0,0,0,1,1,0,0,0,N,N
+2,60,0,1,50~50~0,0,0,0,0,0,0,0,0,1,1,0.11~0.1,0,0,N,N
+3,80,10,1,50~50~0,0,0,0,0,0,0,0,0,1,1,0.18~0.43,0,20,N,N
+4,100,10,1,50~50~0,0,0,0,0,0,0,0,0,1,1,0.82~0.84,120,20,N,N
+5,120,10,1,50~50~0,0,0,0,0,0,0,0,0,1,1,0.99~0.98,350,20,N,N

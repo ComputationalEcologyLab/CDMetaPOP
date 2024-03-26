@@ -245,6 +245,148 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 	#End::updatePlasticGenes()
 
 # ---------------------------------------------------------------------------------------------------	
+def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,outpool,fitvals,location,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom=None):
+	'''
+	This function condenses the large blocks of calls to cdevolve, returning the differentialmortality value.
+	It calculates both selection and spatial mortality togethers
+	'''
+	
+	# CDEVOLVE - No
+	# -------------
+	if cdevolveans == 'N':
+		differentialmortality = 0.0
+	
+	# CDEVOLVE - Do1LocusSelection
+	# ----------------------------
+	elif (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
+		if len(timecdevolve.split(':')) > 1: # User indicated age check		
+			# Check if individual's age matches user specified selection age
+			if outpool['age'] != int(timecdevolve.split(':')[1]):
+				differentialmortality = 0.0
+			else:
+				# for option 3 in which has to be mature
+				if cdevolveans == '1_mat' and outpool['mature'] == 0:
+					differentialmortality = 0.0
+				else:
+					# Call 1-locus selection model
+					differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],location)
+		else:
+			# for option 3 in which has to be mature
+			if cdevolveans == '1_mat' and outpool['mature'] == 0:
+				differentialmortality = 0.0
+			else:
+				# Call 1-locus selection model
+				differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],location)
+	
+	# CDEVOLVE - Do2LocusSelection
+	# ----------------------------
+	elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
+		if len(timecdevolve.split(':')) > 1: # User indicated age check	
+			# Check if individual's age matches user specified selection age
+			if outpool['age'] != int(timecdevolve.split(':')[1]):
+				differentialmortality = 0.0
+			else:
+				# for option 3 in which has to be mature
+				if cdevolveans == '2_mat' and outpool['mature'] == 0:
+					differentialmortality = 0.0
+				else:
+					# Call 2-locus selection model
+					differentialmortality = Do2LocusSelection(fitvals,outpool['genes'][0:4],location)
+		else:
+			# for option 3 in which has to be mature
+			if cdevolveans == '2_mat' and outpool['mature'] == 0:
+				differentialmortality = 0.0
+			else:
+				# Call 2-locus selection model
+				differentialmortality = Do2LocusSelection(fitvals,outpool['genes'][0:4],location)
+								
+	# CDEVOLVE - DoHindexSelection
+	# ----------------------------
+	elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
+		if len(timecdevolve.split(':')) > 1: # User indicated age check						
+			# Check if individual's age matches user specified selection age
+			if outpool['age'] != int(timecdevolve.split(':')[1]):
+				differentialmortality = 0.0
+			else:
+				# Call Hindex selection model
+				differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[location])						
+		# Run differential mortality check for all ages
+		else:
+			differentialmortality = DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[location])
+											
+	# CDEVOLVE - DoFSelection
+	# -----------------------
+	elif (cdevolveans.split('_')[0] == 'F') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
+		if len(timecdevolve.split(':')) > 1: # User indicated age check	
+			# Check if individual's age matches user specified selection age
+			if outpool['age'] != int(timecdevolve.split(':')[1]):
+				differentialmortality = 0.0
+			else:
+				# Call 2-locus selection model
+				differentialmortality = DoFSelection(fitvals,outpool['genes'],location,EHom,cdevolveans)
+		else:
+			# Call 2-locus selection model
+			differentialmortality = DoFSelection(fitvals,outpool['genes'],location,EHom,cdevolveans)
+										
+	# CDEVOLVE - DoFHindexSelection (inbreeding and outbreeding)
+	# ----------------------------------------------------------
+	elif (cdevolveans.split('_')[0] == 'FHindex') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
+		if len(timecdevolve.split(':')) > 1: # User indicated age check							
+			# Check if individual's age matches user specified selection age
+			if outpool['age'] != int(timecdevolve.split(':')[1]):
+				differentialmortality = 0.0
+			else:
+				# Call Hindex selection model
+				differentialmortality = DoFHindexSelection(fitvals,outpool['genes'],location,EHom,cdevolveans,outpool['hindex'],patchvals[location])
+		else:
+			# Call Hindex selection model
+			differentialmortality = DoFHindexSelection(fitvals,outpool['genes'],location,EHom,cdevolveans,outpool['hindex'],patchvals[location])
+	
+	# CDEVOLVE - DoMLocusSelection
+	# ----------------------------
+	elif (cdevolveans.split('_')[0] == 'P') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
+		if len(timecdevolve.split(':')) > 1: # User indicated age check			
+			
+			# Check if individual's age matches user specified selection age
+			if outpool['age'] != int(timecdevolve.split(':')[1]):
+				differentialmortality = 0.0
+			else:
+				# Call Hindex selection model
+				differentialmortality = DoMLocusSelection(outpool['genes'],location,cdevolveans,betas_selection,xvars_betas,maxfit,minfit)
+		else:
+				# Call Hindex selection model
+				differentialmortality = DoMLocusSelection(outpool['genes'],location,cdevolveans,betas_selection,xvars_betas,maxfit,minfit)	
+	
+	#CDEVOLVE - is on (one of the above) but not equal to or aftern the burningen time
+	else:
+		differentialmortality = 0.0		
+	
+	# ------------------------------
+	# Check spatial mortality Death
+	# ------------------------------						
+	# If subpopulation differential mortality is on
+	if not isinstance(subpopmort_mat,str):
+		# What subpatchID is individual coming from
+		from_subpatch = PopTag[isub]													
+		# What subpatchID is individual proposing to go to
+		to_subpatch = PopTag[location]							
+		# If it is dispersing to another subpatchID
+		if from_subpatch != to_subpatch:								
+			# grab the differential mortality associated with moving into this new subpatchID - from subpatch TO subpatch - cols are TO, read row, then col for correct spot
+			differentialmortality_SpatialSubPopMort = subpopmort_mat[int(to_subpatch)-1][int(from_subpatch)-1]
+	else: 
+		differentialmortality_SpatialSubPopMort = 0.0			
+		
+	# Calculated and Check Differential Mortality for both selection and spatial mortality
+	# ------------------------------------------------------------------------------------
+	differentialmortality_Total = 1. - ((1. - differentialmortality) * (1. - differentialmortality_SpatialSubPopMort))
+	
+	return differentialmortality_Total
+	# END::callCDEVOLVE()
+
+
+
+# ---------------------------------------------------------------------------------------------------	
 def Do1LocusSelection(fitvals,genes,location):
 	'''
 	Do1LocusSelection()
@@ -1615,7 +1757,7 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 	
 	#End::growInd()
 # ---------------------------------------------------------------------------------	
-def matureInd(lastage,SubpopIN,isub,iind,sizeans,age_mature,eggFreq,cdevolveans,fitvals,burningen_cdevolve,gen,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
+def matureInd(lastage,SubpopIN,isub,iind,sizeans,age_mature,eggFreq_mu,eggFreq_sd,cdevolveans,fitvals,burningen_cdevolve,gen,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
 	'''
 	Mature, and check egg frequency interval here
 	'''
@@ -1773,15 +1915,21 @@ def matureInd(lastage,SubpopIN,isub,iind,sizeans,age_mature,eggFreq,cdevolveans,
 			SubpopIN[isub][iind]['mature'] = 0 # Does not mature
 			SubpopIN[isub][iind]['newmature'] = 0
 			SubpopIN[isub][iind]['layeggs'] = 0			
-			
+		
 	# Check if mature female, then chance it lays eggs
 	if SubpopIN[isub][iind]['mature'] == 1 and (Indsex == 'FXX' or Indsex == 'FYY'):
-		randegglay = np.random.uniform()				
-		if randegglay < eggFreq:
-			SubpopIN[isub][iind]['layeggs'] = 1 # Lays eggs next year
-		else:
-			SubpopIN[isub][iind]['layeggs'] = 0	# Does not lay eggs next year
-	
+		tempEggFreq=[] # Temp list value to store egg lay events
+		stochastic_update(eggFreq_mu,eggFreq_sd,tempEggFreq)
+		tempEggFreq = tempEggFreq[0] # Note indexing into first spot since list created above
+		if tempEggFreq < 1: # If egg laying is less than 1 event per year
+			randegglay = np.random.uniform()
+			if randegglay < tempEggFreq:
+				SubpopIN[isub][iind]['layeggs'] = 1 # Lays eggs next year
+			else:
+				SubpopIN[isub][iind]['layeggs'] = 0 # Does not Lays eggs next year
+		else: # egg laying is greater than 1 event per year
+			SubpopIN[isub][iind]['layeggs'] = tempEggFreq # Lays eggs next year	
+		
 	#End::matureInd()
 
 # ---------------------------------------------------------------------------------	
@@ -1840,7 +1988,7 @@ def capInd(lastage,SubpopIN,isub,iind,sizecall,size_mean,ClasscapProb,PopcapProb
 	#End::capInd()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans = None,cdevolveans = None,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,sourcePop=None,plasticans=None,burningen_plastic=None,timeplastic=None,plastic_signalresp=None,geneswap = None,habvals=None,sexchromo=None,age_mature=None,FXXmat_set=None,FXXmat_int=None,FXXmat_slope=None,MXYmat_set=None,MXYmat_int=None,MXYmat_slope=None,MYYmat_set=None,MYYmat_int=None,MYYmat_slope=None,FYYmat_set=None,FYYmat_int=None,FYYmat_slope=None):
+def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans = None,cdevolveans = None,fitvals = None,burningen_cdevolve = None,ClasscapProb=None,PopcapProb=None,NCap=None,CapClass=None,sizecall=None,size_mean=None,Nclass=None,eggFreq_mu=None,eggFreq_sd=None,sizevals=None,sizeLoo=None,sizeR0=None,size_1=None,size_2=None,size_3=None,size_4=None,plasticans=None,burningen_plastic=None,timeplastic=None,plastic_signalresp=None,geneswap = None,habvals=None,sexchromo=None,age_mature=None,FXXmat_set=None,FXXmat_int=None,FXXmat_slope=None,MXYmat_set=None,MXYmat_int=None,MXYmat_slope=None,MYYmat_set=None,MYYmat_int=None,MYYmat_slope=None,FYYmat_set=None,FYYmat_int=None,FYYmat_slope=None):
 	
 	'''
 	DoUpdate()
@@ -1883,7 +2031,8 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# Grow here - middle and sample
 				# -----------------------------
 				if growans != 'N':
-					Indloc = SubpopIN[isub][iind][sourcePop] # Get location						
+					#Indloc = SubpopIN[isub][iind][sourcePop] # Get location	
+					Indloc = str(isub+1)						
 					if Indloc == 'NA':
 						print('Error in individual location DoUpdate()')
 						sys.exit(-1)											
@@ -1900,7 +2049,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# Mature, egg lay frequency here - Sample or Third Update
 				# -------------------------------------------------------
 				if gridsample != 'Middle':
-					matureInd(lastage,SubpopIN,isub,iind,sizecall,age_mature[natalP][theseclasspars],eggFreq,cdevolveans,fitvals,burningen_cdevolve,gen,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo)			
+					matureInd(lastage,SubpopIN,isub,iind,sizecall,age_mature[natalP][theseclasspars],eggFreq_mu,eggFreq_sd,cdevolveans,fitvals,burningen_cdevolve,gen,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo)			
 				
 				# -------------------------------------------------------
 				# Check Plastic signal response
@@ -1999,7 +2148,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 	# End::DoUpdate()
 	
 # ---------------------------------------------------------------------------------------------------
-def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,EHom=None):
+def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,EHom=None):
 
 	'''
 	Add in the Age 0 population.
@@ -2245,7 +2394,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 									matval = np.exp(FYYmat_int + FYYmat_slope * SubpopIN_Age0_temp[iind]['size']) / (1 + np.exp(FYYmat_int + FYYmat_slope * SubpopIN_Age0_temp[iind]['size']))
 						else:		
 							matval = np.exp(FYYmat_int + FYYmat_slope * SubpopIN_Age0_temp[iind]['size']) / (1 + np.exp(FYYmat_int + FYYmat_slope * SubpopIN_Age0_temp[iind]['size']))
-
+					pdb.set_trace()
 					# Check probability and egg laying
 					randmat = np.random.uniform()
 					if randmat < matval:

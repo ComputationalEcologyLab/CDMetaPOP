@@ -1,0 +1,2166 @@
+Changes 2.63.2023.05.04T12:58:00 (ell/cday)
+Casey testing example files for version 2.62
+0) Updated example files
+a) Created generic popvars.csv and patchvars.csv. S1, S2, and S3 are exclusively for multispecies applications
+b) Created AddMyy scenario 
+c) Removed RunVars_3species.csv, since there is a 3 species application in RunVars_multispecies.csv
+1) Bug fix for variable matemovethreshpass and matemovethresh - Preprocess line 1140
+2) Big fix associated with hermaphroditic option and same sex of both parents. Added checks to mainloop.py line 355.
+3) Bug where age/size mortality were getting overwritten with 4 values (e.g., N~N~N~N) and then later hitting conflicting checks. Removed checks so that age/size mortality get checked by sexsplit() only, but we left checks for maturation/fecundity/capture in classvars as those aren't checked by sexsplit()
+4) Bug fix for conversion of Kpop to int() in DoEmigration line 1940 and a few other places
+5) Bug fix for converting slopes and intercepts to float. Sometimes were called without being converted in the equations, so moved float conversion to inside the equations. Several places - Preprocess 1020, Offspring 313, Modules 1754. 
+6) Missed one BirthsYY not changed to BirthsMyy and Births Fyy, mortality 790
+7) Bug fix to cap egg mortality at 1 if > 1 and avoid negative offspring, Mortality 729
+8) Removed queue sections from exponential option 'N' for now
+9) Other minor bug fixes
+
+
+Changes 2.62.2023.03.07T12:58:00 (ell/cday)
+0) Begin adding in Fyy ***
+a) Set up example files: Number of sex options by Sex Ratio separated by /tilda, then the number of other field options must match, else one value given.
+b) Simplify age/size defaults for maturation; if size control == N (age driven), classvars dictates maturation of each age class, then option to set length based default in popvars. If size control == Y (length driven), equations in popvars dictates maturation for each size class, then option to set age based default in popvars. Field now 'mature_default' ***update all PopVars files in example_files
+-> One field now but add eg age6~size100 to split by either age or size. 
+-> PreProcessing updated with mat_set values
+-> Next DoUpdate - 'Initial' - cleaned up this function first call
+-> Created function call sexsplit() in Modules
+-> CDClimate updating all parameters for sex splits, including cdmatrix; biggest changes in move options, 4 sex splits for cdmatrix, threshold, A,B,C, no, output for Scale Min and Max as well as converted thresholds.
+-> Checked through AddIndividuals() ; Note to check cdclimate and classvars as well as addindividuals to see how age_Mg, etc., classvars parameters are getting updated.
+-> DoStochastic() age/size mortality back/out checked/updated for sexsplits; Added stochastic_update function to Modules to condesnse DoStochastic calls; update this function to be more general, currently for age specific vars
+-> DoMate() - Add Fyy variables
+-> DoOffspring() - Added Track_BirthsMYY and Track_BirthsFYY to be updated for PostProcessing outputs.
+***Note that no sexsplit differences for female pars where FXX and FYY might be different (egg numbers by size) 
+-> DoUpdate() second call; growInd(), still working on matureInd() - check in third call, capInd() updated
+-> DoEmigration: Updated probarray(), AddAge0s() - cdevolve answer for M and matration checks when genes added, DoOffspringVars() - sex assignment and maturation checks, CalculateDispersalMetrics() - only updated cdmatrix/pars for FXX and MXY, did not add tracking for FYY  and MYY. age_percmort_out not used here; Check MG_Class prob splits
+-> DoMortality() - Concerned about /100 and percents to probs: check files with 1 for full mortality vs. 1/100
+-> DoUpdate() third call; check carefully maturation and any /100 to prob values, like capture
+-> DoImmigration(): check age_percmort_back usage here - added error checks if leslie option, then no sex splits allowed as well as multiple class vars files; Update new sex specific movement pars (cdmatrix, thresh, etc) naming and ordering in function calls; Check class sex splits on prob movement Str, LD; GetProbArray() updated for 4 sex splits; CalculateDispersalMetrics() updated for S,Z,D options - still only tracking for FXX and MXY.
+-> Second DoMortality() nothing updated (already update with first call)
+-> GetMetrics() nothing updated
+-> CDClimate() and classvars; check classvars changing vars with 'bars' and cdclimate and then check how offspring are inheriting. ***Check how addindividuals is readinging in new classvars with cdclimate
+Check all pars in classvars to swap during cdclimate: Age Mortality Out %	Age Mortality Out StDev	Age Mortality Back %	Age Mortality Back StDev	Size Mortality Out %	Size Mortality Out StDev	Size Mortality Back %	Size Mortaltiy Back StDev	Migration	Straying	Dispersal Prob	Maturation	Fecundity Ind	Fecundity Ind StDev	Fecundity Leslie	Fecundity Leslie StDev	Capture Out Probability	Capture Back Probability
+-> PreProcess - read in classvars and only variables needed/used (eg sex ratio, distribution, sizes) -> CDClimate - read in classvars and update all vars, output in cdclimate
+-> think through cdclimate vs addindividual '|' usage for classvars (one or the other?). Also think through inheriting classvars vars. Thinking through classvars splits by ';' and hindex as well.  
+-> In PreProcess() match speciesID (splits from N0 ; for each patch) and genes and classvars (allelst and agelst)
+
+-> Added error for if ';' in N0 column, then ';' needed for genes init and classvars field - in InitializeVars()
+-> Added error in cdclimate for if N0 split by | for Add individual applications, then must have matching gene files and classvars files.
+
+-> Hitting invalid offspring list error in Immigration-ProbArray - dtype for offspring sex set to str,3; fixed
+-> sum(np.asarray(tempN0[isub].split(';'),int)) added to AddIndividuals error check
+-> (neg dims in Emigration 1037). ***Only saw once, pdb placed
+-> PostProcess() Track_ToTYYFemales,Track_BirthsFYY,Track_BreedYYFemales added to output DoOutput_AllTimePatch() and when outputans is Y  for output files for given file ***Need to add these 3 trackers to usermanual
+-> *** Note in PostProcess to add error check around genespot - hard coded.
+
+
+
+Notes for updates later
+-> Hindex on YYs: N_yy = len(np.where(hindex_arr == 0.)[0]) update for indSex call for 'YY' (cdevolveans hindex)
+
+1) Begin adding in Mspecies hybridization/mating ***
+
+2) Update grid format options (genalex, structure, etc) to pass in a global var for index to loci first spot (e.g., 20 at current version, genespot)
+3) Added pdb to begininning of PostProcess to check for length of output files matching. ***
+4) Genepop outputfile.write(str(ipop+1)+', ') for ID replaced.
+5) Converted all original percentage values to prob values ***check for /100. calls
+
+Changes 2.61.2023.02.22T14:12:00MT (ell)
+ELL5) 
+-> plastic_signalresp need to come into DoUpdate; added 
+-> plastic_behaviorresp needs to be read into Immigration and Emigration; added
+-> Aslo added to updatePlasticGenes() - note copied this function over from v1.72 into v2.60
+-> Looks like tjs added plastic_behaviorresp to GetProbArray() - have him check; just needed to be read into Immigration/Emigration and GetProbArray calls.
+-> Check AddAge0s
+***tjs update PopVars files in example_files with 2 additional fields
+-> More np.asarry() around behaviorresp value in Emigration and Immigration
+-> special mutation model added for tsj so that 0 0 can exist
+-> Updated InheritGenes() for plastic region to be able to be 0 0
+CDAY6) Brought in Mate.pyh from cday "variable female_hindex referenced before assignment. I added a fix at line 253"
+-> ccd - updated DoSexual to fix bugs/inconsistencies with assortative mate model and update user manual to match. Moved tracking of mating events inside each option for assortmatemodel.
+
+Changes 2.60.2022.02.22T5:12:024 (tjs) (cday) (ell)
+0) added to main loop the additional columns for plasticity from 1.72
+1) in main loop, added lines 717 to 804 to update plastic with cdclimate, updates lines after with appropriate subset number []
+	giving error, sent ELL for help. specifically added plastic_signalresp_pass[],plastic_behaviorresp_pass[], and in tupClimate added plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans
+	*ELL: not added to the return DoCDClimate() module, fixed in 2.61 
+2) in Modules, added new split argument for new parameters (dom, rec, codom + temp or hab)
+3) added new plasticity options to Immigration and Emmigration for the 6 options (dom, rec, codom + temp or hab)
+4) added "# Plastic Temp/Hab values - plastic_signalres_pass,plastic_behaviorres_pass" section at 1396, as well as plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans to def DoCDClimate (1079) to PreProcess based on existing 1.72 coded
+
+
+Changes 2.59.2022.01.30T11:40:00 (ell)
+0) Packans N_Keepeggs np.concatenate error, tuple needed ((a,a)). Ln 3340 to Nage_samp_ind = np.concatenate((Nage_samp_ind_age0s,np.asarray(Nage_samp_ind_adults)))
+1) Added mutation rate to cdclimate module. Updated error statements for tuple; 
+2) Check mutational models for forward/backward. Updated these and checked all. ***Need to test for more than 2 alleles 
+
+Changes 2.58.2022.01.16.T105300 (cday/ell)
+0) PreProcess ln2750 N0 to tempN0 in AddIndividuals()
+
+Changes 2.57.2022.09.27.T17:16:00 (ell)
+0) Track_AdjImmi and Track_AdjEmi needed to be len() long not len() -1; added total to index 0; updated DoImmigration, DoEmigration, made sure the extinction sections also add a spot and in PostProcess. Also #Kpop = Track_KadjImmi[gen-1][isub+1]
+to Kpop = Track_KadjImmi[gen-1][isub] in all locations of DoEMigration and vice versa for DoImmigration
+1) ccd fixed bug with HIndex for 'N' option for pop model
+
+Changes 2.56.2022.06.20.T10:59:00 (ell/cday)
+0) Changed name of output folder to 'run0batch0mc0species0'
+1) Cleaning up inputfiles on github...
+2) ***Change mature_defualtAge max age to N if not wished. Maybe in future, but 3 values here from int to string then XX~XY~YY, so if/else statements become a mess. 
+3) Cleaning up usermanual more...
+4) KAdj_Emi Tracking renamed to PNratio_Emi; same for Immi
+5) Commented out #Kadj_track[gen].insert(0,sum(Kadj_track[gen])); so just tracking
+6) KAdj Emi first gen = 0 value update to ratio (was using K)
+7) 'N' for 'migrateout_cdmat' crashing ***ELL looking into. 
+
+Changes 2.55.2022.06.02.T12:59:00 (ell/cday)
+0) Still working on converting to full functioning plasticans (discuss with TS***)
+1) CDAY updates to the selection functions:
+a) All function options can be capitalized or lowercase (but this is not changed yet in the error in mainloop lines 264 - 280)
+b) All options are separated by underscores now, only parameters are separated by colons.
+-> Examples: FHindex_linear_1:2_linear_1:2, F_linear_1:2, Hindex_linear_1:2
+c) Negative values for either fitness or mortality can cause a problem when multiplying survivals in FHindex option. Added an inefficient check here (line 522) and need to decide whether to add this check to all options.
+2) Begin adding sexans option 'H'
+a) add sexans 'H' option and error checks for sexans in mainloop
+Notes: Basically individuals are XX (female) that self with some probability that instead of selfing, they mate with XY. 
+b) If sexans H, selfing must be a probability: add a error check for this in mainloop
+c) In PreProcess() when adding individuals, initialize Sex Ratio Class Vars file XX~XY individuals at propotion. ALl sexans == Y, also do sexans H, but check through biology
+-> if sexans == Y or sexans == H, then check for egglay frequency (so this parameter can be used here for skipped spawning for example). 
+d) sexans in GetMetrics(): no sexans check, so remove this reference. 
+e) Modules() -> AddAge0s() added same as in initializing individuals# If sexans 'Y' and female, check layEggs - if sexans == 'Y' or sexans == 'H':
+f) Mate(): sexans and selfing come in. 
+f.i) for now in tracking if sexans == Y or sexans == H keep the same.
+f.ii) assume only mature 'females' == 'hermaphrodites' and mature 'males' go into mate function. (all sexans == 'Y' for maturation checks make sexans == 'H'); so far Y and H have been the same. 
+f.iii) Noting that loop is still through number of hermaphrodites on landscapes (mature) to select 'mates')
+f.iv) ***Note selfing parameter not passed into cdclimate() add this?
+f.v) Added selfing options to all working f/m-replacement options.
+
+v2.54 - TS branched and named***
+
+Changes 2.53.2022.04.20.T08:37:00 (ell/ts)
+0) Added updates for plastic answer from 1.71 from TS: TS edits
+-----line reference in old version of cdmetapop
+0) added split of plasticans to check for new input format for plastians (e.g. Temp_dom_0) line 385 CDMetaPOP.py. Checks Temp/Hab and dom/rec/codom entered correctly
+1) emigration starting at ine 124: added split to plasticans with if statement to divide column inputs into the 3 options: 1) temp/hab, 2)dominance options: dom, rec, codom, 3) user defines the percentage reduction. % for avoidance. (0.0 complete avoidance, 1.0 no avoidance / no reduction in prob array). Temp/hab and dominance options created 6 total if statements. codom reduces the % avoidance by 1/2.
+2) added similar portions from (1) to immgration script at 184
+3) added the plasticans split to CDmetaPOP_Modules (line 139:152) -> No change here except update to a float(patchHab)
+------> 
+***Don't think plasticans updates from TS fully converted still need to check with TS (e.g., see 2.54 version)
+4) MB: Note, doesn't look like popmodel N packingDeaths tracking working? Updated this.
+
+Changes 2.52.2022.03.28T11:24:00 (ell/ccd)
+0) N0 by ';' linked to ClassVars***Still Working on this
+1) Error from BF with CDClimate Line 694
+
+Changes 2.51.2022.03.23.T02:56:00 (ccd/ell)
+0) Addressed error due to extinction with stragglers of the same sex
+a) Moved Q.put for extinct species from DoEmigration to DoImmigration
+b) Extinct species now puts list of lists (by age and patch) instead of a single list of N by patch
+
+Changes 2.50.2022.03.21.T09:33:00 (ell)
+0) Add addition popmodel; initialize with a cohort that continues to live; see output of Age0s from these parents, but Age0s have 100% mortality (Tumas project - Orchards); packans == 'N_keepeggs' option now will only apply the mortality to age 1+. 
+1) ***Issue with 2 species extiction (cday working on)
+2) Error with ImplementSelection option for age cohort (Line1966); Fixed with len() check on : split for cdevolve answers; added to DoEmigration 'Out' and rest of 'Back' DoImmigration sections
+
+Changes 2.49.2022.03.04T13:13:00 (ell/cday)
+0) ***Issue with hanging runs; CDay testing versions.
+a) Check Output Tracking varaibles (compare with packing)
+b) Only logistic; Only over 5 years; 2 species only; runs all the way through, doesn't end program.
+1) Kadj_track since updates in 2.44 was not being tracked, so added Pisub/sum(Nt); CDay checking output.
+2) CDay cleaning up test files: moved CDay versions to GitHub. 
+3) logistic model issue: when population size is too small relative to age structure, not getting enough older/larger fish needed to replicate or sustain population.
+a) add a rounding check: CDay fixed here for small pop sizes. ~line3028 in DoImmigration()
+4) Divide by 0 in DoImmigration() Pisub/sum(Nt); added if/else
+5) Add Linear function to Hindex cdevolveans 
+a) added checks in mainloop
+b) checks needed for FHindex *** in mainloop and information needed in usermanual ***
+6) Added implementSelection option for age cohort, e.g., Back:0 or Back:{AGE} or Out:{AGE}
+
+Changes 2.48.2022.02.07T12:02:00 (ell/cday)
+0) Added Dispersal Prob to ClassVars
+
+Changes 2.47.2022.01.27.T14:29:00 (ell/cday)
+0) Added localDispersal option in probarray - Brenna
+1) Changed Fh to Observerd Hom - Kaeli
+
+Changes 2.46.2021.12.06.T12:42:00 (ell/cday)
+0) Updating FHindexSelection() for Kaeli's project: ***Next version need to update to observed Ho.
+
+Changes 2.45.2021.11.08.T16:30:00 (cday/ell)
+0) Replaced all truncated normals to if statements to replace values exceeding threshold
+1) Updated logistic model to revise P in P/K ratio from Miller and Ankley 2004
+2) Added error and sys exit if Leslie matrix is invalid and results in dom eigenvalue = 0
+2) Other minor updates in logistic section for clean-up
+
+Changes 2.44.2021.09.15.T11:51:00 (cday/ell)
+0) Add hack for pdb in Modules()
+1) Updated logistic module with Walker citation (removed Jensen DD)
+2) Updated logistic Nselfpop to include totals without age0s
+3) Added logistic option for FSelection - Kaeli's project
+4) Added option cdevolveans FHindexSelection - Kaeli's project - checking needed here.
+
+Changes 2.43.2021.08.02.T11:14:00 (cday/ell)
+0) DoOffspring int(round()) np.rint returing float.
+1) Updated popmodel 'N' for checks with offspring selected less than and greater than specified amount (Adriana's project).
+
+Changes 2.42.2021.07.20.T12:44:00 (cday/ell)
+0) Change to Fh in Modules; added (len(genes)/2.)
+1) Pre_Processing; truncnorm to 0,np.inf added to f_ind, f_leslie
+2) In logistic code, removed (abs) and added: Ntplus1 = np.rint(Ntplus1) # Round; Ntplus1[Ntplus1<0] = 0 # Ensure not negative
+3) Normal option in Offspring returning float value for noOffspring, added np.rint	
+
+Changes 2.41.2021.07.12.T11:15:00 (ell/cday)
+0) Adriana: Noted popmodel == 'N' Ninit < Kpop. Founding rounding issue and added fix to Emigration for adding Age0s 'offspring_patch'. 
+1) Sierra: issues with File IO in cdclimate, however we can not replicate error. Following up to get input files. ***
+2) Kaeli: Potentially add in age specific F selection option. Following up with KD on specifics. Settled: no age changes needed.
+3) Removed 1-mortality to Fh in Modules. Survival calculation now.  
+
+Changes 2.40.2021.06.21T11:37:00 (ell/cday/rs)
+0) Move EHom to function in Modules, to be calculated when needed (e.g., Immigration, Emigration, etc).
+a) Added calc_EHom at beginning of Immigration and Emigration when FSelection On. 
+
+Changes 2.39.2021.05.24T10:59:00 (ell/cday/rs)
+0) Checking mortality options (2)
+a) ifile not updated in loop change made in LN528: SubpopIN_arr_sizeclass = SubpopIN_arr[Nsize_index] to SubpopIN_arr_sizeclass = SubpopIN_keep_thistype[Nsize_index]
+b) Briefly checked through mort option 1 and looks right because of indexing in loops. 
+
+Changes 2.38.2021.04.22T08:44:00 (ell/cday)
+0) Output summary files not written when pop crashes: There are no more females or males left from species 0 after year 77. No where to locally disperse to. All individuals will die. FIX: In DoImmigration after print statement where probarray is 0 remove sys.exit(-1) and continue on with loop
+1) np.random.sample to np.random.choice -> 2 instances (Mortality)
+2) int changed to round in DoOffspring()
+3) Updates to logistic from cday; DoImmigration()
+4) Moved Offspring, Immigration, Mortality from cday
+5) Removed logistic 'back' 'out' options; only allow to happen in DoImmigration for now. 
+6) fecundity updates; Add f-leslie column to ClassVars with f-leslie stdev (this will be used in logistic now); rename to f-individual
+7) Updated logistic with f_leslie_std values now Moved to DoStochasticUpdate()
+8) age_mu in DoStochasticUpdate() now, removed age_sigma in normal draw in DoOffspring() with size N, but not in size Y 
+9) Indenting errors and Nage referenced before assigned to PackingDeathsAge[gen][Ageclass].append(Nage - len(Nage_samp_ind[-1])) so added PackingDeathsAge[gen][Ageclass].append(0) to else statement when Ageclass is not hit.
+***Add ClassVars pars to CDClimate()
+***Check rand allele assignment of 0. KD graphs. 
+
+Changes 2.37.2021.04.21T13:16:00 (cday/ell)
+0) Updates to logistic
+a) add logistic_back, logistic_out to options for popvars
+b) Mortality modules will not run if logistic (for now; we can add switches for OUT and BACK in future)
+c) Updated logistic 'back' - DoImmigration with new version of matrix model Leslie - cday checking. 
+***not in 'out'; DoEmigration()
+***still need to add sigma mortality
+
+Changes 2.36.2021.04.19T13:19:00 (ell)
+0) When logistic, added DoMortality; adding in check for this. DoMortality can only occur during
+1) Logistic function now includes 0+ in DoImmigration, removed -1 indexing in equation 
+
+Changes 2.35.2021.04.14T14:38:00 (ell)
+0) Error testing string to float X field split by bar in PatchVars, checking cdclimate
+a) For gen == 0; bar splits need to be grabbed in global scale grab in GetMetrics() (However, worried about changing climate issues with global rescale?)
+b) logistic Kpop tracking gen>0 needed and gen-1 in Track_KadjImmi
+
+Changes 2.34.2021.04.14T09:33:00 (ell)
+0) Error with string to float conversion with allele freq file line 400 PreProcess. Format issue on .csv side with double quotes, but added a replace string line to xgenes readin in case this happens again. 
+1) random to np.random instances found by cday Postprocess.py line 45
+Mortality.py line 132
+Immigration.py line 2382
+
+Changes 2.33.2021.03.26.T11:43:00 (ell)
+-1) Habitat Out / Habitat Back PatchVars value added into MSpecies code PatchVars -> DoPreProcess 
+0) Check egg laying events (DGS2020) with MG-link turned on; N Breeding females way higher in output files than mature count, ie numbers off. CHecking tracking and PatchVars pulls. Checked through tracking in DoMate(), Updated output naming to MatureFemales, MatureMales. 
+1) Added in Assortative mate modules _gene and _hindex from original cdmetapop version.
+2) MG_link 'mature' check to 'layeggs' all combos added in this spot now. 
+3) if gen > 0 and implementcomp == 'Back': and implementcomp == 'Out' added to competition sections
+
+Changes 2.32.2021.03.16.T14:18:00 (ell)
+0) Continue adding in FSelection option.
+a) Continue with GetMetrics calculation to return sum(1-2piqi)...Return EHom from GetMetrics()
+b) Read EHom into Emigration and Immigatration and AddAge0s; DoFSelection updated. 
+
+Changes 2.31.2021.03.15.T16:06:00 (ell)
+0) Continue adding in MLoci selection module from CDPOP
+a) Add in 'betaFile_selection' field from PopVars to code, pass through CDClimate and out as 'betas_selection'
+b) Read in extra fields in PatchVars for XVars, add length checks in PreProcessing, pass out of PreProcessing xvars_betas_pass and into CDClimate() and out as 'xvars_betas'
+c) betas vars and xvars read into GetMetrics() to get maxfit and minfit for scaling. maxfit, minfit adding to tracking.
+d) Need to read in betas and file into PreProcessing, these values needed for the first GetMetrics(). 
+e) betas, xvars, and maxfit, minfit into GetMetrics to calculate one time global max/min scaling parameters into first GetMetrics()
+f) Adding DOMLocuSelection() to Emigration() and Immigration() and AddAge0s()
+g) DoMLocusSelection() verified and working. Sent to BF for SWWF project. 
+
+Changes 2.30.2021.03.15.T09:27:00 (ell/cday)
+0) Begin porting Mloci selection module from CDPOP. 
+a) Input parameters added: 
+i) betafiles folder in data folder
+ii) 'betaFile_selection' field in PopVars: test files added ***not added to code
+iii) cdevolveans now can be form 'M_X3_L3_A2_ModelX' -> Have to change to 'P_X3_L3_A2_ModelX' since 'M' options in cdevolveans already.
+iv) PatchVars file: if X3, then at end of patchvars file 3 columns added for these variables: test files added ***not added to code
+
+1) Checking through implementation of Out/Back competition: Updated Tracking sections for 'Out' to grab Immi gen-1. 
+a) CDay added Back to DoImmigration() rest of 'packing' options; added Out to DoEmigration rest of 'packing' options; leave 'logistic' as only 'Back' option - no option needed for logistic. 
+
+2) Continue adding FSelection option. 
+a) Check GetMetrics Calculations and return sum(1-2piqi) ***Not quite complete and still working on this. 
+
+Changes 2.29.2021.03.08T12:29:00 (ell/cday)
+0) start competition not working on first gen due to < sign. Checked through other gen >= burnin times.
+1) ***Add in N_Initial tacking updates
+2) Add Out:Back option for competition
+3) Add run0batch0mcrun0species0 folder naming to allow for multiple runs (rows in RunVars) and multiple batches (rows in PopVars)
+4) ***Add / Update logging for start of runs/batches/MCs
+5) Add 'implementcomp' to RunVars for Out, Back and Both. 
+
+Changes 2.28.2021.03.01T11:13:00 (ell/cday)
+0) Add in CDEVOLVE 'F' for Keller et al Inbreeding. Then DoFSelection() in DoEmigration
+a) ***Calculate E(H) PLINK in GetMetrics - Return for Emigration() and DoFSelection() FHj calculation
+
+Changes 2.27.2021.02.22T12:28:00 (ell/cday)
+0) Add Mother/Father ID for Pedigree calculation
+a) updated dtype and recd in PreProcessing, Emigration, Immigration, Offspring
+b) Added 2 columns MID and FID to ind files; update usermanual ***
+c) ***Might not need this long of str characters, consider chopping
+
+Changes v2.26.2021.02.19T11:54:00 (ell/cday)
+0) str to int compare: changed to int(tempN0[isub]) > 0 and natal[isub]
+1) str to int compare: int(K[isub]) > 0: change
+2) truncnorm array back to scalar change due to scipy 1.5.0 version needs to be 1.5.2
+3) in .py: add single species logoutput name
+4) multiprocessing.current_process().name == "MainProcess" added to multiprocessing.current_process().name == "S0" 
+
+Changes v2.25.2021.02.15T10:03:00 (ell/cday)
+0) Working on Python 3, 2 species errors...
+1) File IO errors with logMsg; pass in stringname of logfile instead of object
+2) Verified with 2 and 3 species. 
+3) ***Full testing still needed on suite of parameters for both Python 3 and multi-species. 
+
+Changes v2.24.2021.02.12T11:57:00 (ell/cday)
+0) Hit round() error due to trunc.rvs returning array([]); added [0] to end of these calls (31 in PreProcess and 1 in Offspring)
+1) isinstance with int changed to np.int32; ultimately import numbers to numbers.Integral
+2) Single species verified. 
+3) Testing 2 species...hit pickle and EOF error.
+
+Changes v2.23.2021.01.18T10:28:00 (ell/cday)
+0) Checking early sys.exit(-1) error checking; need way to terminate os.kill parent id with given errors (original sys.exit() statements. ***
+1) start converting code to python 3 ***
+a) print statements converted to print()
+b) Removed Try/Except import libraries
+c) xrange -> range()
+d) rand() to np.random.uniform()
+e) removing random replacing with np.random; careful with sample and checking with and without replacements.
+f) rand() replaced with np.random.uniform(); randint() to np.random.randint()
+
+Changes v2.22.2021.01.15T00:00:00MDT (cday)
+0) Fixing extinction
+a) When species is extinct, no longer write out ind files
+b) When all species extinct, print message and exit program
+c) Added queue variable extinctQ to track extinctions of each species
+d) Added queue variable global_extinctq to identify when all species are extinct
+1) Fixing logging and printing issues
+2) Edited to run for one species
+a) Ignore queues
+b) Ignore K adjustment
+c) Added these adjustments to all packing options
+
+Changes v2.21.2020.12.28T00:00:00MDT (ell/cday)
+0) Fixing some errors. 
+a) startcomp -> int() in CDmetaPOP.py
+b) For tempspeciesSum added isub index
+c) ispecNo to ispcNo change in Emigration()
+
+1) Move competition code to other density dependent models in DoEmigration()
+a) packing_1 updated in DoEmigration and DoImmigration()
+b) 'N' and 'N_keepeggs' updates in DoEmigration() and DoImmigration()
+c) checked logistic and updated DoEmgiration: Note logistic is the only one that has competition in DoImmigration()
+
+Changes v2.20.2020.12.28T00:00:00MST (ell/cday)
+0) Changed AddAge0s() burningen was set to 0, updated to gen for cdevolveans 'M' checks. (From original cdmetapop code)
+1) TodoList consolidated
+a) Continue validation checking (cday) ***
+b) Need to move code to all packans locations' wait for generalize code to move blocks
+c) Add more than 1 species/generalize
+d) Port any added code to other cdmetapop version here: 
+i) HabitatOut/HabitatBack PatchVars columns and corresponding code for plastic region is not in MSpecies versions ***
+ii) DGS2020 group Assortative mate options _gene and _hindex note added
+e) Need to check code for 1-species ***
+
+2) Begin working on generalizing 2 species
+a) Updated run/data files for 3species example. Added compcoef separated by ; in patchvars for now (consider matrix option).
+b) In CDmetaPOP.py added loop for Process, start, join
+c) Create XQ nSpecies x nSpecies array, removed Put/Get calls in mainloop...testing***
+d) comp_coef split from patchvars, happens on the fly with splits in packing loops
+e) added loops and sums for nspecies  - 1 in Kpop adjustment
+f) Removed references to get() and put in DoImmigration()
+g) Updated logistic in DoImmigration (***still concern that this is not matching density depend mort in DoEmigration module, but age 1+ maybe OK). 
+h) 3 species verified, pass off to Cday for more testing. 
+
+Changes v2.19.2020.12.14T00:00:00MST (ell/cday)
+0) Bug in DoEmigration: Added 'S' and 'Z' to check for migrants. 
+1) ***Note that DGS2020 group Assortative mate options _gene and _hindex note added
+
+Changes v2.18.2020.12.7T11:04:00MST (cday/ell)
+0) Update MSpecies code to reflect changes in other version of CDMetapop 'MG' cdevolveans updates/bug fixes. Age 0 maturation updated and burnin cdevolve added to MG section.
+1) Environmental competition effect -> added comp_coef to PatchVars now. Worried about generalizing this to mspecies and using matrix, may have to use deliminators. 
+2) HabitatOut/HabitatBack PatchVars columns and corresponding code for plastic region is not in MSpecies versions ***
+
+Changes v2.17.2020.11.20T11:44:00MST (cday/ell)
+0) Continue updating mSpecies model
+a) add burn in time parameter for competition; to allow for starting competition after demographics settle
+i) Add parameter 'startcomp' to RunVars
+
+Changes v2.16.2020.11.20T10:46:00MST (ell/cday)
+0) Continue updating mSpecies model
+a) Update competition so that it happens once a time step DoEmigration(); carry adjusted K to DoImmigration(), pushed to cday for checking. 
+
+Changes v2.15.2020.11.13T10:27:00MST (ell/cdy)
+0) Continue updating mSpecies model
+a) CDay issues with extinction too quickly; could be because mortality applied twice vs comparing to theorectical annual time step; adding code to Logistic model which is applied once a year for testing. ***cday looking in logistic equation a bit more Jensen 1995. Added to logistic, first pass, checking needed. 
+
+Changes v2.14.2020.11.09T11:34:00MST (ell/cday)
+0) Continue updating mSpecies coded
+a) Added error check for equal patches for both species
+b) Went through all modules, removed most print statements; added to log and checked logging, added warnings to log.
+
+Changes v2.13.2020.11.09T11:04:00MST (ell/cday)
+0) Continue updating mSpecies coded
+a) working on extinction of 1 or more species
+i) checking on single species output files, all output working.
+ii) Test with 2 species -> working!
+List of TODO:
+-) Continue validation checking (cday) ***
+-) Need to move code to all packans locations' wait for generalize code to move blocks *** 
+-) Add more than 1 species/generalize *** 
+
+Changes v2.12.2020.10.23T10:08:00MDT (ell/cday)
+0) Continue updating multi-species code
+a) Working on extinction for 1 species
+i) Added to packing Kpop <= 0 check to make sure if Kpop is negative it will not continue into the packing algorithm section.
+ii) Reordered summary output files for chronologic order (Kadj emi and immi moved and Npop_addage0s moved in Emi sequence).
+iii) Stop the breaks for when a species goes extinct at a time, and continue through time loop until end with 0 pop. 
+iv) ***Step through each module, if extinct, then skip. 
+-> first pass is to output 0s if species 1 or 2 go extinct.
+-> Added all tracking variables, looping through 1 species full time now, writing out 0s.
+-> Tested with 2 species and gets hung up FIXED
+-> Also not output summary files FIXED
+
+Changes v2.11.2020.10.16T10:26:00MDT (ell/cday) 
+0) Continue updated multi-species code
+a) Create block for GetQ to not grab anything unless Q is nonempty
+b) Remove while loop check in GetQ
+to do list:
+c) Continue validation checking (cday) ***
+d) Need to move code to all packans locations ***
+e) Add checks for PatchVars files to make sure using same number of patches 
+f) Handling extinction for 1 species 
+g) Add more than 1 species/generalize ***
+h) Added Tracking variables: K adjusted for Emi and Immi 
+
+Changes v2.10.2020.10.09T10:47:00MDT (ell/cday)
+0)Continue adding in multi-species functions to parallel code
+a) Add Put/Get or passing between Queues in DoEmigration/DoImmigration
+b) Start validation checking ***
+c) Start adding more than 2 species ***
+
+Changes v2.09.2020.10.02T10:30:00MDT (ell/cday)
+0) continue setting up parallel in cdmetapop
+a) use popvarsfile for each species file needed.
+	i) talked about combining species into POpVars file - each row is a species
+b) Created _mainloop function/module, 
+c) Create 2 log files, pass in to Process args
+d) Added call to Process for 2 species only right now
+	i) Make this a loop for more than 1 species ***
+e) Created batch0mcrun0species0 folders
+f) Tested, seems to be working 
+g) Next, add Put/Get for N0 and N1 calls or passing info between Queues. ***
+
+
+Changes v2.08.2020.09.11T10:10:00MDT (ell/cday)
+0) Cday continue test script and moving into cdmetapop
+a) Runvars tells us the number of species; read in, and create Qs after this
+b) From Runvars, created list XQs, filled with Queue() object length of popvarsfile
+c) Next create 
+
+Changes v2.07.2020.08.31T11:20:00MDT (ell/cday)
+0) CDay tested parallel_test.py -> implement first 
+
+Changes v2.06.2020.07.24T10:33:00MDT (ell/cday)
+0) Continue adding multiprocessing/queue in CDmetaPop.py
+a) Convert Main cdmetapop to def to set up multiple processors.
+1) Start working in Python 3 and any conversions.
+
+Changes v2.05.2020.06.26T10:29:00MST (ell/cday/rks)
+0) CDay tests on egg_delay and initial competition code looks good!
+1) Begin adding second species. 
+1a) import multiprocessing/Queue packages; read in RunVars and store pars. 
+1b) Now ibatch will be controlled with RunVars; only one row in PopVars (***update this in usermanual)
+1c) ***Next add read in PopVars for each species/split noproc -> run cpu for each PopVars and idle at DoEmigration/DoImmigation swapping 'N' or 'Nage'? 
+
+Changes v2.04.2020.06.19T10:10:00MST (ell/cday/rks)
+0) CDay testing; BT, EBT models check out, but WCT gets an error in DoEmigration indexing noOffspring (fixed: Bearpairs_temp not deleted with egg mortality)
+1) Added comp_cof variable to PopVars (one for each species): competition coefficient
+2) Added in packing a dummy variable for second species to adjust Kpop for first species. Discussion on N2 for second species and what Ns to pull. First pass/version will follow flow of packing algorithm and pull in N2 (eggs + 1+) avoiding artificially high value of N2? 
+3) Next: CDay tests 2.04 single species comp_coef, then onto adding second species in parallel. 
+4) ***Looking into flatten()ing gene array in InheritGenes(). 
+
+Changes v2.03.2020.05.22T10:10:00MST (ell/cday/rks)
+0) Continue to add in field 'egg_delay'
+a) ***Expand noOffspring to nD-array appending offspring list to index spot of egg_delay. Reference this index spot for packing/AddAge0s in DoEmigration for egg_delay.
+b) Create noOffspring/Bearpairs initial 2D array/list in PreProcess/tracking section, 
+c) Append to in DoMate/DoOffpsring if egg delay == 1. If egg delay == 0, use index spot.
+d) Then use this index spot according to egg_delay for AddAge0s/DoEmigration module.
+d) Delete or overwrite (?) after DoEmigration module 
+
+Changes v2.02.2020.05.18T10:43:00MST (ell/cday/rks)
+0) First pass: Remove option 'N' in DoEmigration() ***Update usermanual to reflect this
+1) ***Add option for movement rules to skip and check other combinations of movement options (stray skip with local dispersal, etc.)
+2) Start to add in field 'egg_delay'
+
+Changes v2.01.2020.05.18T10:32:00MST (ell/cday/rks)
+0) Move/swap DoEmigration/DoImmigration packing algorithms; testing.
+-> Mismatch in tracking numbers; checking all pars read into Immigration/Emigration, deleting unused and moving/swapping Immi/Emi needed
+-> Tracking for 3 Immi packing Ns moved to Emi (SelectionDeaths_age0s moved to Emi) ***Need to update Usermanual
+-> Discuss when Emigration is "N" now, this causes error with tracking numbers currently N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s, but not sure this is what we want in logic for adding Age0s? 
+
+Changes v2.00.2020.05.15T13:26:00MST (ell/cday)
+0) Begin initial work/commit on multispecies.
+1) Create test files/move to github (cday)
+
+
+CDMetaPOP_MultiSpecies BRANCH
+# -----------------------------------------------------------------------------------------------------
+
+Changes v1.52.2020.03.27T12:31:00MST (ell)
+0) If plasticans is N then make sure InheritGenes() ignores this section.
+1) Updating cdevolveans section 'MG' and PatchVars to include '~' sex delimitor for DGS2020 group. Updated PreProcess section to include 3 sex option in FitVals location. fitvals updated, splits for ';' and equation parameters must happen in modules now.
+2) Move parameter splits ';' to ':' splits. Now use only patch splits as ';' and and function splits as ':'. Only one instance that I left ';' and that is the Loo for temperature_hindex, since fitvals in option cdevolveans use ':' and need to have a another split for ';'
+3) Still will exit out if more than 2 alleles for M options, but not so with G options. G options use the PopVars files. M options could do this also. 
+4) Updated AddAge0s section for cdevolveans M option. 
+
+Changes v1.51.2020.03.25T14:36:00MST (ell)
+0) Added a plasticans check in Modules for the upsatePlasticGenes() function. 
+1) Check 'temperature_hindex' growth module. Checked out fine, but matched equations with 'temperature', that is, moved /365 around. 
+
+Changes v1.50.2020.03.19T08:58:00MST (ell/TS)
+0) More changes/updates to plastic processes
+a) Initialize individuals with only 1's or (1,1), (0,1), (1,0) -> this will allow for a signal to '2' to be a tracking mechanism. In updatePlasticGenes() in first year only, remove a '2', added check statement.
+b) Then in IheritGenes() offspring do not inherit the 'tracking' signal response; so move the plastic region out and do a different check for this inheritance, since individuals may not necessarily have 2 alleles. Essentially offspring inherit as normal, but check plastic region for a '2' and reset it to 1 at this time.
+
+Changes v1.49.2020.03.17T17:21:00MST (ell/Travis Seaborn)
+0) Changed updatePlasticGenes to initialize randomly (before intizlizing first year plastic region with 0s).
+1) Changed updatePlasticGenes if in temperature threshold and if allele is 1, then make 2. This will cause a temporary tracking in the plastic region unless ind is already a 2. e.g., if (1,1) and in temp >= tempthreshold, signal will be (2,2) if (2,0) or (0,2) then it stays as is. 
+2) Then when in movement modules, if ind has a 2 in either allele spot, apply behavior response. 
+3) Remove InheritGenes() plastic region section; now will work with original code for (2,2) parents. 
+
+Changes 1.48.2020.03.16T09:00:00MST (ell)
+0) Error in updatePlasticGenes; skipping initializing the alleles to 0 in first generation. 
+1) Fixed updatePlasticGenes to intialize 0s on first gen only (before updating every gen).
+
+Changes 1.47.2020.03.10T008:00:00MST (ell)
+0) Error checking plastic locus region (T. Seaborn)
+a) Strange pattern when stray rate < 1 and error given: checking functions and this error. FIXED, answer 'immigrator' has length 1 probarray, which was causing error in new segment of plastic loci region code check. Added special check.
+
+Changes 1.46.2020.02.25T14:04:00MDT (ell)
+0) Updating the Plastic locus region (Travis Seaborn)
+a) Added 3 new fields to PopVars; plasticgeneans, startPlasticgene, implementPlasticgene
+b) ** Need to update user manual
+c) Changed burningen to burningen_cdevolve
+d) Added 3 plastic vars to DoUpdate()
+e) If cdevolvans, first region will be selection loci, followed by plastic region.
+f) In DoUpdate() question on where to put plastic signal; before grow and age and mature section or after?
+g) **plastic region assumes only 1 locus for now; make general later
+h) **selection and plastic region assumes 2 alleles only; make general later
+i) If first generation, set genes epigenetic region to 0 or turned off, unless geneswap not started
+j) ** Any tracking needed?
+k) Moved to function updatePlasticGenes()
+l) Updated GetProbArray to look for plastic region and consider cdevolveans. 
+m) Error now in InheritGenes() when alleles are 0 at locus spot. Ln 656. If parent has 0,0 and parent has 1,1 or other allele copy, how do we handle mendel inheritance here? Assume, randomly inherit, e.g., (0,1). 
+-> Add plasloci_index/cdevolvans index region checks to InheritGenes()
+-> Add separate section in InheritGenes to check for inheritance for plastic region, since different checks.
+** Sending to Travis for testing ** 
+
+Changes 1.45.2020.02.14T08:58 (ell)
+0) Begin adding in 'plastic' allele tied to temperature threshold in patch. 
+If allele and if temp > threshold; do not move to those patches
+a) Added 'Plastic_temp;thresholdval' option to cdevolveans
+
+Changes v1.44.2020.02.12T11:55:00MDT (ell/cday/Adriana L)
+1) On species community:
+i) Added if no males in patch with that species, continue and move to next patch.
+
+Changes v1.43.2020.01.29T11:46:00MDT (ell/cday Adriana L)
+0) Begin adding 'community' option for the assortative mating module for Adriana's project.
+a) Added option '6' to Assortative mating module and user manual description.
+b) In DoPreProcessing() update checks for natalgrounds = 0, now N0 is a '0' passed into next functions for initialization.
+c) Add 'species' to dtype SubpopIN tracking
+d) Updated AddIndividuals() to match DoPreProcessing dtypes
+e) Add assortative mating if statement in Mate module
+f) Added 'species' to recd in Emigration, Immigration
+g) Added 'species' to offdtype in Immigration, for OffspringVars 
+h) Add to grid file a column for species ID, remove from string ID
+
+Changes v1.42.2019.10.17T10:40:00MDT (ell/cday)
+0) Added new FIDIMO option for cost/effictive distance movement to probability conversion.
+f(x) = p x 1/sqrt(2*pi*sigstat^2) x exp(-(x-mu)^2/2*sigstat^2) + (1-p) x 1/sqrt(2*pi*sigmob^2) x exp(-(x-mu)^2/2*sigmob^2)
+where mu = 0
+then 3 parameters, p, sigma_stat, sigma_mob
+
+
+Changes v1.41.2019.08.17T13:04:00MDT(ell)
+0) Begin updating code for flexible allele change. From CDPOP changes:
+-----------------------------------------------------------------------
+1) Add flexible allele / locus option
+a) intgenesans added option for 'file_var'.
+b) allele then has each allele per locus split by ';'
+c) added intgenesans option for 'random_var' then allele split by ';'
+d) added error checks
+e) Updated GetMetrics() to account for flexible alleles. 
+f) Updated InheritGenes()
+g) Now checking rest of code. For ease, flatten genes vector and stay consistent. Checked many combinations, sending code to beta testers.
+-------------------------------------------------------------------------- 
+a) For cdmetapop, the options include 
+i)specifying a allelefrequency file that has variable loci/allele combinations (PatchVars file), then specifying in PopVars the number of alleles per each locus split by ; 
+ii) specifying random_var in the PatchVars file and the in the PopVars file the number of alleles per each locus split by ;
+b) PreProcessing updated to include flattened gene array in class 'genes'. Also switched dtype for 'genes' to 'i' - np.array
+c) GetMetrics module next: updated with flattened gene array.
+d) DoUpdate module updated: growth/maturation cdevolve options index to flattened array updated and DoOutput. 
+e) AddIndividuals - checking - updated recd dtype for flattened array (gene array now uses np array, which is different from cdpop str-list).
+f) DoStochastic/CDClimate Update - checking; no updates here.
+g) DoMate - checking; update with dtype females/males class - changed dtype to np array (from object). 
+h) DoOffspring - checking; no updates here.
+i) Second DoUpDate(); checked
+j) DoEmigration() - checking; Do1LocusSelection and Do2LocusSelection Models updated in Modules()
+k) DoMortality; checking - no updates here.
+l) DoImmigration() - checking; Do1Locus and DO2Locus updates here. No updates in OffspringVars. 
+-> Checking AddAge0s() and InheritGenes(): 
+- In DoImmigration()
+-AddAge0s() -> InheritGenes() -> checking; update 'possiblealleles' array in this module. Do1Locus, Do2Locus Selection calls updated for AddAge0s cdevolveans. recd values updated for genes, so str not recd and flattened array used instead. 
+-DoMortality() -> checking; no genes called here, no updates.
+-Second GetMetrics() - checks fine. 
+- PostProcessing() - checks fine.
+----------------------------------------------------------------------
+
+Changes v1.40.2019.05.24T08:53:00MDT (cday/ell)
+0) Minor slight negative values when Pareto conversion back to cost from prob for tracking numbers; added fix max(Fxycdmatrix[isub]): for both male and female in Immigration and Emigration module.
+1) Fixed FutureWarning in cdmatrix_dispLocal != 'N' not isinstance(cdmatrix_dispLocal,str): 
+2) Added a tracking number for total Myy and Mxy progeny each year. 
+-------------------------------------------------------------------------------------------------------
+
+Changes v1.39.2019.05.21T12:40:00MDT (ell/cday)
+0) Updated Migrant check in DoImmigration()
+1) Added deepcopy to PreProcess when all of the movement options are the same.
+
+Changes 1.38.2019.05.18T10:09:00MDT (ell/cday)
+0) Added another CalculateDispersalMetrics() to DoImmigration for any 'D' movers.
+1) updated 'NatalPop', 'EmiPop', 'ImmiPop' assignments for each case in Immigration to account for intermediate case in order to calculate cdist movement for local dispersal. 
+2) sourcePop in Main now will always use 'NatalPop' designation.
+3) CalculateDispersalMetrics back to 3 for 'S', 'Z', and 'D'. 'I' removed and assumed the calculation is done already with the DoEmigration module
+4) Added tracking numbers for RDispersers and IDispersers.
+5) Updated user manual.
+
+Changes v1.37.2019.05.17T08:30:00MDT (cday/ell)
+0) Divide by 0 error when K=0 and recent N>0 addition. Added a check.
+1) When DoEmigration skipped, added recent tracking numbers (YY, Wild Selection deaths).
+2) Checking popmodel N (Caroline Sartor); working fine. Removed prob = N/K in InitializeID() which will exactly intiliaze with N now. 
+3) In CalculateDispersalMetrics() for DoImmigration, remove 'R' skip to capture RD movers now.
+
+Changes v1.36.2019.05.13T13:31:00MDT (cday)
+0) ValueError check for Inf in packing.
+1) Growth updated to:
+L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))
+
+CHanges v1.35.2019.05.09T13:28:00MDT (ell/cday)
+0) Updated DoImmigration() - only let Migrants Stray first (not residents). 
+
+Changes v1.34.2019.04.21T11:28:00MDT (ell/cday)
+0) Adding local dispersal movement option within DoImmigration().
+a) Add another surface, function number, 3 pars, and threshold option to PopVars file
+b) Changed name of dispOut dispBack to migrateOut, migrateBack. Stray stays the same. Now new option is 'disperse'. 
+c) Updated usermanual, figures, flow diagrams, etc. ***check figures/flow diagrams
+d) Give the option for 'N' to skip. 
+
+1) N0 allowed to be above K upon initialization
+2) Swapped these in growth equations:
+#L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+L_inc_age = L_inc * np.exp((Indage+1) * float(sizeR0))
+3) In DoImmigration() If Strayer, updated 'NatalPop' to straypop (was originalpop). Likewise with new LocalDispersal, if dispersal happens, then this 'NatalPop' field gets updated to the final settled location. 
+
+4) Added CDays packing option to next size class. 
+
+16Apr2019 - Version to CDay/unicorn-FTP CDMetapop site.
+
+Changes v1.33.2019.04.16T16:22:00MDT (ell/cday)
+0) Updated packing: included missing age classes.
+
+15Apr2019 - Version to CDay/unicorn-FTP CDMetaPop site.
+
+Changes v1.32.2019.04.15T13:43:00MDT (ell/cday)
+0) Updated packing: rescaled Kij_proportion to sum to 1.
+
+03Apr2019 - Version to CDay/unicorn-FTP CDMetaPop site.
+
+Changes v1.31.2019.04.01T13:34:00MDT (ell/cday)
+0) Moving maturation and lay egg from 'Middle' or second DoUpdate() to 'Sample' or third DoUpdate().
+
+11Jan2019 - Version to CDay/unicorn-FTP CDMetaPop site.
+
+Changes v1.30.2019.01.11T09:34:00MDT (ell/cday)
+0) Continue adding packing/hindex cdevolve option to Immigration
+a) added option for 'implementSelection' now to include packing_out, packing_back, and packing_both? 
+
+Changes v1.29.2018.11.09T08:32:00MDT (ell/cday)
+0) Add packing/hindex cdevolve option to both Emigration and Immigration
+1) Added 4 tracking numbers for Emigration and Immigration - selection deaths for YY and wildtypes within the packing.  
+2) Updated vonB error with newsize in DoUpdate() 'Sample' vs 'N'
+
+Changes v1.28.2018.10.25T10:32:00MST (ell/cday/zr)
+0) Continue to update vonB option with grow days.
+
+Changes v1.27.2018.10.20T11:52:00MST (ell/cday/zr)
+0) updated 'mother' option for YY work bugs fixed.
+1) Updated 'vonB' option (zr): added t0. 
+a) if newsize < 0, then newsize = 0. instead of sys.exit(-1)
+b) added grow day adjustment to vonB newsize = float(sizeLoo) * (1. - np.exp(-K * ((Indage+1+grow) - t0)))
+c) +1 in temperature growth ? ? 
+
+Changes v1.26.2018.09.19T11:47:00MST (ell/cday)
+0) Added 'mother' option to inherit class vars option
+
+Changes v1.25.2018.09.18T08:13:00MST (ell/cday)
+0) Updated Assortative mate module. See user manual and Assortative mate description. 
+1) *** Look at N0 and bars | : if multiple vs single
+2) *** summary tracking N F + N M != N Initial ?
+
+Changes v1.24.2018.0831T1248MST (ell/cday)
+0) Error statement in DoOffspringVars() for assigning sex when integer placed. Commented out error.
+1) Added Option 4a and 4b for Assortative mating. 
+Option 4a is the original and 4b is now:
+If female HIndex > 0 #This will be all females in our case
+             mate with any male according to c factor (delta = 1) except where male HIndex = 0.0 (delta = 0).
+If female HIndex = 0 #Impossible in our case
+             mate with males where HIndex = 0 according to c factor (delta = 1). All other males (delta = 0)
+
+Committed to GITHUB - August 30, 2018. 
+
+27August2018 - Version to CDay/unicorn-Ftp CDMetaPop site
+
+Changes v1.23.2018.0827T15:34:00MST (ell/cday)
+0) YY additions and sex ratio not working with v1.22 - error in DoMate and tracking YY and males; fixed.
+
+21August2018 - Version to CDay/unicorn-Ftp CDMetaPop site.
+
+Changes v1.22.2018.0816T12:20MST (ell/cday)
+0) Checking through packing algorithm
+i) size_mean_middles and size_bin split up between min and max reverted back to pre v1.08 and post v1.18. No changes here.
+ii) classcount = len(np.where(countages[0]<=Ageclass)[0]) - this counts the remaining classes and reallocates K propotionately. Consider updating to Ageclass + 1, but leaving as is. 
+iii) OK for now.
+1) Adding tracking numbers for YYs. 
+-N_YYs added calculated in DoMate module - other Ns calculated in GetMetrics, therefore initially and then at end of loop after mortalities occur, this N will capture YYs added. 
+-Moved Tracking for TOtal and Breed males/females/YYs to DoMate() module
+
+13August2018 - Version to CDay/unicorn-ftp CDMetaPop site
+
+Changes v1.21.2018.0808T08:07:00MST (ell/cday)
+0) Fixed line 598 in Mortality module MortAge to MortSize.
+1) Continue updating logistic model: 
+a) added logistic_back and logistic_out...in progress.
+ - logistic only applied when OUT; DoMortality() can then operate only when BACK. 
+ - ACTUAL Age is used for this option only. - So Age-percmort when OUT. Removing logistic_out and logistic_back options.
+ - Tracking PopulationAge uses actual age here too...careful throughout. Check POpulationAge count during DoImmigation()
+ - Added timing check to DoMortality() - so when logistic option specified, then only apply Mortality density independent mortality when 'BACK'
+ - Careful with tracking parameters here for the summary all time class fields when sizeans == 'Y'. Added 'packans' to GetMetrics() and will revert to actual age when logistic model specified. 
+
+02August2018 - Version to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.20.20180802T09:11:00MST (ell/cday)
+-1) Changing sex ratio option ':' split to a tilda split. Colon causes formatting issues with Excel, etc. 
+0) Continue checking RAM issue with new mortality/sex ratio option modifications:
+a) Narrowed down for when MortBack == 0 in PatchVars. Checking this...
+
+26July2018 - Version to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.19.20180716T15:16:00MST (ell)
+0) Continue checking RAM issue 
+a) DoMortality() 
+- all dieing off under certain conditions.
+- When MortPatch == 'N', skipped - fixed.
+
+1) Updated structure format
+
+Changes v1.18.20180716T10:56:00MST (ell)
+0) Last update increased RAM, checking this issue.
+a) GetMetrics() 
+- size_bin with multiple class var files: update to assume binning based on first classvars given.
+- condensed GetMetrics to run faster.
+
+13July2018 - Verstion to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.17.20180613T13:38:00MST (ell)
+0) Pareto convert back to cdval - B added. 
+1) WrightFisher option misspelled in DoOffspring module - fixed. 
+2) Add error statement for unequal sex ratio of eggs and if YY....Female_EggPercent options for [0-100] and WrightFisher to include 'YY' introductions. 'YY' introductions should only use 'N' for Femalepercent_Egg option.
+3) Checking logistic function. Adding logistic_back and logistic_out and logistic_both options. ***In progress
+
+4) Update any sex specific parameters to be separated by a ':' now. 
+i) InitializeAge() checked and updated in DoPreProcess()
+ii) age_percmort - check in logistic module in DoEmigration() and DoImmigration() ***
+iii) Checking DoUpdate() - Middle, growInd() and ageInd() updated. Created capInd() function. 
+iv) DoEmigration() updated for ProbAge (Migration specific class and sex values). Note, logistic model still not updated. 
+v) DoMortality() updated ConstantMortality_Add(), ConstantMortality_Multiply() .... 
+Note does not split up counts/tracking numbers based on sex mortality; will need to add this ***
+vi) Checking DoImmigration() - updated for ProbAge (Stray specific class and sex values). Note, logistic model still not updated.
+vii) Checking DoOffspring() - Note, if cdevolveans is M, then need to update AddAge0s maturation values. 
+
+(a) In ClassVars - 
+i) added colon to all columns except first 4 for age no, size, and distribution
+Note: ClassVars pars will not change with cdclimate module. ClassVars when used with cdclimate module is used to introduce new size/age distributions or sex ratio options. Continue to work on this transition. 
+	
+b) In PopVars
+i) mature_length_set colapsed to N:N or N:N:N or values for each sex.
+ii) mature_eqn_slope and mature_eqn_int collapses to 1, 2, or 3 values for each sex option.
+iii) default age of maturity can have 1,2, or 3 values for each sex option now. 
+iv) Considered Egg mortality *** Code is tricky here for individual sex of eggs.
+v) Condensed dispmoveout and dispmoveback for Female and Male. Have not added YY movement option, but consider ***
+
+c) In PatchVars
+i) When cdevolveans is 'M' this still has ; but updated to consider 6 values here and for YY option.
+ii) when cdevolvans is 'G', consider splitting for sex ratios here . ***
+iii) 5 growth parameters can no consider 3 sex options with :  
+
+13June2018 - Version to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.16.20180612T11:23:00MST (ell)
+0) Checking mate movement with asymmetrical movement...grab FROM for mate movement (probarray = cdmat[:,femalepop])
+
+04June2018 - Version to CDay/unicorn-ftp CDMetaPop site.
+
+Changes v1.152018060112:28:00MST (ell)
+0) Updated subpopmortperc to include a mortality matrix. Columns are TO, but careful of references to array. subpopmort_mat[row][col]
+1) Added Pareto option (a*(b^a))/(cost distance^(a+1)). Note scaling parameter b added here. 
+2) Continued to fix additional FutureWarning string comparisons. 
+
+31May2018 - Version to CDay/unicorn-ftp CDMetaPop site. 
+
+Changes v1.14.2018052207:03:00PST (ell)
+0) Continue to update FutureWarning error with Bearpairs check of -9999.
+1) Offspring mismatch with Bearpairs - only error in linux. Changed np.int32 to int for isinstance calls.
+2) Added Hindex_Step function with 3 parameters for if Hindex <= a, then fitness = b, else fitness = c. (CDay YY project)
+3) Adding option to skip DoEmigration() module. Enter in 'N' for the Dispout_cdmat.
+4) Added error check for if 'N' in Dispout_cdmat and selection is on with 'Out' option, then selection is not implemented/skipped.  
+
+18May2018 - Version to CDay
+
+Changes v1.13.2018042611:22:00MST (ell)
+0) add an error check is XY file does not match cost mat dimensions. ***Still needs to be added. 
+1) Fixed FutureWarning errors around Bearpairs -9999.
+2) Updated Layeggs key field for first introduced population and added age 0s. Before first pop assumed to be all 1 for layeggs, and age0 assumed to be 0. 
+3) Adding more to ID for mother and father identification. 'm{}f{}'
+4) Updated 'layeggs' field for sexans == 'N'.
+
+
+Committed version --------------------------
+Changes v1.12.20180130T10:30:00MDT (ell)
+0) Resume adding in sex chromosomes for YY additions: sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex based on this assignment unless another option overides (e.g., known option). Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are assumed to be males. Parameters for these genotypes can be added (e.g., assortative mating). Fitness linked to genotype and environment can also follow cdevolve module rules.
+a) In ClassVars 'Percent Female' controls the distribution of initial sex. This parameter changed to 'Sex Ratio'. Then, 3 percentages are given for Female;Male;TrojanYY and sex is initialized based on this distribution. The ind{year}.csv output files will now have designations of XX, XY, or YY in the sex column.
+b) For this first version, mating will occur the same and treat all males as XY and YY equally. 
+c) For this first version, Mendal inheritance will act upon the sex chromosome and assign individual sex from a random draw from each parent. Thus, offspring can only be XX or XY. 
+d) For this first version, all offspring will have equal fitness. 
+e) PopVars Egg_FemalePercent parameter can be removed. 
+f) Added error checks, must have 3 values and must equal 100 %.
+h) Carefully check code for parameter 'sex' and checks for 0 and 1, switch to XX and XY, etc.
+
+- Dtype sex changed to string, careful checks throughout
+- GetMetrics() - added ToTYYMales, BreedYYMales
+- DoUpdate() (first) checks (for Initial, no changes)
+----- Time loop
+- CDClimate() - no changes
+- AddIndividuals() - updated
+- DoStochasticUpdate() - no changes
+- DoMate() - assume mating occurs the same and all males treated equal. First, Egg_FemalePercent options changed to 'N' which will tell the program to look at parents chromosomes and randomly draw one from each. 
+- DoOffsrping() - assume egg mean and egg mortality is the same with pairings of XX+YY and XX+XY. - no changes here to this module.
+- DoUpdate() (second) checks - for Middle, maturation update and sex specific - for now assume all males mature according to male maturation curve. Assume growth is also the same for YY and XY individuals that came from the cross XX+YY.
+DoEmigration() - small changes to int vs str calls. Probarray includes 'YY' now, but assumes calling male movement matrix. small updates to CalculateDispersalMetrics for int vs str calls. Again assume male metrics same here. 
+- DoMortality() - no changes, assume equal.
+- DoUpdate() - third, no changes, assume growth equal. 
+- DoImmigration() - updated Probarray() for int vs str calls and included 'YY', but assumes the same as 'XY'. DoOffspringVars() updated options here for assigning sex to eggs, included a random draw from parents sex chromosomes. Small checks/changes throughout for int vs str calls. dtype updated for 'sex' key. 
+- DoMortality() - no changes, assume equal. 
+- GetMetrics() - no changes.
+- DoPostProcess() - Updated ind files to include chromosome sex assignment now. Updated output files to include 2 more tracking numbers for YY counts. 
+
+i) Running tests and checks. 
+- For asexual situation, could have 'YX' sex assignment, thus sorted alpha for these situations.   
+
+Changes v1.11.20170924T17:31:00MST (ell)
+0) Fixed small error in InheritGenes().
+1) Added Hindex parabolic function for Dana and Chris RT project. Updated usermanual 
+
+Changes v1.11.20170531T09:16:00MST (ell)
+0) Checking Patch field not in consecutive order with subpopulation groupings. This does not work, so I am adding another field to the PatchVars. PatchID must be 1...N. Then SubpatchID will be another tag attached to each individual in the example stream segments of patches want to be grouped together. The program will only recongnize the PatchID, but tag the SubpatchID to the individual output files. 
+1) Removed genetic distance matrix option. Users can do this post hoc.  
+
+Changes v1.10.20170322T14:41:00MDT (ell)
+0) Added 3 more parameters to the CDEVOVLE option for Hindex parent fitness with hybrid penalty. 
+fitness = p * exp (- (Xj - (Temperaturemin + (Temperaturemax - Temperaturemin) * HINDEX)) / (2 * s^2))
+a) where p scales the hybrid fitness between 0 and 1. 
+b) a min and max for what a hybrid is, that is, if HINDEX > a or HINDEX < b then p = 1 (i.e. parental species, so a and b represent the H index cutoffs for parental species) if b < HINDEX < a then p = whatever value we choose for hybrid penalty. 
+c) PopVars value enter: Hindex_mintemp;maxtemp;C;p;minparent;maxparent’ 
+
+Changes v1.09.20170301T05:26:00MST (ell)
+0) Erroe in Immigraton with single sample indexing with Packans N. Fixed.
+
+Changes v1.08.20161128T09:17:00MST (ell)
+0) summary_ClassAllTime.csv column headers off. Fixed.
+1) Updated some post_analysis scripts: create a population_batch script (report population total numbers, capture ratios)
+2) Error in Immigration with single sample indexing. Fixed. 
+3) Error in size answer age with size_bin not referenced: fixed.
+4) Error in structure option: fixed.
+
+Changes v1.08.20161111T09:49MST (ell)
+0) For the multiple class files, add option for how to inherit parents 'phenotype' classfiles. Add PopVars variable: 'offans_InheritClassVars' can be 'random' or 'Hindex'.
+a) If random, then keep code from last changes, adding checks and error statements. 
+b) If Hindex, then assume that the allele frequency files Hindex value are linked to the respecitive ClassVars file. Will have to store this and pass along. Will assume that the first patch has multiple allele frequency files with multiple ClassVars.
+1) Added ClassFile to ind.csv files. 
+
+Changes v1.08.20161027T17:03MDT (ell)
+0) Add the option to include multiple ClassVars files. Individuals get intialized based on allele frequency files, so depending on how the files are entered, then corresponding ClassVars gets assigned. e.g., 
+Genes Initialize: 
+genes/allelefrequencyA.csv;genes/allelefrequencyB.csv
+Then in the Class Vars column:
+classvars/ClassVars_A.csv;classvars/ClassVars_B.csv
+so, files are separated by ';' semicolons. The allele frequency files should have the first locus defining HIndex, which in turn defines the individuals 'species'. For example, allelefrequencyA.csv files has
+L0A0	1
+L0A1	0
+L0A2	0
+L0A3	0
+L0A4	0
+and then allelefrequencyB.csv would have
+L0A0	0
+L0A1	1
+L0A2	0
+L0A3	0
+L0A4	0
+Then, ClassVarsA files would be used for individuals that have an HIndex = 1.0, and ClassVarsB file would be used for individuals that have an HIndex = 0.0.
+***Begin coding in this format and structure. 
+***Different size bins? Careful in code, look for size binning. 
+a) Note that the output summary file will still be for the first ClassVars bins, this will be reported in the output files. ***Check files
+b) Tag which ClassVars file used for each individual: added 'classfile' key to SubpopIN class. This will be an index value for the PATCH, so a user will have to look up from the ind.csv file, which patch an individual is in and then go to the patchvars file and match the file in the ClassVars field. 
+c) Note that the classfile field together with the original birth patch will stick with individual. So that individual will always have the associated ClassVars parameters and they will not change if they stray to a new natalpop. So the 'classfile' field will be designated P{N}_CV{M}, where N is the number of patches counting from 0 and M is the number of original classvars files counting from 0 in that patch. P1_CV1 would be the second patch and second classvars file in that patch. 
+d) If multiple classfiles, now take min and max and 'rebin' sizes. This will be used for the packing algorithm now. ***Need to go back through and check all of the tracking numbers for ages and adjust for this rebinning. ****Fixed. 
+Given multiple ClassVars files with different size classes: e.g.
+BT:  75, 137, 204, 273, 399, 402, 460, 514
+DV: 40, 60, 80, 100, 120, 150, 180, 210
+Then, simply take the min and max and re-bin, e.g., 
+size_bin: 40, 107, 175, 243, 310, 378, 446, 514
+e) Logistic mortality is not up to date with age_percmort and different values. 
+f) DoMortality (constant mortality) now looks up individuals classfile.
+g) Offspring sorted by parent classfile and correct size mean given: however, hindex has not been assigned yet to each offspring. Therefore, the classfile for each offspring could change. ****Fixed. Issue: hindex temp assignment before mutation is allowed. Mutation could change the hindex and thus the classfile assignment. Note this for now*** I think this is OK. An offspring will either inherit it's mothers or fathers classfile no matter what the hindex...this gets sorted out. 
+h) Careful check on packing in DoImmigration, okay.
+i) Decided not to pass the selected classvars and sizes into AddAge0s, this should not be a problem
+
+1) Added mature_defaultAge parameter. Before it was '6' hard coded, now user has the option and flexibility. 
+2) Add in the cdevolve time implement option for Out, Back, Eggs. Remove 'Both' option. User can specifiy time for all 3 or any combination by placing ';' between, eg, Out;Back;Eggs or Eggs;Back. 
+3) Found an error when tracking age/size deaths for the differnt cases in the DoMortality module, fixed.
+
+
+Changes v1.0720160906T15:51:00MDT (ell)
+0) Add precision of 1 decimal to the assortative mating preference option.
+1) During pre-gene exchange, inherit hindex and first locus only. This is for scenarios that are using hindex growth option and assortative mating with hindex to settle population dyanmics for '2 speices' together.
+
+Changes v1.0720160815T14:55:00 (ell, Nadya, and Sam Gunselman)
+0) Link HIndex to Fitness. Similar to CDPOP module for Heterozygosity and Fitness, have user supply paramters for an equation. Use Gaussian equation:
+Fitness  = exp (- (Temperature - (min_temp + (max_temp - min_temp) * HINDEX))**2 / (2 * s**2))
+and have user enter min_temp;max_temp;standard_deviation - 3 paramters used in this equation. 
+a) Create a cdevolveans that refers to survival as a function of hindex and Gaussian function: 'HIndex_min;max;s', e.g., 'HIndex_8;10;0.5'
+b) Read in PopVars and add checks.
+c) Create new module DoHindexSelection. Add to DoEmigration and DImmigration.
+d) Add to user manual and commit to github.  
+
+Changes v1.06020160727T09:39:00MDT (ell)
+0) Pull and start working on growth ~ f(hindex)
+a) Start with a simple scaling of L00 = (Loo,max - Loo,min) * HIndex
+b) Add to PopVars a new model option for growth: 'temperature_hindex'
+c) Add 2 more parameters to PopVars: Loo_max and Loo_min -> If temperature_hindex is entered in the growth_option field, then 2 numbers are entered in the growth_Loo field separated by a ; min;max
+d) Update code for this model
+e) Add to user manual
+
+Changes v1.05-20160606T16:04:00 MDT (ell)
+-1) Begin working with UMontreal compute staff for multi-processing. Create doc. 
+0) Tag AA and aa individuals, create preferential mating between AA and aa, and calculate percent admixture of Aa. 
+a) First create a tag field in the class structure data type: this is the hybrid index or hindex. If AA, then 1.0, if aa then 0.0, if Aa then 0.5, else -9999. Add hindex to Age0Pop class for calculating offspring hindex.
+b) Next create an assortive mating parameter in the PopVars file (consider ClassVars for future): 
+i) From M'Gonigle and Fitzjohn Evolution 2010 paper, code in the self-prefernce model. In this model a female prefers males of her own genotype by an equal factor (c) over all other males in her patch, discriminating
+equally against any other genotype. The probability that a female of genotype i mates with a male of genotype j is then given by Equation 2 in paper. phi_i,j = c^Kronecker'sDelta * fj, where fj deontes the freq of genotype j males in the females sample of N, and Kronecker's Delta is 1 when i = j and zero otherwise. phi_i,j are standardized across all males. If 'Self', then strict self mating. If 'Random', then random mating. c = [1, infinitiy]
+ii) PopVars file: add Assortative mating model choice: 1- Random mating, 2-Strict self preference, 3 - Self-preference model, 4 - Dominant preference model, 5 - linear model.
+iii) Move c factor to the ClasVars file: For AA, Aa, and aa genotypes split up by size.
+iv) Move C factor back to PopVars file. 
+v) Update linear, self and dominant to use fj of hindex type instead of dominant female_hindex type.  
+
+c) Added tracking metrics to output.csv file Track_AAAAMates, Track_AAAaMates, Track_aaaaMates...file.
+
+****Still to do: Backcross calculation.
+
+1) Move faster InheritGenes() module from CDPOP over to MetaPOP
+a) Remove SNPans, not sure this was correct anyways.
+b) Check speed up tests: old run 6:46, new run 5:48.
+
+Changes v1.04-20160510T10:39:00 MDT (ell)
+0) Add option 1_G_ind and 1_G_link to cdevolveans. Locus A will use the spatial selection module and Locus B will use the growth parameters. Either run these selection processes independently or associated. 
+
+Changes v1.04-20160422T15:37:00 MDT (ell)
+0) For next version: Begin adding in sex-linked loci or 2 chromosomes X and Y. Each individual can have XX, XY, or YY. The model will initialize individual sex. Then the sex will determine if XX (Female) or XY (male). Sex of offspring will be determined by draws from these chromosomes. Later, individuals can be introduced with YY (Trojans) that are females. ***Not done yet***and paused this work.  
+
+Changes v1.03-20160413T12:08:00 MDT (ell)
+-3) Check equal clutch module with new renaming. Offspring naming may not be unique, so update. 
+-2) For sampling work: In indSample.csv files tracking E individuals and ID column is not consistent. Fix consistency throughout. E.g, E2_F102_P3_Y10_U150 - would be an emigrator to patch 2 from patch 102, originally born in patch 3 in year 10 unique 150 to birth patch. Maybe remove unique. 
+-1) Check when a new ClassVars files is introduced that the size_mean bins are updated at each patch. ClassVars must have the same number of bins. 
+a) GetMetrics() first call to size_mean binning.  This should not vary across patches, thus, use first ClassVars file for binning throughout. Note this in user manual that a second ClassVars file can be used for initialization purposes, however, the first one will be used for binning throughout the rest of the simulations. 
+b) DoUpdate() next call. Used in size-based capture probability. Again just use the first ClassVars file and do not vary across patches. Then in growInd() only used for known growth, just use first ClassVars here.
+c) DoEmigration() - Any size_mean[isub] converted to size_mean[0]
+d) DoMortality() -  Any size_mean[isub] converted to size_mean[0]
+e) DoImmigraton() - Any size_mean[isub] converted to size_mean[0]
+Note when a new ClassVars is introduced anywhere (in patch or through time with CDClimate) the first ClassVars file is alsways used for binning purposes throughout simulation program. Future versions should link individual to ClassVars file, the offspring inherit the ClassVars file from parents. 
+
+Changes v1.02-20160323T10:21:00 PDT (ell)
+0) Add a ';' option to the GenesInit column in the PatchVars file which allows multiple gene frequency files to initialize each patch. 
+1) Begin code to add a new population of individuals at given time using cdclimate module. So when multiple cdclimategen values are entered and if multiple N0 values are entered, this indicates a new introduced population. For now assume that the new population is indicated with a '|' for N0 in the PatchVars.csv file. A new ClassVars.csv can also be used to initialize these new introduced individuals. A new GenesInit allele frequency file can also be used with a '|'. THen any other parameter that is indicated with a '|' can also be used for the entire population at this time frame. Important to note that while you can control for multispecies and intilization now, the global parameters still operate on entire population, patch, individuals. Add a unique ID for these individuals. Check when N inserted into non natal grounds?
+
+Changes v1.01-20151229T15:42:00 MST (ell)
+0) Add SNP option. Needed because program looks for mother/father allele to pass on to offspring. If 1 ATCG given, then randomly choose this for the offspring. SNPs will be lociX4 for ATCG option. 
+1) Published to GITHUB
+2) Add stray rate linked genotype. If user specifies 'stray' in the CDEVOLVE answer location, then stray rate values are given in the fitness_AA, Aa, aa locations in PatchVars.csv. These stray values will over-ride patch and class stray values entered. 
+3) Fixed SNPans == Y then can output genes in other formats. 
+
+Changes v1.0-20151002T16:53:00MDT (ell) * Version sent to reviewers.
+0) Add in migration ground patch field. Can also use matrices to do this, but adding flexibility. 
+1) Add in ClassVars to the PatchVars file, so that different class initialization can be conducted at the patch level.
+
+Changes v1.0-20150909T16:05:00MDT (ell)
+0) Add back in subpopulation emigration and immigration tracker for Lucas Nathan. Not in yet, shows up in class by year. 
+1) Add in Age0 tracker with RSZI numbers to see start of sims what is in each patch.
+2) Add in asexual reproduction option. sexans Y or N. selfing Y or N.
+3) Update selection modules to have more than 2 alleles.
+4) Update selection module for case when ony want mature individuals to have selection pressures. Option 1_mat and 2_mat.
+5) Code in incremental growth option. 
+6) Add in different population models. Change packing answer to 'packing', 'logistic', 'N'.
+7) ***Not liking the way the logistic is working, checking needed.
+8) Add in another homeAttempt option. 'mortality' - dies if they can't make it back to natal grounds. 'stray' - strays to another viable natal patch from Immigrated patch location. change to 'stray_immiPop'. then add 'stray_natalPop' - here consider straying option, but use natal patch location, idea being is that they want to stray closer to what is familiar with them. Will have to use a recursive operation to check natal patch to stray patch, then immipatch to stray patch to make sure that this is not a prob = 0.
+9) Update tracking for distance traveled. 
+MateDist
+EmiDist -> NatalPop to EmiPop DoEmigration()
+StrayDist -> EmiPop to ImmiPop DoImmigration()
+HomeDist -> NatalPop to ImmiPop DoImmigration()
+
+ 
+
+Changes v1.0-20150810T11:11:11MDT (ell)
+0) Update imigration back to consider asymmetrical probability to make it back: probarray = [1. - ((probarray_AB[0] - probarray_BA[0]) / probarray_AB[0])], where A is natalpop and B is currentpop. * Note, leave stray probabilities as is, idea is that the probability matrix should account for asymmetrical costs. 
+1) Option 9 for movement -> reads in the probability matrix and no conversion. 			 
+
+Changes v1.0-20150728T08:00:00MDT
+0) Begin freeze for publication.
+1) Added in tracking for PMNR curves for Casey Day's work. Make a new dtype 'newmature' output in ind.csv files. Update any ind gene read in work. Then track new maturers, resetting to 0 at end of DoUpdate.
+2) Turn all tracking variables Track_...
+3) Update Migration Back. Use probability array.
+
+Changes v0.99.14-20150720T12:20:00MDT
+0) Casey found logic swith in multiplicative mortlaity when E and Npop exists. Switched logic here fixed.
+
+Changes v0.99.13-20150630T11:15:00MDT
+0) Adding correlated deviates. Create new input file for patch_r.csv. This is the degree of correlation between variables. Then calculate pij = cov(Xi,Xj) / sd(Xi)sd(Xj).
+1) Add in locus B tied to growth parameters. Option G. 3 more columns in Patchvars file.
+2) Add in locus A and B linked and independent. Options MG_ind, MG_link.
+
+
+Changes v0.99.12-20150625T09:35:00MDT (ell)
+0) Checking selection module; when both, results not applying correct spatial selection? Age0s added in and selection should be applied here:
+a) Moved selection modules to _Modules
+b) Added selection to AddAge0s -> Note this might not be the correct order. That is selection happens to individuals migrating back (Age 1+s), then packing happens, then Age0s selection?
+c) Note selection tracking deaths not accounting for Age0s at this point. 
+1) Updated output genepop format.
+
+Changes v0.99.11-20150624T10:44:00MDT (ell and CD)
+0) Tracking numbers not matching up after N_GrowthOut, PackingDeaths_Immigration, N_Immigration. Checking...Added in N after Immigration plus 0s that entered in, but before packing. Fixed tracking number error.
+1) FOund error in packing Immigration. Similar to mortality error, case in which no one survived, was actually keeping patch individuals due to checking for case in which no one was in that patch to begin with.
+
+Changes v0.99.10-20150622T12:07:00MDT (ell and CD)
+0) CDdist in ind file from I S or Z. Z not read in.
+1) option '8' was not report correct cdist fixed.
+2) Change name = 'S51_2_P3_Y2_23 would be born in patch 3, Emigrated to patch 2, Immigrated to patch 51.
+3) Mortality multipy option special case for N N N for patch and size and age entered. 
+
+Changes v0.99.09-20150618T16:04:00MDT (ell and CD)
+0) CD notes age mortality catch on last age not working, checking...fixed.
+
+Changes v0.99.08-20150615T11:41:00MDT (ell and CD)
+0) Add in option for selection operating on maturation curve. 
+a) cdevolve ans 'M' option now.
+b) Values only for genotypes AA, Aa, aa
+c) Seperate with ';' must specify 4 values. CDclimate can still work here.
+d) Include above rotine in preprocessing module to when intializing mature
+e) include burningen for when to intialize this.
+1) Speed up preprocessing module in InitializeVars looping through entire K value, not N value...
+
+Changes v0.99.07-20150609T09:19:00MDT (ell)
+0) Seems to be something off with packing algorithm again. Old fish lingering in patches. CHecking. All if fine with algorithm, issue was in the temperature file. Cold waters producing small old fish and hence not migrating. Then lots of fish begin to accumulated in those patches. Fix for now is to advise age : catch. 
+1) Update DOMortality() function. Create a multiplicative and additive function for mortality.
+2) Update stray and migration probabilities. These are independent and should be multiplied.
+3) In DoImmigration, removed first if statment, if in natalgrounds now they can potentially stray. 
+4) Add a special care for mortality out and morality back in the patch vars file 'E'. for eradication. This will ensure the entire patch no matter addition or multipy events will go to 0. 
+
+Changes v0.99.05-20150523T16:26:00MDT (ell)
+0) Implement selection option 'Out', 'Back', 'Both'.
+1) For cdclimate module, allow cdtime and only parameters wished. If others are not seperated with bar, then use orginal.
+2) Error with 100% mortality, was not deleting.
+
+Changes v0.99.05-20150518-T11:37:00MDT (ell)
+0)Error with test data set negative dminesions not allowed. When populations were crashing getting a divide by 0 in DoEggMortality. Fixed these cases.
+
+Changes v0.99.04-20150511-T10:02:00MDT (ell)
+0) When K = 0, then do not let migrate to.
+1) When N = 0, then do not let stray to (but can still migrate out to).
+2) If K becomes 0 during systematic or stochasic events and Npop still exists after DoEmigration (before packing), then all assume to die there.
+3) Checking other K = 0 locations; DoMate - No sense allowing these individuals in K = 0 patches to mate? After talking with AB, special cases needed
+a) First create a patchVars column for suitable spawning locations. This will allow N0= 0 locations to be initialized but still be suitable spawning locations that individuals can stray to.
+b) then for K = 0 locations and at DoImmigration() when returning back probarray = 0.0 because K = 0 or threshold exceded. What happens to fish that are trying to home and con't make it back? Make a special case in popvars file. They can 'mortality' or they can try and 'stray'. Designate these labels as 'IS'
+
+Changes v0.99.03-20150505-T09:32:00MDT (ell)
+0) When option 8 found Emigrators to N0=0 patches? - Error in gridsample == 'Sample' overwriting ind.csv files.
+
+Changes v0.99.02-20150410-T07:54:00MDT (ell)
+0) vonB -sizeR0 and input in Popvars update. Producing negatative growth.
+1) Checking why N0 = 0 with stray matrix filling locations? Reading in the wrong stray matrix! Fixed.
+
+Changes v0.99.01-20150402-T07:01:00MDT (ell)
+0) Small update, if start selection < than geneswap, automatically make equal to geneswap.
+1) geneswap can be 'N' to skip entirely.
+2) Can't initialize Age0, force 0 in the beginning.
+3) Error in DoImmigration() packing. Sizeans 'size' creates some age_adjusted 0 class in the SubpopIN_arr. 
+
+Changes v0.99-20150310-T07:55:00MDT (ell)
+0) Check for speed up sections. 
+a) Callapse offspring storage where possible. InheritGenes move...
+b) Replace all empty list creation with = [[] for x in xrange(0,nosubpops)]
+c) Move DoEggMortality in DoOffspring() - use the Bearpairs array. First need to get dtype into Bearpairs, remove append number of offspring, create seperature variable noOffspring.
+d) Remove AddAge0s(), skip DoUpdate for eggs...DoImmigration read in Bearparis and noOffspring...at packing select the amount of age 0s that make it, then call offspringVars and inheritGenes function adding them into SubpopIN_keep with full dtype.
+e) DoOffspringVars moved to end of packing DoImmigration. AddAge0s comes after this.
+f) Remove -9999 Bearpairs in DoMate
+g) Check naming now with 'Age0' coming into DoEmigration, not DoImmigration
+h) Update for when packing is N.
+***Speed increase significant.
+1) Checked capture, working - careful of N in patch level, then will skip this moduled.
+2) Remove Egg row. Not used except mortality back...add mortality back numbers to Popvars file. Add Egg_Mortality, Egg_Mortality_StDev, Egg_FemalePercent to PopVars file.
+3) Capture, growth timing off. Remove first DoUpdate - put one before time loop label -1. Move ind write out to second update and capture. 
+4) Error propagation when no Bearpairs, then no noOffspring.
+5) Error in genepop format. Rework grid format options, sped up some. Error in DoOutput Initial and Middle fixed. Updated the rest of the gridformat options.
+
+
+Changes v0.98-20150228-T19:58:00MST (ell)
+-1) Remove temporary packing output
+0) Deterministic runs K and agemort started on v0.97. Update unique ID identifier.  {Residor,Immigrant,Emigrant,Stayor to patch}_{Year born}_{Natal Pop}_{Numeric ID}, eg. R1_Y0_P1_100. Residor in patch 1, year 0, orginal natal patch 1, 100th individual there. Age0 have special name to start with: name = 'Age0_Y'+st(gen)+'_P'+str(isub)+'_M'+mother_name[-1]+'_O'+str(j) = {Age0}_{Year}_{Natal Patch}_{Mother ID}_{Offspring from mother}, but when added into patch after DoEmigration will get Residor to that patch in year 0, patch natal, and numerica ID that is iind. Initial individuals will have special Year, ie, Y-1_ Then querying Patch, Year, and ID will be unique.
+1) AddAge0s moved so update the time in which capture = 1 are turned back to 0. Pop_capture_back and out reading in wrong order. Fixed. ***Check output here.
+2) Update when captured are released and set to 0 for write out. Because of reorder of DoUpdate and AddAge0s, the capture times do not match. Capture back on first DoUpdate, Capture out on third DoUpdate.
+
+Changes v0.97-20150130-08:46:00MST (ell)
+0) Add in patch - based probability of capture.
+1) Add in parallel option for batches, use another sys argument to do this. *****
+2) Add in Todd & Ng unbiased draws  *****
+3) Check directional out and back movement make sure look up [1,2] versus [2,1] etc. Check mate****, check dispersal out and back*****. Asymetrical cost from gdistance looks at columns not rows, therefore transponse matrices...
+4) Added test7 and test16 data to ..data/ folder.
+5) Updated packing algorithm, Nij was dividing by Nj, change to Kj which will produce more recruitment.
+6) First generation is not showing mature individuals, check preprocessing. Fixed.
+7) Second generation not showing births. Found error in DoEqualClutch(). Call to unique mothers calls 'name' which is not unique. Update naming throughout Strays, Residors, Immigrators, Emigrators, etc.
+8) Check over packing again. Reorder AddAge0s above the DoUpdate() third process. Add in egg class for the Classvars file, can use mortality here as well. Then Initialize model still with Age 0+ (no eggs) for 31 mm, Eggs get size class of 27mm. Then AddAge0s in and grow them...AddEggs of 27mm and grow in winter to 31mm.
+9) Make the adjusted Khab hard coded value -0.6821 value a parameter.
+10) Looking into some of the tracking numbers maybe not needed (Pop and Tot migrants, etc.) Deleted. 
+11) Running. Testing K and agemort sensitivity
+
+
+Changes v0.96-20150117-10:42:00MST (ell)
+0) Freeze v0.95 and sent to Casey and Marco. 
+1) Testing packing with temperature sensitivity. Create some temporary tracking numbers for the packing process.
+2) Add size classes to summary_classAllTime file
+3) Fixed some N tracking numbers were not adding up correctly.
+4) Add in varibility in space/patch file. This is a C.V. column that can vary by patch for K, mortalities, temperature, grow days, and potentially fitness.
+4a) K_Std added and update each year for systematic variability and temporal varibility. Check output. Then, check the case in which they want K to stay constant each year std = 0, put a special sigma = 0 switch for constant.
+4b) Mortalities (Back, out, egg).
+4c) Temperatures and growdays
+5) Add a special case to maturation to test deterministic results. females >= 156 and males >= 134 become mature. Added columns mature_length to give a deterministic process for set age or set size, enter N to use the paramter fit equation.
+6) For deterministic if bodysize sd in agevars.csv file is 0, then set size initialized. 
+7) Added age mortality and size mortality for both or one or the other in Agevars.csv file and updated code. Add in AgeDeaths and SizeDeaths for both back and out in the output files and tracking numbers.
+8) Rename Agevars.csv to Classvars.csv...
+9) Check N_AfterEmigration - Deaths_AfterEmiMort == N_GrowthOut_Class. This is because there can be a pop_mortperc first. Found error /100. twice.
+10) Added Classvars SD for mortality numbers.
+11) Add XY file to output summary files.
+12) Mismatch in N calls, some have total and some do not. Carefully check where this occurs - remove N total in the first spot.
+
+Changes v0.95-20150107-14:33:00MST (ell)
+0) Update to next version. Checking tracking and BT numbers.
+1) Capture probability not adding up, more than total nubmer capture when set to 1, because of capture count > 1...add in fields for 'recapture' and 'capture'.
+2) remove _dos timestamp after output
+2) Step through BT numbers with growth out/back/both 10/13/16:
+3) Move size_means for classes and pop_means after N_Init.
+4) To understand the sizing: binning is working fine. However, add in another tracker for AgeSize_Means and ClassSize_Means.
+5) Add in N_Initial_Age and N_Initial_Class tracking....
+5) Also check age, if last age let it keep ageing...carefully check where indexing 'age' locations for parameters beyond last age class.
+6) Capture not recorded because I turned to 0 before write to output. Instead of creating another loop in DoUpdate, move to next module DoEmigration() and AddAge0s() and in first isub loop set all capture to 0.
+6) Checking through parameter options for errors. When ageans == N, fixed one bug in DoOffspring().
+7) Add in age catch for maturity. At age 6! This is hard coded
+
+Changes v0.94-20141217-17:44:00MST (ell)
+0) Small bug in when temperature values were N, was not reading in str().
+1) Add in growthRate to output files.
+2) Add in spatial selection surfaces varying through time.
+3) Removed fitvals1 and 2, condensed to just fitvals
+4) Add in K to cdclimate module, although some modules before DoCDClimate() use K value, so different pass variables created.
+5) Add in mortality back, out, eggs to vary with cdclimate.
+6) Update growth options for switches for sizeans, von Berlanffy or temperature growth.
+7) Check on age_mort and size_mort so that there is an sizeans switch.
+8) Error in NClass tracking...fixed tracking
+9) Error in Births tracking output...fixed.
+9) Combined nthfile_list and nthfile_seqence into one, use output_years.
+10) Error when goes extinct in first year...nthfile can be greater than extinction year, pass gen in and run a check on nthfile.
+11) Error in genepop format option....Fixed.
+12) Possible error...I split files based on ind - not good! **** Fix this later
+...
+13) Add in probability of capture or modeling detection probabilites: following Kanno et al 2014. For now add a column in the agevars for probabilite of detection for each class.
+14) ERror in last row of output....fixed
+15) Make sure CaptureCount in GetMetrics is working.
+16) Add CaptureCount_Class in GetMetrics.
+17) Still an error: Not counting captures correctly...then need to set all captures back to 0. Move Capture Counts to DoUpdate, then can convert back to 0 there.
+18) Added error check when negative size values.
+19) Added in Capture probability out and back.
+20) Error in capture probability when growans == N. Fixed
+21) Turn grow, age, mature, egg lay, capture in DoUpdate into functions.
+22) Next turn capture back off, how about just add one to capture? Implement add one for now.
+23) Class births and pop births not matching, updated AgeBirths for age adjusted size answer.
+24) Error if | at the end of nthfile, just in case fix this.
+
+
+Changes v0.93-2101212-09:33:00MST (ell)
+0) Add back in multiple paternity option or check equal clutch size option. Option '4' for offno check -> remove this option and add 'EqualClutchSize' Y or N option in Popvars.csv file.
+1) Add in parameter for egg laying interval. eggFrequency. If mature, flip coin to see if initially lay eggs that year.
+
+Changes (v0.92-20141209-07:56:00MST) ell
+0) Update DoMate - check order of mate selection. Added a while loop to make sure that a female will mate if a male is in a patch nearby.
+1) Remove Asexual option in DoMate() and in Popvars.csv
+2) If WrightFisher entered in PercentFemale Agevars.csv file, then DoMate will loop over the total mature males and females, else normal mode loop over just total females.
+
+Changes (v0.91-20141202-08:41:00MST) ell
+0) Check grow days column, keep both, grow days out + grow days back <= 365 now in case user does not want to use entire temperture grow period for each process.
+1) Add in temperature and grow days to cdclimate module.
+2) offno 5 with sizecontrol, sys exit, but use the mean sigma in agevars file.
+3) Add in sampling routine here -> prob(capture) parameters, then return 0 or 1. Add capture to dtype.
+4) Add in CaptureCount to GetMetrics and then to output.csv file.
+5) Add in MatureCount and ImmatureCount
+6) Change mature to 0/1
+7) Add in N_After all Emigration processes for age classes. Casey noted that the growth mean during these times are different (less at the out stage), I think because of the added Age 0s here.
+8) Check that output age tracking numbers are split up when calling size or age correctly. use NN size class for splitting size. 
+9) Add in N class distribution tracking after DoUpdates.
+10) N classes counting trackers not adding up right, checking how I partition in each section. Fixed in Immigration to Initial...Fixed throughout, was counting 0 size.
+12) Update output.csv file clean up. Added foldertime to output_foldertime.csv naming.
+13) Split up output into patch and age. outputClass_{foldertime}.csv and outputPatch_{foldertime}.csv
+14) Add in an outputSummaryMetrics option in Popvars.csv file. Now outputs summary_pop{year}.csv summary_class{year}.csv, summary_popAllTime.csv, summary_classAllTime.csv.
+15) change grid(year).csv file names to XYgenes{year}.csv
+16) Remove totals from Age tracking variables. Cleaned up age tracking variables so not read into DoPreProcess. Call  the prepAgeTrack() throughout, think about streamlining all of these tracking processings into one, could do the same for PopTrack prepping, same appending of [].
+17) Changed naming of grid to ind to distiquish individual files and pop and class files in output.
+18) Add mature and capture to ind.csv files. Check other calls to ind file and grabbing genes correctly.
+
+
+Changes (v0.90-20141114-08:44:00PST) ell
+0) Add in patch level growing days control.
+
+Changes (v0.89-20141103-13:01:00MST) ell
+0) Update on the packing. Make recursive, loop through oldest age classes first. If left over habitat, then split the proportion to the next age classes. Also add in the size switch here, so sorting by size not age. 
+1) New packing can create a situation in which Npop > Kpop. Currently switch there to prevent this from writing to file. Remove and let grid files be flexible. This may have output ramifications, check all output options. Update output to only spit out Npop and remove NAs.
+2) Removed Da and braycurtis options, user can use other programs here. But kept Dps. Updated Dps here.
+3) Error in structure grid, writes it out twice.
+
+Changes (v0.87-20141023-08:53:00MDT) ell
+0) LCT model throwing an error saying there are 12 batches, when only 1...checking this.
+1) Check in on the last age class and why all mortality here. Update this function if Nage == 1 then do a random flip for whether or not mort here.
+2) Fixed growth function again, correct now. Add in grow day parameter.
+
+Changes (v0.86-20141021-11:20:00MDT) ell
+0) AddAge0s into the population, do not cap at K.
+1) Add some more totals to output.csv file. 
+2) Add in a power fit for egg to length numbers (Schillin et al 2011)
+3) Error in growth function calculation.
+
+Changes (v0.85-20141011-15:42:00MDT) ell
+-1) Swap third update with AddAge0s. During overwinter, Age1+, then add in age 0s to population for when they return home and pack
+-2) Reorder AddAge0 in correct order in output
+0) Walking through memory for each process in attempts to speed up and reduce memory usage. Add in some garbage collection. Found error in normal draw with offspring numbers (negative numbers, added a fix here for if normal draw is negative then force 0 eggs). Large egg numbers producing memory crash, added warning statememt if egg numbers get above 100,000 for one individual.
+1) Add in a exp or linear model choice for egg number calculation, remove CV parameters, fix draw to be poisson, thus remove normal choice. 
+2) Fix index error in equal clutch size for offspring size.
+
+Changes (v0.84-20141006-14:37:00MDT) ell
+0) Reorder when Age0s get added in - after DoEmiMortality, then add in Age0s. This is still in line with logic and to match Wright Fisher assumptions.
+1) Moved InheritGenes() back to _Modules.py 
+2) Add in 'Female Percent' option for WrightFisher. 
+3) Use at initialization, and then after offspring created.
+4) Then turn off packing, else the Age0s added back in will get reduced...
+
+Changes (v0.83-20140923-08:11:00MDT (ell)
+0) Add in startGenes and check startSelection. 
+1) Checks on non overlapping generations.
+
+Changes (20140828:v0.82-201408:09:00MDT (ell)
+0) Meeting NASAA36 with Jason, Nate, and Helen: Make option for growth using bioenergetics cMax temperature growth. ***still to do.
+1) Bug in format option, indexing incorrectly, fixed.
+
+Changes (20140815:v0.81-2014.08.15T13:15:00MDT (ell)
+0) Moved selection values to patch file.
+1) Checking sensitivity: WCT373 dieing off: v81 comparing to v79 -> different growth values (checking) -> v81 not moving in migration modules, but mate module is: checking why. Found: sizeans == 'N' then growth just based on size. If outsizevals or backsizevals == 'N', skip growth option.
+2) Add in dispersal distances to grid files. Add to dtype 'EmiEDist', EmiCDist', 'ImmiEDist', ImmiCDist. Remove ED distances, doesn't make sense in river networks. 
+
+Changes (20140811:v0.80-2014.08.11T10:04MDT (ell)
+0) Error when K value is 0, added error statement here (K can not be 0).
+1) MOve growth temperature values to patch file -> no need to read in a whole surface, reduces chance/error of NAs. Eventually move selection surfaces to patch file as well. 
+
+Changes (20140720: v0.79-2014.07.20T10:26:00MDT (ell)
+0) Check on cdlimate and using the correct threshold to match matrix. Added some error statements to make sure user enters in correct number of cdclimate swaps for each parameter.
+1) Output.csv file is off a column, corrected. 
+2) Checking diagnostics, N_AfterEmigration tracking number not accounting for packing deaths -> N_AfterImmigration does. Updated this.
+
+Changes (20140709: v0.78-2014.07.09T07:17:00MDT (ell)
+0) Update growth function to only have max and CV parameters (instead of 6). 
+1) Add in an AgeDeaths after the mortality functions. Found small bug in adding in Age0s to population after Emigration.
+2) InheritGenes() is slow! Speed up, add in genes to the AGE0s that get added to the population after DoEmigration packing. Means keeping offspring variable as pass in to DoEmigration().
+
+Changes (20140702: v0.77-2014.07.01T14:02:00MDT (ell & AB meet)
+0) Add in N age tracking for each step (by pop and by age). Remove N_Age0_Pop. 
+1) Updated packing alorithm Nage * exp(Agescale * (1 - Nage/(Khab * K?)))
+2) Rearranging and checking over output file.
+3) Add back in Female and Male maturation - track mature individuals for mating - size vs age switch here. Add another dtype for mature or not.
+4) Add in Fecundity_mu and Fecundity_sigma values in the AgeVars file -> if age control then use these numbers. Add then in PopVars.csv file 2 parameters for Egg_mean and 2 parameters for egg_CV which are dependent on size of individuals. Add another option in the offno for Normal distribution draw - option 5.
+5) Updated the EqualClutch size function in DoOffspring()
+
+Changes (20140625: v0.76-2014.06.25T12:11:00MDT (ell)
+0) Setting up runs and found an error when N > K after Emigration, DoOutput() doesn't work. I believe this is a results of adding the Eggs or Age 0 after this step into the population. Thus will go back and add in Age 0's up to carrying capacity. 
+1) Kage packing problem is wiping out all the age classes up front then Age0s add, but they can't reproduce - so population crash. Added a Deaths after packing problem both in Emigration and Immigration.
+
+Changes (20140609: v0.75-2014.06.22T10:42:00MDT (ell)
+0) Remove subpop mortality percent.
+1) Clean up: user manual, rename to cdmetapop files.
+2) Remove InitialSex options and this field.
+
+Changes (20140609: v0.75-2014.06.19T09:47:00MDT (ell)
+-1) Remove Female and Male Maturation - assume turns age.
+0) Age and size switch for all related age/size parameters in agevars.csv file. back in DoUpdate, do not age last age class - warning here, inflated last age class then in emigration module for packing algorithm, could not intialize last age class, but then not included in first DoMate process. Either way - get axed with 100% mortality in DoMortality. Skip age_percmort_out/back for now ****** have to grab all age classes around size. age_Mg and age_Str put sizeans switch in.
+
+Changes (20140609: v0.75-2014.06.12T15:38:00MDT (ell)
+0) Tie the length/age/temp fit variables with surface.
+1) Add in size or age control answer: sizecontrol = N, then fecundity based on age, if sizecontrol = Y, then fecudity based on size. Would all of the age file parameters then switch to size calls instead of age? Changes made to DoOffspring().
+
+Changes (20140609: v0.75-2014.06.11T08:56:00MDT SLC (ell)
+0) Add two growth surfaces - winter and summer growth. 
+1) Remove lambda from population vars.
+
+Changes (20140609: v0.75-2014.06.10T10:00:00MDT Boise (ell)
+0) Add in temperature surface tied to growth. Equation fits from AB. Two more columns growth_adjustedR0, growth_intercept.
+
+Changes (20140609: v0.75-2014.06.09T10:58:00MDT (ell)
+0) renamed version 0.75. Previous working, in this update will add CDClimate updates and switch for size v age, size growing based on surface.
+1) Updating cdclimate: add in patch level Str and Mg options in XY file seperated by |. First, remove futurecdmat option and combine upfront with regular cdmat read ins, but include | to seperate. Create CDClimate() module which includes the readin of cdmatrix  - add to PreProcess(). One file option switch during PreProcess for tuple indexing. Now add in Str and Mg parameters -> do this at the patch level seperated by |. Add error check here. Working.
+2) Remove age file option 'N', must specify a file now.
+3) Renamed input files in heirchary structure: Populationvars.csv, Patchvars.csv, Agevars.csv.
+
+Changes (20140604: v1.0-2014.06.04.14:44:00MDT (ell)
+0) Reorder inner loop: 
+DoUpdate - writes out file before processes - current Ninit here - always write out this file
+DoMate
+DoOffspring - Eggs
+DoEggMortality - cull eggs, but do not introduce into N pops yet (assume still eggs that survive strictly for saving memory)
+?Inherit genes could go here
+DoUpdate - update size and age and write out file (optional)
+DoEmigration - migrate out
+?Inherit genes - could go here and combine with add fingerlings
+AddFingerlings - add in age 0 class to Npop
+DoUpdate - update size and write out file (optional)
+DoImmigration - migrate back
+?GetMetrics - here tally genetics so that it spits out to output.csv file.
+?DoUpdate - keep track of numbers here at this stage. - Here wrap GetMetrics or convert this to get Metrics if it is just a tracking module. 
+
+1) First, remove DoUpdate before time loop gridInitial.csv which is taken care of as we first step into loop grid0.csv. Decide on where to put tracking metrics now - combine this into GetMetrics at the end. Add an initial GetMetrics before time loop to initialize the starting pops global tracking values.
+2) Next remove GetMetrics upfront, add to before time loop for SubpopIN_init and at end of time loop for SubpopIN.
+3) Next, update DoOffspring() -> DoEggMortality() -> InheritGenes() to not include in SubpopIN variable just yet. Update InheritGenes() to not append new offspring, instead still hold on to offspring variable.
+4) Then after InheritGenes() and before DoEmigration(), call DoUpdate to age and grow fish. Not necessary to output file here. Same individuals from previous DoUpdate, just updated age and size. Remove tracking size option from DoUpdate module and add it to GetMetrics().
+5) DoUpdate and DoOutput has a switch for user option of 'Sample'. Will now output grid0, grid1 all the time, but if user option with gridsample == 'Sample' then outpus grid0, gridSample0, grid1, gridSample1...
+6) DoAddAge0() - add this module now after DoEmigration - take SubpopIN_Age0 and add them into SubpopIN - can do this at the end of Emigration module.
+7) Then another DoUpdate which only grows and optional output if 'Sample' specified.
+8) Remove the DoUpdate at the end of loop and replace with GetMetrics()
+9) Update DoPostProcess module - some tracking numbers are one less than time length because of GetMetrics before loop and at end of loop. Move metric counting to this module: N_Age0,ToTFemales,ToTMales,BreedFemales,BreedMales
+Some do not have all the time steps, split out output into time-1 and NAs for those that do not have this: N_Emigration, N_EmiMortality,N_Immgration,N_ImmiMortality
+10) Checking runs...if no offspring, need to return and go to output file. Checking PostProcess numbers to make sense. All good! 
+
+Changes (20140528): v1.0-2014.06.02.07:35:00MDT (ell)
+0) Check Egg deaths per patch: Added to XY file. Read in. In mortality DoOffMortality() need offspring 'NatalPops', make dtype class call for offspring variable. Move infection check in DoOffspringVars() - get rid of DoOffspringInfect(). Now offspring variable is a class with a slightly different dtype. Mother genes and father genes come first. Update DoOffSpringMortality() for patch deaths.
+1) Check patch mortality then age mortality. Added in.
+2) Moved Set Migration to patch level XY file.
+3) Updated/correct order of migratoin probability by patch then by age with indProbans Yes and No. 
+4) Add in straying probability by patch then by age with same logic as Mg.
+5) Checking cdevolveans working throughout...Read in fine 7 values for fitvals1. DoEmigration() and DoImmigration updated.
+
+6) ****Add in Set Initial Strayer - a one time stray event at initial generation. 
+
+Changes (20140528): v1.0-2014.05.28.13:27:00PDT (ell and BT team)
+0) Add in a user option for stay migrator. 'set_migration' in user manual**** and inputvars.csv file. Then if setmigration is turned on, in Emigration() module if 'Immigrator' turn probablity to 1.0, always an migrator.
+1) Add in heirachary of patch movement probability first check, then age probability check.
+2) Initialize genetics by patch. In XY file create another column for intgenesans. Remove intgenesans option from inputvars.csv. Read in allelst for options and initialize by patch.
+3) Remove patch options from intputvars and add to XY file (subpopmortperc, mortperc_out, mortperc_back,migrate_prob,stray_prob).
+4) Grow fish once only after emigration()
+5) Age0 mortality per patch.
+
+Changes (20140514): v1.0-2014.05.27.16:19:00MDT (ell)
+0) Cleaning up user manual, removed philopatry and multiple_paternity from input.csv.
+1) Updated cdclimate module.
+
+Changes (20140514): v1.0-2014.05.21.09:23:00MDT (ell)
+0) Error in option '8' found by Casey Day in CDPOP fixed. 
+1) Created DoUpdate() modulde in _main_ and within that is DoOutput().
+2) add von B update size in DoUpdate module.
+3) Add tracking numbers for average/std size per population and age class.
+
+Changes (20140514): v1.0-2014.05.15.13:14:00MDT (ell)
+-1) Added sex maturation probabilities to agedistribution file, read in, and code. age_mature_F, age_mature_M - also age_size is read in, nothing done with it yet.
+0) Tracking body size linked to temp environment:
+1) Crop Meryl's Temp resistance surface to Sullivan. It is resistance values, but okay for now. 1 - 5.92 to 8; 25 - 8 to 11; 50 - 11 to 14; 75 - 14 to 17; 100 - 17 - 22.55. 'sull_temp_res4class.txt'. Add field to input.csv 'bodysize_surface', Prep and readin 'sizesurface' file in PreProcess() module.
+2) Check/Update cdevolve module while in PreProcess module. *********Not updated in the rest of the modules yet. 
+3) ReadFitnessSurface() -> general ReadSurface() function. 
+4) sizesurface sizevals read in.
+5) In agedistributation.csv add in size mean and size std information.
+6) In PreProcessing() module, draw from mean and std information for size and initialize each individual. -> Then add to SubpopIN_Init class, updated dtype to include float size variable.
+7) Update DoOutput() to include size column.
+8) Udpate Age0 size initialize
+9) Update in InheritGenes, DoEmigration(), DoImmigration() to include dtype size in SubpopIN
+10) Create a module that updates size - will call this twice: module that increase size -> von Bertanlanffy equation Loo(1-e**(-R0(t-t0))). Added bodysize_Loo, bodysize_R0 to input.csv file. 
+
+Changes (20140514): v1.0-2014.05.14:07:58:00MDT (ell)
+0) Checking new XY format flow through and clean up more. -> removed 'subpop' throughout _main_
+1) Outside of PreProcess() return SubpopIN_init and then call DoOutput() -> here make DoOutput() a general call (Begin, Middle, End differences None options).
+2) Add in DoOutput() option in the middle for sampling. If gen == "Initial" begining grid before time loop, initialization. If gen == "InRearing" will occur before _Immigration module and user option. If InRearing is specified then grid output will be grid0_1.csv grid0_2.csv...
+3) Add back in density dependent mortality function, make sure it is working. -> Decided not to have this now as included in the packing problem, remove all dependencies here. Removed within agedistrubution.csv file. Removed from input.csv file. Removed from readin steps. Removed from preprocessing() and _main and Mortality()
+
+Changes (20140508): v1.0-2014.05.08:15:24:00MDT (ell)
+0) Add in fecundity module with recruitment as age specific - entered in column of age distribution file. _Offspring module for Female age.
+1) Add tracker for AgeBirths v PopBirths.
+2) Update xyfile read in - Subpop,X,Y,K,N0.
+3) Restructure PreProcess() module -> reads in new xyfile and stores lines Pop,X,Y,K,N0 -> InitializeSubpop (just create subpop variable, not sure need hanging throughout different functions still check******) -> InitializeID() -> InitializeAge() now is based on distribution from age file does not have to be same size as K.
+4) InitializeSex() -> Change user manual and input file to be InitialSex field with WrightFisher, AtBirth, and Random. Random will use the Female percent parameter to randomly select females and males.
+
+Changes (20140508): v1.0-2014.05.08.09:02:00MDT (ell and ab)
+0) Add in AB's density dependent Kage packing option. To _Emigration and _Immigration.
+1) offspring variable had age/sex switched, males going extinct.
+2) Remove OPEN tracking variables. Remove ResidentCountIMM and StrayCountIMM those counted in Residents and Strayer variables.
+3) Split up mortality percentage into two user options (IN and OUT). 
+4) Dynamically allocated dtype based on loci*alleles coming in. Also fix (str, 1000) for subpops, doesn't need to be that big?
+5) Added sourcePop in the beginning, use NatalPop with gen 0, but ImmiPop with other generations.
+6) Shuffle in _mate was dropping female subpops at end, causing those to go extinct.
+7) Dynamically calculate the dtype in PreProcessing module.
+
+Changes: v1.0-2014.05.07.11:27:00MDT (ell and ab)
+0) One full generation loop now with SubpopIN or some version of: now streamline and check SubpopIN consistency throughout modules.
+1) Phase out outpool in _Emigration()
+2) Remove philopatry, can add back in.
+3) Move into DoMortality() little changes.
+4) Move into _Immigration() and DoMortality.
+5) Clean up DoOutput() and DoPostProcessing -> remove EDmatans.
+6) Looping through generations and making sure consistent: remove FID on readin Init - not needed.
+7) dtype needed to be the same length from init created NA for EmiPop and ImmiPop as placeholders.
+8) Running.
+
+Changes: v1.0-2014.05.05.06:11:00MDT (ell)
+0)One complete generation done. Begin Generation 1,
+1) Update ReadGrid(): From PreProcess(), update ReadGrid() here to output SubpopIN for the first generation to input into generation loop gen = 0. Output SubpopIN_init. If gen != 0 then use SubpopIN generated at the end of loop. SubpopIN_init has FID,Subpop,age,sex,infection,name/id,genes with genes as a str repr that will need to be converted...*******.
+2) Check that not looping and indexing over unique(subpop) as this may be out of order "1', "10' for example since string *************.
+3) Added K and N count our of Preprocess. Still have FID, id, ... variables, may clean this up....*********.
+4) Move into generation loop gen = 0 with SubpopIN_init ReadGrid, else if gen > 0 read SubpopIN. -> Removed ReadGrid() not needed.
+5) Move into GetMetrics -> careful of genes in gen > 0. ******check. Cleaning up GetMetrics, alot of redundancy. Nothing returned from GetMetrics2() now.
+6) Move into DoMate() with SubpopIN: Bearpairs still [females,males] have the SubpopIN format - track all information with females and males, return Bearpairs.
+7) Move into DoOffspring() with Bearpairs - still returning offspring variable. offspring variable is Mother,Father,sex,age0,infection,id
+8) Swap DoOffSpringMortality() with Inherit genes()
+9) Move into DoOffspringMortality() with offspring variable, no changes.
+8) Move into InheritGenes() with offspring variable. No passing in genes embedded in offspring variable still, update this - extract parents genes call. Here, update SubpopIN with new Age0s in each subpop and pass this into the _Emigration() then caught up almost!
+
+Changes: v1.0-2014.05.03.12:50:00MDT (ell)
+1) Moving into _MortalityIN function still with only SubpopIN variable. Same as _MortalityOUT function still with only SubpopIN and return N. *****Still only functioning with ConstantMort and agefile will need to update -> 
+2) Combine mortality functions now -> DoMortality()
+3) Move into DoOutput() -> here track numbers that can and add FID, XY spots back.
+4) Get rid of xgridcopy variable, not needed, added xgridpop, ygridpop variable, no need to track all total population repeats -> remove this reference to xgrid and ygrid throughout.
+5) Add in the prob -> CD in _Emigration _Immigration DispersalMetrics functions(). 
+
+Changes: v1.0-2014.05.01.08:20:00MDT (ell)
+0) Moving into _Immigration with just SubpopIN and new N! -> Sort out devisions of naming Residors, MovedResidors, Strayers, Immigrators, don't need OffspringResidors anymore.
+1) SupopIN out of _Immigration: outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,age,sex,name
+2) Residors = name
+3) MovedResidors -> not tracking anymore, lump with Residors 
+4) Added 'infection' to SubpopIN tracking for tracking numbers.
+5) Remove Infected tracking in PreProcess - done at the beginning of Output file.
+6) Updated Calculate Dispersal Metrics - some checking and cleanup still needed in these functions.
+
+Changes: v1.0-2014.04.18.12:42:00PDT (ell/ab) Spokane
+0) Change in model logic - patch based modeling. 
+1) Read in subpop x subpop cdmatrix, keep total population XY file (nogrids).
+2) Update move function option 6 - diagnols are 1.0, rest 0.0.
+3) Updating _Mate Module...Merged Sexual functions. Asexual not operational yet.
+4) Change CD Average mate back to CD values - but not for options 5, 7, and 8.
+5) Updating _Emigration -> Case where K is full on first round, fix N<K on next gens.
+6) Updating DoOutMortality....Constant and DensityDependent -> use N and K where possible now. Removed Counter dependence!
+7) Back to updating _Emigration with N<K: Move everybody first to a subpop (no spatial assignment yet - just subpop assignment). Dump and rank sort everybody, place top K in random spot in subpopulation. Create SubpopIN storage - recd2 string name using json module and age - sort by age in each subpop. PAUSE.
+8) Read in agedistribution.csv file. For now make it for one sex. Read in age_mort information, be carefull not to get confused with population_mort information.
+9) Change the Femalepercent to initial the starting sex. 'known' or use percentage. Also to be used as the birth percentage of females. 
+10) Walk through functions with agedistribution file...
+11) Get rid of CDpairs here, careful of indexing along the way - in place of CDPairs, put subpopulation information for F and M - then do not have to worry about indexing.
+12) C.Day found error in indexing when alleles > loci for allele frequency file. Fixed.
+13) Back in _Emigration SubpopIN_keep grab last K in each subpop and keep, eventually sort by age K and SubpopIN_keep them. Next round.
+14) Update the FID, sex, age, fields...Remove this coming out of _Emigration! Only keep SubpopIN_keep variable from _Emigration...added more infromation to SubpopIN.
+15) CalculateDispersalMetrics() updated for subpops - subpopmigration moved over, some metric tracking too. 
+16) ****Note**** the sort function takes a long time...Go back and clean up _Emigration.
+17) Moving into _Mortality with SubpopIN variable only! N updated and K feeds in too.
+18) Back to _Emigration module -> create K-age filled patch -> calculate dynamic K-age at each step by -> use proportion of Kage within each pop and random sample and keep -> int(), so less tempN coming out which I think is okay. 
+19) Still have an empty spot to fill in code when there is an age class missing, then distribute spots to other age classes proportionally...?? this could trickle down and be a mess so think about -> left pdb until it happens.
+20) Moving into _Mortality with SubpopIN variable -> creating temp 2 functions, I think I can make options agefile N switch work the same...not sure yet...will need to fix population agefile N functions however******.
+21) Added DeathsIN, DeathsOUT counter to PreProcess stage to add spots for age deaths.
+22) ConstantMortality2() slicker now...returns new N and SubpopIN_keep updated, updated DeathsOUT by age.  Need to update DensityDependent2()***************
+24) Error in _Emigration -> wasn't recording individuals disperingto.
+
+Changes: v1.0-2014.04.16.2014.09:12:00MDT (ell) 
+-1) Change all function names to prefix CDFISH_
+0) Updated the movement functions with the recent CDPOP changes.
+1) Moved same CDPOP functions over to CDFISH. 1 - 8
+2) Update input variables with parameter C.
+3) Update user manual
+4) In dispersal modules, remove function if split statements not needed.
+5) In mate module, remove function calls.
+------
+6) Error after DoEmigration all freegrid spots even with max dispersal? If there are no freegrid spots (K is at max) then it does not go into this loop. Recognizing it as a population crash - make a distinction. Fixed: Added a special case at the end for carrying capacity reached, fill AdultStayIn and OffStayIn No OffDisperseIN.
+7) Check then with DoImmigration()...
+
+Changes: v1.0-2014.03.26.2014.13:05:00PDT (ell) To MX/AFS
+0) Pick back up on code and check run bugs. Successful run with minor fixes ('Ricker to Rickers' and update input to DoPostProcess()).
+1) Go through output.
+2) Started big run and finding errors in Levy function.
+3) Big error in Counter with unique pops (never liked that function) - with more than 100 pops it doesn't work! New tuple to dict method replace throughout. However, it is an error with converting array string to int, still going to use right now - but have to change call to unique pops to strings. 
+
+Changes: v1.0-2014.01.31.2014.13:35:00MST (ell) ARB meeting
+-1) Add DoOffspringMortality() - mortality to age 0 class. Store Age0Deaths in output.csv
+0) Move function DoInMortality after DoImmigation(). Need to move the adults variable to the start of DoEmigration(). Moved freegrid calc to beginning of DoEmigration().
+
+Changes: v1.0-2014.01.30.12:13:00MST (ell) ARB meeting
+0) Add in DoOffspringMortality() after InheritGenes() to account for eggs to larva to fry to fingerlings "Age0" class.
+1) Add in Richards and Ricker switch in density dependence -> add to the user manual still - ddmort_R0 and ddmort_m.
+2) Error when population crash, opengrid and filledgrid empty, added if statement at the end of _immigration and _emigration functions to fill openindex with full grids to continue loop.
+
+Changes: v1.0-2014.01.29.11:09:00MST (ell) ARB meeting
+0) Update output.csv metrics for diagnostic test.
+0a) Split up Births per population and added BirthsStd.
+0b) Add StrayCountImm - actual count of Strayers, different than the successfull probability of straying. 
+0c) Keep track of Residors per population.
+0d) Added population tracks to Selection Deaths and dispersalDeaths.
+
+Changes: v1.0-2014.01.19.15:03:00MST (ell)
+0) Gen 0 first pass check okay, move through gen 1 check, checking mating function for offspring passes.
+1) Naming is off in next loops: keep old id from previous generations and update new generations id: not sure I like this naming style right now....
+2)Running through multiple generations fixing errors along the way - minor.
+3) DoPostProcess() check read in and update output.csv
+4) Still running through and fixing minor errors: e.g., when pop crashes, some variables wig out.
+5) sex, age, and infection now as strings in variable lists - careful here, as integers before.
+
+Changes: v1.0-2014.01.14.14:26:00MST (ell)
+0) Move into DoOutput() and clean up passing in correct variables.
+
+Changes: v1.0-2014.01.02.04.10:20:00MST (ell)
+0) Create _Immigration.py a copy of _Emigration for now.
+1) Splitting up _Immigration and _Emigration storage variables into Out and Back - for counting and output reasons later.
+2) Create Movement functions for immigration - split up into straying and immigration  - create 4 new read in user parameters for StrayBackno, parA, parB, thresh...that way can use the same cdmatrix for the dispersalBack or immigration function but different functions.  Careful though, computation might be hard on RAM with all of the read ins, fix this later.
+3) Pass in subpop as None option into ProbArray function for immigration, that way can just have the option to read the cdmatrix indices from the natal pop.
+4) Now Residors, MovedResidors, Strayers, Immigrators coming out of Immigration function.
+5) Added CalculateDispersalMetric() for immigrators and Strayers.
+6) Pass in OffStayIN and disperse AGE 0 to open index after openindex
+7) Break up the _Immigration.py into functions - way too long.
+
+Changes: v1.0-2014.01.02.09:34:00MST (ell)
+0) _DoInMortality and _DoOutMortality trying to make consistent calls by passing in adult/offspring format list instead of single variables. FID, id, sex, genes, etc...
+1) Update FID, id, sex, genes, age, infection, xgrid, ygrid lists in DoEmigration module - need a full set of this, added to end of module with mask calls. Also track openindex and filledindex from this function which will be switches potentially into mortality IN and OUT calls.
+
+Changes: v1.0-2013.12.29.10:00:00MST (ell)
+0) Copy of code, schematics made of DoEmigration().
+1) Copy _Disperse.py to _Emigration.py
+2) Place holders in Main then after Disperse to make modules _DoOutMortality.py - rearing/overwintering ground, (_DoInMortality.py - natal), _DoImmigration.py.
+
+Changes: v1.0-2013.12.17.13:31:00MST (ell)
+-1) Added Movement function '7', which is inverse square movement within each subpopulation.
+0) Does not run all the way through. Bug with output in age NA - watch for this. So something messed up in Mortality functions I think. 
+1) But moving on to Dipsersal function - moveOut to rear or overwinter.
+1a) get natal_migration global population and subpopulation probability of migration to moveOut...Read in probabilities and added error check must be equal Mg, Rmg, and Str.
+1b) Removed Rmg - redundant probability with rearing and just leave Str (Str + Rmg = 1).
+1c) Collect occupied grid spots individuals into a variable: adults to mimic the offspring  list variable - the pool of dispersers now is both offspring and adults.
+2) Added in infection parameter to mortality function, was not passed or deleted from old generations.
+3) Add age to offspring variable upfront - will be merging pools of adults and offspring for dispersal, need age class information. Updated InheritGenes module and be careful of other references to offspring down the line...
+1d) Back to combining adult and offspring dispersal pool...create 'outpool' variable offspring + adults. 
+1e) Loop through while loop of outpool and freegrid spots in riverscape, filling up spots. 
+1f) When individual moves, assign a unique name. Before it was 'gen'+str(gen)+'Mother'+str(outpool[i][0])+'Father'+str(outpool[i][1])+'DispersedFromSubpop'+str(subpop[outpool[i][0]]). Adults will have [2,2,2,2,sex,age,infe,genes], where offspring can be different parent locations unless selfing is turned on. Therefore, go back and tag a unique ID after infection spot. For adults, it will be there ID, 1pop_1, 1pop_2...2pop_1, 2pop_2...for offspring it will be ID 1new_1, etc. Now name is 'gen'+str(gen)+outpool[i][7]+'_Mother'+str(outpool[i][0])+'Father'+str(outpool[i][1])+'_DispersedFromSubpop'+str(subpop[outpool[i][0]]).
+1g) For when Mg is not necessfull, create variable to mimic OffDisperseIN ~ AdultStayIN and store outpool individuals in this list.
+1h) Add variable for output.csv MgSuccess
+1i) Create freegridvacant list: when adults migrate out, store this new open grid location that is now vacant for next process of immigration. Whenever there is a death of an adult, add spot to this list.
+1j) Stored OffStayIn for Mg no success and offspring pool age 0 individuals - then in Immigration they will have a opportunity to occupy locations in natal ground. 
+1k) Note that Mg success and No spot location assume mortality, maybe not right way to do this....disucss later.
+
+Changes: v1.0-2013.12.09.06:49:00MST (ell)
+0)Changed names for cdmatrix variables: cdmatrix_{}, where {} is either mate, FOut, MOut, FBack, MBack. Same for threshold: thresh_{}. 
+1) To the Mate function...nothing changes.
+2) DoOffspring()...nothing changes this round, add later increase fecundity for migrators.
+3) DoMortality() - here add in density dependent mortality in natal grounds. 3a) First, add switch for agefile - this will have to be cleaned up. 
+3b) Created CDPOP_Mortality.py script, removed DoAdultMortality() from _Modules.py script.
+3c) Removed agemortperc field - just use mortper_natalpop. User must specify mortality % for each population. If it is global make the same. Add error check here.
+3d) Change oldmortperc to popmortperc - user can enter in 1 number or variable number that is fine here.
+3e) oldmortperc finally removed. Subpopmortperc handle in dispersal process.
+3f) DoConstantMortality() function added to _Mortality.py in which constanst mortality is applied to population - checked for populations and global.
+3g) Add in density depend mortality ~ K and N or exp(r(1-N/K)) for N and K specific to each population. So given the K and N at time t, return a 0 - 1 survival rate or mortality value from this function.
+3h) DoDensityDependentMortality() function added to _Mortality.py
+3k) Updated density dependent mort: N*exp(r(1-N/K)) which returns a Nt+1, then divide by K to return a rate or probability or mortality.
+
+Changes: v1.0-2013.11.27.9:10:00MST (ell)
+0) Add in mate_cdmat, dispout_cdmat, dispin_cdmat == 3 processes then to control for movement. Still need to read in dispin_cdmat....
+1) Update age distribution file more, remove reside probilities, this is included within the stray (rearing populations) and within the migrate (natal populations). Added additional male:female sex ratio option  as last field Percent Female - not sure this is the correct option, but for now.
+2) Place holder for loadFile for agedistribution.csv - these will be header file read in lines - function call - Not sure will use or not.
+3) Split up movement parameters into moveOut and moveBack, corresponding to the dispersal cdmatrix files dispout and dispback. 
+4) Split up read in functions ReadCDMatrix() for each dispersal cdmatrix Out and Back for both Female and Male. 
+5) Moved mortality fields to the end of the input - includes for now: birthmortperc, agemortperc, subpopmortperc, mortperc_natalpop, dendep_natal. Some of these are redundant and will filter out. I am missing some as well...need to add in rearing functions and mortality hear still. 
+
+Changes: v1.0-2013.11.22.17:33:00PST (ell)
+0) Decided to take cdpop code and add in cdfish functions.
+1) First, update input file header information - add any fields missing from cdfish to cdpop - residency and straying.
+2) Option 7 for dispersal movement in cdfish v056 not in cdpop, add in eventually...
+
+# --------------------------------------------------------------------
+
+Changes: v1.2.18_2013.08.27T15:53:00MST (ell)
+0) Added parameter field 'burningen' after cdevolveans. This refers to the generation that the selection surface will begin operating on the locus or loci under selection...for burn in procedures.
+1) User found a mismatch in grid and genepop output and fixed this error.
+
+Changes: v.1.2.17_2013.08.25T08:49:00MST (ell)
+0) Age distribution read in function InitializeAge() if linux or mac saved file '\r' character at end not stripped...added and fixed this error. 
+1) AdultDeaths in overlapping age structure was not reporting in output file all age classes for the field AdultDeaths. Fixed in function AdultMortality().
+
+Changes: v1.2.17_2013.07.12T13:47:00MST (ell)
+0) Error in dtype output with BreedFemales and BreedMales fixed.
+1) Fixed M philopatry option, my logic was off before.
+
+Changes: v1.2.16_2013.07.03T13:11:00MST (ell)
+0) Fitness surface error readin for square matrix only - changed to read in square matrices. 
+1) Added some error checks for fitness surface: must be the same dimensions and dimension checks.
+2) Added gradient files to data folder as example and updated user manual.
+
+Changes: v1.2.14_2013.06.09T14:21:00MST (ell)
+0) Adding back asexual / hemaphordictic mating options sexans == N.
+1) Asexual did not have breeding number of grids split (reproage) option split out -> added. 
+2) Added error check for philopatry must be sexual reproduction too.
+3) Asexual option for YY and NY (NY == YN) added.
+4) Added error statement in allelefrequency file read in - must match up number of alleles and loci entered.
+
+Changes: v1.2.13_2013.05.25T09:27:00MST (ell)
+0) Adding Female-biased dispersal - expanding options for Philopatry field to N, F, and M now. Added error checks in CDPOP.py - strict cases for F and M biased movement: 0 movement, equal sexes initialized, ‘AtBirth’ sex ratio, and either movement rules 1, 2, 5 or 6.
+
+Changes: v1.2.11_2012.12.16T09:26:00MST (ell)
+0) Corrections to GENEPOP output format file.
+1) Correction to age distribution function. Error in float precision carrying capacity .99999
+
+Changes: v1.2.10-2012.07.08T09:25:00MST (ell)
+0) When a panmictic cdmatrix and threshold set, get ED window and set everything else to 0.
+1) When Y/Y or Y/N (female promiscuity) then make the clutch size for each female equal. Ie, if the birth rate is a constant of 2 and a female mates twice, then she will have 1 offspring from each mating event. Added another offno option '4' for this, assume constant birth rate.
+
+Changes: v1.2.09-2012.06.21T16:32:00MST (ell)
+0) Added subpopulation numbers for females, males, dispersal, etc...Careful to check this in linux, using np.where[0] indexing.
+1) Added subpopulation emigration numbers
+2) Changed philopatry option, so that when a female doesn't mate and have offspring a nearest neighbor female will take her spot. Use male dispersal to reassign probability matrix.
+3) Found a speed up spot section. Dispersal index was looping, not necessary!
+4) Added females that do not mate tracking number
+
+Changes: v1.2.08-2012.05.20T09:41:00MST (ell)
+0) Add multiple paternity - This is an additional option in input variable file of Y or N. This will enforce females to have equal birth rates when mating with multiple males.
+1) Add argv 1 for data directory. 
+2) Added argv 2 for input var file name.
+3) Added argv 3 for output file directory.
+
+Changes: v1.2.07-2012.05.11T09:33:00MST (ell)
+0) Track Female and Male dispersal distance in ED and in CD.
+
+Changes: v1.2.06-2012.04.06T08:14:00MST (ell)
+0) Genepop option to .txt file and spaces in between files.
+1) Changed threshold greater than or equal to, to ensure barrier number set.
+2) Checking cdclimate module: error in new header function read in fixed. 
+3) Linux (MAC) 'rU' added to readCDmatrix() too.
+4) Checking ploygamy, philopatry, grid crash after gen 0: movement threshold can't be >= changed back.
+5) Added 'agemortperc' - This field is the new mortality field. oldmortperc and newmortperc removed.
+6) Added back in a birthmortperc in case user wants a birth rate mortality.
+7) Added Deaths output.csv as age structured column.
+8) Found bug when mortality is 0, fixed.
+
+Changes: v1.2.05-2012.03.28T08:09:00MST (ell)
+0) Linux syntax with filename.split('\\'), changes to filename.split('grid').
+1) Turn input variable file into reading header, not hard coded. Added FileIO.py loadFile()
+2) Misc strucutre grid format output changes. stu to stru. Removed NAs.
+3) Added GENEPOP structure option
+
+Changes: v1.2.04-2012.03.25T09:53:00MST (ell)
+0) Linux (MAC really) return character issue. Not reading \r character? Added 'rU' for opening files.
+1) Added more grid output options. genalex, genepop, structure. Removed on the fly and added it to the end post process step.
+
+Changes: v1.2.03-2012.03.20T10:56:00MST (ell)
+0) Added mutation for forward, backward, forwardbackward, random.
+1) Subpopulation have to be labeled 1 to N and not skipping numbers. Fix this eventually, added error statement.
+2) Equal sex ratio option now at birth. 
+
+Changes: v1.2.02-2012.03.19T10:12:00MST (ell)
+0) Error in 'Something wrong in gene general format. Email Erin.' DoOutput(). When NA introduced, genesnew becomes an array of string values. Adjusted string and integer checks.
+1) Added a column in output for actual number of breeding females and males. This is confusing with the possible breeding females.
+2) Took sexans == N off until further testing.
+
+Changes: v1.2.01-2012.03.10T15:19:00MST (ell)
+New version addition...slowly adding in functionality to v1.2 to decommission v1.1.
+0) Added in monogamy Mreplace and Freplace both N.
+1) Re formatted the age distribution file, column format, remove the frequency.
+
+Changes: v1.2-2012.03.06T07:42:00MST (ell)
+0) Adding in nearest neighbor function....not done.
+1) Strange index error with np.where in linux verses windows, in ReadGric90 line 101 made a quick fix for linux run.
+2) Make fitness file more general like UNICOR...not done.
+
+Changes: v1.2-2012.03.06T05:51:00MST (ell)
+0) Misc minor errors that Karl Jarvis has spotted:
+0a) Misspelled DisperserDeaths in Outputfile.
+0b) Subpop Mortality now takes float values.
+0c) I had an index error for FG into the subpop list, so subpop not updating correctly.
+0d) I took out geneswapgen.
+0e) Made repro age to work without age structured populations.
+0f) Had an index error for subpopmortalitypercent.
+1) Gilles email: Was using 1 loci, put error sys.exit in for this.
+
+Changes: v1.2-2012.02.13T16:56MST (ell)
+0) I added a subpopulation differential mortality of dispersing offspring option. 
+
+Changes: v1.2-2011.11.25T10:10EDT (ell)
+0) Adding demographics to v1.2 now. List of changes:
+1) User must specify all xy possible points and complete cd matrix.
+2) User can start with NA values in xy file in the fourth and fifth column to specify empty spot. Must have values in the subpop, xgrid, and ygrid fiedl.
+2) filledgrids used in place of nogrids.
+3) Asexual reproduction not functional, must do more testing for this. Flagged error if user uses.
+4) Removed DoImmigration() altogether! Do not need Immigration now with fluctuating population sizes. Make a note and add to future versions of code if requested, otherwise use the 'assisted migration' approach for immigration questions.
+5) Back to the discussion of habitat loop or offspring loop for dispersal. Current code loops through habitat spots. I think I will change this to loop through offspring to make it individual-based centric. I will check code at end and see how different results are.
+6) Made cevolve functions: Do1LocusSelection(), Do2LocusSelection().
+7) AdultMortality() slowed down, attempt to speed up, redid with numpy calls.
+
+
+Changes: v1.1-2011.11.19T18:12EDT (ell)
+0) Attempts to speed up by calculating prob array up front in place of cdmatrix. Replace cdmatrix with probmatrix. Then convert to numpy and index into it for getting mate pairs and dispersal locations.
+1) Removed CDPairs.
+2) Removed xycdmatid.
+3) Combined linear, inverse square and neg bin  into sexualNY(), sexualYY(), asexualNY, asexualYY().
+4) Changed w_choice_general in mate and dispersal modules to w_choice_item().
+5) Code seems to check out with Wright Fisher and IBD. Sped up quite a bit.
+6) Took out F measures.
+
+
+Changes: v1.0-2011.11.19T1408EDT (ell)
+0) Checking Equal sex ratio bugs...First error was old stuff when splitting up equal sex ratio into just left and right side. 
+1) Added equal sex ratio by subpopulations.
+2) Equal sex ratio working, but just not realistic for sex specific dispersing offspring.
+3) Added Mother and Father location to ID column name so can track where that offspring comes from.
+
+Changes: v1.0-2011.10.31T15:34MST (ell)
+0) I added a tracker for variance in reproductive success for both males and females.
+
+Changes: v1.0-2011.08.05T13:20:00MST (ell)
+0) unique does not order sequentially, indexing error fixed in Modules.
+1) Added tracking subpop migration numbers to current code.
+2) Checked 'known' option for genes, make sure it is working.
+
+
+Changes: v1.0-2011.08.05T15:39:00MST (ell)
+0) Fixed the genetic distances indexing error
+1) Added variance of dispersal and mating CD and ED for Tab.
+
+Changes: v1.0-2011.05.05T14:58:00MST (ell)
+0) Added subpopulation information to GetMetrics.  Now first column in xyfilename is a subpop designation.  Ho and He will be displayed in outputfile as HoTotal|Ho1|..|HoN, for N subpopulations with a bar separating values.  Same for He.  A user can then calculate Fst between subpopulations.
+
+Changes: v1.0-2011.04.10T11:31:00MST (ell)
+0) Cleaning up more of the code.
+1) Make sure GUI works with new varaibles.
+2) some indexing writing out errors with nthfile choice.
+3) Added cdclimate to allow multiple read in separated with a '|'.
+
+Changes: v1.0-2011.04.02T10:08:00MST (ell)
+0) Begin multi-loci selection work.
+1) Added inputvariables for cdevolveans1 and cdevolveans2 corresponding to 1 locus and 2 loci seletion models.
+2) Added inputvariables foe 9 combinations of 2 loci selection.
+3) Added error check for if using cdevolve then 2 alleles must be used.
+4) Added substantial code sections for the 9 possible combinations of genotypes.
+5) Changed cdevolve answer to '1', '2', 'N'
+6) Added p1,q1,p2,q2 allele freqency trackers for the 2 locus equation.
+
+
+Changes: v1.0-2011.04.01T11:26:00MST (ell)
+0) Code walk through and clean up (getting ready to publish v1.0 and code DM model of 2 locus selection.  Here is the list of changes made:
+1) Remove directory hard coded.
+2) Removed xycdmatrix file and references.  Assume the cdxlocation and cdylocation are the ordered xgrid ygrid locations.  Make note of this in user manual and README.
+3) Remove adult fitness surface references and fecundity fitness surface references and code sections.
+4) Remove panans, just confusing.
+5) Remove Twopopans, just confusing as well.
+6) Removed MateCDmatans, DispCDmatans.
+
+Changes: v0.93-2011.03.08T11:52:00 (ell)
+0) Removed RipMgr stuff for right now...until batch capability back online.
+1) Added system argument for inputvariables.csv.
+
+Changes: v0.93-2011.01.20T1600 Hawaii time (ell)
+0) Rearranged inputvariables.csv to be grouped in categories for ease of GUI development.
+
+Changes: v0.93-2010.12.30T1650 (ell)
+0) Found some minor erros in function passing when intgeneans == file and allelefrequency file is specified.
+1) Found out that CDPOP_Mate.py Freplace == Y and Mreplace == N AND Freplace == N and Mreplace == N does not exist.  Put print functions in with sys.exit(-1)...code in later.
+2) mtDNA: If Y, then last loci becomes mtDNA and every offspring gets this locus from mother only.  If N, then regular Mendal inheritance for the last loci.
+
+Changes: v0.93-2010.12.28T093000 (ell)
+0) CDCLIMATE work begin...
+1) Added to user_input.ip and inputvariables.csv: CDCLIMATE (Y and N), cdclimgentime (mod 0 of looptime), futurematecdmat, futuredispcdmat, futrexycdmatrixfilename
+2) Added above parameters to CDPOP.py.
+
+Changes: v0.92-2010.12.23T090900 (ell)
+0) CDINFECT work begin...
+1) Added parameters cdinfect to switch it on or off.
+2) Added parameters transmissionprob to flip the coin to see if offspring infected.
+3) If cdinfection, create a random status infection 0 or 1 -- initialize the population.  If not cdinfect, create status 0 infection for all individuals and intialize.  Add column to grid.csv output after sex column and before genes.
+4) If mother or father has infection, then flip coin for transmission probability and if random coin flip is less than transmission probability, assign a 1 for infected offspring.
+5) Rearrange functions, made new ones: InitializeInfect()
+6) Begin Gene2 work...genes stored as general format. 
+
+Changes: v0.91-2010.12.21T02:49 (ell)
+0) Added DispCDmatans.
+1) Added mtDNA option...not in code, need to talk to Gordon to make sure I understand how this is swapped.
+2) Turn 'max' into a function GetMaxCDValue() to CDPOP_PreProcess()
+
+Changes: v0.91-2010.12.11T08:52 (ell)
+0) Added 3 fitness surfaces for OffspringMortalityFitness, one for each genotype.
+1) Fix DoImmigration() error, list index out of range...within cdevolve section for both emigration and immigration, was not deleting the probarray within the while loop.
+2) Begin stubbing DoImmigration()/DoEmigratin(), created CDPOP_Disperse.py and within created DoLinearDisperse(), DoInverseSquareDisperse(), DoNegExpDisperse()....
+
+Changes: v0.91-2010.11.23T09:00:00 (ell)
+0) New version: added new movement functions, negative exponential y = a10^-bx with matemoveparA and matmoveparB parameters. Added 6 functions to CDPOP_Mate.py
+1) Added FdispmoveparA, FdispmoveparB, MdispmoveparA, MdispmoveparB
+
+Changes: v0.90-2010.11.05.09:51 (ell)
+0) New version: begin CDEVOLVE work.
+1) Change user_input.ip and inputvariables.csv to include 'cdevolve' answer.  This is Y or N to turn this module on or off.
+2) Change user_input.ip and inputvariables.csv to include LociSelect.  This is the loci and allele under selection, e.g., L0A1|L0A4.
+3) Change user_input.ip and inputvariables.csv to include fitsurface.  This is the ascii file .txt, tab delimited fitness surface that defines differential mortality for an offspring given loci under selection.
+4) Tested above with test files: CDTable1000_pts1, edcdmatrix_pts1, Pnts1, fitvals0_0, set at max movement thresholds.
+5) In CDPOP_Modules added PrepTextFile()
+6) In CDPOP_Modules in DoPreProcess() added ReadFitnessSurface() function to read in the fitness surface ascii file in CDPOP_PreProcess()
+7) Extracted header file information from fitvalues.
+8) Store fitness values for each xy location spot: get xll, yll to be in center location, get xfitval,yfitval, run closet point check on xgrid,ygrid to xfitval, yfitval, and then find closest fitnessvalue to xgrid, ygrid, storing it in fitvals list.  THIS SECTION NEEDS TO USE KDTREE AND SPEED UP.
+9) Step 8 way too slow...rewrote using KDTREE and SCIPY now needed.
+10) DoDisperse() -- passed in cdevolveans, fitvals, lociselect.
+11) DoEmigration() -- Movement1and2: line 500-560 after itemselect, add differentialmortality based on fitnessvalues in while loop until offspring survives to take that spot.  Be careful to add this same logic everywhere!  Right now only added for movement 1 and 2.
+12) DoEmigration() -- Movement4: lines639 - 692 added 11) logic to panmixia.
+12) DoEmigration() -- Movement3: lines611-671 added 11) logic to nearest neighbor.
+13) DoImmigratin() -- Movement1,2,3,4 added 11) logic. 
+14) Removed DoOffspringMortality()...in logic from 11, if not lociselected, then apply newmortperc to offspring.
+15) Track allele frequency of the first locus (p) at each generation...created a deltap and append all_freq_tot[0] to as p...added deltap to output file.
+16) Track w11, w12, w22 -- the relative fitness of the three genotypes...Track total zygotes with each genotype in OffDisperseIN, get proportion and then max for relative fitness.
+17) Relative fitness values do not change every year, removed 16)
+18) Deleted loci under select column.  Just assume first loci under selection.
+19) Added Adult_Mortality_Fitness, Offspring_Mortality_Fitness, and Fecundity_Fitness columns to inputvariables.csv and user_input.ip.
+20) Added if AA and Aa, then go to fitness surface.
+21) in DoAdultMortality() added section to apply Adult_Mortality_Fitness
+22) Recap: Turn AdultMortFit off by setting oldmortperc == AdultMortFit.  Turn OffspringMortFit off by setting newmortperc == OffspringMorFit.  These 2 surfaces are viability selection in terms of mortality.  Fitness surfaces used for genotypes AA and Aa.  Global mortality used for aa.  Fecundity surface is proportion of offspring for aa.  Use with constant offspring at set level (eg 10, 10 offspring for every mother with AA and Aa).  Then Fecundity selection is preformed for aa individuals and fitness surface at proportion of set offspring level (eg .10 would produce 1 offspring for every mother with aa).
+23) Added fecundityfitsurface: first error check if cdevolveans = Y, then offno == 3.  Then DoOffspringCDEvolve() function in DoOffspring().  If Mother has AA or Aa, then apply lmdba for offspring number.
+
+
+
+Changes: v0.89-2010.10.27.11:26 (ell)
+0) When equalsexratio == N, then carries a return character on end of sex field.  stripped this value when read in line 762 in _Modules.py
+
+
+Changes: v0.89-2010.10.17-07:59 (ell)
+0) Continue debugging DoGridOut_general() function, was not spitting out the nthfile values.
+1) Stubbed ReadCDMatrix() and ReadXYCDMatrix() and ReadXY() and ReduceCDMatrix() and InitializeAge() and InitializeGenes()
+2) Begin CDMetaPop work...
+3) Added matecdmatrixfilename and dispmatrixfilename in input variables.
+4) Call this function twice ReadCDMatrix() to read in matecdmatrixfile and dispcdmatrixfile.
+5) Created CDPOP_PreProcess.py library.
+6) Follow cdmatrix throughout code, changing and adding matecdmatrix or dispcdmatrix where appropriate.
+7) Removed DoCostDistanceMatrix dependency.
+
+
+Changes: v0.89-2010.10.02-06:34 (ell)
+0) Incorporated Joe's RipMgr
+1) Incorporated logMsg() and begin logging dialogue.
+2) Split up CDPOP_Modules, included CDPOP_PostProcess.py
+3) Added grid output option format (CDPOP and General for now). DoGridOut_cdpop0(), DoGridOut_cdpop(),DoGridOut_general() functions stubbed.
+4) Split up CDPOP_Modules, included CDPOP_Mate.py, CDPOP_Offspring, and CDPOP_GetMetrics.py
+5) Begin to redo CDPOP with general genes format throughout code.
+
+NOT FIXED: v0.88-2010.09.11-11:34 (ell)  Hit another error.  Need to fix.  When 'List' is specified and if 'nthfile_seq' > 1, then error index out of range.  grid0.csv is not written correctly....wait, when looptime was 5, and nthfile_seq was 6 it ran fine...only when nthfile_seq=10 did it incorrectly write grid0.csv file.  hmmm, fix later.
+
+Changes: v0.88-2010.09.02-12:20 (ell)
+0) Needed to run CDPOP and hit some errors...note that when Mmovefunction is 1 and Fmovefunction 2, something bizarre is happening with offspring sex...I did not fix this yet, will require some more thorough debugging.
+1) Error when equalsexratio == N...at start of cdmatrix creation...fix later.
+2) Included movement thresholds 25max, 50max, 75max if else statements.
+3) Except/try added to code for checks on import statements.  Note commented out Joe's RipMgr as I am testing code for another project to be run on other computers.  Also found out that import random has to come after import numpy.random, not sure what this is doing.
+
+v0.88-2010June15--1500 - Code completely modular.  Will begin sub-
+	module changes next.
+      -2010June20--20:30 - Stubbing modules. Also change import Numpy as np - use this convention.
+      -2010June22--15:13 - DoMate() 24 stubs.  Also changed nthfile_seqence and nthfile_list to be 0|4|5 instead of 0 4 5, so that Joe's parser can handle this exception.
+      -2010June23--16:23 - DoOffspring() 5 stubs. Also removed function w_choice(), since I only ever use w_choice_general()
+      -2010June27--Continued stubbing...InheritGenes() not stubbed, DoAdultMortality() not stubbed, DoDisperse stubbed to DoEmigration() and DoImmigration(), DoOutput() not stubbed, DoPostProcess() stubbed to 5.
+      -2010July08--Rearrange xygrid.csv input file to have columns Subpopulation, XCoord, YCoord, ID, Sex...no more FID.  Beginning to track these changes in code to make CDPOP run.  Working but not sure special cases tracking subpopulations...need to still check this.  Got Immigrants to work.
+ v0.87-2010May16--12:04 --Some changes, but beginning to modularize.
+	1. Create unique batchfolder output with datetime stamp: added foldertime
+	variable.
+	2. Removed most of the print statements.
+	3. Begin _Modules script to store functions
+	4. Begin incorporating RipMgr
+	5. From Nev Amos, non-overlapping generations giving an error:
+		- agelst was not correct for the file agedistribution
+		- possible error when there are no Births...This will need
+		to be checked well in future when testing overlapping gens
+	6. Program Steps restructured:
+	Step 0: Import packages
+	Step 1: Start timer, get script arguments
+	Step 2: Call DoUserInput()
+	Step3: Begin Batch Looping
+	Step 4: Begin Monte-Carlo Looping
+	Step 5: Create storage variables
+	Step 6: Call DoPreProcess
+	Step 7: Start Generation Looping
+	Step 8: Call ReadGrid()
+	Step 9: Call GetMetrics()
+	Step 10: Call DoMate()
+ v0.86-2010May11--09:20 -- M.Jacobi's GUI
+	1. I changed nthfile options to match GUI, 
+	included, nthfile_yn: a boolean answer to tell user that if 'Y', then
+	read nthfile_list and if 'N', then read nthfile_seq.  nthfile_list: is
+	a discontiguous range of integer values.  nthfile_seq is a start, end, by
+	value range to give even intervals where user specifies the value by.
+	2. I added a mod check for nthfile_seq, in case value is not an even
+	divisible number.  I add a max check for nthfile_list, in case max
+	list value from user is greater than the total looptime.  Truncates
+	values in all cases.
+	3. I rearrange input variables once again to make more sense to user...
+	Put twopopans next to panans.
+	4. Removed 'Reproans' -- not used and sex specific movement included
+	in movement functions and thresholds now.
+	5. Removed 'Locians' -- not coded yet and include in future...
+	2010Apr27--18:48 -- I found an error with Nevil Amos's work when
+	equalsexratio == 'Y' and there are odd nogrids.  If this happens to be
+	the case, which doesn't make sense with equalsex ratio and an odd
+	number of grids, then I added a random draw of a sex for the left
+	over grid spot.
+ v0.85-2010Feb28--11:51 -- This version adds sex specific movement for 
+	dispersal across functions and threshold values.  
+	Here is list of the following code changes:
+	1. inputvariablesv0_85.csv includes Fdispersemoveno, Mdispersemoveno
+		Fdispersemovethresh, and Mdispersemovethresh
+	2. March 08 also fixed when cdmatrix is all zeros and movement threshold
+		is set to 'max', then >= sign causes nobody to mate-up, thanks A.Shirk.
+		on line 1247 changed '>=' to '>'
+ v0.84-2010Jan14--21:44 -- Clean up CDPOP!
+	1. range to xrange
+	2. formatting...
+	3. deleting varibles hanging around...
+	4. Also allowed sex column to be F and M -- before they were 0 and 1.
+	5. FID values also can be any number -- before they were 0 - nogrids-1
+	6. Fixed linux error with creating folders '\\' to '/'
+	7. Removed dependency on agefile and allelefile:  added 'N' to skip code
+	segment that reads in these files and won't need to include these files
+	in the directory location.  Moved the order around for th inputvariables.
+ v0.83-2009Mar21--13:25 -- A few more changes made to get a Wright-Fisher 
+	population...also doing some cleanup as I go along.
+	1. Need to grab females and males with replacement until nogrid times.
+	Code before only did this for nofemale times.  This is fine for the panmictic
+	case, but when there are cost distance matrices not equal to zero than
+	immigrants can come in potentially.  inputvariables now has 'twopopans': 
+	'Y' == assumes that [0,nogrids/2) is population 1 and [nogrids/2,nogrids] is
+	population 2.  'N' == assumes that there is only 1 population.  
+	2. Mutation rate changed AGAIN.  'per locus per generation' actually means
+	 that the mutation rate is applied to each allele at each locus for offspring.
+	A bit confusing, eh?  So I removed the /2 after muterate.
+	3. Removed plotans section...no need to provide this...along with pylab.
+	4. Removed analysisans section...no need to provide this, will work on later.
+ v0.82-2009Mar19--12:22 -- A few changes made to get a Wright-Fisher 
+	population:
+1. mating with replacement for females and males.  Code before used replacement in males only and without replacement in females.  
+	inputvariables now has a column for an answer for Freplace: Y==Females 
+	mate with replacement, N==Females mate without replacement.  
+	And Mreplate: Y==Males mate with replacement, N==Males mate without 
+	replacement.  Note that there are only N,Y and Y,Y cases for Female 
+	replacement, Male replacement.  Other cases will have to be coded in later. 
+	2. Also added selfans: Y==selfing
+	allowed in the sexans==N case or the one sex case, and N==selfing not
+	allowed in the sexans==N case or the one sex case.
+	3. Change offspring number section.  Random draw between 0 and lmbda, 
+	instead of the set 0 and 5 before.  Constant number set to lmbda now...
+	removed offno 4 choice, constant assignment is offno==3 with lmbda as
+	the constant value assigned to each mate pair.
+	4. Mutation rate changed!  Code before was getting expected number of 
+	mutations per generation = 2 * number of loci * number of offspring * mute-
+	rate.  Apparently mutation rate should be the expected number of mutations
+	per generation = number of loci * number of offspring * muterate.  So I 
+	simply took the muterate code sections and inserted muterate/2.
+ v0.81-2009Mar02-11:45 -- Panmictic cases not calculated average mate distance
+	and average disperal distance...would report a zero, since it was grabbing
+	cost distance values for the calculation.  Now it uses the xgrid and ygrid
+	distance instead of the xycdmatrix values, plus cost distance values.  The
+	4 average distance numbers are then reported out in output.csv (MateDistED,
+	DispDistED, MateDistCD, and DispDistCD).
+ v0.80-2009Feb04-09:45 -- Movement function and threshold seperated into
+	mating and dispersal functions.   moveno is not split up into matemoveno and
+	dispmoveno.  movethresh is split up into matemovethresh and 
+	dispmovethresh.
+ v0.70-2008Dec05-12:45 -- A series of issues fixed...This version is ment to 
+	analyzed the output using Rpy...Added analysis option using RPy.  analysisans 
+	== 'Y' will implement Mantel test the distance matrices that were created  
+ 	using robjects....not coded yet.
+	1. Fixed a 0.0 xycdmatrix issue in panans = N.  Might be a small chance that
+	2 points are a cost distance of 0 from each other...make probability 1.0 then.
+	3. Removed plotting function...for now.
+	4. Changed all 'bear' references to id or individual
+ v0.697-2008Dec10-10:00 -- Added Fst numbers...F, Fst, Fis, Fit.
+ v0.696-2008Dec09-09:45 -- Other issues come up before I can finish the 0.70
+	Rpy analysis code segment for v0.70...
+	1. Added MateDistED and DispDistED to the list of tracking
+	variables that is outputed to output.csv.
+	2. Should speed up program: only print out grid{nthfile}.csv...also, program
+	does not read from file grid{gen}.csv...read from memory.	
+	3. Added time,datetime to track simulation time.
+ v0.695-2008Dec07-14:43 -- Added a batch file loop.  inputvariables.csv can now
+	include multiple lines to be read in.
+	Added a column in inputvariables to specify file for the x,y coords of the 
+	cdmatrix.
+ v0.69-2008Dec05-10:45 -- Removed the differeing number of alleles/locus at
+	the end of the inputvariables.csv file and added nthfile slots.  This will 
+	allow calculation of the genetic distance to be based on a specified sequ.
+	of generations, eg, 0,1,2,3,4,5,10,20,50...instead of the nthfile=5 for 0,5,10,...
+	If nthfile == 'Y', then code will read in the end of the inputvariables.csv file
+	where the specified generations are listed to calculated those generations
+	distance matrices.  Enter a number for a range of step sizes, eg, nthfile=5
+	for 0,5,10,...,looptime.
+ v0.63-2008Nov21-11:17 -- Added options for calculating genetic distance matrix
+	Specify gendmatans to be 'braycurtis', 'Dps', 'Da' or 'N'. Dps == Proportion
+	of shared alleles from Bowcock etal 1994.  Da == Nei's genetic distance 
+	from Nei etal 1983.  N == no genetic distance matrix will be calculated.
+ v0.62-2008Nov19-16:18 -- Corrected mutation code.  Before the 2 alleles at each
+	locus from both the mother and father had a chance of mutating before being
+	passed on to the offspring (possible 4 mutations occuring at each locus).  Now, 
+	the alleles are passed to an offspring (1 from the mother and 1 from the father 
+	at each locus) and the passed alleles have the chance of mutation (possible 2
+	mutations occuring at each locus).
+ v0.61-2008Nov10-15:35 -- If genetic information is known about the initial pop-
+	ulation, then user input changed: freqfileans to intgenesans - 3 choices.
+	1) if 'file', then read from allelefrequency.csv file and draw allele freq
+	from this distribution. 2) if 'random', then alleles are initialized with a
+	equal random choice (this maximizes genetic divesity in the population). 
+	3) if 'known', then the genetype of each individual is all ready known and
+	included in the xyfilename.csv file.
+ v0.60-2008Oct30-14:03 -- Added mutation.  User choice muterate added to input-
+	variables.csv.  An allele has this chance of mutating to another allele based on
+	the KAM (Kth-Allele-Model).
+	Added AllelesMutated plotting variable too.
+ v0.55-2008Oct27-09:40 -- Coded segment sexans == Y for moveno==4: panmictic sexual
+	reproduction.  Still loop through the number of females, but choosing a random
+	male for a mate.  Offspring still disperse from female location, but to a random
+	freegrid opening. 
+ v0.50-2008Oct25-10:10 -- Added Monte-Carlo method functionality with mcruns in 
+	inputvariables.csv user options.  Now creates mcrun(number) folder with output 
+	results in directory location.
+ v0.40-2008Oct23-10:45 -- Name change to CDPOP!  
+	Removed user input at command line section.
+	Added to inputvariables.csv, costdmatans (if Y, then the cost distance matrix
+	is created for the xygrid points), Edmatans (if Y, then the Euclidean distance
+	matrix is created for the xygrid points), and gendmatans (if Y, then the
+	Bray-Curtis genetic distance matrices are created for every nthfile year).
+	In step 10, I removed the user cmd prompts.
+	Swapped step 9 and 10, so that all the plotting figures are displayed at program 
+	end. 
+ v0.35-2008Oct9-12:00 -- Attempts to correct sexual reproduction logic.  
+	Removed MFcdmat and MFpairs from sexans==Y code and replaced the 
+	equivalent matrices with xycdmatrix and extracting values with females.
+	and males. 
+	Removed moveno functions 4-Moore Neighborhood and now  moveno==3 will 
+	refer to Nearest Neighbor Mating and Nearest Neighbor Dispersal.
+	Added Indexpairs (similar to MFpairs) for error checking purposes.
+	Removed offspringgenes...append genetic information onto offspring array.
+ v0.34-2008Oct8-12:00 -- Step 1 moveno = 1,2 logic recoded with w_choice()
+	function instead of previous cumnormprob draw.
+ v0.33-2008Oct7-12:00 -- Added panans in moveno=1.  If panans == N, then code
+	runs as before.  If panans == Y, then code will run with cdmatrix that has
+	more than one zero in it (e.g. a panmictic situation on either side of a 
+	barrier).  If panans == N, than it checks for one case in which there exists
+	a zero in the cdmatrix that represents self-mating situation.  If panans == Y
+	then there will be multiple cases in which there is a zero in the cdmatrix and
+	a mate is choosen with equal random draw from all the zero cases.
+	In addition, added movethresh = 'max' choice.  This choice allows the 
+	functions to use the maximum xycdmatrix value for their probability calc-
+	ulations.
+ v0.32-2008Oct6-16:67 -- Coded moveno == 5 with sexans == Y for step 1.
+ v0.31-2008Oct3-13:20 -- Fixed a write out error for when gen > geneswapgen 
+	step 8 code.  Before the code was printing out the wrong ordering of gene
+	information.  No wonder there has been no structure!
+ v0.30-2008Sept28-10:15 -- Added asexual and sexual choice for each movement 
+	function.  sexans added (if sexans == Y then sexual reproduction used. 
+	if sexans == N then asexual reproduction used).
+ v0.25-2008Sept2810:15 -- Changed logic for movement function 5 - random
+	mixing with asexual reproduction.   
+ v0.20-2008Sept02-14:30 -- Recoded step 7 to randomly choose an open grid 
+	spot and then choose a offspring to occupy that based on movement function
+	versus the previous versions in which an offspring was randomly choosen to
+	dispersal to an open grid spot based on movement functions. 
+ v0.13-2008July03-12:37 -- Added geneswapgen in inputvariables.csv and user
+	prompt: used to initiate gene swap code.
+ v0.12-2008July03-11:00 -- Added nthfile in inputvariables.csv and user prompt 
+	Used to calculate genetic distance matrix for every gen mod nthfile, but
+	will also use later to just Write out txt files in step 8 according to user
+	defined generation year.
+ v0.11-2008July03-09:00 -- Removed cdans functions.
+ v0.10-2008May26-13:00 -- Created an 8-Moore Neighborhood movement function; 
+	moveno='4'; by int() of the MFcdmat numbers, for example, in ED the 
+	4-Moore Neighborhood around the center cell's are each 1 unit away and 
+	the 4 corners are 1.41. The 8-Moore Neighborhood with int() in the 
+	corner 1.41 numbers (int(1.41)==1).
+ v0.01 -- Initial model work created before 5/23/2008.
+ CDGridModelv0.x.py
+ Author: Erin L Landguth
+ Created: February 2008
+ Description: This program is a population model for xy location points.  It
+	uses a cost distance matrix as a weight for probability of mating.  The 
+	cost distance matrix is an input to this program. THe population remains 
+	constant, therefore, each xy location point is considered to be a 'grid'
+	location and birth, death, and migration processes will fill and control 
+	individual 'grid' dynamics.
+ Program Input: 
+	1. n .dbf or .asc tables or cost distance matrix
+	2. user inputs (see program files)
+ Program Output: 
+	1. xy location and genes of old+new generation in grid(gen).csv
+	2. Cdmatrix(nogrids).csv
+	3. Edmatrix(nogrids).csv
+	4. Gdmatrix(gen).csv 
+	5. output.csv
+ Program Files (for default runs - need to be stored in I/O folder):
+	1. cdmatrix.csv - cost distance matrix to be read in.
+	2. inputvariables.csv - the list of variables used in the program
+	3. agedistribution.csv - the age structure to initialize model
+	4. allelefrequency.csv - allele distribution of each locus for initial Con
+	5. xyrandominitial.csv or xytriangleinitial.csv - example initial xy 
+		points that define the grid/network locations of individuals.
+ Program Steps:
+	A. Get User-defined information.
+	0. Initializing the model...
+		- Read in cdmatrix
+		- Initialize the genetic information and age class of the population.
+		- Extract cdmatrix locations and values for xy location points.
+		- Begin Looping
+	1. Choose mate pairs
+	2. Choose  of offspring for each mate
+	3. Choose sex of each offspring
+	4. Mortality of new generation
+	5. Swap genes
+	6. Mortality of old generation
+	7. Dispersal of survived offspring (includes Emigration and Immigration)
+	8. Generate .txt file of old+new+Immigration generation
+	9. Generate distance matrices
+   10. Plotting commands and write output to csv file
+	11. Statistical analysis results using Rpy
+ ----------------------------------------------------------------------------

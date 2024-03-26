@@ -1,3 +1,79 @@
+Changes v2.67.2024.02.22T14:08:00 (cday and ell)
+0) Step through flowchart and Immigration again. Attempt to streamline 'recd' and code sections.
+1) CDAY added age 0/1 packing version - 'anadromy' option (changes to Immigration and Emigration
+2) UPdated usermanuale
+
+Changes v2.66.2023.09.28T10:46:00 
+0) Adding in options to stay in migration grounds for some time before returning. 
+a) Age option: Return only if 2 and older
+b) Size option: Return only if x and bigger
+1) Adding Migration Out and Migration Back to ClassVars
+a) Match these classvars probabilities in PatchVars? Currently only ClassVars local dispersal probability, for example. ***ask Ryan/Skagit group. 
+b) Check code for natal grounds / migration grounds when back ***
+c) Check code probarray calls for migration back cdmatrix *** can there be just one migration matrix?
+2) Read in new field parameter in ClassVars for migration out and migration back: age_MgOUT, age_MgBACK
+a) Added to InitializeAge() in PreProcess (age_MgOUT, age_MgBACK) - called from CDClimate() in gen = 0: updated tuples to read out in mainloop. 
+b) Error ClassVars not in the correct format (23 fields needed): Updated this check to 24 fields in PreProcessingc) 
+c) in DoEmigration() readin in age_MgOUT here in mainloop, leaving ProbAge var in Emigration.py as is.
+d) In main loop added age_MgBACK to DoImmigration() call (last par). In Immmigration.py, updated function calls for this parameter. Note that Immigration uses ProbAge var with same naming as Emmigration - ProbAge in Immigration is for Straying. ageDispProb is for local dispersal. 
+e) debug placed at top of Immigration before patch loops.
+f) *** Will need to update all ClassVars files.
+g) *** Question also on tracking numbers for age_MgBack vs age_MgOut
+h) Continueing on checking if out migration population isub == 6 migrating back correctly. 
+-> FlowDiagreams.Immigration_v1.png -> checking all decision trees
+***Check when stray on
+->Check when localD on for all patches RD and ID
+->Check natal ground and migration ground == 1
+
+i) Updates to Packing:
+->PackingDeaths and PackingDeathsAge not matching when age class missing; fixed in packing for both Immigration and Emigration. ***Other packing answers need to be checked and updated. 
+->***Check packing for single age class  (cday)
+
+j) Updates to Mate:
+->age0s added into ocean patch for gen = 2 age 0s in ocean patch, mating checked and if natal patch = 0, those inds do not spawn
+
+k) Updates to PatchVars:
+-> adding Diserpal Grounds, Straying Grounds to PatchVars .... should we zero out the cdmatrix for these? 
+-> Remove these columns from PatchVars: complicating things and can deal with in cdmatrix: *** 
+
+m) Updates in DoImmigration:
+->Adding migration Back Prob and dispersal prob for patches ***
+-> Updating the Disp_Patch * Disp_Class section, but check patch index for all of these.***
+-> EOs can not migrate (double check)
+-> ***For Straying: What patch does individual stray from? currently: Str_Patch = Str_patch_prob[int(originalpop)-1] # index 1 minus
+-> ***for other patch designations (diserping patches and straying patches) repeat this? disperse_patches and stray_patches: remove these 0s from probarray call or make cdmatrix 0 in preprocessing? #Attempt to move back to natal grounds - Use partial cdmatrix - only natal supopulation values - should be only one number - check K = 0 and natal ground indeed 1
+
+
+n) Streamlining code and cleanups on isle 9
+-> DoImmigration streamline for probarray calls and recds
+-> Remove migration back cost matrix? Consider using another matrix (migration OUT matrix From columns?)***Think we can merge.
+-> ***Go back through dtype at some point and clean up names and unused keys
+-> ProbAge.append( [0 for x in range(0,len(size_mean[0][0]))] ) commented out in tracking extinction locations in both DoImmi and DoEmi
+-> ProbAge aned Prob renamed in DoImmi for the straying probs (still ProbAge and Prob in DoEmi for MGOut probs)
+-> dytpe first spot originally called 'NatalPop', but this can be updated and 'classfile' will always store the inds NATALPOP - consider renaming this to 'PopCameFrom' ***
+
+3) Adding callCDEvolve() to Immigration for the large sections that if/split for differentialmortality
+a) last cdevlove call does not have subpop mort spatial mort call
+b) See other class; first selection death then spatial mort death
+c) Updated calculation of differentialmortality (from cdpop code) selection death * spatial mort death
+d) Moved EHom as None call in function and added case for [] empty
+h) Added to DoEmigration
+
+Changes 2.65.2023.07.31T13:23:00 (ell/cday)
+0) Merging comp-packing changes from cday
+
+Changes 2.64.2023.07.10T09:00:00 (ell)
+0) Updating EggFreq to be any number > 0. Egg lay events per year. 
+a) Added Egg_Freq_Mean and Egg_Freq_StDev to PopVars
+b) Read in these 2 vars to PreProcess to initialize individuals EggLay value 
+c) Normal draw
+d) Should this par be read into Stochastic Update? Is it a PopVars control or should this draw assignment happen for each individual? For now leaving out of Stochastic Update
+e) Added this repeating call to DoMate# Then repeat this index for when layeggs > 1
+		indexFage_rep = np.asarray(allfemales['layeggs'][indexFage],dtype=int)
+		indexFage = np.array([val for val, rep in zip(indexFage, indexFage_rep) for i in range(rep)])
+f) Added checks / draws for egg layer rate in PreProcessing (when initializing), matureInd() last lines in Modules, and in DoOffspringVars()
+
+
 Changes 2.63.2023.05.04T12:58:00 (ell/cday)
 Casey testing example files for version 2.62
 0) Updated example files

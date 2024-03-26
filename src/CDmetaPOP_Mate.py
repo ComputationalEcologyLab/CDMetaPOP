@@ -35,7 +35,7 @@ def w_choice_item(lst):
 	#End::w_choice_item()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat,count=None):
+def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateC,assortmateModel,xycdmatrix,females,males,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat,natal_patches,K,count=None):
 	'''
 	DoSexualYY() and DoSexualNY()
 	This function is the mating function for: 
@@ -56,21 +56,12 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 	# Extract the subpopulation this female is in
 	femalepop = females[intfemale][sourcePop]
 	
-	# Check Assortative Mate model for Hindex or Gene here
-	# ----------------------------------------------------
-	if assortmateModel not in ['1','2','3a','3b','4_gene','4','5','6']:
-		#if assortmateModel.split('_')[1] == 'gene':
-			# Get this females genes for assortative mating potential 
-		#	female_genes = females[intfemale]['genes'][0:2]
-		#elif assortmateModel.split('_')[1] == 'hindex':
-			# Get this females genes/hindex for assortive mating potential - round to nearest 10th
-		#	female_hindex = np.around(females[intfemale]['hindex'],1)
-	
-		print('Assortative Mate option entered wrong.')
-		sys.exit(-1)
-	
-	# Extract each male patch probability that female can mate with - careful of indexing
+	# Extract each male patch probability that female can mate with - careful of indexing - prevents grabbing a male mate in non natal patch
 	probarray = xycdmatrix[:,int(femalepop)-1]
+	# Where natal grounds = 0, set prob to 0
+	probarray[np.where(np.asarray(natal_patches)==0)[0]] = 0.
+	# Where K = 0, set prob to 0
+	probarray[np.where(np.asarray(K)==0)[0]] = 0.
 	
 	# If statement to check if there are patches available in probarray:
 	if sum(probarray) != 0.0:
@@ -453,7 +444,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 
 # ---------------------------------------------------------------------------------------------------	
 def DoSexualNN(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmate,nomales,xycdmatrix,females,\
-males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,count=None):
+males,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count=None):
 	'''
 	DoSexualNN()
 	This function is the mating function for
@@ -478,6 +469,10 @@ males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,count=
 	
 	# Extract each male patch probability that female can mate in
 	probarray = xycdmatrix[:,femalepop]
+	# Where natal grounds = 0, set prob to 0
+	probarray[np.where(np.asarray(natal_patches)==0)[0]] = 0.
+	# Where K = 0, set prob to 0
+	probarray[np.where(np.asarray(K)==0)[0]] = 0.
 				
 	# If statement to check if there were individuals in probarray:
 	if sum(probarray) != 0.0:
@@ -565,7 +560,7 @@ males,matemovethresh,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,count=
 	# End::DoSexualNN()		
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,eggFreq,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,BreedYYFemales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,ToTYYFemales,egg_delay,Bearpairs_temp):
+def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,BreedYYFemales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,ToTYYFemales,egg_delay,Bearpairs_temp,natal_patches):
 
 	'''
 	DoMate()
@@ -573,6 +568,11 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	individual mate pairs. 
 	Switches for: sexual and asexual mating.	
 	'''
+	# Check Assortative Mate model for Hindex or Gene here
+	# ----------------------------------------------------
+	if assortmateModel not in ['1','2','3a','3b','4_gene','4','5','6']:
+		print('Assortative Mate option entered wrong.')
+		sys.exit(-1)
 	
 	# --------------------------------------------------------
 	# Preliminary: Needed for both sexual and asexual routines	
@@ -600,11 +600,6 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# ---------------------------------------------------
 	# Select males and females for mating
 	# ---------------------------------------------------
-
-	# Storage variables for breeding age males and females
-	#females = []		# These are the zeros or XX
-	#males = []			# These are the ones or XY
-	#pdb.set_trace() # Check number of females/males
 	# Loop through and grab each female and male for probability of mature and probability to lay eggs
 	for isub in range(len(K)):
 		indexF = np.where(SubpopIN[isub]['sex']=='FXX')[0]
@@ -622,10 +617,11 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			indexMYYage = np.where(allYYmales['mature'] == 1)[0]
 			indexFYYage = np.where(allYYfemales['mature'] == 1)[0]
 		else:
-			indexFage = np.where(allfemales['layeggs'] == 1)[0]
-			indexMage = np.where(allmales['layeggs'] == 1)[0]
-			indexMYYage = np.where(allYYmales['layeggs'] == 1)[0]
-			indexFYYage = np.where(allYYfemales['layeggs'] == 1)[0]
+			indexFage = np.where(allfemales['layeggs'] >= 1)[0]
+			indexMage = np.where(allmales['layeggs'] >= 1)[0]
+			indexMYYage = np.where(allYYmales['layeggs'] >= 1)[0]
+			indexFYYage = np.where(allYYfemales['layeggs'] >= 1)[0]
+		
 		# Store For Tracking
 		if sexans == 'Y' or sexans == 'H':
 			# Storage tracking
@@ -657,13 +653,16 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		if sexans == 'Y' or sexans == 'H':
 			indexMage = np.where(allmales['mature'] == 1)[0] 
 		else:
-			indexMage = np.where(allmales['layeggs'] == 1)[0]
+			indexMage = np.where(allmales['layeggs'] >= 1)[0]
 		
 		# For females, assume YY and XX are the same
 		indexF = np.concatenate((indexF,indexFYY),axis=0)
 		allfemales = SubpopIN[isub][indexF]
 		# Overwirte indexFage here with 'layeggs'
-		indexFage = np.where(allfemales['layeggs'] == 1)[0] # Use layeggs for choosing breeding Bearpairs
+		indexFage = np.where(allfemales['layeggs'] >= 1)[0] # Use layeggs for choosing breeding Bearpairs
+		# Then repeat this index for when layeggs > 1
+		indexFage_rep = np.asarray(allfemales['layeggs'][indexFage],dtype=int)
+		indexFage = np.array([val for val, rep in zip(indexFage, indexFage_rep) for i in range(rep)],dtype=int)	
 		
 		# For all patches, append females/males
 		if isub == 0:	
@@ -672,7 +671,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		else:
 			females = np.concatenate((females,allfemales[indexFage]),axis=0)
 			males = np.concatenate((males,allmales[indexMage]),axis=0)
-	
+		
 	# Add Population totals
 	ToTMales[gen].insert(0,sum(ToTMales[gen]))
 	ToTFemales[gen].insert(0,sum(ToTFemales[gen]))
@@ -732,19 +731,24 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# If there were no reproducing males or females
 	if nomales == 0 or nofemales == 0:
 		Bearpairs.append([-9999,-9999])
-		
+	#pdb.set_trace()	
 	# If there were reproducing males and females
 	if nomales != 0 and nofemales != 0:
 	
 		# For the case of a Female without replacement and a male with replacement
-		if freplace == 'N' and mreplace == 'Y':
+		if (freplace == 'N' and mreplace == 'Y'):
 						
 			# Loop through while loop until all females paired up.		
 			count = 0		# Initialize the while loop
 			while count < looptime:
-						
-				# Get probability function of user defined input number
-				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat, count)
+				
+				# Extract the subpopulation this female is in if in natal pop == 0 then skip this females
+				femalepop = int(females[count][sourcePop] ) - 1
+				# Checks this females location and will mate only if female in natal ground patch, else skip this female
+				if femalepop in np.where(np.asarray(natal_patches)==1)[0]:					
+
+					# Get probability function of user defined input number
+					Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat,natal_patches,K,count)
 												
 				# Update count
 				count = count + 1
@@ -756,8 +760,13 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			count = 0		# Initialize the while loop
 			while count < looptime:
 				
-				# Get probability function of user defined input number
-				Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,matemovethresh,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat)
+				# Extract the subpopulation this female is in if in natal pop == 0 then skip this females
+				femalepop = int(females[count][sourcePop] ) - 1
+				# Checks this females location and will mate only if female in natal ground patch, else skip this female
+				if femalepop in np.where(np.asarray(natal_patches)==1)[0]:					
+
+					# Get probability function of user defined input number
+					Bearpairs,femalesmated = DoSexual(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,xycdmatrix,females,males,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat,natal_patches,K)
 							
 				# Update count
 				count = count + 1
@@ -777,8 +786,13 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			tempmales = copy.deepcopy(males)				
 			while count < looptime:
 							
-				# Get probability function of user defined input number
-				Bearpairs,tempmales = DoSexualNN(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,nomales,xycdmatrix,females,tempmales,matemovethresh,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,count)
+				# Extract the subpopulation this female is in if in natal pop == 0 then skip this females
+				femalepop = int(females[count][sourcePop] ) - 1
+				# Checks this females location and will mate only if female in natal ground patch, else skip this female
+				if femalepop in np.where(np.asarray(natal_patches)==1)[0]:					
+
+					# Get probability function of user defined input number
+					Bearpairs,tempmales = DoSexualNN(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,nomales,xycdmatrix,females,tempmales,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count)
 										
 				# Update count
 				count = count + 1

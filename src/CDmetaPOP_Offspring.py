@@ -9,7 +9,7 @@ import pdb,sys, copy, numbers
 from ast import literal_eval
 from scipy.stats import truncnorm
 from CDmetaPOP_Mortality import DoEggMortality
-from CDmetaPOP_Modules import logMsg
+from CDmetaPOP_Modules import *
 import numpy as np
 
 # ---------------------------------------------------------------------------------------------------
@@ -21,7 +21,7 @@ def count_unique(keys):
 	#End::count_unique()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizeans,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
+def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizeans,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
 	'''
 	DoOffspringVars()
 	This function assigns the age (0), sex, and size of each offspring.
@@ -152,7 +152,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 						
 					else:
 						pdb.set_trace()
-						print('Error in sex assignment.')
+						print('Error in sex assignment. Possible selfing on with sexual reproduction.')
 						sys.exit(-1)
 					#print(fathers_sex)	
 				# Error check
@@ -326,25 +326,36 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				randmat = np.random.uniform()
 				if randmat < matval:
 					mature = 1
-					randegglay = np.random.uniform()
+					# Get Egg laying rate 
+					tempEggFreq=[] # Temp list value to store egg lay events
+					stochastic_update(eggFreq_mu,eggFreq_sd,tempEggFreq)
+					tempEggFreq = tempEggFreq[0] # Note indexing into first spot since list created above
 					# If sexans 'Y' and female, check layEggs
 					if sexans == 'Y' or sexans == 'H':
 						if offsex == 'FXX' or offsex == 'FYY':
+							if tempEggFreq < 1: # If egg laying is less than 1 event per year
+								randegglay = np.random.uniform()
+								if randegglay < tempEggFreq:
+									offlayeggs = 1
+								else:
+									offlayeggs = 0
+							else: # egg laying is greater than 1 event per year
+								offlayeggs = np.round(tempEggFreq,0)
+						else:
+							offlayeggs = 0
+					else:
+						if tempEggFreq < 1: # If egg laying is less than 1 event per year
+							randegglay = np.random.uniform()
 							if randegglay < eggFreq:
 								offlayeggs = 1
 							else:
 								offlayeggs = 0
-						else:
-							offlayeggs = 0
-					else:				
-						if randegglay < eggFreq:
-							offlayeggs = 1
-						else:
-							offlayeggs = 0
+						else: # egg laying is greater than 1 event per year
+							offlayeggs = np.round(tempEggFreq,0)
 				else:
 					mature = 0
-					offlayeggs = 0
-								
+					offlayeggs = 0					
+					
 				# --------------------------
 				# REcord information
 				# --------------------------			
@@ -630,7 +641,7 @@ def DoClutch(Bearpairs,dtype,noOffspring):
 	# End::DoClutch()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoOffspring(offno,Bearpairs,transmissionprob,gen,K,sourcePop,\
+def DoOffspring(offno,Bearpairs,transmissionprob,gen,K,\
 age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,EggDeaths,eggmort_back,egg_delay,noOffspring_temp,Births,BirthsMYY,BirthsFYY):
 	'''
 	DoOffspring()
@@ -656,7 +667,7 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 	else:
 		print('Specify Y or N for size control parameters.')
 		sys.exit(-1)
-	
+	#pdb.set_trace()
 	# Check for Population extinct here and skip
 	# ------------------------------------------
 	if len(Bearpairs) != 0:
@@ -690,7 +701,7 @@ age_mu,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eg
 				sys.exit(-1)
 			
 			# If equal clutch size is turned on
-			if equalClutch == 'Y':		
+			if equalClutch == 'Y':
 				noOffspring = DoClutch(Bearpairs[egg_delay],dtype,noOffspring)
 		
 		# Make sure as array

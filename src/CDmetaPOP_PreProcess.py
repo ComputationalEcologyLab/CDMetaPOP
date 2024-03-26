@@ -498,7 +498,8 @@ def InitializeAge(K,agefilename,datadir):
 	age_percmort_back_sd = []
 	size_percmort_out_sd = []
 	size_percmort_back_sd = []
-	age_Mg = []
+	age_MgOUT = []
+	age_MgBACK = []
 	age_S = []
 	age_mu = []
 	age_size_mean = []
@@ -528,7 +529,8 @@ def InitializeAge(K,agefilename,datadir):
 		age_percmort_back_sd.append([])
 		size_percmort_out_sd.append([])
 		size_percmort_back_sd.append([])
-		age_Mg.append([])
+		age_MgOUT.append([])
+		age_MgBACK.append([])
 		age_S.append([])
 		age_mu.append([])
 		age_size_mean.append([])
@@ -561,7 +563,8 @@ def InitializeAge(K,agefilename,datadir):
 			age_percmort_back_sd[isub].append([])
 			size_percmort_out_sd[isub].append([])
 			size_percmort_back_sd[isub].append([])
-			age_Mg[isub].append([])
+			age_MgOUT[isub].append([])
+			age_MgBACK[isub].append([])
 			age_S[isub].append([])
 			age_mu[isub].append([])
 			age_size_mean[isub].append([])
@@ -599,8 +602,8 @@ def InitializeAge(K,agefilename,datadir):
 					xage.append(thisline[j].split(','))
 			lencheck[isub][i_splitpatch].append(len(xage)-1)
 			# Error on length of file
-			if len(xage[0]) != 23:
-				print('ClassVars file is not in the correct format (23 fields needed)')
+			if len(xage[0]) != 24:
+				print('ClassVars file is not in the correct format (24 fields needed)')
 				sys.exit(-1)
 			# Delete lines from earlier
 			del(lines)
@@ -620,16 +623,17 @@ def InitializeAge(K,agefilename,datadir):
 				size_percmort_out_sd[isub][i_splitpatch].append(xage[i+1][10])
 				size_percmort_back[isub][i_splitpatch].append(xage[i+1][11])				
 				size_percmort_back_sd[isub][i_splitpatch].append(xage[i+1][12])
-				age_Mg[isub][i_splitpatch].append(xage[i+1][13])
-				age_S[isub][i_splitpatch].append(xage[i+1][14])
-				age_DispProb[isub][i_splitpatch].append(xage[i+1][15])
-				age_mature[isub][i_splitpatch].append(xage[i+1][16])
-				age_mu[isub][i_splitpatch].append(xage[i+1][17])
-				age_sigma[isub][i_splitpatch].append(xage[i+1][18])
-				f_leslie[isub][i_splitpatch].append(xage[i+1][19])
-				f_leslie_std[isub][i_splitpatch].append(xage[i+1][20])
-				age_cap_out[isub][i_splitpatch].append(xage[i+1][21])
-				age_cap_back[isub][i_splitpatch].append(xage[i+1][22])	
+				age_MgOUT[isub][i_splitpatch].append(xage[i+1][13])
+				age_MgBACK[isub][i_splitpatch].append(xage[i+1][14])
+				age_S[isub][i_splitpatch].append(xage[i+1][15])
+				age_DispProb[isub][i_splitpatch].append(xage[i+1][16])
+				age_mature[isub][i_splitpatch].append(xage[i+1][17])
+				age_mu[isub][i_splitpatch].append(xage[i+1][18])
+				age_sigma[isub][i_splitpatch].append(xage[i+1][19])
+				f_leslie[isub][i_splitpatch].append(xage[i+1][20])
+				f_leslie_std[isub][i_splitpatch].append(xage[i+1][21])
+				age_cap_out[isub][i_splitpatch].append(xage[i+1][22])
+				age_cap_back[isub][i_splitpatch].append(xage[i+1][23])	
 			
 			# Get age distribution list
 			for i in range(len(ageno[isub][i_splitpatch])):
@@ -653,11 +657,8 @@ def InitializeAge(K,agefilename,datadir):
 	del(lencheck)	
 	
 	# Return variables
-	tupAgeFile = agelst,age_size_mean,age_size_std,sexratio,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_Mg,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back	
-	
-	
-	#agelst,age_percmort_out,age_percmort_back,age_Mg,age_S,sexratio,age_mu,age_size_mean,age_size_std,age_mature,age_sigma,age_cap_out,age_cap_back,size_percmort_out,size_percmort_back,age_percmort_out_sd,age_percmort_back_sd,size_percmort_out_sd,size_percmort_back_sd,f_leslie,f_leslie_std,age_DispProb
-	
+	tupAgeFile = agelst,age_size_mean,age_size_std,sexratio,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_MgOUT,age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back	
+		
 	return tupAgeFile
 	#End::InitializeAge()
 
@@ -701,7 +702,7 @@ def InitializeID(K,N):
 	#End::InitializeID()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,cdevolveans,fitvals,burningen_cdevolve,addans,sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
+def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,sizeans,cdevolveans,fitvals,burningen_cdevolve,addans,sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd):
 
 	'''
 	InitializeVars()
@@ -883,6 +884,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 		# ---------------------------------------------
 		# Set maturity Y or N and get egg lay last year
 		# ---------------------------------------------		
+		#pdb.set_trace()
 		matval = 0.0 # Initialize
 		# Check default age/size for maturity
 		if offsex == 'FXX':
@@ -1028,25 +1030,36 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 				print('Size control option not correct, N or Y.')
 				sys.exit(-1)
 		
-		# Check probability and egg laying
-		randmat = np.random.uniform()
+		# Check probability mature and egg laying
+		randmat = np.random.uniform()		
 		if randmat < matval:
 			mature.append(1)
-			randegglay = np.random.uniform()
+			# Get Egg laying rate 
+			tempEggFreq=[] # Temp list value to store egg lay events
+			stochastic_update(eggFreq_mu,eggFreq_sd,tempEggFreq)
+			tempEggFreq = tempEggFreq[0] # Note indexing into first spot since list created above
 			# If sexans 'Y' and female, check layEggs
 			if sexans == 'Y' or sexans == 'H':
 				if offsex == 'FXX' or offsex == 'FYY':
+					if tempEggFreq < 1: # If egg laying is less than 1 event per year
+						randegglay = np.random.uniform()
+						if randegglay < tempEggFreq:
+							layEggs.append(1)
+						else:
+							layEggs.append(0)
+					else: # egg laying is greater than 1 event per year
+						layEggs.append(np.round(tempEggFreq,0))
+				else:
+					layEggs.append(0)
+			else:
+				if tempEggFreq < 1: # If egg laying is less than 1 event per year
+					randegglay = np.random.uniform()
 					if randegglay < eggFreq:
 						layEggs.append(1)
 					else:
 						layEggs.append(0)
-				else:
-					layEggs.append(0)
-			else:				
-				if randegglay < eggFreq:
-					layEggs.append(1)
-				else:
-					layEggs.append(0)
+				else: # egg laying is greater than 1 event per year
+					layEggs.append(np.round(tempEggFreq,0))
 		else:
 			mature.append(0)
 			layEggs.append(0)
@@ -1092,7 +1105,7 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,Mg,Str,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_prob,Str_patch_prob,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob,Disperse_patch_prob):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
@@ -1610,8 +1623,10 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	# ----------------------
 	# Patch based parameters
 	# ----------------------
-	tempStr = []
-	tempMg = []
+	tempMgBack_patch_prob = []
+	tempDisperse_patch_prob = []
+	tempStr_patch_prob = []
+	tempMgOut_patch_prob = []
 	tempoutsize = []
 	tempbacksize = []
 	tempoutgrow = []
@@ -1644,15 +1659,22 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		if len(allefreqfiles_pass[isub].split('|')) != len(N0_pass[isub].split('|')) != len(classvarsfiles_pass[isub].split('|')):
 			print('N0 split by | for Add Individual applications, must have matching Gene Initialization files and ClassVars files split by | - cdclimate.')
 			sys.exit(-1)
-			
-		if len(Str[isub].split('|')) > 1:
-			tempStr.append(float(Str[isub].split('|')[icdtime]))
+		if len(MgBack_patch_prob[isub].split('|')) > 1:
+			tempMgBack_patch_prob.append(float(MgBack_patch_prob[isub].split('|')[icdtime]))
 		else:
-			tempStr.append(float(Str[isub]))
-		if len(Mg[isub].split('|')) > 1:
-			tempMg.append(float(Mg[isub].split('|')[icdtime]))
+			tempMgBack_patch_prob.append(float(MgBack_patch_prob[isub]))
+		if len(Disperse_patch_prob[isub].split('|')) > 1:
+			tempDisperse_patch_prob.append(float(Disperse_patch_prob[isub].split('|')[icdtime]))
 		else:
-			tempMg.append(float(Mg[isub]))
+			tempDisperse_patch_prob.append(float(Disperse_patch_prob[isub]))	
+		if len(Str_patch_prob[isub].split('|')) > 1:
+			tempStr_patch_prob.append(float(Str_patch_prob[isub].split('|')[icdtime]))
+		else:
+			tempStr_patch_prob.append(float(Str_patch_prob[isub]))
+		if len(MgOut_patch_prob[isub].split('|')) > 1:
+			tempMgOut_patch_prob.append(float(MgOut_patch_prob[isub].split('|')[icdtime]))
+		else:
+			tempMgOut_patch_prob.append(float(MgOut_patch_prob[isub]))
 		if len(outsizevals[isub].split('|')) > 1:
 			tempoutsize.append(outsizevals[isub].split('|')[icdtime])
 		else:
@@ -1827,18 +1849,19 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	size_percmort_out_sd = tupAgeFile[9]
 	size_percmort_back = tupAgeFile[10]
 	size_percmort_back_sd = tupAgeFile[11]
-	age_Mg = tupAgeFile[12]
-	age_S = tupAgeFile[13]
-	age_DispProb = tupAgeFile[14]
-	age_mature = tupAgeFile[15]
-	age_mu = tupAgeFile[16]
-	age_sigma = tupAgeFile[17]
-	f_leslie = tupAgeFile[18]
-	f_leslie_std = tupAgeFile[19]
-	age_cap_out = tupAgeFile[20]
-	age_cap_back = tupAgeFile[21]
-		
-	# Return this functions variables - mate, dispOut, dispBack, Str, dispLocal (order 1) FXX, MXY, MYY, FYY (order 2) matrix,thresh,scalemin,scalemax,a,b,c,no
+	age_MgOUT = tupAgeFile[12]
+	age_MgBACK = tupAgeFile[13]
+	age_S = tupAgeFile[14]
+	age_DispProb = tupAgeFile[15]
+	age_mature = tupAgeFile[16]
+	age_mu = tupAgeFile[17]
+	age_sigma = tupAgeFile[18]
+	f_leslie = tupAgeFile[19]
+	f_leslie_std = tupAgeFile[20]
+	age_cap_out = tupAgeFile[21]
+	age_cap_back = tupAgeFile[22]	
+			
+	# Return this functions variables - mate, dispOut, dispBack, Str_patch_prob, dispLocal (order 1) FXX, MXY, MYY, FYY (order 2) matrix,thresh,scalemin,scalemax,a,b,c,no
 	tupClimate = matecdmatrix,FXXdispOutcdmatrix,MXYdispOutcdmatrix,MYYdispOutcdmatrix,FYYdispOutcdmatrix,\
 	FXXdispBackcdmatrix,MXYdispBackcdmatrix,MYYdispBackcdmatrix,FYYdispBackcdmatrix,\
 	FXXStrcdmatrix, MXYStrcdmatrix,MYYStrcdmatrix, FYYStrcdmatrix,\
@@ -1871,7 +1894,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	FXXdispmoveBackno,MXYdispmoveBackno,MYYdispmoveBackno,FYYdispmoveBackno,\
 	FXXStrno,MXYStrno,MYYStrno,FYYStrno,\
 	FXXdispLocalno,MXYdispLocalno,MYYdispLocalno,FYYdispLocalno,\
-	tempMg,tempStr,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_Mg,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back	
+	tempMgOut_patch_prob,tempStr_patch_prob,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_MgOUT,age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back,tempMgBack_patch_prob,tempDisperse_patch_prob	
 	return tupClimate
 	#End::DoCDClimate()
 
@@ -2151,7 +2174,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,eggFreq,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
+def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd):
 
 	'''
 	DoPreProcess()
@@ -2171,11 +2194,11 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	
 	# Error statement for column data
 	if cdevolveans.split('_')[0] != 'P':
-		if len(xy[1]) != 48:
+		if len(xy[1]) != 50:
 			print('PatchVars input file is not correct version, see example input files.')
 			sys.exit(-1)
 	else: # MLoci selection is on, then extra columns possible in PatchVars
-		if (len(xy[1]) - int(cdevolveans.split('_')[1].split('X')[1])) != 48:
+		if (len(xy[1]) - int(cdevolveans.split('_')[1].split('X')[1])) != 50:
 			print('PatchVars input file must be 48 columns plus the specified number of variables operating in the multiple loci selection model; see example input files.')
 			sys.exit(-1)
 		
@@ -2187,16 +2210,20 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	K_temp = []
 	Kstd_temp = []
 	N0_temp = []	
-	natal = []
-	migrate = []
+	natal_patches = []
+	migrate_patches = []
+	#disperse_patches = []
+	#stray_patches = []
 	allefreqfiles_temp = []
 	classvarsfiles_temp = []
 	popmort_out = []
 	popmort_out_sd = []
 	popmort_back = []
 	popmort_back_sd = []
-	Mg = []
-	Str = []
+	MgOut_patch_prob = []
+	MgBack_patch_prob = []
+	Str_patch_prob = []	
+	Disperse_patch_prob = []
 	newmortperc = []
 	newmortperc_sd = []
 	setmigrate = []
@@ -2216,6 +2243,8 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	comp_coef_temp = [] # Competition coef by patch
 	xvars = [] # selection for multilocus/hindex options
 	for i in range(len(xy)-1):
+		# Add line number reference here for future versions
+		#refLine = getframeinfo(inspect.currentframe()).lineno
 		Pop.append(xy[i+1][0])
 		xgridpop.append(float(xy[i+1][1]))
 		ygridpop.append(float(xy[i+1][2]))
@@ -2223,8 +2252,10 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		K_temp.append(xy[i+1][4])
 		Kstd_temp.append(xy[i+1][5])
 		N0_temp.append(xy[i+1][6])
-		natal.append(int(xy[i+1][7]))
-		migrate.append(int(xy[i+1][8]))
+		natal_patches.append(int(xy[i+1][7]))
+		migrate_patches.append(int(xy[i+1][8]))
+		#disperse_patches.append(int(xy[i+1][9]))
+		#stray_patches.append(int(xy[i+1][10]))		
 		allefreqfiles_temp.append(xy[i+1][9])
 		classvarsfiles_temp.append(xy[i+1][10])
 		popmort_out.append(xy[i+1][11])
@@ -2233,31 +2264,33 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		popmort_back_sd.append(xy[i+1][14])
 		newmortperc.append(xy[i+1][15])
 		newmortperc_sd.append(xy[i+1][16])
-		Mg.append(xy[i+1][17])
+		MgOut_patch_prob.append(xy[i+1][17])
 		setmigrate.append(xy[i+1][18])
-		Str.append(xy[i+1][19])	
-		outsizevals.append(xy[i+1][20])
-		outsizevals_sd.append(xy[i+1][21])
-		outgrowdays.append(xy[i+1][22])
-		outgrowdays_sd.append(xy[i+1][23])
-		backsizevals.append(xy[i+1][24])
-		backsizevals_sd.append(xy[i+1][25])
-		backgrowdays.append(xy[i+1][26])		
-		backgrowdays_sd.append(xy[i+1][27])
-		pop_capture_out.append(xy[i+1][28])
-		pop_capture_back_pass.append(xy[i+1][29])
-		outhabvals.append(xy[i+1][30])
-		backhabvals.append(xy[i+1][31])
-		comp_coef_temp.append(xy[i+1][47]) # Bar allowed here
-		xvars_indexspot = 48 # for getting the xvars spot for indexing
+		MgBack_patch_prob.append(xy[i+1][19])
+		Str_patch_prob.append(xy[i+1][20])			
+		Disperse_patch_prob.append(xy[i+1][21])		
+		outsizevals.append(xy[i+1][22])
+		outsizevals_sd.append(xy[i+1][23])
+		outgrowdays.append(xy[i+1][24])
+		outgrowdays_sd.append(xy[i+1][25])
+		backsizevals.append(xy[i+1][26])
+		backsizevals_sd.append(xy[i+1][27])
+		backgrowdays.append(xy[i+1][28])		
+		backgrowdays_sd.append(xy[i+1][29])
+		pop_capture_out.append(xy[i+1][30])
+		pop_capture_back_pass.append(xy[i+1][31])
+		outhabvals.append(xy[i+1][32])
+		backhabvals.append(xy[i+1][33])
+		comp_coef_temp.append(xy[i+1][49]) # Bar allowed here
+		xvars_indexspot = 50 # for getting the xvars spot for indexing
 		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray':
-			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34]])
+			fitvals.append([xy[i+1][34],xy[i+1][35],xy[i+1][36]])
 		elif cdevolveans == 'G':
-			fitvals.append([xy[i+1][35],xy[i+1][36],xy[i+1][37]])
+			fitvals.append([xy[i+1][37],xy[i+1][38],xy[i+1][39]])
 		elif cdevolveans == '2' or cdevolveans == '2_mat':
-			fitvals.append([xy[i+1][38],xy[i+1][39],xy[i+1][40],xy[i+1][41],xy[i+1][42],xy[i+1][43],xy[i+1][44],xy[i+1][45],xy[i+1][46]])
+			fitvals.append([xy[i+1][40],xy[i+1][41],xy[i+1][42],xy[i+1][43],xy[i+1][44],xy[i+1][45],xy[i+1][46],xy[i+1][47],xy[i+1][48]])
 		elif cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link':
-			fitvals.append([xy[i+1][32],xy[i+1][33],xy[i+1][34],xy[i+1][35],xy[i+1][36],xy[i+1][37]])
+			fitvals.append([xy[i+1][34],xy[i+1][35],xy[i+1][36],xy[i+1][37],xy[i+1][38],xy[i+1][39]])
 		elif cdevolveans.split('_')[0] == 'P':
 			xvars.append([])
 			for ixvars in range(int(cdevolveans.split('_')[1].split('X')[1])):
@@ -2279,7 +2312,7 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	# Extract variables needed for initialization that vary with cdclimategen
 	# -----------------------------------------------------------------------	
 	# Get K for the first generation, but return K_temp to be read into CDClimate module, also get first capture probability back.
-	# one check on N0 > 0 and natal
+	# one check on N0 > 0 and natal_patches
 	K = []
 	Kstd = []
 	pop_capture_back = []
@@ -2298,9 +2331,9 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		classvarsfiles.append(classvarsfiles_temp[isub].split('|')[0])
 		#temp0check = len(np.where(np.asarray(N0[0].split(';'))=='0')[0]) # Check for N values in split string
 		if ';' in N0[isub]:
-			if natal[isub] == 0:
+			if natal_patches[isub] == 0:
 				N0[isub] = '0'
-		elif int(N0[isub]) > 0 and natal[isub] == 0:
+		elif int(N0[isub]) > 0 and natal_patches[isub] == 0:
 			stringout = 'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.'
 			logMsg(logfHndl,stringout)
 			N0[isub] = '0'		
@@ -2323,12 +2356,12 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	age_size_mean = tupAgeFile[1]
 	age_size_std = tupAgeFile[2]
 	sexratio = tupAgeFile[3]	
-	age_mature = tupAgeFile[15]
+	age_mature = tupAgeFile[16]
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature...
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,cdevolveans,fitvals,burningen_cdevolve,'N',sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo)
+	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,sizeans,cdevolveans,fitvals,burningen_cdevolve,'N',sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd)
 	
 	# ------------------------------------
 	# For multiple files, error check here
@@ -2487,7 +2520,7 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	tupPreProcess = ithmcrundir,\
 	fitvals,allelst,subpopemigration,subpopimmigration,age_size_mean,age_size_std,xgridpop,ygridpop,\
 	SubpopIN,N,K,dtype,outsizevals,backsizevals,\
-	popmort_out,popmort_back,Mg,Str,newmortperc,setmigrate,outgrowdays,backgrowdays,K_temp,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal,cor_mat,migrate,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,comp_coef_temp,xvars,tempbetas_selection,outhabvals,backhabvals 
+	popmort_out,popmort_back,MgOut_patch_prob,Str_patch_prob,newmortperc,setmigrate,outgrowdays,backgrowdays,K_temp,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal_patches,cor_mat,migrate_patches,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,comp_coef_temp,xvars,tempbetas_selection,outhabvals,backhabvals,MgBack_patch_prob,Disperse_patch_prob
 	
 	return tupPreProcess	
 	#End::DoPreProcess()
@@ -2526,7 +2559,7 @@ def DoUserInput(fileans):
 	#End::DoUserInput()
 
 # -------------------------------------------------------------------------	
-def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen_cdevolve,fitvals,eggFreq,dtype,N,natal,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo):
+def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen_cdevolve,fitvals,dtype,N,natal_patches,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd):
 	'''
 	AddIndividuals()
 	This function adds more individuals with given classvars 
@@ -2534,10 +2567,10 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	'''
 	
 	# ---------------------------------------------
-	# First error check on natal grounds and N0 > 0
+	# First error check on natal_patches grounds and N0 > 0
 	# ---------------------------------------------
 	for isub in range(len(tempN0)):
-		if sum(np.asarray(tempN0[isub].split(';'),int)) > 0 and natal[isub] == 0:
+		if sum(np.asarray(tempN0[isub].split(';'),int)) > 0 and natal_patches[isub] == 0:
 			stringout = 'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.'
 			logMsg(logfHndl,stringout)
 			tempN0[isub] = 0
@@ -2561,13 +2594,13 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	age_size_mean = tupAgeFile[1]
 	age_size_std = tupAgeFile[2]
 	sexratio = tupAgeFile[3]	
-	age_mature = tupAgeFile[15]
+	age_mature = tupAgeFile[16]
 	
 	# ------------------------------------------------------------------
 	# Initialize rest of variables: age,sex,infection,genes,size,mature
 	# ------------------------------------------------------------------
 	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
-	age_size_mean,age_size_std,subpop,age_mature,eggFreq,sizeans,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,speciesID,tempN0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo)
+	age_size_mean,age_size_std,subpop,age_mature,sizeans,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,speciesID,tempN0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd)
 	
 	# ---------------------------------------------
 	# Store class variable SubpopIN_add
