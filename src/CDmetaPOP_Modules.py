@@ -1132,7 +1132,7 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 	#End::GetMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel,noalleles,plasticans,cdevolveans):
+def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel,noalleles,plasticans,cdevolveans,egg_add_call,egg_add):
 	'''
 	InheritGenes()
 	Pass along gentic information to survived offspring from parents
@@ -1353,7 +1353,7 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 			else:				
 				
 				# Get genes - For each loci:
-				sourcepop = int(offspring[i]['NatalPop'])-1
+				sourcepop = int(offspring[i][egg_add_call])-1
 				offgenes = [] # Storage
 				# First check to see if there is more than one file that can be used for this patch and then randomly choose which one to initialize this individuals
 				thisgenefile = np.random.randint(len(allelst[sourcepop]))
@@ -1413,11 +1413,15 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 				else:
 					hindex = -9999			
 			
-			# Then record new offspring information to Subpop location [subpop-ofmother,subpop of mother,NASubpop,EmiCD,ImmiCD,age,sex,size,mataure,infection,name,capture,layeggs,hindex,classfile,speciesID,genes]
-			offpop = offspring[i]['NatalPop']
-			name = offspring[i]['name']
-			recd = (offpop,offpop,offpop,0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],name,offspring[i]['MID'],offspring[i]['FID'],0,0,offspring[i]['layeggs'],hindex,offspring[i]['classfile'],offspring[i]['popID'],offspring[i]['species'],offgenes)
-						
+			# Then record new offspring information to Subpop location ['NatalPOp - or mating pop,subpop of mother,NASubpop,EmiCD,ImmiCD,age,sex,size,mataure,infection,name,capture,layeggs,hindex,classfile,speciesID,genes]
+			id = offspring[i]['name']
+			offpop = offspring[i][egg_add_call]
+			if egg_add == 'mating': # Same as offpop
+				matedpop = offpop
+			else: # First pop, need to look up where mother mated
+				matedpop = ''.join(str(num) for num in [int(idig) for idig in offspring[i]['MID'].split('_')[0] if idig.isdigit()])
+			
+			recd = (matedpop,offpop,'NA',0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],id,offspring[i]['MID'],offspring[i]['FID'],0,0,offspring[i]['layeggs'],hindex,offspring[i]['classfile'],offspring[i]['popID'],offspring[i]['species'],offgenes)
 			# Record offspring information to SubpopIN 
 			Age0_keep.append(recd)
 		
@@ -2148,7 +2152,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 	# End::DoUpdate()
 	
 # ---------------------------------------------------------------------------------------------------
-def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,EHom=None):
+def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,EHom=None):
 
 	'''
 	Add in the Age 0 population.
@@ -2162,27 +2166,28 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 	PopulationAge.append([])
 	PopulationAge[gen] = [[] for x in range(0,classno)]
 	SelectionDeaths_Age0s.append([])
-	
+	if egg_add == 'mating': # Born in mating grounds
+		egg_add_call = 'NatalPop'
+	else: # Born in nonmating grounds
+		egg_add_call = 'EmiPop'	
+				
+	# Loop through each patch
 	for isub in range(len(K)):
-			
-		# Get each SubpopIN pop as array
+	
+		# Get each SubpopIN pop as array and Age0s array
 		SubpopIN_arr = np.array(SubpopIN_keepAge1plus[isub],dtype=dtype)
-		
-		# Select out the offspring in this pop
-		Age0Pop = np.where(SubpopIN_Age0['NatalPop'] == str(isub+1))[0]
-		Age0Pop = SubpopIN_Age0[Age0Pop]				
-		
+		Age0Pop = SubpopIN_Age0[np.where(SubpopIN_Age0[egg_add_call] == str(isub+1))[0]]
+				
 		# ----------------
 		# InheritGenes()
-		# ----------------
-		
-		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel,noalleles,plasticans,cdevolveans)	
+		# ----------------		
+		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel,noalleles,plasticans,cdevolveans,egg_add_call,egg_add)
 		
 		# --------------------------------
 		# Apply spatial selection to Age0s (this might not be the right order)
 		# --------------------------------
 		# 1-locus selection model
-		if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen_cdevolve) and (timecdevolve.find('Eggs') != -1):
+		if (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen_cdevolve) and (timecdevolve.find('Eggs') != -1):			
 			SubpopIN_Age0_keep = []
 			for iind in range(len(SubpopIN_Age0_temp)):
 				outpool = SubpopIN_Age0_temp[iind]
@@ -2301,6 +2306,8 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 		
 		# Maturation values need to be updated here for cdevolveans M
 		elif (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link') and (gen >= burningen_cdevolve): # cdevolve answer mature			
+			print('These cdevolveans need to be checked: M, MG, etc.')
+			sys.exit(-1)
 			if sizecall == 'size': # Size control
 				for iind in range(len(SubpopIN_Age0_temp)):				
 					tempgenes = SubpopIN_Age0_temp[iind]['genes']
@@ -2425,6 +2432,7 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 		else:
 			SubpopIN_Age0_keep = SubpopIN_Age0_temp
 		
+			
 		# Append all information to temp SubpopKeep variable
 		SubpopIN_keepK.append(np.concatenate([SubpopIN_arr,SubpopIN_Age0_keep]))			
 		

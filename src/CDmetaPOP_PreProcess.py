@@ -133,7 +133,7 @@ def ReadCDMatrix(cdmatrixfilename,function,threshold,A,B,C):
 	# Check statements
 	if os.path.exists(cdmatrixfilename):
 		# Open file for reading
-		inputfile = open(cdmatrixfilename,'rU')
+		inputfile = open(cdmatrixfilename,'r')
 	else:
 		print(("CDmetaPOP ReadCDMatrix() error: open failed, could not open %s"%(cdmatrixfilename)))
 		sys.exit(-1)
@@ -426,7 +426,7 @@ def InitializeGenes(datadir,allefreqfilename,loci,alleles):
 				# Check statements
 				if os.path.exists(datadir+fileans[i_splitpatch]):
 					# Open file for reading
-					inputfile = open(datadir+fileans[i_splitpatch],'rU')
+					inputfile = open(datadir+fileans[i_splitpatch],'r')
 				else:
 					print(("CDmetaPOP InitializeGenes() error: open failed, could not open %s"%(fileans[i_splitpatch])))
 					sys.exit(-1)
@@ -581,7 +581,7 @@ def InitializeAge(K,agefilename,datadir):
 			# Check statements
 			if os.path.exists(datadir+fileans[i_splitpatch]):
 				# Open file for reading
-				inputfile = open(datadir+fileans[i_splitpatch],'rU')
+				inputfile = open(datadir+fileans[i_splitpatch],'r')
 			else:
 				print(("CDmetaPOP InitializeAge() error: open failed, could not open %s"%(datadir+fileans[i_splitpatch])))
 				sys.exit(-1)
@@ -1078,7 +1078,7 @@ def ReadXY(xyfilename):
 	# Check statements
 	if os.path.exists(xyfilename):
 		# Open file for reading
-		inputfile = open(xyfilename,'rU')
+		inputfile = open(xyfilename,'r')
 	else:
 		print(("CDmetaPOP ReadXY() error: open failed, could not open %s"%(xyfilename)))
 		sys.exit(-1)

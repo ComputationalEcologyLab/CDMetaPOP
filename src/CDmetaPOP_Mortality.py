@@ -92,19 +92,8 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 			Population[gen].append(0)
 			PopDeaths[gen].append(Npop)
 		
-		# Stop if nobody in this patch
-		elif pop_percmort[isub] != 'E' and Npop == 0:
-			# Get tracking numbers
-			SubpopIN_keep.append(SubpopIN_arr)
-			# Store new N 
-			Population[gen].append(0)
-			PopDeaths[gen].append(0)
-			for iage in range(len(size_bin)):
-				AgeDeaths[gen][iage].append(0)	
-				SizeDeaths[gen][iage].append(0)
-			
-		# Other case
-		elif pop_percmort[isub] == 'E' and Npop == 0:
+		# If wished entire patch gone
+		elif (pop_percmort[isub] != 'E' or pop_percmort[isub] == 'E') and Npop == 0:
 			# Get tracking numbers
 			SubpopIN_keep.append(SubpopIN_arr)
 			# Store new N 
@@ -384,13 +373,6 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 	AgeDeaths.append([])
 	SizeDeaths.append([])
 	# For age/size tracking
-	'''
-	bin_min = min(sum(sum(size_mean,[]),[]))
-	bin_max = max(sum(sum(size_mean,[]),[]))
-	size_bin = [bin_min]
-	for ibin in range(len(size_mean[0][0])-1):
-		size_bin.append(size_bin[ibin]+(bin_max - bin_min)/(len(size_mean[0][0])-1))
-	'''
 	size_bin = size_mean[0][0]
 	# Get the middles for finding closest values
 	size_mean_middles_bin = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2
@@ -433,7 +415,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 			PopDeaths[gen].append(Npop)
 			
 		# If wished entire patch gone
-		elif pop_percmort[isub] != 'E' and Npop == 0:
+		elif (pop_percmort[isub] != 'E' or pop_percmort[isub] == 'E') and Npop == 0:
 			# Get tracking numbers
 			SubpopIN_keep.append(SubpopIN_arr)
 			# Store new N 
@@ -442,18 +424,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 			for iage in range(len(size_bin)):
 				AgeDeaths[gen][iage].append(0)	
 				SizeDeaths[gen][iage].append(0)
-							
-		# Other case
-		elif pop_percmort[isub] == 'E' and Npop == 0:
-			# Get tracking numbers
-			SubpopIN_keep.append(SubpopIN_arr)
-			# Store new N 
-			Population[gen].append(0)
-			PopDeaths[gen].append(0)
-			for iage in range(len(size_bin)):
-				AgeDeaths[gen][iage].append(0)	
-				SizeDeaths[gen][iage].append(0)
-			
+					
 		# Keep going if individuals in this patch
 		else:
 			# ----------------------------
@@ -574,22 +545,10 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 										sxspot = 2
 									else:
 										sxspot = 3
-									# MortAge									
-									#if len(MortAge.split('~')) == 1:
-										#thisoneMortAge = MortAge
-									#elif len(MortAge.split('~')) != sexchromo:
-										#print('Number of age mortality values by sex must match sex_chromo.')
-										#sys.exit(-1)
-									
 									thisoneMortAge = MortAge.split('~')[sxspot]
-									# MortSize
-									#if len(MortSize.split('~')) == 1:
-										#thisoneMortSize = MortSize
-									#elif len(MortAge.split('~')) != sexchromo:
-										#print('Number of size mortality values by sex must match sex_chromo.')
-										#sys.exit(-1)
 									thisoneMortSize = MortSize.split('~')[sxspot]
-									
+														
+									#pdb.set_trace()
 									# Then get total mort values
 									if thisoneMortSize == 'N' and thisoneMortAge == 'N' and MortPatch == 'N':
 										thisoneMortAll = 0.0
@@ -598,15 +557,19 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 									elif thisoneMortSize == 'N' and thisoneMortAge != 'N' and MortPatch == 'N':
 										thisoneMortAll = float(thisoneMortAge)
 									elif thisoneMortSize != 'N' and thisoneMortAge == 'N' and MortPatch == 'N':
-										thisoneMortAll = float(thisoneMortSize)									
+										thisoneMortAll = float(thisoneMortSize)										
 									elif thisoneMortSize == 'N' and thisoneMortAge != 'N' and MortPatch != 'N':
 										thisoneMortAll = float(thisoneMortAge) * float(MortPatch)
+										#thisoneMortAll = 1.-((1.-float(thisoneMortAge)) * (1.-float(MortPatch)))
 									elif thisoneMortSize != 'N' and thisoneMortAge == 'N' and MortPatch != 'N':
 										thisoneMortAll = float(thisoneMortSize) * float(MortPatch)
+										#thisoneMortAll = 1.-((1.-float(thisoneMortSize)) * (1.-float(MortPatch)))
 									elif thisoneMortSize != 'N' and thisoneMortAge != 'N' and MortPatch == 'N':
 										thisoneMortAll = float(thisoneMortSize) * float(thisoneMortAge)
+										#thisoneMortAll = 1.-((1.-float(thisoneMortSize)) * (1.-float(thisoneMortAge)))
 									elif thisoneMortSize != 'N' and thisoneMortAge != 'N' and MortPatch != 'N':
 										thisoneMortAll = float(thisoneMortSize) * float(thisoneMortAge) * float(MortPatch)
+										#thisoneMortAll = 1.-((1.-float(thisoneMortSize)) * (1.-float(thisoneMortAge)) * (1.-float(MortPatch)))
 									else:
 										print('Something off in DoConstantMortality_Multiply() with input values')
 										sys.exit(-1)
@@ -718,7 +681,7 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 	DoEggMortality()
 	Mortality functions for age 0 class.
 	'''
-	
+	pdb.set_trace()
 	# Storage for egg deaths
 	Age0Deaths.append([])
 	Births.append([]) # Spot for generation
@@ -797,3 +760,79 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 	return noOffspring
 	
 	# End::DoEggMortality()
+	
+	
+# ----------------------------------------------------------------------------------------------	 
+def DoIndividualEggMortality(Bearpairs,eggmort_patch,EggDeaths,gen,eggmort_back,Births,BirthsMYY,BirthsFYY,thisBearpair_noOffspring,constMortans):
+	'''
+	DoEggMortality()
+	Mortality functions for age 0 class.
+	'''
+	
+	# Get patch location of this egg - assume where mother mated pairing
+	mothers_patch = int(Bearpairs[0]['NatalPop'])-1
+	
+	# If mother laid egg/fertilazation event, continue
+	if thisBearpair_noOffspring != 0:
+		# ----------------------------
+		# Get patch level mortality
+		# ----------------------------	
+		PatchMort = eggmort_patch[mothers_patch]
+		
+		# ----------------------------
+		# Get popVars level mortality
+		# ----------------------------
+		PopMort = eggmort_back
+		
+		# ----------------------------
+		# Apply Overall Mortality
+		# ----------------------------
+		if constMortans == '1': # Additive Mortality
+			
+			# Get number of survivors at PopVars level
+			offsurvivors = (1.-PopMort)*thisBearpair_noOffspring
+							
+			# Only keep going if still survivors 
+			if offsurvivors  != 0:							
+				# Get number of survivors at PatchVars level
+				offsurvivors = (1.-PatchMort) * offsurvivors
+				
+			# -------------------------
+			# Update offspring numbers
+			# -------------------------
+			remaining_thisBearpair_noOffspring = int(np.round(offsurvivors))
+					
+		else: # Multiplicative Mortality
+			remaining_thisBearpair_noOffspring = int(np.round(((1. - PatchMort)*(1. - PopMort)) * thisBearpair_noOffspring))
+		
+		# -------------------
+		# Tracking numbers
+		# -------------------
+		EggDeaths[gen][mothers_patch].append(thisBearpair_noOffspring - remaining_thisBearpair_noOffspring)
+		Births[gen][mothers_patch].append(thisBearpair_noOffspring)
+		if  Bearpairs[1]['sex'] == 'MYY':
+			tempcount = 1
+		else:
+			tempcount = 0
+		BirthsMYY[gen][mothers_patch].append( tempcount )
+		if  Bearpairs[0]['sex'] == 'FYY':
+			tempcount = 1
+		else:
+			tempcount = 0
+		BirthsFYY[gen][mothers_patch].append( tempcount )		
+
+	# if a pairing did not occur, for tracking
+	else:		
+		remaining_thisBearpair_noOffspring = thisBearpair_noOffspring
+		# -------------------
+		# Tracking numbers
+		# -------------------
+		EggDeaths[gen][mothers_patch].append(0)
+		Births[gen][mothers_patch].append(0)
+		BirthsMYY[gen][mothers_patch].append(0)
+		BirthsFYY[gen][mothers_patch].append(0)			
+		
+	# Return whole number
+	return remaining_thisBearpair_noOffspring	
+	
+	# End::DoIndividualEggMortality()

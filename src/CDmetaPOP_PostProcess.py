@@ -1101,9 +1101,12 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 		outputfile.write(str(MatureCount[i])+',')
 		outputfile.write(str(ImmatureCount[i])+',')
 		outputfile.write(str(Female_BreedEvents[i])+',')
-		for j in range(nosubpops+1):
-			outputfile.write(str(Births[i][j])+'|')
-		outputfile.write(',')		
+		try:
+			for j in range(nosubpops+1):
+				outputfile.write(str(Births[i][j])+'|')
+			outputfile.write(',')
+		except:
+			pdb.set_trace()
 		for j in range(len(EggDeaths[i])):
 			outputfile.write(str(EggDeaths[i][j])+'|')
 		outputfile.write(',')

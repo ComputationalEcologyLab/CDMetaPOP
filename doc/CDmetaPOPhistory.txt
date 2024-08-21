@@ -1,3 +1,122 @@
+Changes v2.74.2024.08.15 (cday/ell)
+-1) 'rU' to 'r' in PreProcessing
+0) Revisit for popmodel N
+#Kpop = Track_KadjImmi[gen-1][isub+1]
+				Kpop = Track_KadjImmi[gen-1][isub]
+Tasmanian Devil application: when popmodel == 'N' and implementcomp == 'Back', Kpop gets called out of order. Set implementcomp to 'N' for fix. Note, when competition is used, Kadj Track is called for Immi in Emi and total has not been added to this tracking yet. Add this to usermanual and default to N.
+1) Emigration() isub change back in v2.65ish and currentsubpop - 1 issue -> currentsubpop = currentsubop now in GetProbArray
+2) Stepping through movement with 'nonmating' option
+-> In InheritGenes() truncated a string call for matedpop
+-> Added a 'mating' nonmating call to find where mother mated, etc.
+
+Changes v2.73.2024.07.06T00000
+1) ELL TO move new search routine for where mother goes in nonmating option outside of loop
+
+-> Loops for where Bearpairs went for nonmating option before Bearpair loop in OffspringVars
+
+-> In Bearpair loop: removed loops and now this check:
+# ------------------------
+# Mother's patch location
+# ------------------------
+if egg_add == 'mating':
+	patchindex = int(Bearpairs[i][0][sourcePop])-1
+else:
+	patchindex = int(Bearpairs[i][0]['EmiPop'])-1
+	
+
+2) Multiplicative mortality check through with ELL/CDAY: added warning for 0s upfront, updating usermanual.
+
+Changes v2.72.2024.05.23T090900 (ell)
+0) Still updating a few errors with new mate/offspring implementations:
+-> Error with new ln 68 in Offsrpign2 mothers_SubpopINLocation == False: non-void arrarys same as Bearpair error, changed to: 
+if not isinstance(mothers_SubpopINLocation, np.void):
+#if mothers_SubpopINLocation == False:
+
+
+Changes v2.71.2024.05.19
+0) Updated DoMortality Multiplicative option 
+# Updated v2.69
+#thisoneMortAll = 1.-((1.-float(thisoneMortSize)) * (1.-float(thisoneMortAge)) * (1.-float(MortPatch)))
+-> Note if 1,0,1, will get overall 1 mortality (want 0 if any 0)
+# Updated v2.71 to?
+if thisoneMortSize == 0.0 or thisoneMortAge == 0.0 or MortPatch == 0.0:
+	thisoneMortAll = 0.0
+else:
+	thisoneMortAll = 1.-((1.-float(thisoneMortSize)) * (1.-float(thisoneMortAge)) * (1.-float(MortPatch)))
+
+1) Updated conda/anaconda and errors:
+-> np.int to int
+->DoSexual() line 762 Bearpairs[count] != [-9999,-9999] to if not isinstance(Bearpairs[count][0],int):
+***Fix ln 68 Offsrping2 if mothers_SubpopINLocation == False:
+
+
+2) Updated the DoMortality Add and Multiply BACK to v2.68, but for Multiply, change to thisoneMortAll = 1.-((1.-float(thisoneMortSize)) * (1.-float(thisoneMortAge)) * (1.-float(MortPatch))) and corresponding 2 instances
+*** Still not working correctly, have CDay check, and commented out now
+
+
+Changes v2.70.2024.05.17
+0) Running list of Qs and additions needed for next version
+a) Add 'logistic_mating' and 'logistic_nonmating' options ***
+b) Move new search in DoOffspringVars for where mother went above Bearpair loop - unneccessary looping currently ***
+c) Added if outpool['name'][0:4] == 'Age0' and indProbans_MgOut and packans == 'anadromy': to Immigration 1087
+
+
+Changes v2.69.2024.04.16 (ell)
+-1) Error with dispersingto and iteminlist - deleted all dispersinto references in DoEmigration and DoImmigration
+2) Changed line with 'EO'
+if outpool_name[0][0:2] == 'E': # Only Age0 migrants should have an 'E' here. 
+	if outpool_name[0]['age'] != 1:
+		pdb.set_trace()
+		print('Check v2.68 functionality with anadromy')
+0) Begin updating model for more flexibility in mate location and 'lay eggs' location. 
+a) Add new variable 'egg_add' to PopVars.***Update usermanual for popmodel section 
+b) Copied src_2; update SubpopIN with mate/offspring information. 
+c) Begin adding noOffspring to Mate module - after pairing of Bearpairs, then call Offspring and fill noOffspring
+-> Added DoOffspringNo - after Bearpairs, fills noOffspring - be careful of egg_delay. 
+-> Updated 4 offno options for a single offspring number pull.
+-> Added DoIndividualEggMortality after DoOffspringNo - new function
+-> CDay updated usermanual for Mortality options '1' and '2' 
+-> Add DoOffspringClutch to Mate() - checked through code and cases, updated this function; ***Add note to usermanuel that tracking egg deaths and births for Myy and Fyy, as well as patch specific births not accurate. Total births updated
+-> Made DoMateSummary() function and make this optional with outputans = 'Y' ***Update user manual for this
+-> Added check to mainloop for if egg_add == 'nonmating' and popmodel != 'logistic': print('Logistic model should be used with nonmating add age 0 locations. See user manual')
+
+d) Add age0s to 'nonmating' ground location
+-> logistic with 'nonmating' error statements add to mainloop; note that logistic in Emigration() does not modify noOffspring 
+***however, we want to add var field to PopVars to give user the option to apply logistic back or out (currently only operating in Immigration - back) add 'logistic_mating' and 'logistic_nonmating'
+-> DoOffspringVars(): Here read in egg_add, if mating grounds, code stays the same, else if nonmating grounds, find where mother went and assign 'NatalPop' location for offspring individual to the nonmating ground location: 
+->NOTE: Assume that if a bearpairs ID can't be found or linked to a SubpopIN_keep location, then this mother died through movement in Emigration or DDmortality or selection.
+-> updated recd for offspring naming on NatalPop and EmiPop; check call in AddAge0s for 'NatalPop' or 'EmiPop', also check initial assignment for first individuals in 'NatalPop', but really 'EmiPop'? 'Mating' and 'NonMating grounds
+previous code: recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],str(patchindex+1),'NA','NA',-9999,-9999,agetemp,offsex,sizesamp,mature,mature,infect,id,Bearpairs[i][0]['name'],Bearpairs[i][1]['name'],0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),Bearpairs[i][0]['popID'],Bearpairs[i][0]['species'])
+updated to recd = (Bearpairs[i][0]['genes'],Bearpairs[i][1]['genes'],'NA',str(patchindex+1),'NA',-9999,-9999,agetemp,offsex,sizesamp,mature,mature,infect,id,Bearpairs[i][0]['name'],Bearpairs[i][1]['name'],0,0,offlayeggs,Bearpairs[i][0]['hindex'],Bearpairs[i][1]['hindex'],'P'+str(natalP)+'_CV'+str(theseclasspars),PopTag[patchindex],Bearpairs[i][0]['species'])
+-> Added a egg_add_calll for 'NatalPop' and 'EmiPop'; see InheritGenes() - question on what spatial information to use for init genes ***
+-> Noted changed recd for new Age0s added in from offpop, offpop, offpop to matedpop,offpop,NA to recd = (matedpop,offpop,'NA',0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],id,offspring[i]['MID'],offspring[i]['FID'],0,0,offspring[i]['layeggs'],hindex,offspring[i]['classfile'],offspring[i]['popID'],offspring[i]['species'],offgenes)
+-> Added outans option for Y/N to calculatedispersalmetrics in Emigration and Immigration()
+
+e) Checking through all input files for base runs, fixing any issues. 
+->Updated PopVars to include egg_add column ***still need to update usermanual for this!
+->Updated PatchVars files to not have 'N's in mortality columns (added error statement to these functions.
+->Updated ClassVars to also not include 'N's in mortality columns (note, no error check for this one)
+-> Error in Emigration packing mother_patch_ind index Error: IndexError 679: only integers, slices (`:`), ellipsis (`...`), numpy.newaxis (`None`) and integer or boolean arrays are valid indices - Fixed in main loop check on population going extinct - also in places where looking for Bearpair, replace with looking for offspring. sum(noOffspring) > 0: - also check type/dytpe - dtype lost when [-9999,-9999] no pairing occured in Mate()
+-> Error in Mate with females didn't find a pair - Fixed; cleaned up DoSexual() functions 
+-> Error when no males no females at beginning of DoMate - Fixed return [],[] added.
+-> Error in Poisson litter_mu - couldnot flag again; perhaps fixed with above
+-> Error in PostProcessing tracking number checks Births 1105 - Fixed and updated tracking indexing for Births/EggDeaths in Mate()
+-> Error in Mate len(Bearpairs) != len(noOffspring): Checked and Fixed
+-> Check andromy naming. Get to Ocean and stay, no one returning - turned to 'R' Fixed, updates on 575 Emigration, also check ***486 checks on 'E'; will need CDay to check through anadromy output
+
+f) Convert back to src, but leaving Offspring2 calls for this version 2.69
+
+Changes v2.68.2024.04.04T (ell/cday)
+0) Adding in more functionality for anadromy options - adding age 0s to ocean
+-> Added to flow diagram a check in DoImmigration for if Age0 and migrate out - then apply migration out 
+-> Added MgOut age and patch probs into DoImmigration for this check.
+->***Did not add in CalculateDispersalMetric for these Age0 individuals (thres, pars, etc, not moved)
+-> ***Consider adding 'anadromy option for this check
+-> Checked PopTags recd, ***Check 1028 E0 recd values?
+-> ***Note timeplastic might be off now for these individuals that migrate during Immigration
+-> Moved 'migrate_patches' to Immigration and this Probarray call. 
+-> Prelim testing ELL: Error in ibatch = 1, trying to replicate parameter that causes this in ibatch = 0: when egg delay = 1, error in Offspring module, placed debug, but needs fixing: issues with gen = 0 and SourcePop and egg_delay = 1. Turning off egg_delay for now, need to check through sourcePop calls throughout code.***
+
 Changes v2.67.2024.02.22T14:08:00 (cday and ell)
 0) Step through flowchart and Immigration again. Attempt to streamline 'recd' and code sections.
 1) CDAY added age 0/1 packing version - 'anadromy' option (changes to Immigration and Emigration
