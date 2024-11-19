@@ -1239,7 +1239,7 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 		outputfile.write(str(Track_aaaaMates[i])+',')
 		outputfile.write(str(Track_AAAaMates[i])+',')
 		outputfile.write(str(Track_aaAaMates[i])+',')
-		outputfile.write(str(Track_AaAaMates[i])+',')		
+		outputfile.write(str(Track_AaAaMates[i]))		
 		outputfile.write('\n')		
 		
 	# Logging message
