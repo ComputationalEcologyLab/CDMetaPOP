@@ -1691,8 +1691,9 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 			
 			L_inc = float(sizeLoo) * (1. - np.exp(int_R * (Indage+1-float(size_3)))) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
 			# Get the incremental growth
-			#L_inc_age = L_inc * np.exp((Indage+1) * int_R)
-			L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))			
+			
+			#L_inc_age = L_inc * np.exp((Indage+1) * int_R) #old ebt version
+			L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))	# new version		
 			
 			# Update the new size for this individual		
 			newsize = SubpopIN[isub][iind]['size'] + (L_inc_age * (grow))

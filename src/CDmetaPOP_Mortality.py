@@ -681,13 +681,15 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 	DoEggMortality()
 	Mortality functions for age 0 class.
 	'''
-	pdb.set_trace()
+	
 	# Storage for egg deaths
 	Age0Deaths.append([])
 	Births.append([]) # Spot for generation
 	BirthsMYY.append([]) # Spot for generation, note this is the offspring number from a MYY after egg deaths.
 	BirthsFYY.append([]) # Spot for generation, note this is the offspring number after egg deaths. 	
 	tempoffloc = []	
+	Bearpairs = np.asarray(Bearpairs) # added in v2.
+	noOffspring = np.asarray(noOffspring)
 	# Loop through each patch
 	for i in range(len(K)):
 	
@@ -757,7 +759,7 @@ def DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffsp
 	BirthsMYY[gen].insert(0,sum(BirthsMYY[gen]))
 	BirthsFYY[gen].insert(0,sum(BirthsFYY[gen]))
 		
-	return noOffspring
+	return noOffspring, Age0Deaths, Births, BirthsMYY, BirthsFYY
 	
 	# End::DoEggMortality()
 	
@@ -790,12 +792,17 @@ def DoIndividualEggMortality(Bearpairs,eggmort_patch,EggDeaths,gen,eggmort_back,
 		if constMortans == '1': # Additive Mortality
 			
 			# Get number of survivors at PopVars level
-			offsurvivors = (1.-PopMort)*thisBearpair_noOffspring
+			if PopMort != 'N':
+				offsurvivors = (1.-PopMort)*thisBearpair_noOffspring
 							
-			# Only keep going if still survivors 
-			if offsurvivors  != 0:							
-				# Get number of survivors at PatchVars level
-				offsurvivors = (1.-PatchMort) * offsurvivors
+				# Only keep going if still survivors 
+				if PatchMort != 'N':							
+					# Get number of survivors at PatchVars level
+					offsurvivors = (1.-PatchMort) * offsurvivors
+			elif PatchMort != 'N':				
+				offsurvivors = (1.-PatchMort)*thisBearpair_noOffspring
+			else:
+				offsurvivors = thisBearpair_noOffspring
 				
 			# -------------------------
 			# Update offspring numbers
@@ -803,7 +810,14 @@ def DoIndividualEggMortality(Bearpairs,eggmort_patch,EggDeaths,gen,eggmort_back,
 			remaining_thisBearpair_noOffspring = int(np.round(offsurvivors))
 					
 		else: # Multiplicative Mortality
-			remaining_thisBearpair_noOffspring = int(np.round(((1. - PatchMort)*(1. - PopMort)) * thisBearpair_noOffspring))
+			if PatchMort == 'N' and PopMort == 'N':
+				remaining_thisBearpair_noOffspring = thisBearpair_noOffspring
+			elif PatchMort == 'N' and PopMort != 'N':
+				remaining_thisBearpair_noOffspring = int(np.round((1. - PopMort) * thisBearpair_noOffspring))
+			elif PatchMort != 'N' and PopMort == 'N':
+				remaining_thisBearpair_noOffspring = int(np.round((1. - PatchMort) * thisBearpair_noOffspring))
+			else:
+				remaining_thisBearpair_noOffspring = int(np.round((1. - PatchMort*PopMort) * thisBearpair_noOffspring))
 		
 		# -------------------
 		# Tracking numbers
@@ -811,12 +825,14 @@ def DoIndividualEggMortality(Bearpairs,eggmort_patch,EggDeaths,gen,eggmort_back,
 		EggDeaths[gen][mothers_patch].append(thisBearpair_noOffspring - remaining_thisBearpair_noOffspring)
 		Births[gen][mothers_patch].append(thisBearpair_noOffspring)
 		if  Bearpairs[1]['sex'] == 'MYY':
-			tempcount = 1
+			#tempcount = 1
+			tempcount = remaining_thisBearpair_noOffspring
 		else:
 			tempcount = 0
 		BirthsMYY[gen][mothers_patch].append( tempcount )
 		if  Bearpairs[0]['sex'] == 'FYY':
-			tempcount = 1
+			#tempcount = 1 # v2.75 changed below
+			tempcount = remaining_thisBearpair_noOffspring
 		else:
 			tempcount = 0
 		BirthsFYY[gen][mothers_patch].append( tempcount )		

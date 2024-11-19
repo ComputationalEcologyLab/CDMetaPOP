@@ -1733,9 +1733,9 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			temppopmort_out.append(popmort_out[isub])
 		
 		if len(eggmort[isub].split('|')) > 1:
-			tempeggmort.append(float(eggmort[isub].split('|')[icdtime]))
+			tempeggmort.append(eggmort[isub].split('|')[icdtime])
 		else:
-			tempeggmort.append(float(eggmort[isub]))
+			tempeggmort.append(eggmort[isub])
 		if len(popmort_back_sd[isub].split('|')) > 1:
 			temppopmort_back_sd.append(float(popmort_back_sd[isub].split('|')[icdtime]))
 		else:
@@ -1747,9 +1747,9 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			temppopmort_out_sd.append(float(popmort_out_sd[isub]))
 		
 		if len(eggmort_sd[isub].split('|')) > 1:
-			tempeggmort_sd.append(float(eggmort_sd[isub].split('|')[icdtime]))
+			tempeggmort_sd.append(eggmort_sd[isub].split('|')[icdtime])
 		else:
-			tempeggmort_sd.append(float(eggmort_sd[isub]))
+			tempeggmort_sd.append(eggmort_sd[isub])
 		
 		if len(pop_capture_back[isub].split('|')) > 1:
 			temppopCapBack.append(pop_capture_back[isub].split('|')[icdtime])
@@ -2167,8 +2167,9 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	temp_store_mu = []		
 	stochastic_update(age_percmort_back_mu_egg,age_percmort_back_sd_egg,temp_store_mu)
 	eggmort_age = temp_store_mu[0]
-	if eggmort_age > 1.:
-		eggmort_age = 1.
+	if eggmort_age != 'N':
+		if eggmort_age > 1.:
+			eggmort_age = 1.
 			
 	return K,popmort_back,popmort_out,eggmort_patch,outsizevals,backsizevals,outgrowdays,backgrowdays,age_percmort_out,age_percmort_back,	size_percmort_out,size_percmort_back,eggmort_age,f_ind,f_leslie
 	#End::DoStochasticUpdate()

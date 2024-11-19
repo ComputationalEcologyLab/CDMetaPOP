@@ -1,3 +1,35 @@
+Chnages v2.77.2024.10.11
+0) Index error with different combinations of 0;0|15;15 -> 0|15;15 throws index error ***
+
+Changes v2.76. 2024.10.8
+0) Type error with N for egg mortality parameters = 
+1) IndividualEggMort - not calculating MYY correctly - remaining eggs here.
+
+Changes v2.75.2024.09.24: 
+0) Noted that when add individuals TotF + TotM does not equal N_init. Moving N_init to DoMate when ***
+1) Check checkPopN at start: if N_Init == 0, and addindividuals coming in, then sys exit before add individuals ***
+2) Update N_Init to DoMate to account for AddIndividual number ***
+
+3) Testing EBT old vs new model; ***Uncommenting this section ONLY FOR TESTING*** Return after CHANGED BACK FOR THIS VESION
+New version:
+#L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))
+
+For testing EBT model
+L_inc_age = L_inc * np.exp((Indage+1) * int_R)
+#L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))	
+
+Turned egg mort to 0	Adding old DoEggMort call to check the tracking numbers.
+Found issue:
+3) Changed to tempcount = 1
+tempcount = thisBearpair_noOffspring
+4) Note that constmortans option 1 and 2 in new egg mortality function (only additive in old)
+5) updated the mortality egg remaining_thisBearpair_noOffspring = int(np.round((1. - PatchMort*PopMort) * thisBearpair_noOffspring))
+6) ***Note to check speed tests	
+7) Added EggMort PopVars and PatchVars option for 'N' to skip
+8) Updated user manuael 
+
+
 Changes v2.74.2024.08.15 (cday/ell)
 -1) 'rU' to 'r' in PreProcessing
 0) Revisit for popmodel N
@@ -59,7 +91,6 @@ Changes v2.70.2024.05.17
 a) Add 'logistic_mating' and 'logistic_nonmating' options ***
 b) Move new search in DoOffspringVars for where mother went above Bearpair loop - unneccessary looping currently ***
 c) Added if outpool['name'][0:4] == 'Age0' and indProbans_MgOut and packans == 'anadromy': to Immigration 1087
-
 
 Changes v2.69.2024.04.16 (ell)
 -1) Error with dispersingto and iteminlist - deleted all dispersinto references in DoEmigration and DoImmigration

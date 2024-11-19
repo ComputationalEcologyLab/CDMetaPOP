@@ -716,7 +716,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 						# Call DoOffspringNo() for this Bearpair
 						# --------------------------------------
 						thisBearpair_noOffspring = DoOffspringNo(offno,Bearpairs[count],f_ind,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans)
-					
+						
 						# -------------------------------------
 						# Call DoEggMortality()
 						# -------------------------------------	
@@ -854,6 +854,15 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 			print('This Female/Male mating structure does not exist. Must be Y/N combinations.')
 			sys.exit(-1)		
 		
+	# For testing EBT old vs new model - adding DoEggMortality() check
+	#thisBearpair_noOffspring = DoIndividualEggMortality(Bearpairs[count],eggmort_patch,Track_EggDeaths,gen,eggmort_pop,Track_Births,Track_BirthsMYY,Track_BirthsFYY,thisBearpair_noOffspring,constMortans)
+	#DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffspring,Births,BirthsMYY,BirthsFYY)
+	#testEggDeaths = []
+	#testBirths = []
+	#testBirthsMYY = []
+	#testBirthsFYY = []
+	#testnoOffspring, testEggDeaths, testBirths, testBirthsMYY, testBirthsFYY = DoEggMortality(Bearpairs, eggmort_patch, testEggDeaths, 0, K, eggmort_pop, noOffspring, testBirths, testBirthsMYY, testBirthsFYY) 
+	
 	# --------------------------------
 	# Clean up after loop - some checks
 	# --------------------------------
@@ -879,7 +888,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		Track_BirthsMYY[gen].insert(0,sum(Track_BirthsMYY[gen]))
 		Track_BirthsFYY[gen] = [sum(sublist) for sublist in Track_BirthsFYY[gen]]
 		Track_BirthsFYY[gen].insert(0,sum(Track_BirthsFYY[gen]))
-			
+	
 	# --------------------------------------------
 	# Check for Equal clutch size and reduce pairs
 	# --------------------------------------------
