@@ -1,3 +1,0 @@
-Popvars,sizecontrol,constMortans,mcruns,runtime,output_years,gridformat,gridsampling,summaryOutput,cdclimgentime,startcomp,implementcomp
-popvars/PopVarsS1.csv;popvars/PopVarsS2.csv,N,2,1,10,1,cdpop,Sample,N,0|1,0,Back
-popvars/PopVarsS1.csv;popvars/PopVarsS2.csv;popvars/PopVarsS3.csv,N,2,1,10,1,cdpop,Sample,N,0|1,0,Back
