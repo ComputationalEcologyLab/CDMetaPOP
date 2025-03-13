@@ -14,6 +14,7 @@ import os,sys,pdb,copy
 from ast import literal_eval 
 from CDmetaPOP_Modules import *
 from inspect import currentframe, getframeinfo
+from CDmetaPOP_Disease import *
 
 # ---------------------------------------------------------------------------------------------------
 def count_unique(keys):
@@ -663,55 +664,56 @@ def InitializeAge(K,agefilename,datadir):
 	#End::InitializeAge()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeID(K,N):
+def InitializeID(K,N,DisVars):
 	'''
 	InitializeID()
-	This function initializes the location of each individuals for the id varialbe
+	This function initializes individual's information: ID, subpop, speciesID, disease State. 
 	{Initial,Residor,Immigrant,Emigrant,Stayor}_{Year born}_{Natal Pop}_{Numeric ID}_{species ID} and produces the subpop temp list with corresponding PopTag ID and Species ID
 	'''
+	
 	id = []
 	subpop = []
 	speciesID = []
+	states = []
 	for isub in range(len(K)):
 		if sum(np.asarray(np.asarray(K,str)[isub].split(';'),int)) > 0: # split checks for AddIndividual call; tempN0 is read in
-		#if int(K[isub]) > 0:
 			Nspecies = N[isub].split(';')
+			
+			if DisVars['ImpDisease'] != 'N':
+				validate(len(DisVars['TransRates'])==0,'Disease transmission rates are needed.')
+				noStatesSplitAsRatioList = []
+				for idis in range(DisVars['noStates'][isub]): # To create the prob list 
+					noStatesSplitAsRatioList.append([idis,DisVars['InitCond'][isub][idis]])
+			
 			for ispec in range(len(Nspecies)): # Loop through each species group
 				for iind in range(int(Nspecies[ispec])): # Loop through each ind
-					'''
-					# See if spot fills based on Nvals
-					probfill = float(N[isub]/float(K[isub]))
-					randno = np.random.uniform()
-					if randno <= probfill:
-						# Get name
-						name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_m-1f-1'+'_P'+str(isub+1)+'_Y-1_U'+str(iind)
-						id.append(name)
-						subpop.append(isub+1)
-					'''
-					
-					# Get name
-					name = 'R'+str(isub+1)+'_F'+str(isub+1)+'_m-1f-1'+'_P'+str(isub+1)+'_Y-1_U'+str(iind)
-					id.append(name)
+					id.append('R'+str(isub+1)+'_F'+str(isub+1)+'_m-1f-1'+'_P'+str(isub+1)+'_Y-1_U'+str(iind))
 					subpop.append(isub+1)
 					speciesID.append(ispec+1)
+					
+					if DisVars['ImpDisease'] != 'N':
+						states.append(w_choice_general(noStatesSplitAsRatioList)[0])
+					else:
+						states.append(0)
+					
 	id = np.asarray(id)
 	subpop = np.asarray(subpop,dtype = '|U6')
 	speciesID = np.asarray(speciesID)
+	states = np.asarray(states)
 	
-	return id,subpop,speciesID
+	return id,subpop,speciesID,states
 	#End::InitializeID()
 
 # ---------------------------------------------------------------------------------------------------	 
-def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,sizeans,cdevolveans,fitvals,burningen_cdevolve,addans,sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd):
+def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,sizeans,cdevolveans,fitvals,burningen_cdevolve,addans,sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd):
 
 	'''
 	InitializeVars()
-	This function initializes the age,sex,infection,genes of each individual based for the id variable
+	This function initializes the age,sex,genes of each individual based for the id variable
 	'''
 	age = []
 	sex = []
 	size = []
-	infection = []
 	genes = []
 	mature = []
 	capture = []
@@ -862,15 +864,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			sxspot = 2
 		else:
 			sxspot = 3
-		# ------------------------
-		# Set the infection status
-		# ------------------------
-		if cdinfect == 'Y':
-			# Append a random number 0 or 1
-			infection.append(int(2*np.random.uniform()))
-		else:
-			infection.append(0)	
-			
+				
 		# -------------------
 		# Capture probability
 		# -------------------
@@ -1065,7 +1059,7 @@ def InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,a
 			layEggs.append(0)
 			
 	# Return Vars
-	return age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile
+	return age,sex,size,genes,mature,capture,layEggs,recapture,hindex,whichClassFile
 	#End::InitializeVars()
 	
 # ---------------------------------------------------------------------------------------------------	 
@@ -1105,763 +1099,363 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_prob,Str_patch_prob,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob,Disperse_patch_prob):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno_pass,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_prob,Str_patch_prob,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob,Disperse_patch_prob,alldiseaseVars_files,implementdisease,pathogen_load,disease_fitvals_pass):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
 	'''
-	
+		
 	# -------------------------------
 	# Extract cdclimate values here
 	# -------------------------------
-	# Store cdmat file information - header file (loadFile()) passes tuple or string if only 1
-	if not isinstance(cdclimgentime, (list,tuple)):
-		# Error checks
-		if cdclimgentime != ['0']:
-			print('If not using CDClimate option, set begin time loop with cdclimgentime at 0.')
-			sys.exit(-1)
+	# Check if cdclimgentime is a list or tuple, if not, ensure it's ['0']
+	if not isinstance(cdclimgentime, (list, tuple)) and cdclimgentime != ['0']:
+		print('If not using CDClimate option, set begin time loop with cdclimgentime at 0.')
+		sys.exit(-1)
 	
 	#---------------------------------------
 	# Population-based parameters - PopVars
 	# --------------------------------------
 	
-	# ------------------------------------------------
-	# Mating ----------------------------------
-	if isinstance(matecdmatfile, (list,tuple)):
-		matecdmatfile = datadir+matecdmatfile[icdtime]
-	else:	
-		matecdmatfile = datadir+matecdmatfile
-	# Function numbers next ----------------
-	if isinstance(matemoveno, (list,tuple)):
-		matemoveno = matemoveno[icdtime]
-	# A, B, C pars next --------------------
-	if isinstance(matemoveparA, (list,tuple)):
-		matemoveparA = float(matemoveparA[icdtime])
-	else:
-		matemoveparA = float(matemoveparA)
-	if isinstance(matemoveparB, (list,tuple)):
-		matemoveparB = float(matemoveparB[icdtime])
-	else:
-		matemoveparB = float(matemoveparB)
-	if isinstance(matemoveparC, (list,tuple)):
-		matemoveparC = float(matemoveparC[icdtime])
-	else:
-		matemoveparC = float(matemoveparC)
-	# Threshold ----------------------------------------
-	if isinstance(matemovethresh, (list,tuple)):
-		matemovethreshpass = matemovethresh[icdtime]
-	else:
-		matemovethreshpass = matemovethresh
-	# ---------------------------------------
-	# Read in cdmatrix.csv - For Mating
-	# ---------------------------------------	
-	tupReadMat = ReadCDMatrix(matecdmatfile,matemoveno,\
-	matemovethreshpass,matemoveparA,matemoveparB,matemoveparC)
-	matecdmatrix = np.asarray(tupReadMat[0])
-	matemovethresh = tupReadMat[1]
-	mate_ScaleMin = tupReadMat[2]
-	mate_ScaleMax = tupReadMat[3]
+	# -----------------------------------------------
+	# Mating parameters and cdmatrix
+	# -----------------------------------------------
+	# Process matecdmatfile for current time step
+	matecdmatfile = datadir + split_or_get(matecdmatfile, icdtime, cdclimgentime)
+
+	# Process matemoveno for current time step
+	matemoveno = split_or_get(matemoveno_pass, icdtime, cdclimgentime)
+
+	# Process A, B, C movement parameters for current time step
+	matemoveparA = float(split_or_get(matemoveparA, icdtime, cdclimgentime))
+	matemoveparB = float(split_or_get(matemoveparB, icdtime, cdclimgentime))
+	matemoveparC = float(split_or_get(matemoveparC, icdtime, cdclimgentime))
+	# Process movement threshold
+	matemovethreshpass = split_or_get(matemovethresh, icdtime, cdclimgentime)
 	
-	# ------------------------------------------------
-	# Dispersal out ----------------------------------
-	if isinstance(dispOutcdmatfile, (list,tuple)): # tuple and cdclimate call
-		tupVal = sexsplit(dispOutcdmatfile[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispOutcdmatfile,sexchromo) # single string
-	FXXdispOutcdmatfile = datadir+tupVal[0]
-	MXYdispOutcdmatfile = datadir+tupVal[1]
-	MYYdispOutcdmatfile = datadir+tupVal[2]
-	FYYdispOutcdmatfile = datadir+tupVal[3]
+	# Assuming ReadCDMatrix returns a tuple with 4 elements
+	matecdmatrix, matemovethresh, mate_ScaleMin, mate_ScaleMax = ReadCDMatrix(matecdmatfile, matemoveno, matemovethreshpass, float(matemoveparA), float(matemoveparB), float(matemoveparC))
+	# Convert matecdmatrix to numpy array
+	matecdmatrix = np.asarray(matecdmatrix)
+		
+	# -----------------------------------------------
+	# Dispersal Out parameters and cdmatrix
+	# -----------------------------------------------
+	# Apply the helper function for each dispersal parameter
+	FXXdispOutcdmatfile, MXYdispOutcdmatfile, MYYdispOutcdmatfile, FYYdispOutcdmatfile = [datadir + val for val in process_disp(dispOutcdmatfile, icdtime, sexchromo, cdclimgentime)]
+
 	# Function numbers next ----------------
-	if isinstance(dispmoveOutno, (list,tuple)):
-		tupVal = sexsplit(dispmoveOutno[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveOutno,sexchromo) # single string
-	FXXdispmoveOutno = tupVal[0]
-	MXYdispmoveOutno = tupVal[1]
-	MYYdispmoveOutno = tupVal[2]
-	FYYdispmoveOutno = tupVal[3]	
+	FXXdispmoveOutno, MXYdispmoveOutno, MYYdispmoveOutno, FYYdispmoveOutno = [val for val in process_disp(dispmoveOutno, icdtime, sexchromo, cdclimgentime)]
+
 	# A, B, C next ---------------------------------------
-	if isinstance(dispmoveOutparA, (list,tuple)):
-		tupVal = sexsplit(dispmoveOutparA[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveOutparA,sexchromo) # single string
-	FXXdispmoveOutparA = tupVal[0]
-	MXYdispmoveOutparA = tupVal[1]
-	MYYdispmoveOutparA = tupVal[2]
-	FYYdispmoveOutparA = tupVal[3]
-	if isinstance(dispmoveOutparB, (list,tuple)):
-		tupVal = sexsplit(dispmoveOutparB[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveOutparB,sexchromo) # single string
-	FXXdispmoveOutparB = tupVal[0]
-	MXYdispmoveOutparB = tupVal[1]
-	MYYdispmoveOutparB = tupVal[2]
-	FYYdispmoveOutparB = tupVal[3]
-	if isinstance(dispmoveOutparC, (list,tuple)):
-		tupVal = sexsplit(dispmoveOutparC[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveOutparC,sexchromo) # single string
-	FXXdispmoveOutparC = tupVal[0]
-	MXYdispmoveOutparC = tupVal[1]
-	MYYdispmoveOutparC = tupVal[2]
-	FYYdispmoveOutparC = tupVal[3]
+	FXXdispmoveOutparA, MXYdispmoveOutparA, MYYdispmoveOutparA, FYYdispmoveOutparA = [val for val in process_disp(dispmoveOutparA, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveOutparB, MXYdispmoveOutparB, MYYdispmoveOutparB, FYYdispmoveOutparB = [val for val in process_disp(dispmoveOutparB, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveOutparC, MXYdispmoveOutparC, MYYdispmoveOutparC, FYYdispmoveOutparC = [val for val in process_disp(dispmoveOutparC, icdtime, sexchromo, cdclimgentime)]
+
 	# Threshold -------------------------------------------
-	if isinstance(dispmoveOutthresh, (list,tuple)):
-		tupVal = sexsplit(dispmoveOutthresh[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveOutthresh,sexchromo) # single string
-	FXXdispmoveOutthreshpass = tupVal[0]
-	MXYdispmoveOutthreshpass = tupVal[1]
-	MYYdispmoveOutthreshpass = tupVal[2]
-	FYYdispmoveOutthreshpass = tupVal[3]	
-	# --------------------------------------
-	# Read in cdmatrix.csv - Dispersal Out
-	# --------------------------------------
+	FXXdispmoveOutthreshpass, MXYdispmoveOutthreshpass, MYYdispmoveOutthreshpass, FYYdispmoveOutthreshpass = [val for val in process_disp(dispmoveOutthresh, icdtime, sexchromo, cdclimgentime)]
+	
+	# CDMatrix vars-----------------------------------------
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
 		# For FXX
-		tupReadMat = ReadCDMatrix(FXXdispOutcdmatfile,FXXdispmoveOutno,FXXdispmoveOutthreshpass,float(FXXdispmoveOutparA),float(FXXdispmoveOutparB),float(FXXdispmoveOutparC))
-		FXXdispOutcdmatrix = np.asarray(tupReadMat[0])
-		FXXdispOutthresh = tupReadMat[1]
-		FXXdispOut_ScaleMin = tupReadMat[2]
-		FXXdispOut_ScaleMax = tupReadMat[3]
+		FXXdispOutcdmatrix,FXXdispOutthresh,FXXdispOut_ScaleMin,FXXdispOut_ScaleMax = ReadCDMatrix(FXXdispOutcdmatfile,FXXdispmoveOutno,FXXdispmoveOutthreshpass,float(FXXdispmoveOutparA),float(FXXdispmoveOutparB),float(FXXdispmoveOutparC))
+		FXXdispOutcdmatrix = np.asarray(FXXdispOutcdmatrix)
 		# For MXY
-		tupReadMat = ReadCDMatrix(MXYdispOutcdmatfile,MXYdispmoveOutno,MXYdispmoveOutthreshpass,float(MXYdispmoveOutparA),float(MXYdispmoveOutparB),float(MXYdispmoveOutparC))
-		MXYdispOutcdmatrix = np.asarray(tupReadMat[0])
-		MXYdispOutthresh = tupReadMat[1]
-		MXYdispOut_ScaleMin = tupReadMat[2]
-		MXYdispOut_ScaleMax = tupReadMat[3]	
+		MXYdispOutcdmatrix,MXYdispOutthresh,MXYdispOut_ScaleMin,MXYdispOut_ScaleMax = ReadCDMatrix(MXYdispOutcdmatfile,MXYdispmoveOutno,MXYdispmoveOutthreshpass,float(MXYdispmoveOutparA),float(MXYdispmoveOutparB),float(MXYdispmoveOutparC))
+		MXYdispOutcdmatrix = np.asarray(MXYdispOutcdmatrix)
 		# For MYY
-		MYYdispOutcdmatrix = 'N'
-		MYYdispOutthresh = 'N'
-		MYYdispOut_ScaleMin = 'N'
-		MYYdispOut_ScaleMax = 'N'
+		MYYdispOutcdmatrix,MYYdispOutthresh,MYYdispOut_ScaleMin,MYYdispOut_ScaleMax = 'N','N','N','N'
 		# For FYY		
-		FYYdispOutcdmatrix = 'N'
-		FYYdispOutthresh = 'N'
-		FYYdispOut_ScaleMin = 'N'
-		FYYdispOut_ScaleMax = 'N'
+		FYYdispOutcdmatrix,FYYdispOutthresh,FYYdispOut_ScaleMin,FYYdispOut_ScaleMax = 'N','N','N','N'
 	if sexchromo == 3 or sexchromo == 4:
 		# For MYY
-		tupReadMat = ReadCDMatrix(MYYdispOutcdmatfile,MYYdispmoveOutno,MYYdispmoveOutthreshpass,float(MYYdispmoveOutparA),float(MYYdispmoveOutparB),float(MYYdispmoveOutparC))
-		MYYdispOutcdmatrix = np.asarray(tupReadMat[0])
-		MYYdispOutthresh = tupReadMat[1]
-		MYYdispOut_ScaleMin = tupReadMat[2]
-		MYYdispOut_ScaleMax = tupReadMat[3]	
+		MYYdispOutcdmatrix,MYYdispOutthresh,MYYdispOut_ScaleMin,MYYdispOut_ScaleMax = ReadCDMatrix(MYYdispOutcdmatfile,MYYdispmoveOutno,MYYdispmoveOutthreshpass,float(MYYdispmoveOutparA),float(MYYdispmoveOutparB),float(MYYdispmoveOutparC))
+		MYYdispOutcdmatrix = np.asarray(MYYdispOutcdmatrix)	
 	if sexchromo == 4:
 		# For FYY
-		tupReadMat = ReadCDMatrix(FYYdispOutcdmatfile,FYYdispmoveOutno,FYYdispmoveOutthreshpass,float(FYYdispmoveOutparA),float(FYYdispmoveOutparB),float(FYYdispmoveOutparC))
-		FYYdispOutcdmatrix = np.asarray(tupReadMat[0])
-		FYYdispOutthresh = tupReadMat[1]
-		FYYdispOut_ScaleMin = tupReadMat[2]
-		FYYdispOut_ScaleMax = tupReadMat[3]	
+		FYYdispOutcdmatrix,FYYdispOutthresh,FYYdispOut_ScaleMin,FYYdispOut_ScaleMax = ReadCDMatrix(FYYdispOutcdmatfile,FYYdispmoveOutno,FYYdispmoveOutthreshpass,float(FYYdispmoveOutparA),float(FYYdispmoveOutparB),float(FYYdispmoveOutparC))
+		FYYdispOutcdmatrix = np.asarray(FYYdispOutcdmatrix)	
 	
-	# -------------------------------------------------
-	# Dispersal back ----------------------------------
-	if isinstance(dispBackcdmatfile, (list,tuple)): # tuple and cdclimate call
-		tupVal = sexsplit(dispBackcdmatfile[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispBackcdmatfile,sexchromo) # single string
-	FXXdispBackcdmatfile = datadir+tupVal[0]
-	MXYdispBackcdmatfile = datadir+tupVal[1]
-	MYYdispBackcdmatfile = datadir+tupVal[2]
-	FYYdispBackcdmatfile = datadir+tupVal[3]	
+	# -----------------------------------------------
+	# Dispersal Back parameters and cdmatrix
+	# -----------------------------------------------
+	# Apply the helper function for each dispersal back parameter
+	FXXdispBackcdmatfile, MXYdispBackcdmatfile, MYYdispBackcdmatfile, FYYdispBackcdmatfile = [datadir + val for val in process_disp(dispBackcdmatfile, icdtime, sexchromo, cdclimgentime)]
+
 	# Function numbers next ----------------
-	if isinstance(dispmoveBackno, (list,tuple)):
-		tupVal = sexsplit(dispmoveBackno[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveBackno,sexchromo) # single string
-	FXXdispmoveBackno = tupVal[0]
-	MXYdispmoveBackno = tupVal[1]
-	MYYdispmoveBackno = tupVal[2]
-	FYYdispmoveBackno = tupVal[3]
+	FXXdispmoveBackno, MXYdispmoveBackno, MYYdispmoveBackno, FYYdispmoveBackno = [val for val in process_disp(dispmoveBackno, icdtime, sexchromo, cdclimgentime)]
+
 	# A, B, C next ---------------------------------------
-	if isinstance(dispmoveBackparA, (list,tuple)):
-		tupVal = sexsplit(dispmoveBackparA[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveBackparA,sexchromo) # single string
-	FXXdispmoveBackparA = tupVal[0]
-	MXYdispmoveBackparA = tupVal[1]
-	MYYdispmoveBackparA = tupVal[2]
-	FYYdispmoveBackparA = tupVal[3]
-	if isinstance(dispmoveBackparB, (list,tuple)):
-		tupVal = sexsplit(dispmoveBackparB[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveBackparB,sexchromo) # single string
-	FXXdispmoveBackparB = tupVal[0]
-	MXYdispmoveBackparB = tupVal[1]
-	MYYdispmoveBackparB = tupVal[2]
-	FYYdispmoveBackparB = tupVal[3]
-	if isinstance(dispmoveBackparC, (list,tuple)):
-		tupVal = sexsplit(dispmoveBackparC[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveBackparC,sexchromo) # single string
-	FXXdispmoveBackparC = tupVal[0]
-	MXYdispmoveBackparC = tupVal[1]
-	MYYdispmoveBackparC = tupVal[2]
-	FYYdispmoveBackparC = tupVal[3]
+	FXXdispmoveBackparA, MXYdispmoveBackparA, MYYdispmoveBackparA, FYYdispmoveBackparA = [val for val in process_disp(dispmoveBackparA, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveBackparB, MXYdispmoveBackparB, MYYdispmoveBackparB, FYYdispmoveBackparB = [val for val in process_disp(dispmoveBackparB, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveBackparC, MXYdispmoveBackparC, MYYdispmoveBackparC, FYYdispmoveBackparC = [val for val in process_disp(dispmoveBackparC, icdtime, sexchromo, cdclimgentime)]
+
 	# Threshold -------------------------------------------
-	if isinstance(dispmoveBackthresh, (list,tuple)):
-		tupVal = sexsplit(dispmoveBackthresh[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispmoveBackthresh,sexchromo) # single string
-	FXXdispmoveBackthreshpass = tupVal[0]
-	MXYdispmoveBackthreshpass = tupVal[1]
-	MYYdispmoveBackthreshpass = tupVal[2]
-	FYYdispmoveBackthreshpass = tupVal[3]
-	# --------------------------------------
-	# Read in cdmatrix.csv - Dispersal Back
-	# --------------------------------------
+	FXXdispmoveBackthreshpass, MXYdispmoveBackthreshpass, MYYdispmoveBackthreshpass, FYYdispmoveBackthreshpass = [val for val in process_disp(dispmoveBackthresh, icdtime, sexchromo, cdclimgentime)]
+
+	# CDmatrix and Vars-------------------------------------
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
 		# For FXX
-		tupReadMat = ReadCDMatrix(FXXdispBackcdmatfile,FXXdispmoveBackno,FXXdispmoveBackthreshpass,float(FXXdispmoveBackparA),float(FXXdispmoveBackparB),float(FXXdispmoveBackparC))
-		FXXdispBackcdmatrix = np.asarray(tupReadMat[0])
-		FXXdispBackthresh = tupReadMat[1]
-		FXXdispBack_ScaleMin = tupReadMat[2]
-		FXXdispBack_ScaleMax = tupReadMat[3]
+		FXXdispBackcdmatrix,FXXdispBackthresh,FXXdispBack_ScaleMin,FXXdispBack_ScaleMax = ReadCDMatrix(FXXdispBackcdmatfile,FXXdispmoveBackno,FXXdispmoveBackthreshpass,float(FXXdispmoveBackparA),float(FXXdispmoveBackparB),float(FXXdispmoveBackparC))
+		FXXdispBackcdmatrix = np.asarray(FXXdispBackcdmatrix)
 		# For MXY
-		tupReadMat = ReadCDMatrix(MXYdispBackcdmatfile,MXYdispmoveBackno,MXYdispmoveBackthreshpass,float(MXYdispmoveBackparA),float(MXYdispmoveBackparB),float(MXYdispmoveBackparC))
-		MXYdispBackcdmatrix = np.asarray(tupReadMat[0])
-		MXYdispBackthresh = tupReadMat[1]
-		MXYdispBack_ScaleMin = tupReadMat[2]
-		MXYdispBack_ScaleMax = tupReadMat[3]	
+		MXYdispBackcdmatrix,MXYdispBackthresh,MXYdispBack_ScaleMin,MXYdispBack_ScaleMax = ReadCDMatrix(MXYdispBackcdmatfile,MXYdispmoveBackno,MXYdispmoveBackthreshpass,float(MXYdispmoveBackparA),float(MXYdispmoveBackparB),float(MXYdispmoveBackparC))
+		MXYdispBackcdmatrix = np.asarray(MXYdispBackcdmatrix)
 		# For MYY
-		MYYdispBackcdmatrix = 'N'
-		MYYdispBackthresh = 'N'
-		MYYdispBack_ScaleMin = 'N'
-		MYYdispBack_ScaleMax = 'N'
+		MYYdispBackcdmatrix,MYYdispBackthresh,MYYdispBack_ScaleMin,MYYdispBack_ScaleMax = 'N','N','N','N'
 		# For FYY
-		FYYdispBackcdmatrix = 'N'
-		FYYdispBackthresh = 'N'
-		FYYdispBack_ScaleMin = 'N'
-		FYYdispBack_ScaleMax = 'N'
+		FYYdispBackcdmatrix,FYYdispBackthresh,FYYdispBack_ScaleMin,FYYdispBack_ScaleMax = 'N','N','N','N'
 	if sexchromo == 3 or sexchromo == 4:
 		# For MYY
-		tupReadMat = ReadCDMatrix(MYYdispBackcdmatfile,MYYdispmoveBackno,MYYdispmoveBackthreshpass,float(MYYdispmoveBackparA),float(MYYdispmoveBackparB),float(MYYdispmoveBackparC))
-		MYYdispBackcdmatrix = np.asarray(tupReadMat[0])
-		MYYdispBackthresh = tupReadMat[1]
-		MYYdispBack_ScaleMin = tupReadMat[2]
-		MYYdispBack_ScaleMax = tupReadMat[3]	
+		MYYdispBackcdmatrix,MYYdispBackthresh,MYYdispBack_ScaleMin,MYYdispBack_ScaleMax = ReadCDMatrix(MYYdispBackcdmatfile,MYYdispmoveBackno,MYYdispmoveBackthreshpass,float(MYYdispmoveBackparA),float(MYYdispmoveBackparB),float(MYYdispmoveBackparC))
+		MYYdispBackcdmatrix = np.asarray(MYYdispBackcdmatrix)
 	if sexchromo == 4:
 		# For FYY
-		tupReadMat = ReadCDMatrix(FYYdispBackcdmatfile,FYYdispmoveBackno,FYYdispmoveBackthreshpass,float(FYYdispmoveBackparA),float(FYYdispmoveBackparB),float(FYYdispmoveBackparC))
-		FYYdispBackcdmatrix = np.asarray(tupReadMat[0])
-		FYYdispBackthresh = tupReadMat[1]
-		FYYdispBack_ScaleMin = tupReadMat[2]
-		FYYdispBack_ScaleMax = tupReadMat[3]	
+		FYYdispBackcdmatrix,FYYdispBackthresh,FYYdispBack_ScaleMin,FYYdispBack_ScaleMax = ReadCDMatrix(FYYdispBackcdmatfile,FYYdispmoveBackno,FYYdispmoveBackthreshpass,float(FYYdispmoveBackparA),float(FYYdispmoveBackparB),float(FYYdispmoveBackparC))
+		FYYdispBackcdmatrix = np.asarray(FYYdispBackcdmatrix)	
 	
-	# -------------------------------------------
-	# Straying ----------------------------------
-	if isinstance(straycdmatfile, (list,tuple)): # tuple and cdclimate call
-		tupVal = sexsplit(straycdmatfile[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(straycdmatfile,sexchromo) # single string
-	FXXStrcdmatfile = datadir+tupVal[0]
-	MXYStrcdmatfile = datadir+tupVal[1]
-	MYYStrcdmatfile = datadir+tupVal[2]
-	FYYStrcdmatfile = datadir+tupVal[3]		
+	# -----------------------------------------------
+	# Straying parameters and cdmatrix
+	# -----------------------------------------------
+	# Apply the helper function for each straying parameter
+	FXXStrcdmatfile, MXYStrcdmatfile, MYYStrcdmatfile, FYYStrcdmatfile = [datadir + val for val in process_disp(straycdmatfile, icdtime, sexchromo, cdclimgentime)]
+
 	# Function numbers next ----------------
-	if isinstance(StrBackno, (list,tuple)):
-		tupVal = sexsplit(StrBackno[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(StrBackno,sexchromo) # single string
-	FXXStrno = tupVal[0]
-	MXYStrno = tupVal[1]
-	MYYStrno = tupVal[2]
-	FYYStrno = tupVal[3]
+	FXXStrno, MXYStrno, MYYStrno, FYYStrno = [val for val in process_disp(StrBackno, icdtime, sexchromo, cdclimgentime)]
+
 	# A, B, C next ---------------------------------------
-	if isinstance(StrBackparA, (list,tuple)):
-		tupVal = sexsplit(StrBackparA[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(StrBackparA,sexchromo) # single string
-	FXXStrparA = tupVal[0]
-	MXYStrparA = tupVal[1]
-	MYYStrparA = tupVal[2]
-	FYYStrparA = tupVal[3]
-	if isinstance(StrBackparB, (list,tuple)):
-		tupVal = sexsplit(StrBackparB[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(StrBackparB,sexchromo) # single string
-	FXXStrparB = tupVal[0]
-	MXYStrparB = tupVal[1]
-	MYYStrparB = tupVal[2]
-	FYYStrparB = tupVal[3]
-	if isinstance(StrBackparC, (list,tuple)):
-		tupVal = sexsplit(StrBackparC[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(StrBackparC,sexchromo) # single string
-	FXXStrparC = tupVal[0]
-	MXYStrparC = tupVal[1]
-	MYYStrparC = tupVal[2]
-	FYYStrparC = tupVal[3]
+	FXXStrparA, MXYStrparA, MYYStrparA, FYYStrparA = [val for val in process_disp(StrBackparA, icdtime, sexchromo, cdclimgentime)]
+	FXXStrparB, MXYStrparB, MYYStrparB, FYYStrparB = [val for val in process_disp(StrBackparB, icdtime, sexchromo, cdclimgentime)]
+	FXXStrparC, MXYStrparC, MYYStrparC, FYYStrparC = [val for val in process_disp(StrBackparC, icdtime, sexchromo, cdclimgentime)]
+
 	# Threshold -------------------------------------------
-	if isinstance(StrBackthresh, (list,tuple)):
-		tupVal = sexsplit(StrBackthresh[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(StrBackthresh,sexchromo) # single string
-	FXXStrthreshpass = tupVal[0]
-	MXYStrthreshpass = tupVal[1]
-	MYYStrthreshpass = tupVal[2]
-	FYYStrthreshpass = tupVal[3]	
-	# --------------------------------------
-	# Read in cdmatrix.csv - Straying
-	# --------------------------------------
+	FXXStrthreshpass, MXYStrthreshpass, MYYStrthreshpass, FYYStrthreshpass = [val for val in process_disp(StrBackthresh, icdtime, sexchromo, cdclimgentime)]
+	
+	# CDmatrix and Vars--------------------------------------
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
 		# For FXX
-		tupReadMat = ReadCDMatrix(FXXStrcdmatfile,FXXStrno,FXXStrthreshpass,float(FXXStrparA),float(FXXStrparB),float(FXXStrparC))
-		FXXStrcdmatrix = np.asarray(tupReadMat[0])
-		FXXStrthresh = tupReadMat[1]
-		FXXStr_ScaleMin = tupReadMat[2]
-		FXXStr_ScaleMax = tupReadMat[3]
+		FXXStrcdmatrix,FXXStrthresh,FXXStr_ScaleMin,FXXStr_ScaleMax = ReadCDMatrix(FXXStrcdmatfile,FXXStrno,FXXStrthreshpass,float(FXXStrparA),float(FXXStrparB),float(FXXStrparC))
+		FXXStrcdmatrix = np.asarray(FXXStrcdmatrix)
 		# For MXY
-		tupReadMat = ReadCDMatrix(MXYStrcdmatfile,MXYStrno,MXYStrthreshpass,float(MXYStrparA),float(MXYStrparB),float(MXYStrparC))
-		MXYStrcdmatrix = np.asarray(tupReadMat[0])
-		MXYStrthresh = tupReadMat[1]
-		MXYStr_ScaleMin = tupReadMat[2]
-		MXYStr_ScaleMax = tupReadMat[3]	
+		MXYStrcdmatrix,MXYStrthresh,MXYStr_ScaleMin,MXYStr_ScaleMax = ReadCDMatrix(MXYStrcdmatfile,MXYStrno,MXYStrthreshpass,float(MXYStrparA),float(MXYStrparB),float(MXYStrparC))
+		MXYStrcdmatrix = np.asarray(MXYStrcdmatrix)
 		# For MYY
-		MYYStrcdmatrix = 'N'
-		MYYStrthresh = 'N'
-		MYYStr_ScaleMin = 'N'
-		MYYStr_ScaleMax = 'N'
+		MYYStrcdmatrix,MYYStrthresh,MYYStr_ScaleMin,MYYStr_ScaleMax = 'N','N','N','N'
 		# For FYY
-		FYYStrcdmatrix = 'N'
-		FYYStrthresh = 'N'
-		FYYStr_ScaleMin = 'N'
-		FYYStr_ScaleMax = 'N'
+		FYYStrcdmatrix,FYYStrthresh,FYYStr_ScaleMin,FYYStr_ScaleMax = 'N','N','N','N'
 	if sexchromo == 3 or sexchromo == 4:
 		# For MYY
-		tupReadMat = ReadCDMatrix(MYYStrcdmatfile,MYYStrno,MYYStrthreshpass,float(MYYStrparA),float(MYYStrparB),float(MYYStrparC))
-		MYYStrcdmatrix = np.asarray(tupReadMat[0])
-		MYYStrthresh = tupReadMat[1]
-		MYYStr_ScaleMin = tupReadMat[2]
-		MYYStr_ScaleMax = tupReadMat[3]	
+		MYYStrcdmatrix,MYYStrthresh,MYYStr_ScaleMin,MYYStr_ScaleMax = ReadCDMatrix(MYYStrcdmatfile,MYYStrno,MYYStrthreshpass,float(MYYStrparA),float(MYYStrparB),float(MYYStrparC))
+		MYYStrcdmatrix = np.asarray(MYYStrcdmatrix)	
 	if sexchromo == 4:
 		# For FYY
-		tupReadMat = ReadCDMatrix(FYYStrcdmatfile,FYYStrno,FYYStrthreshpass,float(FYYStrparA),float(FYYStrparB),float(FYYStrparC))
-		FYYStrcdmatrix = np.asarray(tupReadMat[0])
-		FYYStrthresh = tupReadMat[1]
-		FYYStr_ScaleMin = tupReadMat[2]
-		FYYStr_ScaleMax = tupReadMat[3]	
+		FYYStrcdmatrix,FYYStrthresh,FYYStr_ScaleMin,FYYStr_ScaleMax = ReadCDMatrix(FYYStrcdmatfile,FYYStrno,FYYStrthreshpass,float(FYYStrparA),float(FYYStrparB),float(FYYStrparC))
+		FYYStrcdmatrix = np.asarray(FYYStrcdmatrix)	
 	
-	#---------------------------------------------------	
-	# Local Dispersal ----------------------------------
-	if isinstance(dispLocalcdmatfile, (list,tuple)): # tuple and cdclimate call
-		tupVal = sexsplit(dispLocalcdmatfile[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispLocalcdmatfile,sexchromo) # single string
-	FXXdispLocalcdmatfile = datadir+tupVal[0]
-	MXYdispLocalcdmatfile = datadir+tupVal[1]
-	MYYdispLocalcdmatfile = datadir+tupVal[2]
-	FYYdispLocalcdmatfile = datadir+tupVal[3]	
+	# -----------------------------------------------
+	# Local Dispersal parameters and cdmatrix
+	# -----------------------------------------------
+	# Apply the helper function for each local dispersal parameter
+	FXXdispLocalcdmatfile, MXYdispLocalcdmatfile, MYYdispLocalcdmatfile, FYYdispLocalcdmatfile = [datadir + val for val in process_disp(dispLocalcdmatfile, icdtime, sexchromo, cdclimgentime)]
+
 	# Function numbers next ----------------
-	if isinstance(dispLocalno, (list,tuple)):
-		tupVal = sexsplit(dispLocalno[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispLocalno,sexchromo) # single string
-	FXXdispLocalno = tupVal[0]
-	MXYdispLocalno = tupVal[1]
-	MYYdispLocalno = tupVal[2]
-	FYYdispLocalno = tupVal[3]
+	FXXdispLocalno, MXYdispLocalno, MYYdispLocalno, FYYdispLocalno = [val for val in process_disp(dispLocalno, icdtime, sexchromo, cdclimgentime)]
+
 	# A, B, C next ---------------------------------------
-	if isinstance(dispLocalparA, (list,tuple)):
-		tupVal = sexsplit(dispLocalparA[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispLocalparA,sexchromo) # single string
-	FXXdispLocalparA = tupVal[0]
-	MXYdispLocalparA = tupVal[1]
-	MYYdispLocalparA = tupVal[2]
-	FYYdispLocalparA = tupVal[3]
-	if isinstance(dispLocalparB, (list,tuple)):
-		tupVal = sexsplit(dispLocalparB[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispLocalparB,sexchromo) # single string
-	FXXdispLocalparB = tupVal[0]
-	MXYdispLocalparB = tupVal[1]
-	MYYdispLocalparB = tupVal[2]
-	FYYdispLocalparB = tupVal[3]
-	if isinstance(dispLocalparC, (list,tuple)):
-		tupVal = sexsplit(dispLocalparC[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispLocalparC,sexchromo) # single string
-	FXXdispLocalparC = tupVal[0]
-	MXYdispLocalparC = tupVal[1]
-	MYYdispLocalparC = tupVal[2]
-	FYYdispLocalparC = tupVal[3]
+	FXXdispLocalparA, MXYdispLocalparA, MYYdispLocalparA, FYYdispLocalparA = [val for val in process_disp(dispLocalparA, icdtime, sexchromo, cdclimgentime)]
+	FXXdispLocalparB, MXYdispLocalparB, MYYdispLocalparB, FYYdispLocalparB = [val for val in process_disp(dispLocalparB, icdtime, sexchromo, cdclimgentime)]
+	FXXdispLocalparC, MXYdispLocalparC, MYYdispLocalparC, FYYdispLocalparC = [val for val in process_disp(dispLocalparC, icdtime, sexchromo, cdclimgentime)]
+
 	# Threshold -------------------------------------------
-	if isinstance(dispLocalthresh, (list,tuple)):
-		tupVal = sexsplit(dispLocalthresh[icdtime],sexchromo)
-	else:
-		tupVal = sexsplit(dispLocalthresh,sexchromo) # single string
-	FXXdispLocalthreshpass = tupVal[0]
-	MXYdispLocalthreshpass = tupVal[1]
-	MYYdispLocalthreshpass = tupVal[2]
-	FYYdispLocalthreshpass = tupVal[3]
-	# --------------------------------------
-	# Read in cdmatrix.csv - Local Dispersal
-	# --------------------------------------
+	FXXdispLocalthreshpass, MXYdispLocalthreshpass, MYYdispLocalthreshpass, FYYdispLocalthreshpass = [val for val in process_disp(dispLocalthresh, icdtime, sexchromo, cdclimgentime)]
+
+	# CDMatrix and Vars--------------------------------------
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
 		# For FXX
-		tupReadMat = ReadCDMatrix(FXXdispLocalcdmatfile,FXXdispLocalno,FXXdispLocalthreshpass,float(FXXdispLocalparA),float(FXXdispLocalparB),float(FXXdispLocalparC))
-		FXXdispLocalcdmatrix = np.asarray(tupReadMat[0])
-		FXXdispLocalthresh = tupReadMat[1]
-		FXXdispLocal_ScaleMin = tupReadMat[2]
-		FXXdispLocal_ScaleMax = tupReadMat[3]
+		FXXdispLocalcdmatrix,FXXdispLocalthresh,FXXdispLocal_ScaleMin,FXXdispLocal_ScaleMax = ReadCDMatrix(FXXdispLocalcdmatfile,FXXdispLocalno,FXXdispLocalthreshpass,float(FXXdispLocalparA),float(FXXdispLocalparB),float(FXXdispLocalparC))
+		FXXdispLocalcdmatrix = np.asarray(FXXdispLocalcdmatrix)
 		# For MXY
-		tupReadMat = ReadCDMatrix(MXYdispLocalcdmatfile,MXYdispLocalno,MXYdispLocalthreshpass,float(MXYdispLocalparA),float(MXYdispLocalparB),float(MXYdispLocalparC))
-		MXYdispLocalcdmatrix = np.asarray(tupReadMat[0])
-		MXYdispLocalthresh = tupReadMat[1]
-		MXYdispLocal_ScaleMin = tupReadMat[2]
-		MXYdispLocal_ScaleMax = tupReadMat[3]	
+		MXYdispLocalcdmatrix,MXYdispLocalthresh,MXYdispLocal_ScaleMin,MXYdispLocal_ScaleMax = ReadCDMatrix(MXYdispLocalcdmatfile,MXYdispLocalno,MXYdispLocalthreshpass,float(MXYdispLocalparA),float(MXYdispLocalparB),float(MXYdispLocalparC))
+		MXYdispLocalcdmatrix = np.asarray(MXYdispLocalcdmatrix)
 		# For MYY
-		MYYdispLocalcdmatrix = 'N'
-		MYYdispLocalthresh = 'N'
-		MYYdispLocal_ScaleMin = 'N'
-		MYYdispLocal_ScaleMax = 'N'
+		MYYdispLocalcdmatrix,MYYdispLocalthresh,MYYdispLocal_ScaleMin,MYYdispLocal_ScaleMax = 'N','N','N','N'
 		# For FYY
-		FYYdispLocalcdmatrix = 'N'
-		FYYdispLocalthresh = 'N'
-		FYYdispLocal_ScaleMin = 'N'
-		FYYdispLocal_ScaleMax = 'N'
+		FYYdispLocalcdmatrix,FYYdispLocalthresh,FYYdispLocal_ScaleMin,FYYdispLocal_ScaleMax = 'N','N','N','N'
 	if sexchromo == 3 or sexchromo == 4:
 		# For MYY
-		tupReadMat = ReadCDMatrix(MYYdispLocalcdmatfile,MYYdispLocalno,MYYdispLocalthreshpass,float(MYYdispLocalparA),float(MYYdispLocalparB),float(MYYdispLocalparC))
-		MYYdispLocalcdmatrix = np.asarray(tupReadMat[0])
-		MYYdispLocalthresh = tupReadMat[1]
-		MYYdispLocal_ScaleMin = tupReadMat[2]
-		MYYdispLocal_ScaleMax = tupReadMat[3]	
+		MYYdispLocalcdmatrix,MYYdispLocalthresh,MYYdispLocal_ScaleMin,MYYdispLocal_ScaleMax = ReadCDMatrix(MYYdispLocalcdmatfile,MYYdispLocalno,MYYdispLocalthreshpass,float(MYYdispLocalparA),float(MYYdispLocalparB),float(MYYdispLocalparC))
+		MYYdispLocalcdmatrix = np.asarray(MYYdispLocalcdmatrix)
 	if sexchromo == 4:
 		# For FYY
-		tupReadMat = ReadCDMatrix(FYYdispLocalcdmatfile,FYYdispLocalno,FYYdispLocalthreshpass,float(FYYdispLocalparA),float(FYYdispLocalparB),float(FYYdispLocalparC))
-		FYYdispLocalcdmatrix = np.asarray(tupReadMat[0])
-		FYYdispLocalthresh = tupReadMat[1]
-		FYYdispLocal_ScaleMin = tupReadMat[2]
-		FYYdispLocal_ScaleMax = tupReadMat[3]	
+		FYYdispLocalcdmatrix,FYYdispLocalthresh,FYYdispLocal_ScaleMin,FYYdispLocal_ScaleMax = ReadCDMatrix(FYYdispLocalcdmatfile,FYYdispLocalno,FYYdispLocalthreshpass,float(FYYdispLocalparA),float(FYYdispLocalparB),float(FYYdispLocalparC))
+		FYYdispLocalcdmatrix = np.asarray(FYYdispLocalcdmatrix)
 	
 	#----------------------------------------------------------
 	# Continue PopVars variable
 	# ---------------------------------------------------------
+	# ---------------------------------------------------------------------------
 	# Assortative mating model pars ---------------------------
-	if isinstance(assortmateModel_pass, (list,tuple)):
-		assortmateModel = str(assortmateModel_pass[icdtime])
-	else:
-		assortmateModel = str(assortmateModel_pass)
-	if isinstance(assortmateC_pass, (list,tuple)):
-		assortmateC = float(assortmateC_pass[icdtime])
-	else:
-		assortmateC = float(assortmateC_pass)		
+	assortmateModel = str(split_or_get(assortmateModel_pass, icdtime, cdclimgentime))
+	assortmateC = float(split_or_get(assortmateC_pass, icdtime, cdclimgentime))
 	
 	# Subpopmort percent matrix file, check and read in 
-	if isinstance(subpopmort_pass,(list,tuple)):
-		if subpopmort_pass[icdtime] != 'N':
-			subpopmort_mat = ReadXY(datadir + subpopmort_pass[icdtime])
-			subpopmort_mat = np.asarray(np.asarray(subpopmort_mat)[1:,1:],dtype='float')
-			if (len(np.unique(PopTag)) != len(subpopmort_mat[0])):
-				print('Subpatch id total does not equal the number of subpopulation mortality percentages given. Also make sure Subpatch id is consecutive.')
-				sys.exit(-1)
-		else:
-			subpopmort_mat = subpopmort_pass[icdtime]
+	subpopmort_file = split_or_get(subpopmort_pass, icdtime, cdclimgentime)
+	if subpopmort_file != 'N':
+		subpopmort_mat = np.asarray(np.asarray(ReadXY(datadir + subpopmort_file))[1:, 1:], dtype='float')
+		if len(np.unique(PopTag)) != len(subpopmort_mat[0]):
+			print('Subpatch id total does not equal the number of subpopulation mortality percentages given. Also make sure Subpatch id is consecutive.')
+			sys.exit(-1)
 	else:
-		if subpopmort_pass != 'N':
-			subpopmort_mat = ReadXY(datadir + subpopmort_pass)
-			subpopmort_mat = np.asarray(np.asarray(subpopmort_mat)[1:,1:],dtype='float')
-			if (len(np.unique(PopTag)) != len(subpopmort_mat[0])):
-				print('Subpatch id total does not equal the number of subpopulation mortality percentages given. Also make sure Subpatch id is consecutive.')
-				sys.exit(-1)
-		else:
-			subpopmort_mat = subpopmort_pass
-			
+		subpopmort_mat = subpopmort_file
+	
 	# Plastic Temp/Hab values - plastic_signalres_pass,plastic_behaviorres_pass
 	if plasticans != 'N':
-		if isinstance(plastic_signalresp_pass, (list,tuple)):
-			plastic_signalresp = float(plastic_signalresp_pass[icdtime])
-		else:
-			plastic_signalresp = float(plastic_signalresp_pass)
-		if isinstance(plastic_behaviorresp_pass, (list,tuple)):
-			plastic_behaviorresp = float(plastic_behaviorresp_pass[icdtime])
-		else:
-			plastic_behaviorresp = float(plastic_behaviorresp_pass)
+		plastic_signalresp = float(split_or_get(plastic_signalresp_pass, icdtime, cdclimgentime))
+		plastic_behaviorresp = float(split_or_get(plastic_behaviorresp_pass, icdtime, cdclimgentime))
 	else:
 		plastic_signalresp = plastic_signalresp_pass
-		plastic_behaviorresp  = plastic_behaviorresp_pass
-			
+		plastic_behaviorresp = plastic_behaviorresp_pass
+
 	# Mutation Rate
-	if isinstance(muterate_pass, (list,tuple)):
-		muterate = float(muterate_pass[icdtime])
-	else:
-		muterate = float(muterate_pass)	
-			
+	muterate = float(split_or_get(muterate_pass, icdtime, cdclimgentime))
+				
 	# ---------------------------------------------
-	# Read in Beta File for Multiple loci selection
+	# Read in Beta File for Multiple Loci Selection
 	# ---------------------------------------------
-	if isinstance(betaFile_selection,(list,tuple)):
-		tempbetaFile_selection = datadir+betaFile_selection[icdtime]
-	else:
-		tempbetaFile_selection = datadir+betaFile_selection
-	tempbetas_selection = []	
-	if cdevolveans.split('_')[0] == 'P':
+	tempbetaFile_selection = datadir + split_or_get(betaFile_selection, icdtime, cdclimgentime)
+	tempbetas_selection = []
+	if cdevolveans.startswith('P'):
 		# Read in Beta File
 		betavals = ReadXY(tempbetaFile_selection)
-	
-		# Error check on beta file - should be x number of betas alleles * number of xvars * number of loci under selection
-		if (len(betavals)-1)*(len(betavals[0])-1) != int(cdevolveans.split('_')[3].split('A')[1])*int(cdevolveans.split('_')[1].split('X')[1])*int(cdevolveans.split('_')[2].split('L')[1]):
+		
+		# Validate Beta File dimensions
+		num_alleles = int(cdevolveans.split('_')[3].split('A')[1])
+		num_vars = int(cdevolveans.split('_')[1].split('X')[1])
+		num_loci = int(cdevolveans.split('_')[2].split('L')[1])
+		expected_size = num_alleles * num_vars * num_loci
+		
+		if (len(betavals) - 1) * (len(betavals[0]) - 1) != expected_size:
 			print('Beta file for selection is incorrect. Specify the beta for each variableXlociXallele combination.')
 			sys.exit(-1)
-		# Then extract betavals - in order of variable, loci, allele [var][loci][allele]
-		for ixvar in range(int(cdevolveans.split('_')[1].split('X')[1])):
-			tempbetas_selection.append([])
-			for iloci in range(int(cdevolveans.split('_')[2].split('L')[1])):
-				tempbetas_selection[ixvar].append([])
-				for iall in range(int(cdevolveans.split('_')[3].split('A')[1])):
-					tempbetas_selection[ixvar][iloci].append(float(betavals[iall+1][ixvar*(int(cdevolveans.split('_')[2].split('L')[1]))+iloci+1]))
-		# Add beta0 - will be the last spot in betas vars 
-		if len(betavals[0][0]) == 0:
-			tempbetas_selection.append(0.0)
-		else:
-			tempbetas_selection.append(float(betavals[0][0])) 
+		
+		# Extract Beta Values
+		for ixvar in range(num_vars):
+			tempbetas_selection.append([
+				[
+					float(betavals[iall + 1][ixvar * num_loci + iloci + 1]) 
+					for iall in range(num_alleles)
+				] 
+				for iloci in range(num_loci)
+			])
+		
+		# Add Beta0
+		tempbetas_selection.append(0.0 if not betavals[0][0] else float(betavals[0][0]))
 	
 	# ----------------------
 	# Patch based parameters
-	# ----------------------
-	tempMgBack_patch_prob = []
-	tempDisperse_patch_prob = []
-	tempStr_patch_prob = []
-	tempMgOut_patch_prob = []
-	tempoutsize = []
-	tempbacksize = []
-	tempoutgrow = []
-	tempbackgrow = []
-	tempoutsize_sd = []
-	tempbacksize_sd = []
-	tempoutgrow_sd = []
-	tempbackgrow_sd = []
-	tempfitvals = []
-	tempK = []
-	tempKstd = []
-	temppopmort_back = []
-	temppopmort_out = []
-	tempeggmort = []
-	temppopmort_back_sd = []
-	temppopmort_out_sd = []
-	tempeggmort_sd = []
-	temppopCapOut = []
-	temppopCapBack = []
-	tempN0 = []
-	tempAllelefile = []
-	tempClassVarsfile = []
-	tempcompcoef = []
-	tempxvars_betas = []
-	tempouthabvals = []
-	tempbackhabvals = []
+	# ----------------------	
+	tempMgBack_patch_prob, tempDisperse_patch_prob, tempStr_patch_prob, tempMgOut_patch_prob, tempoutsize, tempbacksize, tempoutgrow, tempbackgrow, tempoutsize_sd, tempbacksize_sd, tempoutgrow_sd, tempbackgrow_sd, tempfitvals, tempK, tempKstd, temppopmort_back, temppopmort_out, tempeggmort, temppopmort_back_sd, temppopmort_out_sd, tempeggmort_sd, temppopCapOut, temppopCapBack, tempN0, tempAllelefile, tempClassVarsfile, tempcompcoef, tempxvars_betas, tempouthabvals, tempbackhabvals, tempdiseaseVarsfile,tempPathLoad,tempdisease_fitvals = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[] , []
+	#pdb.set_trace()
+	# Loop through patches
 	for isub in range(len(K)):
-
 		# For addindividual applications N0 split must have matching classvars and genefile splits
 		if len(allefreqfiles_pass[isub].split('|')) != len(N0_pass[isub].split('|')) != len(classvarsfiles_pass[isub].split('|')):
 			print('N0 split by | for Add Individual applications, must have matching Gene Initialization files and ClassVars files split by | - cdclimate.')
 			sys.exit(-1)
-		if len(MgBack_patch_prob[isub].split('|')) > 1:
-			tempMgBack_patch_prob.append(float(MgBack_patch_prob[isub].split('|')[icdtime]))
-		else:
-			tempMgBack_patch_prob.append(float(MgBack_patch_prob[isub]))
-		if len(Disperse_patch_prob[isub].split('|')) > 1:
-			tempDisperse_patch_prob.append(float(Disperse_patch_prob[isub].split('|')[icdtime]))
-		else:
-			tempDisperse_patch_prob.append(float(Disperse_patch_prob[isub]))	
-		if len(Str_patch_prob[isub].split('|')) > 1:
-			tempStr_patch_prob.append(float(Str_patch_prob[isub].split('|')[icdtime]))
-		else:
-			tempStr_patch_prob.append(float(Str_patch_prob[isub]))
-		if len(MgOut_patch_prob[isub].split('|')) > 1:
-			tempMgOut_patch_prob.append(float(MgOut_patch_prob[isub].split('|')[icdtime]))
-		else:
-			tempMgOut_patch_prob.append(float(MgOut_patch_prob[isub]))
-		if len(outsizevals[isub].split('|')) > 1:
-			tempoutsize.append(outsizevals[isub].split('|')[icdtime])
-		else:
-			tempoutsize.append(outsizevals[isub])
-		if len(backsizevals[isub].split('|')) > 1:
-			tempbacksize.append(backsizevals[isub].split('|')[icdtime])
-		else:
-			tempbacksize.append(backsizevals[isub])		
-		if len(outgrowdays[isub].split('|')) > 1:
-			tempoutgrow.append(outgrowdays[isub].split('|')[icdtime])
-		else:
-			tempoutgrow.append(outgrowdays[isub])
-		if len(backgrowdays[isub].split('|')) > 1:
-			tempbackgrow.append(backgrowdays[isub].split('|')[icdtime])
-		else:
-			tempbackgrow.append(backgrowdays[isub])
+
+		# Using split_or_get function to streamline the code
+		tempMgBack_patch_prob.append(float(split_or_get(MgBack_patch_prob[isub], icdtime, cdclimgentime)))
+		tempDisperse_patch_prob.append(float(split_or_get(Disperse_patch_prob[isub], icdtime, cdclimgentime)))
+		tempStr_patch_prob.append(float(split_or_get(Str_patch_prob[isub], icdtime, cdclimgentime)))
+		tempMgOut_patch_prob.append(float(split_or_get(MgOut_patch_prob[isub], icdtime, cdclimgentime)))
+		tempoutsize.append(split_or_get(outsizevals[isub], icdtime, cdclimgentime))
+		tempbacksize.append(split_or_get(backsizevals[isub], icdtime, cdclimgentime))
+		tempoutgrow.append(split_or_get(outgrowdays[isub], icdtime, cdclimgentime))
+		tempbackgrow.append(split_or_get(backgrowdays[isub], icdtime, cdclimgentime))
+
+		tempoutsize_sd.append(split_or_get(outsizevals_sd[isub], icdtime, cdclimgentime))
+		tempbacksize_sd.append(split_or_get(backsizevals_sd[isub], icdtime, cdclimgentime))
+		tempoutgrow_sd.append(split_or_get(outgrowdays_sd[isub], icdtime, cdclimgentime))
+		tempbackgrow_sd.append(split_or_get(backgrowdays_sd[isub], icdtime, cdclimgentime))
+
+		tempK.append(int(split_or_get(K[isub], icdtime, cdclimgentime)))
+		tempKstd.append(int(split_or_get(Kstd[isub], icdtime, cdclimgentime)))
 		
-		if len(outsizevals_sd[isub].split('|')) > 1:
-			tempoutsize_sd.append(outsizevals_sd[isub].split('|')[icdtime])
+
+		temppopmort_back.append(split_or_get(popmort_back[isub], icdtime, cdclimgentime))
+		temppopmort_out.append(split_or_get(popmort_out[isub], icdtime, cdclimgentime))
+		tempeggmort.append(split_or_get(eggmort[isub], icdtime, cdclimgentime))
+		temppopmort_back_sd.append(float(split_or_get(popmort_back_sd[isub], icdtime, cdclimgentime)))
+		temppopmort_out_sd.append(float(split_or_get(popmort_out_sd[isub], icdtime, cdclimgentime)))
+		tempeggmort_sd.append(split_or_get(eggmort_sd[isub], icdtime, cdclimgentime))
+
+		temppopCapBack.append(split_or_get(pop_capture_back[isub], icdtime, cdclimgentime))
+		temppopCapOut.append(split_or_get(pop_capture_out[isub], icdtime, cdclimgentime))
+
+		tempN0.append(split_or_get(N0_pass[isub], icdtime, cdclimgentime))
+		tempAllelefile.append(split_or_get(allefreqfiles_pass[isub], icdtime, cdclimgentime))
+		tempClassVarsfile.append(split_or_get(classvarsfiles_pass[isub], icdtime, cdclimgentime))
+		tempcompcoef.append(split_or_get(comp_coef_pass[isub], icdtime, cdclimgentime))
+		#pdb.set_trace()
+		# Disease defense gene fitness
+		if implementdisease != 'N':
+			tempdiseaseVarsfile.append(split_or_get(alldiseaseVars_files[isub], icdtime, cdclimgentime))		
+			tempPathLoad.append(float(split_or_get(pathogen_load[isub], icdtime, cdclimgentime)))
+			tempdisease_fitvals.append([])
+			for i in range(len(disease_fitvals_pass[isub])): # Loop through 6 genotype combinations
+				diseasefitval = float(split_or_get(disease_fitvals_pass[isub][i], icdtime, cdclimgentime))  # Split or get based on icdtime
+				tempdisease_fitvals[isub].append(diseasefitval)
+		# No disease
 		else:
-			tempoutsize_sd.append(outsizevals_sd[isub])
-		
-		if len(backsizevals_sd[isub].split('|')) > 1:
-			tempbacksize_sd.append(backsizevals_sd[isub].split('|')[icdtime])
-		else:
-			tempbacksize_sd.append(backsizevals_sd[isub])
-		
-		if len(outgrowdays_sd[isub].split('|')) > 1:
-			tempoutgrow_sd.append(outgrowdays_sd[isub].split('|')[icdtime])
-		else:
-			tempoutgrow_sd.append(outgrowdays_sd[isub])
-		
-		if len(backgrowdays_sd[isub].split('|')) > 1:
-			tempbackgrow_sd.append(backgrowdays_sd[isub].split('|')[icdtime])
-		else:
-			tempbackgrow_sd.append(backgrowdays_sd[isub])
-		
-		if len(K[isub].split('|')) > 1:
-			tempK.append(int(K[isub].split('|')[icdtime]))
-		else:
-			tempK.append(int(K[isub]))
-			
-		if len(Kstd[isub].split('|')) > 1:
-			tempKstd.append(int(Kstd[isub].split('|')[icdtime]))
-		else:
-			tempKstd.append(int(Kstd[isub]))
-		
-		if len(popmort_back[isub].split('|')) > 1:
-			temppopmort_back.append(popmort_back[isub].split('|')[icdtime])
-		else:
-			temppopmort_back.append(popmort_back[isub])
-		
-		if len(popmort_out[isub].split('|')) > 1:
-			temppopmort_out.append(popmort_out[isub].split('|')[icdtime])
-		else:
-			temppopmort_out.append(popmort_out[isub])
-		
-		if len(eggmort[isub].split('|')) > 1:
-			tempeggmort.append(eggmort[isub].split('|')[icdtime])
-		else:
-			tempeggmort.append(eggmort[isub])
-		if len(popmort_back_sd[isub].split('|')) > 1:
-			temppopmort_back_sd.append(float(popmort_back_sd[isub].split('|')[icdtime]))
-		else:
-			temppopmort_back_sd.append(float(popmort_back_sd[isub]))
-					
-		if len(popmort_out_sd[isub].split('|')) > 1:		
-			temppopmort_out_sd.append(float(popmort_out_sd[isub].split('|')[icdtime]))
-		else:
-			temppopmort_out_sd.append(float(popmort_out_sd[isub]))
-		
-		if len(eggmort_sd[isub].split('|')) > 1:
-			tempeggmort_sd.append(eggmort_sd[isub].split('|')[icdtime])
-		else:
-			tempeggmort_sd.append(eggmort_sd[isub])
-		
-		if len(pop_capture_back[isub].split('|')) > 1:
-			temppopCapBack.append(pop_capture_back[isub].split('|')[icdtime])
-		else:
-			temppopCapBack.append(pop_capture_back[isub])
-			
-		if len(pop_capture_out[isub].split('|')) > 1:		
-			temppopCapOut.append(pop_capture_out[isub].split('|')[icdtime])
-		else:
-			temppopCapOut.append(pop_capture_out[isub])			
-		
-		if len(N0_pass[isub].split('|')) > 1:
-			
-			tempN0.append(N0_pass[isub].split('|')[icdtime])
-		else:
-			tempN0.append(N0_pass[isub])
-			
-		if len(allefreqfiles_pass[isub].split('|')) > 1:
-			tempAllelefile.append(allefreqfiles_pass[isub].split('|')[icdtime])
-		else:
-			tempAllelefile.append(allefreqfiles_pass[isub])
-			
-		if len(classvarsfiles_pass[isub].split('|')) > 1: # More than one time value
-			tempClassVarsfile.append(classvarsfiles_pass[isub].split('|')[icdtime])
-		else: # No bar split, just one value
-			tempClassVarsfile.append(classvarsfiles_pass[isub])
-			
-		if len(comp_coef_pass[isub].split('|')) > 1: # More than one time value
-			tempcompcoef.append(comp_coef_pass[isub].split('|')[icdtime])
-		else: # No bar split, just one value
-			tempcompcoef.append(comp_coef_pass[isub])
+			tempdiseaseVarsfile.append('N')
+		#	tempPathLoad.append('0')
+		#	tempdisease_fitvals.append([])
 		
 		# 1 and 2 Locus Fitness Variables
-		if len(fitvals) > 0:			
+		if len(fitvals) > 0: # This makes sure cdevolve ans is on			
 			tempfitvals.append([])
 			for i in range(len(fitvals[isub])): # loop through 9 genotype combinations
-				if len(fitvals[isub][i].split('|')) > 1: # More than one time
-					# Error Check to make sure the times match
-					if len(fitvals[isub][i].split('|')) != len(cdclimgentime):
-						print('CDCLIMATE specified times - length of - does not match - length of - fitness values given.')
-						sys.exit(-1)
-					if len(fitvals[isub][i].split('|')[icdtime].split('~')) > 1: # G or M parameters []
-						tempfitvals[isub].append(fitvals[isub][i].split('|')[icdtime].split('~'))
-					else: # just fitness values 1 or 2
-						tempfitvals[isub].append(fitvals[isub][i].split('|')[icdtime])
-				else: # Just one value
-					if len(fitvals[isub][i].split('~')) > 1: # G or M parameters []
-						tempfitvals[isub].append(fitvals[isub][i].split('~'))
-					else: # just fitness values
-						tempfitvals[isub].append(fitvals[isub][i])					
+				fitval = split_or_get(fitvals[isub][i], icdtime, cdclimgentime)  # Split or get based on icdtime
+				if len(fitval.split('~')) > 1:  # G or M parameters []
+					tempfitvals[isub].append(fitval.split('~'))
+				else:  # Just fitness values 1 or 2
+					tempfitvals[isub].append(fitval)					
 			# Error checks
 			if cdevolveans == 'G':
-				if len(tempfitvals[isub][0][0].split(':')) != 6: 
-					print('CDEVOLVE answer is G, 6 parameter values must be entered for growth equation, see user manual.')
-					sys.exit(-1)
+				validate(len(tempfitvals[isub][0][0].split(':')) != 6,'CDEVOLVE answer is G, 6 parameter values must be entered for growth equation, see user manual.')
 			if cdevolveans == 'MG_ind' or cdevolveans == 'MG_link':
-				if len(tempfitvals[isub][0][0].split(':')) != 2 and len(len(tempfitvals[isub][3][0].split(':'))) != 6:
-					print('CDEVOLVE answer is MG, 6 parameter values must be entered for growth equation and 2 for maturation equation, see user manual.')
-					sys.exit(-1)					
+				validate(len(tempfitvals[isub][0][0].split(':')) != 2 and len(len(tempfitvals[isub][3][0].split(':'))) != 6, 'CDEVOLVE answer is MG, 6 parameter values must be entered for growth equation and 2 for maturation equation, see user manual.')
+							
 		# MLocus Selection Variables
-		if len(xvars_betas_pass) > 0:		
-			tempxvars_betas.append([])
-			for i in range(len(xvars_betas_pass[isub])):
-				if len(xvars_betas_pass[isub][i].split('|')) > 1:
-					tempxvars_betas[isub].append(xvars_betas_pass[isub][i].split('|')[icdtime])
-				else:
-					tempxvars_betas[isub].append(xvars_betas_pass[isub][i])		
-		
+		if len(xvars_betas_pass) > 0:
+			tempxvars_betas.append([split_or_get(xvars_betas_pass[isub][i], icdtime, cdclimgentime) for i in range(len(xvars_betas_pass[isub]))])
+
 		# Error check on grow days, must be equal to 365 if both entered
 		if tempoutsize[isub] != 'N' and tempbacksize[isub] != 'N':
 			if float(tempoutgrow[isub]) + float(tempbackgrow[isub]) > 365.:
 				print('Grow days back and out must be <= 365.')
 				sys.exit(-1)
-				
-		if len(outhabvals_pass[isub].split('|')) > 1:
-			tempouthabvals.append(outhabvals_pass[isub].split('|')[icdtime])
-		else:
-			tempouthabvals.append(outhabvals_pass[isub])
-		if len(backhabvals_pass[isub].split('|')) > 1:
-			tempbackhabvals.append(backhabvals_pass[isub].split('|')[icdtime])
-		else:
-			tempbackhabvals.append(backhabvals_pass[isub])
-			
+
+		tempouthabvals.append(split_or_get(outhabvals_pass[isub], icdtime, cdclimgentime))
+		tempbackhabvals.append(split_or_get(backhabvals_pass[isub], icdtime, cdclimgentime))
+	#pdb.set_trace()
+	# -----------------------------------------------------
+	# Extract files to parameters - Disease vars
+	# -----------------------------------------------------
+	tupDisease_Vars = read_disease_vars_files(tempdiseaseVarsfile,datadir,implementdisease,tempPathLoad,tempdisease_fitvals)
+	#pdb.set_trace()
 	# -----------------------------------------------------
 	# Class Vars
 	# -----------------------------------------------------
-	tupAgeFile = InitializeAge(K,tempClassVarsfile,datadir)	
-	#agelst = tupAgeFile[0]
-	#age_size_mean = tupAgeFile[1]
-	#age_size_std = tupAgeFile[2]
-	#sexratio = tupAgeFile[3]	
-	age_percmort_out = tupAgeFile[4]
-	age_percmort_out_sd = tupAgeFile[5]
-	age_percmort_back = tupAgeFile[6]
-	age_percmort_back_sd = tupAgeFile[7]
-	size_percmort_out = tupAgeFile[8]
-	size_percmort_out_sd = tupAgeFile[9]
-	size_percmort_back = tupAgeFile[10]
-	size_percmort_back_sd = tupAgeFile[11]
-	age_MgOUT = tupAgeFile[12]
-	age_MgBACK = tupAgeFile[13]
-	age_S = tupAgeFile[14]
-	age_DispProb = tupAgeFile[15]
-	age_mature = tupAgeFile[16]
-	age_mu = tupAgeFile[17]
-	age_sigma = tupAgeFile[18]
-	f_leslie = tupAgeFile[19]
-	f_leslie_std = tupAgeFile[20]
-	age_cap_out = tupAgeFile[21]
-	age_cap_back = tupAgeFile[22]	
+	# Initialize Age Variables using the function
+	tupAgeFile = InitializeAge(K, tempClassVarsfile, datadir)
+
+	# Extract relevant age-related variables from the tuple - first 4 vars agelst, etc, not read back.
+	age_percmort_out,age_percmort_out_sd, age_percmort_back, age_percmort_back_sd, size_percmort_out, size_percmort_out_sd,size_percmort_back, size_percmort_back_sd, age_MgOUT, age_MgBACK,age_S, age_DispProb, age_mature, age_mu, age_sigma, f_leslie, f_leslie_std, age_cap_out, age_cap_back = tupAgeFile[4:23]	
 			
-	# Return this functions variables - mate, dispOut, dispBack, Str_patch_prob, dispLocal (order 1) FXX, MXY, MYY, FYY (order 2) matrix,thresh,scalemin,scalemax,a,b,c,no
+	# -----------------------------------------------------
+	# Return Variables for mate, dispersion, and other parameters
+	# -----------------------------------------------------
 	tupClimate = matecdmatrix,FXXdispOutcdmatrix,MXYdispOutcdmatrix,MYYdispOutcdmatrix,FYYdispOutcdmatrix,\
 	FXXdispBackcdmatrix,MXYdispBackcdmatrix,MYYdispBackcdmatrix,FYYdispBackcdmatrix,\
 	FXXStrcdmatrix, MXYStrcdmatrix,MYYStrcdmatrix, FYYStrcdmatrix,\
@@ -1894,32 +1488,28 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	FXXdispmoveBackno,MXYdispmoveBackno,MYYdispmoveBackno,FYYdispmoveBackno,\
 	FXXStrno,MXYStrno,MYYStrno,FYYStrno,\
 	FXXdispLocalno,MXYdispLocalno,MYYdispLocalno,FYYdispLocalno,\
-	tempMgOut_patch_prob,tempStr_patch_prob,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_MgOUT,age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back,tempMgBack_patch_prob,tempDisperse_patch_prob	
-	return tupClimate
-	#End::DoCDClimate()
+	tempMgOut_patch_prob,tempStr_patch_prob,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_MgOUT,age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back,tempMgBack_patch_prob,tempDisperse_patch_prob,tupDisease_Vars
+	
+	return tupClimate 
+	# End::DoCDClimate()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_percmort_back_mu_egg,age_percmort_back_sd_egg,cor_mat,age_mu, age_sigma,f_leslie_mu,f_leslie_std,sexchromo):	
+def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_percmort_back_mu_egg,age_percmort_back_sd_egg,cor_mat,age_mu, age_sigma,f_leslie_mu,f_leslie_std,sexchromo,disease_vars):	
 	'''
 	Here update any stochastic variables. Add in Todd and Ng method for unbias draw.
 	Generate correlated deviates
 	'''
-	
+	#pdb.set_trace()
 	# --------------------------------
 	# For the patch specific parameters
 	# Get correlated means
 	# -------------------------------
-	K = []
-	popmort_back = []
-	popmort_out = []
-	eggmort_patch = []
-	outsizevals = []
-	backsizevals = []
-	outgrowdays = []
-	backgrowdays = []
+	K, popmort_back, popmort_out, eggmort_patch, outsizevals, backsizevals, outgrowdays, backgrowdays = [], [], [], [], [], [], [], []
 	
-	# For no cor_mat answer 'N'
-	if isinstance(cor_mat,str):			
+	# For no cor_mat answer 'N'	
+	if isinstance(cor_mat,str):
+		# If no SD updates anywhere - then we can skip this loop
+		#if not((sum(K_std) == sum(popmort_out_sd) == sum(popmort_back_sd)== sum(np.asarray(eggmort_sd,float))== sum(np.asarray(outsizevals_sd,float)) == sum(np.asarray(backsizevals_sd,float))== sum(np.asarray(outgrowdays_sd,float))== sum(np.asarray(backgrowdays_sd,float))== 0) and disease_vars['ImpDisease'] != 'N'):
 		for isub in range(len(K_mu)):
 			# K ------------------
 			stochastic_update(K_mu[isub],K_std[isub],K)
@@ -1962,9 +1552,6 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 				sigma = float(sigma)
 				# Case here for sigma == 0
 				if sigma != 0:
-					# Call a truncated normal here
-					#lower, upper = 0,365
-					#X = truncnorm.rvs((lower - mu) / sigma, (upper - mu) / sigma, loc=mu, scale=sigma)
 					X = np.random.normal(mu,sigma)
 					if X < 0:
 						X = 0.
@@ -1975,7 +1562,24 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 					backgrowdays.append(mu)
 			else:
 				backgrowdays.append(mu)
-	
+			# disease transition rates ---------Update matrix values	
+			if disease_vars['ImpDisease'] != 'N':
+				muMat = disease_vars['TransRates_ForStochasticUpdates'][isub]
+				for irow in range(len(muMat)):
+					for icol in range(len(muMat[irow])):
+						tmp = muMat[irow][icol].split(';')
+						if len(tmp) > 1:
+							mu = float(tmp[0])
+							sigma = float(tmp[1])
+						else:
+							mu = float(tmp[0])
+							sigma = 0
+						X = np.random.normal(mu,sigma) 
+						#if X < 0:
+						#	X = 0.
+						# Update the disease rates
+						disease_vars['TransRates'][isub][irow][icol] = round(X,3)			
+				
 	# If cor_mat used
 	else:
 		# Generate deviates, use same deviates for each patch
@@ -2006,6 +1610,8 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 		patch_mu = np.asarray(patch_mu)
 		patch_sd = np.asarray(patch_sd,dtype = 'float')
 		
+		# If no SD updates anywhere - then we can skip this loop
+		#if not((sum(K_std) == sum(popmort_out_sd) == sum(popmort_back_sd)== sum(np.asarray(eggmort_sd,float))== sum(np.asarray(outsizevals_sd,float)) == sum(np.asarray(backsizevals_sd,float))== sum(np.asarray(outgrowdays_sd,float))== sum(np.asarray(backgrowdays_sd,float))== 0) and disease_vars['ImpDisease'] != 'N'):
 		# Create covariance matrix for each patch: D*R*D
 		for isub in range(len(K_mu)):
 			D = np.diag(patch_sd[:,isub])
@@ -2085,6 +1691,24 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 			eggmort_patch.append(round(float(y[7]),3))
 			if eggmort_patch[isub] < 0:
 				eggmort_patch[isub] = 0
+				
+			# disease transition rates ---------Update matrix values	
+			if disease_vars['ImpDisease'] != 'N':
+				muMat = disease_vars['TransRates_ForStochasticUpdates'][isub]
+				for irow in range(len(muMat)):
+					for icol in range(len(muMat[irow])):
+						tmp = muMat[irow][icol].split(';')
+						if len(tmp) > 1:
+							mu = float(tmp[0])
+							sigma = float(tmp[1])
+						else:
+							mu = float(tmp[0])
+							sigma = 0
+						X = np.random.normal(mu,sigma) 
+						if X < 0:
+							X = 0.
+						# Update the disease rates
+						disease_vars['TransRates'][isub][irow][icol] = round(X,3)
 	
 	# --------------------------------
 	# For the age specific parameters
@@ -2175,7 +1799,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,cdinfect,subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd):
+def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,implementdisease):
 
 	'''
 	DoPreProcess()
@@ -2194,55 +1818,29 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	xy = ReadXY(xyfilename)
 	
 	# Error statement for column data
-	if cdevolveans.split('_')[0] != 'P':
-		if len(xy[1]) != 50:
-			print('PatchVars input file is not correct version, see example input files.')
-			sys.exit(-1)
-	else: # MLoci selection is on, then extra columns possible in PatchVars
-		if (len(xy[1]) - int(cdevolveans.split('_')[1].split('X')[1])) != 50:
-			print('PatchVars input file must be 48 columns plus the specified number of variables operating in the multiple loci selection model; see example input files.')
-			sys.exit(-1)
-		
-	# Store all information in lists by variable name and store
-	Pop = []
-	xgridpop = []
-	ygridpop = []
-	PopTag = []
-	K_temp = []
-	Kstd_temp = []
-	N0_temp = []	
-	natal_patches = []
-	migrate_patches = []
-	#disperse_patches = []
-	#stray_patches = []
-	allefreqfiles_temp = []
-	classvarsfiles_temp = []
-	popmort_out = []
-	popmort_out_sd = []
-	popmort_back = []
-	popmort_back_sd = []
-	MgOut_patch_prob = []
-	MgBack_patch_prob = []
-	Str_patch_prob = []	
-	Disperse_patch_prob = []
-	newmortperc = []
-	newmortperc_sd = []
-	setmigrate = []
-	outsizevals = [] # growth values out
-	outgrowdays = [] # grow days out
-	backsizevals = [] # growth values back
-	backgrowdays = [] # grow days back
-	outsizevals_sd = [] # growth values out
-	outgrowdays_sd = [] # grow days out
-	backsizevals_sd = [] # growth values back
-	backgrowdays_sd = [] # grow days back
-	pop_capture_back_pass = [] # Grab first one to go into first DoUpdate
-	pop_capture_out = []
+	if implementdisease == 'N':
+		xvars_indexspot = 50 # for getting the xvars spot for indexing
+	else: 
+		xvars_indexspot = 58 # 8 extra columns needed here for disease module 
+	
+	# Mlocus selection is on, Xvars option at end of PatchVars
+	if cdevolveans.split('_')[0] == 'P':
+		validate((len(xy[1]) - int(cdevolveans.split('_')[1].split('X')[1])) != xvars_indexspot, 'PatchVars input file must be ' + str(xvars_indexspot) + ' columns plus the specified number of variables operating in the multiple loci selection model; see example input files.')
+	else:
+		validate(len(xy[1]) != xvars_indexspot, 'PatchVars input file is not correct version when implementing multilocus selection or disease, see example input files.')		
+					
+	# Store all information in lists by variable name from patchvars
+	Pop,xgridpop,ygridpop,PopTag,K_temp,Kstd_temp,N0_temp,natal_patches,migrate_patches,allefreqfiles_temp,classvarsfiles_temp = [],[],[],[],[],[],[],[],[],[],[]
+	popmort_out,popmort_out_sd,popmort_back,popmort_back_sd,newmortperc,newmortperc_sd = [],[],[],[],[],[]
+	MgOut_patch_prob,MgBack_patch_prob,Str_patch_prob,Disperse_patch_prob,setmigrate = [],[],[],[],[]
+	outsizevals,outgrowdays,backsizevals,backgrowdays,outsizevals_sd,outgrowdays_sd,backsizevals_sd,backgrowdays_sd = [],[],[],[],[],[],[],[] # grow days back
+	pop_capture_back_pass,pop_capture_out = [],[]
 	fitvals = [] # selection values
-	outhabvals = []
-	backhabvals = []
+	outhabvals,backhabvals = [],[]
 	comp_coef_temp = [] # Competition coef by patch
-	xvars = [] # selection for multilocus/hindex options
+	# Disease vars - These are options at the end of Patch vars if disease is turned on
+	alldiseasepars_files,pathogen_load,disease_fitvals = [],[],[]
+	xvars = [] # selection for multilocus/hindex options, these are optional at the end of patchvars
 	for i in range(len(xy)-1):
 		# Add line number reference here for future versions
 		#refLine = getframeinfo(inspect.currentframe()).lineno
@@ -2255,8 +1853,6 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		N0_temp.append(xy[i+1][6])
 		natal_patches.append(int(xy[i+1][7]))
 		migrate_patches.append(int(xy[i+1][8]))
-		#disperse_patches.append(int(xy[i+1][9]))
-		#stray_patches.append(int(xy[i+1][10]))		
 		allefreqfiles_temp.append(xy[i+1][9])
 		classvarsfiles_temp.append(xy[i+1][10])
 		popmort_out.append(xy[i+1][11])
@@ -2282,8 +1878,16 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		pop_capture_back_pass.append(xy[i+1][31])
 		outhabvals.append(xy[i+1][32])
 		backhabvals.append(xy[i+1][33])
+		# Fitness values at end of loop 34 - 48
 		comp_coef_temp.append(xy[i+1][49]) # Bar allowed here
-		xvars_indexspot = 50 # for getting the xvars spot for indexing
+		
+		# Option columns section - xvars_indexspot note referenced above
+		if implementdisease != 'N':
+			alldiseasepars_files.append(xy[i+1][xvars_indexspot-8])
+			pathogen_load.append(xy[i+1][xvars_indexspot-7])
+			disease_fitvals.append([xy[i+1][xvars_indexspot-6],xy[i+1][xvars_indexspot-5],xy[i+1][xvars_indexspot-4],xy[i+1][xvars_indexspot-3],xy[i+1][xvars_indexspot-2],xy[i+1][xvars_indexspot-1]])
+			
+		# For fitness values - currently these are required fields in patchvars	
 		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray':
 			fitvals.append([xy[i+1][34],xy[i+1][35],xy[i+1][36]])
 		elif cdevolveans == 'G':
@@ -2295,8 +1899,8 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		elif cdevolveans.split('_')[0] == 'P':
 			xvars.append([])
 			for ixvars in range(int(cdevolveans.split('_')[1].split('X')[1])):
-				xvars[i].append(xy[i+1][xvars_indexspot+ixvars])		
-			
+				xvars[i].append(xy[i+1][xvars_indexspot+ixvars])
+		
 	# Delete x variable
 	del(xy)
 	
@@ -2309,40 +1913,42 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		cor_mat = ReadXY(datadir+cor_mat_ans)
 		cor_mat = np.asarray(np.asarray(cor_mat)[1:,1:],dtype='float')
 		
-	# -----------------------------------------------------------------------
-	# Extract variables needed for initialization that vary with cdclimategen
-	# -----------------------------------------------------------------------	
-	# Get K for the first generation, but return K_temp to be read into CDClimate module, also get first capture probability back.
-	# one check on N0 > 0 and natal_patches
-	K = []
-	Kstd = []
-	pop_capture_back = []
-	N0 = []
-	allefreqfiles = []
-	classvarsfiles = []
+	# -----------------------------------------------------------------------------
+	# Extract variables needed for initialization that vary with cdclimategen (bar)
+	# -----------------------------------------------------------------------------	
+	#pdb.set_trace()
+	K, Kstd, pop_capture_back, N0, allefreqfiles, classvarsfiles, tempdiseaseVarsfile = [],[],[],[],[],[],[]
 	for isub in range(len(K_temp)):
 		mu = int(K_temp[isub].split('|')[0])
 		sigma = int(Kstd_temp[isub].split('|')[0])
 		K.append(mu)
 		Kstd.append(sigma)
 		pop_capture_back.append(pop_capture_back_pass[isub].split('|')[0])
-		#N0.append(int(N0_temp[isub].split('|')[0]))
 		N0.append(N0_temp[isub].split('|')[0])
 		allefreqfiles.append(allefreqfiles_temp[isub].split('|')[0])
 		classvarsfiles.append(classvarsfiles_temp[isub].split('|')[0])
-		#temp0check = len(np.where(np.asarray(N0[0].split(';'))=='0')[0]) # Check for N values in split string
+		if implementdisease != 'N':
+			tempdiseaseVarsfile.append(alldiseasepars_files[isub].split('|')[0])
+		else:
+			tempdiseaseVarsfile.append([])	
+		
+		# Check on N0 > 0 and natal_patches == 0
 		if ';' in N0[isub]:
 			if natal_patches[isub] == 0:
 				N0[isub] = '0'
 		elif int(N0[isub]) > 0 and natal_patches[isub] == 0:
-			stringout = 'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.'
-			logMsg(logfHndl,stringout)
-			N0[isub] = '0'		
+			logMsg(logfHndl,'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.')
+			N0[isub] = '0'	
 	
-	# --------------------------------
-	# Initialize subpop and ID field
-	# --------------------------------
-	id,subpop,speciesID = InitializeID(K,N0)
+	# --------------------------------------------------------------
+	# Grab initial disease state variables needed for preprocessing
+	# --------------------------------------------------------------
+	tempDiseaseVars = read_disease_vars_files(tempdiseaseVarsfile, datadir,implementdisease,pathogen_load,disease_fitvals)
+		
+	# ----------------------------------------
+	# Initialize individual subpop, ID, States
+	# ----------------------------------------
+	id,subpop,speciesID,states = InitializeID(K,N0,tempDiseaseVars)
 	
 	# --------------------------------------------
 	# Initialize genetic structure - distribution 
@@ -2360,9 +1966,9 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	age_mature = tupAgeFile[16]
 	
 	# ------------------------------------------------------------------
-	# Initialize rest of variables: age,sex,infection,genes,size,mature...
+	# Initialize rest of variables: age,sex,genes,size,mature...
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,sizeans,cdevolveans,fitvals,burningen_cdevolve,'N',sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd)
+	age,sex,size,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_std,subpop,age_mature,sizeans,cdevolveans,fitvals,burningen_cdevolve,'N',sexans,speciesID,N0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd)
 	
 	# ------------------------------------
 	# For multiple files, error check here
@@ -2383,8 +1989,8 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	# Get unique patches
 	unisubpops = len(Pop)
 	
-	# Organize type data in SubpopIN - here return this and also update dynamically.
-	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int),('genes',('i',sum(alleles)))]
+	# Organize type data in SubpopIN - here return this and also update dynamically - infection swapped with states v2.77+
+	dtype = [('NatalPop',(str,len(str(unisubpops))+1)),('EmiPop',(str,len(str(unisubpops))+1)),('ImmiPop',(str,len(str(unisubpops))+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('states',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int),('genes',('i',sum(alleles)))]
 	
 	# Get N here - N maybe slighlty different then specified due to random draws
 	N = []
@@ -2439,14 +2045,14 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 				# ---------------------------------				
 				# Update the Wright Fisher case for sex here
 				if sexratio[isub][0] == 'WrightFisher':				
-					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature,newmature, speciesID					
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
+					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature,newmature, speciesID, state					
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],states[indspot],id[indspot],-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 					SubpopIN[isub].append(recd)
 				
 				# Not special Wright Fisher case
 				else:			
-					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature, newmature speciesID
-					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],id[indspot],-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
+					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature, newmature speciesID, state
+					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],states[indspot],id[indspot],-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 					SubpopIN[isub].append(recd)
 		# Convert to array with dytpe	
 		#pdb.set_trace()
@@ -2502,26 +2108,13 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 			tempbetas_selection.append(float(betavals[0][0]))
 	
 	# Delete other storage variables
-	del(size)
-	del(age)
-	del(id)
-	del(genes)
-	del(sex)
-	del(infection)
-	del(subpop)
-	del(mature)
-	del(capture)
-	del(recapture)
-	del(layEggs)
-	del(hindex)
-	del(whichClassFile)
-	del(speciesID)
+	del size, age, id, genes, sex, subpop, mature, capture, recapture, layEggs, hindex, whichClassFile, speciesID, states
 	
 	# Return this functions variables
 	tupPreProcess = ithmcrundir,\
 	fitvals,allelst,subpopemigration,subpopimmigration,age_size_mean,age_size_std,xgridpop,ygridpop,\
 	SubpopIN,N,K,dtype,outsizevals,backsizevals,\
-	popmort_out,popmort_back,MgOut_patch_prob,Str_patch_prob,newmortperc,setmigrate,outgrowdays,backgrowdays,K_temp,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal_patches,cor_mat,migrate_patches,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,comp_coef_temp,xvars,tempbetas_selection,outhabvals,backhabvals,MgBack_patch_prob,Disperse_patch_prob
+	popmort_out,popmort_back,MgOut_patch_prob,Str_patch_prob,newmortperc,setmigrate,outgrowdays,backgrowdays,K_temp,Kstd_temp,Kstd,popmort_out_sd,popmort_back_sd,newmortperc_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back_pass,pop_capture_out,pop_capture_back,natal_patches,cor_mat,migrate_patches,N0_temp,allefreqfiles_temp,classvarsfiles_temp,PopTag,comp_coef_temp,xvars,tempbetas_selection,outhabvals,backhabvals,MgBack_patch_prob,Disperse_patch_prob,alldiseasepars_files,tempDiseaseVars,pathogen_load,disease_fitvals
 	
 	return tupPreProcess	
 	#End::DoPreProcess()
@@ -2560,7 +2153,7 @@ def DoUserInput(fileans):
 	#End::DoUserInput()
 
 # -------------------------------------------------------------------------	
-def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen_cdevolve,fitvals,dtype,N,natal_patches,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd):
+def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdevolveans,burningen_cdevolve,fitvals,dtype,N,natal_patches,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,disease_vars):
 	'''
 	AddIndividuals()
 	This function adds more individuals with given classvars 
@@ -2568,18 +2161,17 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	'''
 	
 	# ---------------------------------------------
-	# First error check on natal_patches grounds and N0 > 0
+	# Check on natal_patches grounds and N0 > 0
 	# ---------------------------------------------
 	for isub in range(len(tempN0)):
 		if sum(np.asarray(tempN0[isub].split(';'),int)) > 0 and natal_patches[isub] == 0:
-			stringout = 'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.'
-			logMsg(logfHndl,stringout)
+			logMsg(logfHndl,'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.')
 			tempN0[isub] = 0
 	
-	# --------------------------------
-	# Initialize subpop field
-	# --------------------------------
-	id,subpop,speciesID = InitializeID(tempN0,tempN0)
+	# ----------------------------------------
+	# Initialize individual id, subpop, states
+	# ----------------------------------------
+	id,subpop,speciesID,states = InitializeID(tempN0,tempN0,disease_vars)
 	
 	# --------------------------------------------
 	# Initialize genetic structure - distribution 
@@ -2598,9 +2190,9 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	age_mature = tupAgeFile[16]
 	
 	# ------------------------------------------------------------------
-	# Initialize rest of variables: age,sex,infection,genes,size,mature
+	# Initialize rest of variables: age,sex,genes,size,mature
 	# ------------------------------------------------------------------
-	age,sex,size,infection,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,cdinfect,loci,alleles,allelst,\
+	age,sex,size,genes,mature,capture,layEggs,recapture,hindex,whichClassFile = InitializeVars(sexratio,agelst,loci,alleles,allelst,\
 	age_size_mean,age_size_std,subpop,age_mature,sizeans,cdevolveans,fitvals,burningen_cdevolve,'Y',sexans,speciesID,tempN0,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd)
 	
 	# ---------------------------------------------
@@ -2613,6 +2205,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	
 	# Set class variable by list of populations
 	for isub in range(unisubpops):
+		
 		SubpopIN_add = [] # Temp array to concatenate
 		
 		# Get each SubpopIN pop as array
@@ -2652,13 +2245,13 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 				# ---------------------------------				
 				# Update the Wright Fisher case for sex here
 				if sexratio[isub][0] == 'WrightFisher':				
-					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature,newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
+					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature,newmature
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[iind],size[indspot],mature[indspot],mature[indspot],states[indspot],name,-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 				
 				# Not special Wright Fisher case
 				else:			
-					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,infection,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature, newmature
-					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],infection[indspot],name,-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
+					# Subpop,EmiPop(NA),ImmiPop(NA),EmiCD,ImmiCD,age,sex,name/id,motherid,fatherid,capture,recapture,layeggs,genes,mature, newmature
+					recd = (subpop[indspot],subpop[indspot],subpop[indspot],-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],states[indspot],name,-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 				SubpopIN_add.append(recd)
 		
 		# Convert to array with dytpe		
@@ -2667,21 +2260,8 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 		# Append all information to temp SubpopKeep variable
 		SubpopIN_keep.append(np.concatenate([SubpopIN_arr,SubpopIN_add]))
 	
-	# Delete storage variables
-	del(size)
-	del(age)
-	del(id)
-	del(genes)
-	del(sex)
-	del(infection)
-	del(subpop)
-	del(mature)
-	del(capture)
-	del(recapture)
-	del(layEggs)
-	del(hindex)
-	del(whichClassFile)
-	del(speciesID)
+	# Delete other storage variables
+	del size, age, id, genes, sex, subpop, mature, capture, recapture, layEggs, hindex, whichClassFile, speciesID, states
 	
 	return SubpopIN_keep
 	#End::AddIndividuals()

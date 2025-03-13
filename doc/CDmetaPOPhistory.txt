@@ -1,5 +1,347 @@
-Chnages v2.77.2024.10.11
-0) Index error with different combinations of 0;0|15;15 -> 0|15;15 throws index error ***
+Changes 2.82forked.2025.03.13 ell/ccd
+
+
+NEXT STEPS For DISEASE
+-> ***Make P as a value from 0 - 1? 
+
+-> ***# Check for multiple S transitions - need to add this in.
+		validate(len(moveTOIndex) > 1 and istate = 0, 'S cannot transition to more than 1 compartment at this time.')
+	-> ***Make flexible for S maybe Sto I and S to V
+-> ***Make flexible for multiple Is (I, P, sum(Is)) as well as feedback loops
+	-> ***Test SI1I2RS
+	-> ***Test Relapsing disease SIEIEIR
+-> *** Could amount of P affect indirect FofI for other states?
+	-> ***test other versions of SIRP like SIPRP
+	# For all other states
+	else:		
+		direct_FoI = willthisStateMove_ToThisState 
+		indirect_FoI = 0 # Note this might be a funciton of P?
+-> *** Consider Headers for Transition Matrix to define Is and death compartment?
+-> ***Shiny App to make models fro users and extract transition matrix
+-> *** Probs of columns must add to one or default
+-> ***think through summing to 1 (eg I to R or I to D, 2 draws or 1 draw?)
+
+OTHER LIST OF TODOs:
+-5) ***I think we could merge DoStochastic Update with CDClimate()?
+-3) ***Need to add a isub length patch check with length of cdmats.
+-4) ***For speed ups, consider skipping CalculateDispersalMetrics(), DoStochasticUpdate()
+	-> Attempted DoStochasticUpdate() but stopped***
+-1) Need to get logisticout logisticback ***Casey will work on this
+-> age_percmort_out, f_leslie,f_leslie_std passed into DoEmigration
+-> Casey added out and back options
+-> Casey testing out and back options, pull/push to v2.77 (send to Marissa)
+-> Will add error checking to future versions ***
+
+-2) Check Births for equal clutch size 'Y' ***Erin
+-> ***PreProcessing begin thinking about moving variables into their own module checks (plastic, selection, disease, ....)
+-3)Move all 'start'process to RunVars ***startgenes, ***startselection, ***startplastic
+-4) Multispecies example files taking too long, error with DA runs ***Casey check
+-5) Error checking to module? ***
+-6) Ask Casey about mainloop 649 ***
+-7) Someday run back through all Tracking, check, and make function ***
+-8)Index error with different combinations of 0;0|15;15 -> 0|15;15 throws index error ***
+
+END::NEXT STEPS....
+
+Changes 2.81forked.2025.01.20 ell
+-2) 3/12/2025 set up test files without disease and multiple patches...error in AddAge0s (ccd) when no offspring are added into population
+	-> Testing for when no disease wished and multiple patches
+		-> Added patch level holders into disease_vars when no disease.***probably a better way to do this - check later, but working now. 
+		-> Added checks throughout for no disease trackers.
+		-> Running with multiple patches 'mating' and 'nonmating' and no disease
+
+
+-1) ***SIRP model outputting 4 states - should be 3
+	-> ***Check pathogen load as proportion 0 - 1?
+0) ***Begin adding disease defense through gene x patch***
+
+	-> Added 'Disease Defense' column to DiseaseVars = [N, Resistant, Tolerant, Both]
+	-> Then in PatchVars added 6 more optional columns for Locus C and D - this will allow for climate adaptation and disease defense applications
+	-> ***Check plastic loci and if plastic loci and disease on, sys exit.
+	-> If implementdisease != N, the 8 more disease columns in PatchVars
+	-> Read these fitvals into PreProcessing - allow for |
+	-> Add these fitvals to dictionary for disease_vars - temp during PreProcessing
+	-> Pass in an initial disease_fitvals to cdclimate then update disease_vars.
+	-> Note sex-specific values could be considered here***
+	-> Must be 2 alleles
+	-> Must specify death compartment if tolerant defense chosen - will assume this reduces death rate right now. 
+	-> Clocus and Dlocus checked for upgrades on transition rates for S to I and I to D
+	-> Note, specify values for all genotypes, if CC is under selection than Cc and cc will be the rates from the transition matrix. 
+	-> ***Move the ans to Resistant_{State} Tolerant_state
+		-> This tells the program what transition rate to modify, e.g., 3 states, Resistant_0to1 or Tolerant_1to2
+			-> What about Both? Add Fields to DiseaseVars for Locus C and Locus D
+				-> Disease Resistant and Disease Tolerant columns in DiseaseVars
+				-> Answers can be [N, state_state]
+	
+1) Made Susceptible_state a user parameter
+	
+OTHER UPDATES:
+-> offspring.append([[] for x in range(0,len(K))]) in case there are no offspring.
+
+#######################
+
+
+Changes 2.80forked.2025.01.17 ell
+0) Begin adding in indirect transmission***
+	-> Added 'Transmission Mode' option to DiseaseVars file = can be Direct or Indirect
+	-> Added 'Pathogen Load' opiton to PatchVars or should this go in DiseaseVars? What is patch-based pathogen load look like? ***
+		-> DoStochastic update or any sd on initialization? *** Note sure this makes sense right now.
+	-> Note number of states refers to the host, P is not included in this. ***add checks. 
+	-> If Transmission Mode = Indirect, then PatchVars column for Pathogen load in the environment is used***
+	-> Updated PreProcess() to read in the PatchVars optional file for Pathogen load (like the xvars for mloci selection
+	-> Updated read_disease_rate_files() and dictionary to store 'TransMode' and added error checks for nostate + 1 equal to matrix dims
+	-> read pathogen_load into cdclimate, then add it to disease dictionary
+	-> Check DoStochastic Update - not updating TransRates.
+		-> Not update TransRates for negative rates - allowing negative rates, perhaps give warning?***
+	-> Added in the additional Indirect Force of Infection
+		-> ***Need help here on the binomial outcome value when greater than 1
+		-> ***Discuss transition rates > 1 and what this means for outcomes
+		-> Likewise should this be != 0, can rates be neg? moveTOIndex = np.where(np.asarray(iStates_transmission_rates) > 0)[0]
+		-> Making this a propotion for now. 
+	-> pdate environmental reservoir
+		-> Added in function for updateEnvRes
+	-> Added tracker for patched based Pathogen Load. 
+		-> Returning Disease_Vars dict from PreProcess - this is a temp to read into GetMatrics before time steps start so that tracking can happen.
+		-> Added to GetMetrics 
+	-> Can't round the P - float. 
+
+Changes v2.79forked.2025.01.17 ell
+1) SEIR not validating***checking code
+	-> S moving to NEXT state (E) not infected_state
+	-> May want S to go to different states, add this to list.
+	-> Updated moveStates to fix this. 
+	-> also streamlined this section
+
+##################################
+Changes v2.78forked.2024.12.29 ell
+0) Initial rounds of ODE with IBM sim tests 0.5;0.2 99;1 not matching.
+	-> Force of Infection calculation was not correct, fixed.
+	-> Note that probabalistic .01 chance of initializing with state I. consider deterministic?
+	
+1) Next updating input files for a transition matrix (will need this format) and other inputs (infection, death compartments, initial conditions for offspring)
+Number of States	Initial Conditions	Transition Rates	Infection Compartments	Death Compartments	Initial Conditions Offspring
+3	.99;.01;0	otherfiles/disease/SIR_TransitionMatrix	1	No	Susceptible
+
+	-> Working on reading in new vars and files
+		-> updated read_disease_vars_files to read in the file and embedded files
+		-> read_disease_vars_files now returns a keyed dictionary 
+		-> cdclimate - return correctly
+		-> Update DoStochastic (transition rates with sd now in ';' and list - update to float values)
+			-> Need to store the mu;sigma values for DoStochastic updates.
+			-> Added TransRates_ForStochasticUpdate to disease_vars and then we can update the TransRates float calls.
+		->DoUpdate: updating with new par dic structure
+		-> validation(infected_compartment != 1, 'Current disease model only considers 1 infection compartment.')
+		-> Note*** N will need to be specified (e.g., SIRP model P is not included)
+			#Calculate force of infection as transmission rate * I / N
+			Force_ofInfection = (countstates_inthispatch[infected_state] / sum(countstates_inthispatch)) * transmission_rate
+		-> updated infInd() 
+			for istate in range(1,disease_vars['noStates'][isub]+1):						
+				willthisStateMove_randNO = np.random.uniform()
+				# Grab transition rates for this state (columns)
+				thisStates_transmission_rates = [row[istate] for row in disease_vars['TransRates'][isub]]
+				# Index values that this state could move to
+				moveTOIndex = np.where(np.asarray(thisStates_transmission_rates) > 0)[0]
+				willthisStateMove_ToThisSate = disease_vars['TransRates'][isub][moveTO[0]][istate] # moveTO could be greater than 1, than loop through this.
+				if SubpopIN[isub][iind]['states'] == istate and willthisStateMove_randNO <= willthisStateMove_ToThisSate:
+					SubpopIN[isub][iind]['states'] = moveTOIndex
+					continue
+			-> Note***moveTOIndex could have multiple possible states (loop through this example SIRD, eg.)
+		
+->Startdisease moved to Disease File. ImplementDisease remains in PopVars.
+	-> Add implementdisease call to the dictionary
+
+-> Added offspring disease option to DoOffspringVars()
+# --------------------------
+# Assign infection here
+# --------------------------
+if disease_vars['OffAns'][patchindex].lower() == 'susceptible':
+	# Make all S state = 0
+	initialOffState = 0
+	
+	-> Added a tracker here for Age0 infection numbers
+		-> Track_DiseaseStates_AddAge0s to disease file
+
+-> Added Tracker after Adding Individuals
+	-> Track_DiseaseStates_AddedInds
+	
+->If disease not wished, run through checks and scenarios
+	-> In preprocess() - set states to 0 if implementdisease == 'N'
+	-> Added error check for if InitCond is empty and implementdisease is not 'N'
+	-> updated CDclimate calls with implementdisease
+	-> updated DoStochastic
+	-> Updated for 'N' in doUpdate and Offspring initialization. 
+	-> If 'N' skip writeout.
+
+-> Incorporate R and D and deaths from R
+	-> Testing SIRD files with Death Compartment specified as '3' and Inf Compartment as '1'
+	-> Renmaed infInd() to moveStates()
+	-> Updated this moveStates() to be more flexible for state transitions
+	-> Tested run for R and D, working, next include deaths - new function - added removeDStates()
+	-> Next add in tracker for Deaths or N after disease deaths - 2 trackes for second and third updates Track_DiseaseStates_AfterDeaths_ThirdUpdate
+	
+-> Next Test SIRS model: verified and working. 
+-> Validation tests run (1 patch, N = 100, SIR, SIRS, SEIR, SIRD) and sent to Marcel for checking with classical equations.
+
+##############Freeze version here 
+
+
+###############################
+Changes v2.77forked.2024.11.01 
+0) Files: Create new branch for src code and cdmetapop disease development
+1) Files: Create new input file structure for disease inputs (otherfiles/disease/SIR_init.csv) 
+a) Input Files: For now add to patchvars field for 'disease_states' that allows different number of initialization/distribution of states
+	-> Same length (same number of disease states) - added error checks PreProcessing
+	-> sum to 1 - added error checks PreProcessing
+b) To RunVars.csv add 'startdisease' time - added variable to CDmetaPOP.py ***Not used yet
+	->cleaning up some code along the way (preprocess, condensed variable assignment)
+c) PreProcessing() Then call the w_choice function and return a state for individual
+e) PreProcessing() Update dtypes with 'states', )('infection' to 'states') and return the patch level distribution noStates in case bar here for cdclimate. states_pass in mainloop
+f) GetMetrics() - track number of states in each patch and age and totals? Go through with Casey/Marcel
+	-> Added trackes Track_DiseaseStates_pop, Track_DiseaseStates_age***, Track_DiseaseStates_size*** add age/size later if needed
+	-> checkNoStates = tupPreProcess[51] to read into GetMetrics
+	->DiseaseStates_pop[gen].insert(0,np.sum(np.asarray(DiseaseStates_pop),axis=1)[0].tolist()) Added to summary output in PostProcess |20;0;20| output column for number of states by patch
+g) DoUpdate() initial: Remove 'infection' column, but PopVars cdinfect vars still there. For now 'infection' to 'state'
+	title = ['PatchID','XCOORD','YCOORD','ID','MID','FID','sex','age','size','mature','newmature','layeggs','capture','recapture','state','CDist','Hindex','Species','ClassFile','SubPatchID']
+	search for 'infection', 'Infected' tracker, 'infect' calls -> Removed from PreProcessing, dtypes, Modules, Offspring, PostProcess->put disease states in this spot.	
+	->DoOutput for initial Ind['infection'] to Ind['states']: grid-1.csv outputs 'states' now in 'infection' spot
+
+h) CDClimate() 'states_pass' in for adding individuals 
+	-> Cleaning up some code and condensing tuple read outs
+	-> Used chatGPT to help refactor and condense CDClimate() section! 2 helper functions added to Modules split_or_get() and process_disp()
+	->noStates = tupClimate[192] 
+	-> Error checks added to cdclimate(). Note added checkStates = len(states_pass[0].split('|')[0].split(';')) # Used for Error checking number of states. Assume first one is correct number
+i) AddIndividuals() - Added noStates to InitializeID call
+j) StochasticUpdate()  - nothing here for now
+	***Maybe add into disease module for transmission parameters
+k) DoMate() and DoOffspring() next - Nothing changed or updated here in this version.
+	->sexsplits() updated with ChatGPT help.
+	***Any disease process during mating?
+	-> Condensed del statements to one line
+
+l) Second DoUpdate() - Nothing changed here in this version, but later add disease processes
+	-> ind0.csv outputing correctly
+	-> Disease processes added here in next versions (see below)
+
+***Note started document describing each module and disease dyanmics for each on google drive
+
+m) DoEmigration() - 
+-> For movement processes
+	-> Changed 'infection' calls to 'states' in recd locations
+	-> dtype and offdtype updated 'infection' to 'states'
+	
+-> For packing processes 
+	-> Nothing changed for this version
+	-> ***Do we want a tracker here for states numbers after they settle in their new patch? So 2 states trackers? Back and Out? Before and after tracking ***add disease output file 
+-> DoOffspringVars() 
+	->here add the states initialization - initialOffState = 0
+	-> Check a chatGPT section for nonmating - the slow section upfront***
+	-> Check with Casey on situation when mother doesn't make it through DoEmigration(packing), then offspring is assumed to not make it here checked.
+	-> natalP and theseclasspars section condensed. offsex partially condensed. 
+	# --------------------------
+	# Assign infection here
+	# --------------------------
+	# Make all S state = 0
+	initialOffState = 0
+	->***Build this section up with offspring infection options
+	
+-> AddAge0s()
+	-> Cleaned up some code, e.g., cdevolveans in {'1', '1_mat', '1_G_ind', '1_G_link'}
+	-> InheritGenes() 
+		-> Tightened up offgenes inheritance with/without plastic and new helper function 'sample_allele' - checked old and new code - chatgpt suggestion gave wrong answer.
+		-> Expanded sample_allele to include mothergenes inheritance if mtdna answer is Y-1_
+		-> Moved mutation checks back to this first loci loop to reduce possible speed here, new helper funciton 'move_allele', code checked and updated. 
+	-> SIR count updates? back to when to track ***
+-> CalculateDispersalMetrics() - nothing changed here
+
+n) DoMortality() - Nothing changed here in this version for disease checks
+	-> No chat checks, but could use some cleaning up
+	
+o) Third DoUpdate() - Nothing changed here in this version for disease checks
+	-> indSample0.csv outputing correctly.
+	
+p) DoImmigration()
+	-> Updated 'infection' to 'states'
+	
+q) DoMortality() - ditto
+
+r) GetMetrics() 
+	-> Passed in Track_DiseaseStates_pop, checkNoStates
+	-> Updated total call; DiseaseStates_pop[gen].insert(0,np.sum(np.asarray(DiseaseStates_pop[gen]),axis=0)[0].tolist())
+	
+s) PostProcess() 
+	-> In Infection spot, output Total|patch1... x1;x2;x3|x4;x5;x6|...
+	-> summary_popAllTime.csv outputting correctly...extra ';' fixed
+
+Next: Add in DoDisease() 
+a) First, propose to add DoDisease() into DoUpdate - within the for loop there. Else, another loop will be required. 
+b) Then, within each patch, count the number of states  
+	-> what about offspring are they included if egg_add 'mating' or 'nonmating' ***
+	-> Added Track_DiseaseStates_pop to 2nd and 3rd DoUpdate()
+	-> thispatch_diseasestates = Track_DiseaseStates[gen][isub+1] # isub + 1 since total first
+	-> Changed to directly count from SubpopIN: Instead of looping through istates: state_counts = np.bincount(allstates_inthispatch,minlength=len(Track_DiseaseStates[gen][isub+1]))
+c) Then calculate population level state changes and at the individual level.
+	-> I put it in both ways and will pause to discuss with group
+
+d) Added implement_disease to RunVars; 'N', Back, Out, Both
+	-> Read into CDmetaPOP.py and into mainloop, error check added to mainloop
+	-> Added the startdisease and implementdisease checks in DoUpdate for out and back
+	
+e) Added 'disease_states' to PatchVars 
+	->However, this should be a matrix for every combination*** example file made for Compartment_rates.csv 
+	-> In PatchVars column now otherfiles/disease/Compartment_Rates.csv option
+	-> Also discuss death rates on each compartment***
+	-> ***Next step to get these read in and in a noStates x noStates matrix
+	-> ***will need to tell program what compartments are the disease state. 
+	-> PreProcess() Read in disease_rates files 'diseaserates_files'
+	-> Into CDClimate() and out as patch list of files for that icdclimate year, but will need to call function to read in values into the main loop
+		-> Added function read_disease_rate_files and returns stacked_matrices==disease_rates
+	-> Into DoUpdate() Next figure out how to grab the rates for the correct transitions
+		-> Proving difficult...
+	
+f) Created a DiseaseVars.csv file, e.g.,
+Number of States	3
+Initial Conditions	.5;.5;0
+Transition Rates	0.3;0.5
+
+g) Add to PatchVars, read in through PreProcessing, CDClimate, etc. replaced previous 2 columns in PatchVars with this tuple.
+
+Next steps: 12/23 worked on:
+-> stochastic update on transition rates - Added column and to DoStochasticUpdate()
+-> Moved DiseaseVars to row format
+-> Added flexible states for a linear comparment model or when no feedback loops and a single disease component. 
+-> Tracking in GetMetrics for Track_DiseaseStates_pop and Track_DiseaseStates_SecondUpdate, Track_DiseaseStates_ThirdUpdate
+-> Write out a new output summary file - done if output disease ans is not N
+
+-> Moving to functions: working here 12/26
+	-> Moved test_patchlevel_diseasestates_update() function to Disease module. Not called in main loop but keeping for testing purposes. 
+	-> Added iind state updates to function infInd() 
+		-> currently assumes linear progression of states (no feedback loops - will need a matrix eventually)*** 
+		-> Also assumes second state always is the infection transmission state (might need 2 matrices for F and V matrices...)***
+-> Move implement_disease and start disease to PopVars - replaced cdinfect and transmissionrate
+	-> ***update this in user manual
+-> Setting up validation and testing runs and freeze this version (move below tasks to next version)***
+	-> No birth and death SIR states and A single patch N 
+		-> Single patch system throwing errors *** Double check with CDay
+			-> if nonmating and Bearpairs != -9999 (DoMate check added)
+			-> AddAge0s if empty keep empty and continue to InheritGenes
+
+OTHER UPDATES
+a) When cdclimatetime has more values than N0 - error 
+	->Updated the split_or_get function to include error checks for this
+	-> ***Still issue in v2.77 - Casey
+b) Created Validate function to streamline error checking.
+c) Moved AddAge0s to Offspring module
+
+##### Freezing version here - moving todo list up
+
+
+
+
+########################################## CDMetaPOP Disease Dev Fork
+
+
+Changes v2.77.2024.10.11 - 12/12/2024
+0) Casey updated logisitic pulled and pushed. 
 
 Changes v2.76. 2024.10.8
 0) Type error with N for egg mortality parameters = 

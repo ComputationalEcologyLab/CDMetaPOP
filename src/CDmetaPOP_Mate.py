@@ -484,7 +484,7 @@ males,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count
 	# End::DoSexualNN()		
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,BreedYYFemales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,ToTYYFemales,egg_delay,Bearpairs_temp,natal_patches,offno,transmissionprob,f_ind,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,constMortans,outputans):
+def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,BreedYYFemales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,ToTYYFemales,egg_delay,Bearpairs_temp,natal_patches,offno,f_ind,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,constMortans,outputans,Track_DiseaseStates_AddedInds,disease_vars):
 
 	'''
 	DoMate()
@@ -529,9 +529,9 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	Track_EggDeaths.append([])
 	Track_Births.append([]) # Spot for generation, 
 	Track_BirthsMYY.append([]) # Spot for generation, note this is the offspring number from a MYY after egg deaths.
-	Track_BirthsFYY.append([]) # Spot for generation, note this is the offspring number after egg deaths. 	
-	
-	
+	Track_BirthsFYY.append([]) # Spot for generation, note this is the offspring number after egg deaths. 
+	Track_DiseaseStates_AddedInds.append([])
+		
 	# ---------------------------------------------------
 	# Select males and females for mating
 	# ---------------------------------------------------
@@ -613,6 +613,17 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		Track_BirthsMYY[gen].append([]) 
 		Track_BirthsFYY[gen].append([]) 		
 		
+		# -----------------------------------------------------------------
+		# For tracking disease states updates
+		# -----------------------------------------------------------------
+		#pdb.set_trace()
+		Track_DiseaseStates_AddedInds[gen].append([])
+		indstates_inthispatch = SubpopIN[isub]['states'] 
+		updated_countstates = np.bincount(indstates_inthispatch, minlength=disease_vars['noStates'][isub])
+		Track_DiseaseStates_AddedInds[gen][isub].extend(updated_countstates)		
+	# For total
+	Track_DiseaseStates_AddedInds[gen].insert(0,np.sum(np.asarray(Track_DiseaseStates_AddedInds[gen]),axis=0).tolist())
+	
 	# Add Population totals
 	ToTMales[gen].insert(0,sum(ToTMales[gen]))
 	ToTFemales[gen].insert(0,sum(ToTFemales[gen]))
@@ -853,15 +864,6 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		else:
 			print('This Female/Male mating structure does not exist. Must be Y/N combinations.')
 			sys.exit(-1)		
-		
-	# For testing EBT old vs new model - adding DoEggMortality() check
-	#thisBearpair_noOffspring = DoIndividualEggMortality(Bearpairs[count],eggmort_patch,Track_EggDeaths,gen,eggmort_pop,Track_Births,Track_BirthsMYY,Track_BirthsFYY,thisBearpair_noOffspring,constMortans)
-	#DoEggMortality(Bearpairs,eggmort_patch,Age0Deaths,gen,K,eggmort_back,noOffspring,Births,BirthsMYY,BirthsFYY)
-	#testEggDeaths = []
-	#testBirths = []
-	#testBirthsMYY = []
-	#testBirthsFYY = []
-	#testnoOffspring, testEggDeaths, testBirths, testBirthsMYY, testBirthsFYY = DoEggMortality(Bearpairs, eggmort_patch, testEggDeaths, 0, K, eggmort_pop, noOffspring, testBirths, testBirthsMYY, testBirthsFYY) 
 	
 	# --------------------------------
 	# Clean up after loop - some checks
@@ -873,8 +875,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# To arrays
 	noOffspring = np.asarray(noOffspring)
 	Bearpairs = np.asarray(Bearpairs)
-	del females 
-	del males
+	del females, males
 	
 	# -----------------------------------
 	# Tracking Updates Egg Deaths, Births

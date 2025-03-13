@@ -711,7 +711,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						name = namethis+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 						
 						# Note 'NatalPop' gets updated here to the new straypop now
-						recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+						recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 									
 						# Record outpool disperse information	
 						SubpopIN_keep[int(disppop)-1].append(recd)		
@@ -837,7 +837,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							
 							name = namethis+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
 																	
-							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 												
 							# Record outpool disperse information	
 							SubpopIN_keep[int(disppop)-1].append(recd)				
@@ -913,7 +913,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							
 							name = namethis+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 								
-							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 											
 							# Record outpool disperse information	
 							SubpopIN_keep[int(disppop)-1].append(recd)		
@@ -1031,9 +1031,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					# Not sure if this is right to get the individual to migrate back to its original patch after potentially dispersing to new emigration patch
 					name = namethis+str(originalpop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
 															
-					#recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+					#recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 					# Because this individual is in the ocean, we keep original pop and emipop becomes disppop
-					recd = (originalpop,disppop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+					recd = (originalpop,disppop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 										
 					# Record outpool disperse information	
 					SubpopIN_keep[int(disppop)-1].append(recd)				
@@ -1111,7 +1111,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							StrSuccess[gen].append(1)
 							continue					
 						
-						# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,infection,capture,name
+						# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,states,capture,name
 						# ---------------------------------------
 						disppop = str(iteminlist+1)
 						immipop = disppop
@@ -1119,7 +1119,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						outpool_name = outpool_name.split('_')
 						name = 'E'+str(disppop)+'_F'+str(isub+1)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 						
-						recd = (str(isub+1),disppop,'NA',outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+						recd = (str(isub+1),disppop,'NA',outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 									
 						# Record outpool disperse information	
 						SubpopIN_keep[int(disppop)-1].append(recd)				
@@ -1207,7 +1207,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 								StrSuccess[gen].append(1)
 								continue					
 							
-							# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,infection,capture,name
+							# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,states,capture,name
 							# ---------------------------------------
 							disppop = str(iteminlist+1)
 							immipop = disppop
@@ -1215,7 +1215,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							outpool_name = outpool_name.split('_')
 							name = 'RD'+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 							
-							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 										
 							# Record outpool disperse information	
 							SubpopIN_keep[int(disppop)-1].append(recd)				
@@ -1252,7 +1252,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							StrSuccess[gen].append(0)
 							continue
 							
-						# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,infection,capture,name
+						# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,states,capture,name
 						# ---------------------------------------
 						disppop = str(iteminlist+1)
 						immipop = disppop # or Currentpop
@@ -1260,7 +1260,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						outpool_name = outpool_name.split('_')
 						name = 'R'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 						
-						recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['species'],outpool['genes'])
+						recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['species'],outpool['genes'])
 									
 						# Record outpool disperse information	
 						SubpopIN_keep[int(immipop)-1].append(recd)				

@@ -1,0 +1,2 @@
+Number of States,Initial Conditions,Transition Rates,Infection Compartments,Death Compartments,Initial Conditions Offspring,Start Disease,Transmission Mode,Disease Defense
+4,.9;0;.1;0,otherfiles/disease/SIRtype/TransitionMatrix_SEIR.csv,2,N,Susceptible,0,Direct,N
