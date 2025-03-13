@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP in3formation
 appName = "CDmetaPOP"
-appVers = "version 2.82forked"
+appVers = "version 3.00"
 appRele = "2025.03.13-09:09:09"
 authorNames = "Erin L Landguth, Casey Day, et al."
 
