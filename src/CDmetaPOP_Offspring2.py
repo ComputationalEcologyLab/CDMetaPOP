@@ -21,7 +21,7 @@ def count_unique(keys):
 	#End::count_unique()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizeans,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,SubpopIN_keepAge1plus,PopTag):
+def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizeans,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,SubpopIN_keepAge1plus,PopTag,K):
 	'''
 	DoOffspringVars()
 	This function assigns the age (0), sex, and size of each offspring.
@@ -32,9 +32,9 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 	#pdb.set_trace()
 	# Need to check gen 1+ for 'NA; in EmiPop location - think only in gen 0
 	# if nonmating option specified, then need to find where each Bearpair mother went or survived after Emigration	
-	if egg_add == 'nonmating':
+	if egg_add == 'nonmating' and isinstance(Bearpairs[0][0],np.void):
 		#pdb.set_trace()		
-		#Bearpairs[0][0]['name'] = 'this_Ptesting' # THis is for testing situation where mother did not make it through to SubpopIN
+		#Bearpairs[0][0]['name'] = 'this_Ptesting' # THis is for testing situation where mother did not make it through to SubpopIN		
 		Bearpairs[:,0]['EmiPop'] = 'NA' # For generation 1+ We can overwrite the EmiPop for the mothers
 		# For each ID in Bearpair mothers
 		mothers_Bearpairs_names = [s.split('_P')[1] for s in Bearpairs[:,0]['name'].tolist()]		
@@ -389,7 +389,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				count = count + 1 # For unique naming tracking				
 	# If there was not a pairing
 	else:
-		offspring.append([])
+		offspring = [[]]*len(K)
 	
 	# Variables returned
 	return offspring

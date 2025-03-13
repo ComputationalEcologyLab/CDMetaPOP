@@ -2023,15 +2023,17 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 		for isub in range(len(K)):
 					
 			# Begin looping through individuals in subpop
-			# -------------------------------------------
+			# -------------------------------------------			
 			for iind in range(len(SubpopIN[isub])):
 								
 				# -----------------------------------------------------
 				# Get this individuals original ClassVars file and bins
 				# -----------------------------------------------------				
+				#start_time1 = datetime.datetime.now()
 				natalP = int(SubpopIN[isub][iind]['classfile'].split('_')[0].split('P')[1])
 				theseclasspars = int(SubpopIN[isub][iind]['classfile'].split('_')[1].split('CV')[1])
-								
+				#print(datetime.datetime.now() -start_time1, "Grab classpars")
+				
 				# -----------------------------
 				# Grow here - middle and sample
 				# -----------------------------
@@ -2066,7 +2068,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# Capture here - Middle and Sample
 				# ---------------------------------				
 				capInd(lastage,SubpopIN,isub,iind,sizecall,size_mean[natalP][theseclasspars],ClasscapProb[natalP][theseclasspars],PopcapProb[isub],sexchromo)
-				
+			
 			# -----------------------------------------------------------------
 			# For tracking age/size numbers, use min and max for multiple files
 			# -----------------------------------------------------------------
@@ -2140,14 +2142,14 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 	# -----------------------------------------------------
 	# Release the captured individuals - Middle and Sample
 	# Reset New maturers as well - ALL
-	# -----------------------------------------------------
+	# -----------------------------------------------------	
 	# Begin loop through subpopulations
 	for isub in range(len(K)):
 		if gridsample != 'Initial':
 			SubpopIN[isub]['capture'] = 0
 		SubpopIN[isub]['newmature'] = 0
 	
-	# Return variables only if updated age
+	# Return variables only if updated age	
 	return SubpopIN
 	
 	# End::DoUpdate()
@@ -2174,11 +2176,13 @@ def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,
 				
 	# Loop through each patch
 	for isub in range(len(K)):
-	
 		# Get each SubpopIN pop as array and Age0s array
 		SubpopIN_arr = np.array(SubpopIN_keepAge1plus[isub],dtype=dtype)
-		Age0Pop = SubpopIN_Age0[np.where(SubpopIN_Age0[egg_add_call] == str(isub+1))[0]]
-				
+		if len(SubpopIN_Age0[isub]) != 0:
+			Age0Pop = SubpopIN_Age0[np.where(SubpopIN_Age0[egg_add_call] == str(isub+1))[0]]
+		else:
+			Age0Pop = SubpopIN_Age0[isub]
+
 		# ----------------
 		# InheritGenes()
 		# ----------------		

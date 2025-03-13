@@ -380,7 +380,7 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 	# End::GetProbArray()
 	
 # ---------------------------------------------------------------------------------------------------	
-def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring,Bearpairs,size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,egg_add):
+def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,ProbPatch,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring,Bearpairs,size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,egg_add,age_percmort,f_leslie,f_leslie_std):
 
 	'''
 	DoEmigration()
@@ -646,7 +646,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 		# ------------------------------------------
 		# Get other species Ns from all Patches here
 		# ------------------------------------------
-		if implementcomp == 'Out':
+		if implementcomp.lower() == 'out':
 			Nself_pop = [len(SubpopIN_keep[x]) for x in range(0,len(SubpopIN_keep))]
 			# Ignore queus if only one species
 			if len(XQs) > 0:
@@ -982,6 +982,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			#---------------------------------------------
 						
 			# Clean up index - grabs largest to less than 0 class
+			pdb.set_trace()
 			Nage_samp_ind_all = sum(Nage_samp_ind,[])
 			
 			# Find adults in samp list that survived
@@ -2201,10 +2202,10 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			Npop = len(tempAgePatch)
 			
 			# Overwrite Kpop to K adjusted tracking from DoEmigration that was updated from competition - careful of indexing Tracking variable is patch + 1, first value is total
-			if gen > 0 and implementcomp == 'Back':
+			if gen > 0 and implementcomp.lower() == 'back':
 				#Kpop = Track_KadjImmi[gen-1][isub+1]
 				Kpop = Track_KadjImmi[gen-1][isub]
-			if implementcomp == 'Out':				
+			if implementcomp.lower() == 'out':				
 				# -----------------
 				# Adjustment for K if more than one species
 				# -----------------
@@ -2315,51 +2316,414 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
 			
 	# --------------------------------------------
-	# Logistic selected - not applied during out
+	# Logistic selected with implementcomp = 'out'
 	# -------------------------------------------- 
 	elif packans.split('_')[0] == 'logistic': 
-		
-		# ------------------------
-		# Loop through each patch
-		for isub in range(len(K)):
+		# Check that popmodel answer is either logistic_out or logistic_back
+		try:
+			logisticAns = packans.split('_')[1]
+		except:
+			print("Logistic popmodel option must specify out or back.")
+			sys.exit(-1)
+		# ------------------------------------------
+		# Get other species Ns from all Patches here
+		# ------------------------------------------		
+		if logisticAns.lower() == 'out':			
+			if len(XQs) > 0:
+				if implementcomp.lower() != 'out':
+					print("Competition must be implemented during the same time step (out or back) as the logistic growth model")
+					sys.exit(-1)
+			# Present species stores pop sizes and deposits them 
+			# in the queue for other species to pull from
+			Ntself_pop = []
+			# Length of each patch without age 0s
+			#if multiprocessing.current_process().name == "S0":
+				#ForkablePdb().set_trace()	
+				# Adjusting N instead of adjusting K
+			for isub in range(0,len(SubpopIN_keep)):
+				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
+				thisone = SubpopIN_arr['age']
+				thisone_ages = count_unique(thisone[np.where(thisone!=0)])
+				# Create Nt from countages
+				Nt = []
+				# Exclude age 0s to calculate mortality on present gen (Nt+1) from past gen (Nt)
+				for iage in range(len(size_mean[0][0])): #Use len(size_mean) for # of ages
+					if iage+1 in thisone_ages[0]:
+						Nt.append(thisone_ages[1][thisone_ages[0].tolist().index(iage+1)])
+					else:
+						Nt.append(0)
+				# Create list of Nt's, one for each patch
+				Ntself_pop.append(Nt)	
+			#pdb.set_trace()
+			# Add to queues if more than one species
+			if len(XQs) > 0:
+				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
+				for ispecies in range(len(XQs[spcNO])): 
+					XQs[spcNO][ispecies].put(Ntself_pop) 
+			Ntother_pop = []
+			popcount = 0
+			# Grab from queues only if more than one species
+			if len(XQs) > 0:
+				for ispecies in range(len(XQs[spcNO])):			
+					if ispecies != spcNO: 
+						#Nt other pop
+						Ntother_pop.append(XQs[ispecies][spcNO].get(block = True))
+						# Error check here for equal patches
+						if len(Ntother_pop[popcount]) != len(Ntself_pop):
+							print("Species systems must have the same number of patches.")
+							sys.exit(-1)
+						popcount = popcount + 1
 			
-			# Get each SubpopIN pop as array
-			SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
 			
-			# Append all information to temp SubpopKeep variable
-			SubpopIN_keepAge1plus.append(SubpopIN_arr)
 			
-			# K,N for this population
-			Kpop = K[isub]
-			Npop = len(SubpopIN_arr)
-			
-			# Overwrite Kpop with K adjusted from DoEmigration that was updated from competition - careful of indexing Tracking variable is patch + 1, first value is total
-			if gen > 0:
+			# ------------------------
+			# Loop through each patch
+			# ------------------------
+			for isub in range(len(K)):
+				# Get each SubpopIN pop as array
+				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
 				#pdb.set_trace()
-				#Kpop = Track_KadjImmi[gen-1][isub+1]
-				Kpop = Track_KadjImmi[gen-1][isub]
-			Kadj_track[gen].append(Kpop) # For Tracking
-			
-			# Count up each uniages
-			age_adjusted = SubpopIN_arr['age']
-			
-			# Tracking numbers - N before packing, packing deaths (0), 
-			# -----------------------------------
-			N_beforePack_pop[gen].append(Npop)
-			PackingDeaths[gen][isub] = 0 # No packing deaths here			
-			for iage in range(len(N_beforePack_age[gen])):
-				sizeindex = np.where(age_adjusted==iage)[0]
-				N_beforePack_age[gen][iage].append(len(sizeindex))
-				PackingDeathsAge[gen][iage].append(0) # Store 0 for packing deaths age
-			# Special case where age class is greater than lastage
-			sizeindex = np.where(age_adjusted > iage)[0]
-			N_beforePack_age[gen][iage].append(len(sizeindex))
-			# Store some numbers in this loop too.
-			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
-			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
-			Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
-			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
+				# ----------------------------------------
+				# Get the number of eggs/fry in this patch
+				# ----------------------------------------
+				# Only if there are offspring
+				if len(noOffspring) != 0: 
+					
+					# Get mother's information
+					mothers_patch = Bearpairs[:,0]
+					mothers_patch_ind = np.where(mothers_patch['NatalPop']==str(isub+1))[0]
+					mothers_patch_file = mothers_patch[mothers_patch_ind]['classfile']
+					mothers_patch_hindex = mothers_patch[mothers_patch_ind]['hindex']
+					# Father's information
+					fathers_patch_hindex = Bearpairs[:,1][mothers_patch_ind]['hindex']
+					fathers_patch_file = Bearpairs[:,1][mothers_patch_ind]['classfile']
+					
+					# Get the offspring in patch
+					offspring_patch = noOffspring[mothers_patch_ind]
+					Popoffspring = sum(offspring_patch)
+					offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
+					if len(np.where(noOffspring < 0)[0]) >= 1:
+						print('Issue with number of offspring less than zero.')
+						pdb.set_trace()
+					
+					offspring_size = [] # sizes
+					#offspring_file = [] # files assigned
+					for ifile in range(len(offspring_patch)):
+						# Total offspring for this female
+						theseoffspring = offspring_patch[ifile]
+						
+						# Then get the classfile assignment for these offspring based on the new hindex - make sure this is stochastic for each offspring or binomial draw
+						
+						# Grab the mothers and fathers classfile index
+						mothers_thisfile = mothers_patch_file[ifile]
+						mothers_natalP = int(mothers_thisfile.split('_')[0].split('P')[1])
+						mothers_theseclasspars = int(mothers_thisfile.split('_')[1].split('CV')[1])
+						fathers_thisfile = fathers_patch_file[ifile]
+						fathers_natalP = int(fathers_thisfile.split('_')[0].split('P')[1])
+						fathers_theseclasspars = int(fathers_thisfile.split('_')[1].split('CV')[1])
+						
+						# Get random assignment for either mother or fathers classfile
+						# -------------------------------------------------------------
+						randnos = np.random.sample(theseoffspring) # Create a list of random numbers
+						# Copy and make a int for writing over classfile assignment
+						offspring_mu = copy.deepcopy(randnos)
+						offspring_sigma = copy.deepcopy(randnos)
+						if inheritans_classfiles == 'random': # random assignment
+							# Where the numbers are < 0.5, assign fathers class file information
+							offspring_mu[np.where(randnos < 0.5)[0]] = size_mean[fathers_natalP][fathers_theseclasspars][0]
+							offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]				
+							# Else assign to mother
+							offspring_mu[np.where(randnos >= 0.5)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
+							offspring_sigma[np.where(randnos >= 0.5)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
+							#temp_offspring_files[np.where(randnos >= 0.5)[0]] = mothers_thisfile
+						elif inheritans_classfiles == 'Hindex': # Hindex assignment
+							# Assume multiple allele frequency files/class files linked
+							theseoffspring_hindex = offspring_patch_hindex[ifile]
+							# If rand nos less than hindex of offspring, make 1.0 Hindex file	
+							offspring_mu[np.where(randnos < theseoffspring_hindex)[0]] = size_mean[0][0][0]
+							offspring_sigma[np.where(randnos < theseoffspring_hindex)[0]] = size_std[0][0][0]
+							# Else, they are greater than hindex of offspring, make 0.0 Hindex file
+							offspring_mu[np.where(randnos >= theseoffspring_hindex)[0]] = size_mean[0][1][0]
+							offspring_sigma[np.where(randnos >= theseoffspring_hindex)[0]] = size_std[0][1][0]
+						elif inheritans_classfiles == 'mother': # for YY case; inherit offspring mu from mother in all cases
+							# Else assign to mother
+							offspring_mu[np.where(randnos >= 0.0)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
+							offspring_sigma[np.where(randnos >= 0.0)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
+									
+						# Get sizes
+						# Case for when sigma = 0, temp replace
+						sigma0_index = np.where(offspring_sigma == 0)[0]
+						if len(sigma0_index) != 0:
+							# Temp replace those values
+							offspring_sigma[sigma0_index] = 0.0000001
+						sizesamp = np.random.normal(offspring_mu,offspring_sigma)
 										
+						# Check to see if negative values, set to 0
+						if not isinstance(sizesamp,float):
+							sizesamp[np.where(sizesamp < 0)[0]] = 0.
+							# Append to list
+							offspring_size.append(sizesamp.tolist())
+						else:
+							if sizesamp < 0:
+								sizesamp = 0.
+								# Append to list
+								offspring_size.append(sizesamp)
+																		
+					# Add sizes to SubpopIN_arr['size']
+					offspring_size = np.asarray(sum(offspring_size,[]))
+					tempSizePatch = np.concatenate((SubpopIN_arr['size'],offspring_size))
+					
+					# Add age 0 numbers to SubpopIN_arr['age']
+					tempNewAge = np.zeros(Popoffspring,dtype='int')
+					tempAgePatch = np.concatenate((SubpopIN_arr['age'],tempNewAge))
+					
+					# Store the classfiles for later reference
+					#offspring_file = np.asarray(sum(offspring_file,[]))
+					#tempFilePatch = np.concatenate((SubpopIN_arr['classfile'],offspring_file))
+					
+					# Add hindex to SubpopIN_arr['hindex']
+					tempNewHindex = np.repeat(offspring_patch_hindex,offspring_patch) # Repeat the patch hindex by the number of offspring in that patch.
+					tempHindexPatch = np.concatenate((SubpopIN_arr['hindex'],tempNewHindex))
+								
+				# If there are no offspring
+				else:
+					# Get tracking number
+					Popoffspring = 0
+					# Get size and age for rest of patch
+					tempSizePatch = SubpopIN_arr['size']
+					tempAgePatch = SubpopIN_arr['age']
+					#tempFilePatch = SubpopIN_arr['classfile']
+					tempHindexPatch = SubpopIN_arr['hindex']
+				# Casey's edit to use tempAgePatch instead of SubpopIN_arr for age 0s
+				# Count up each uniages (size not an option for logistic)
+				#countages = count_unique(SubpopIN_arr['age']) # ages will be 1+
+				#age_adjusted = SubpopIN_arr['age']
+				countages = count_unique(tempAgePatch) #CCD
+				age_adjusted = tempAgePatch #CCD
+				# K,N for this population
+				Kpop = K[isub]
+				# Includes age 0s 
+				
+				#Npop = len(SubpopIN_arr)
+				Npop = len(age_adjusted) #CCD
+				# Excludes age 0s
+				Nt = Ntself_pop[isub]
+				# Keep track of P for logistic P/K 
+				Pisub = sum(Nt)
+				#if multiprocessing.current_process().name == "S1":
+					#ForkablePdb().set_trace()
+				
+				# Tracking for before packing
+				N_beforePack_pop[gen].append(Npop) 
+				for iage in range(len(size_mean[0][0])):
+					sizeindex = np.where(age_adjusted==iage)[0]
+					N_beforePack_age[gen][iage].append(len(sizeindex))
+				# Special case where age class is greater than lastage
+				sizeindex = np.where(age_adjusted > iage)[0]
+				N_beforePack_age[gen][iage].append(len(sizeindex))
+				
+				# ----------------------------
+				# Parameters for Second species (comp_coef = alpha2_1)
+				# ----------------------------
+				
+				if len(XQs) > 0 and gen >= startcomp:
+					alphas = comp_coef[isub].split(';') # Relabling here, so clear for us right now
+					tempspeciesSum = []
+					for ispecies in range(len(Ntother_pop)):
+						
+						# Multiply Nt of other species times alpha
+						tempspeciesSum.append(sum(Ntother_pop[ispecies][isub])*float(alphas[ispecies]))
+						#tempspeciesSum.append(Ntother_pop[ispecies][isub]*float(alphas[ispecies]))
+					# This is the adjusted N for the N/K ratio in the logistic (P/K, Miller and Ankley 2004)
+					Pisub = sum(Nt) + sum(tempspeciesSum)
+					
+				#Track P/Nn ratio when competition.
+				if sum(Nt) != 0 and len(XQs) > 0:
+					Kadj_track[gen].append(Pisub/sum(Nt)) # For Tracking
+				else:
+					Kadj_track[gen].append(np.nan)
+				# If none in this patch
+				if Npop == 0 or Kpop == 0:
+					# Append all information to temp SubpopKeep variable
+					Nage_samp_ind = np.arange(0)
+				# If populated - continue with DDMortality
+				else:			
+					# -------------------------
+					# Age loop
+					# -------------------------
+					Nage_samp_ind = []
+					# Define Leslie matrix M; Jensen 1995 Eco Modelling
+					
+					# Error check here for more than 1 class vars - move to preprocessing eventually
+					if len(f_leslie[isub]) > 1:
+						print('Leslie matrix option does not allow for multiple classvars.')
+						sys.exit(-1)
+					fecund = np.asarray(f_leslie[isub][0], dtype=float) #Import from classvars
+					#if multiprocessing.current_process().name == "S0":
+					#	ForkablePdb().set_trace()	
+									
+					Mb = [] # Create N x N-1 matrix				
+					for idx in range(len(fecund)-1): 
+						for idx2 in range(len(fecund)):
+							if idx==idx2:
+								if age_percmort[isub][0][idx].split('~')[0] != age_percmort[isub][0][idx].split('~')[1]:
+									print('Leslie matrix option does not allow for sex specific mortality.')
+									sys.exit(-1)
+								Mb.append(1-float(age_percmort[isub][0][idx].split('~')[0]))
+							else:
+								Mb.append(0.)
+					# Add the final row for complete N x N
+					M = np.array(fecund.tolist() + Mb).reshape(len(fecund),len(fecund))		
+					# dominant eigenvector of M - Stable age distribution or proportion of K allocated to each age class
+					vals, vects = np.linalg.eig(M)
+					maxcol = list(vals).index(max(vals))
+					# Dominant (right) eigenvector
+					eigenvect = vects[:,maxcol]
+					# Stable Age Distribution
+					SAD = eigenvect/sum(eigenvect)
+					# Calculate intrinsic growth rate r
+					valsabs = np.abs(vals)
+					max_index = np.argmax(valsabs)
+					# Dominant eigenvalue (greatest magnitude from 0)
+					valdom = vals[max_index]
+					if valdom == 0:
+						print("Invalid Leslie matrix")
+						print(M)
+						sys.exit(-1)
+					# intrinsic growth rate
+					# Updated to use absolte value of dominant eigenvalue. I'm not sure if this is ok, but a negative value is impossible to calculate a growth rate. So 
+					# either abs(valdom) or max(vals), not sure which as the dominant eigenvalue is meant to be the value with the greatest magnitude
+					igr = np.log(abs(valdom))
+					# Add a check here for if length of Nt is not len of fecund
+					if len(Nt) != len(fecund): 
+						print("Check code")
+						pdb.set_trace()
+					
+					# Get total number of deaths for each age class
+					Ntplus1 = np.exp((igr*-1)*(Pisub/Kpop))*(np.dot(M,Nt))
+					#Ntplus1 = np.rint(Ntplus1) # Round
+					# CDay fix for low population sizes compared to age classes
+					Ntplus1 = np.divmod(Ntplus1,1)[0] + (np.divmod(Ntplus1,1)[1] >= np.random.rand(len(Ntplus1)))
+					Ntplus1[Ntplus1<0] = 0 # Ensure not negative
+					
+					for iage in range(len(Ntplus1)):
+						
+						# Age class
+						Ageclass = iage									
+						if Ageclass in countages[0]:
+						# Get index for where these ages are
+						
+							Nage = countages[1][np.where(countages[0]==Ageclass)[0][0]]
+						
+							Nage_index = np.where(tempAgePatch==Ageclass)[0]
+							
+							# Special case: if last age class, no survivros
+							if Ageclass > len(fecund)-1:
+								mortreturn = Nage # Then apply mortality to all age class.
+								indexforAgeclass = len(fecund) - 1
+							else:
+								mortreturn = Nage - round(Ntplus1[Ageclass])
+								if mortreturn <= 0: # No mortality
+									mortreturn = 0
+									# Grab all the ages
+									Nage_samp_ind.append(list(Nage_index))
+								else: # Mortality occurs
+									if Nage-mortreturn <= 0: # Kill off all
+										Nage_samp_ind.append([])
+									else:
+										# Grab a random draw of these ages to keep
+										Nage_samp_ind.append(np.random.choice(Nage_index,int(Nage-mortreturn),replace=False).tolist())
+							# Tracker
+							PackingDeathsAge[gen][Ageclass].append(Nage - len(Nage_samp_ind[-1]))
+								
+						else:
+							Nage_samp_ind.append([])
+							# Tracker
+							PackingDeathsAge[gen][Ageclass].append(0)
+				# --------------------------------------------
+				# Select out the packed current Age 1+ to keep
+				#---------------------------------------------
+				
+				# Clean up index
+				# Age 0s should bei ncluded in Nage_samp_ind_all
+				Nage_samp_ind_all = sum(Nage_samp_ind,[])	
+					
+				# Find adults in samp list that survived
+				Nage_ind_adults = np.arange(len(SubpopIN_arr))
+				index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
+				Nage_samp_ind_adults = np.asarray(Nage_samp_ind_all)[index]	
+				
+				# Temp for Age 1+ to keep
+				if len(Nage_samp_ind_adults) == 0: # No one survived
+					deleteall = Nage_ind_adults
+					SubpopIN_arr = np.delete(SubpopIN_arr,deleteall)
+					SubpopIN_keepAge1plus.append(SubpopIN_arr)			
+				else:
+					SubpopIN_keepAge1plus.append(SubpopIN_arr[Nage_samp_ind_adults])
+				
+				# -------------------------------------------------------------
+				# Get the new adjusted offspring for each Bearpair - use later
+				# -------------------------------------------------------------
+				if Npop != 0 and Popoffspring != 0:
+					Nage_samp_ind_off = len(Nage_samp_ind_all)-len(Nage_samp_ind_adults)		
+					if Nage_samp_ind_off < Popoffspring:
+						# Split based on proportion
+						offspring_patch = np.around(offspring_patch * float(Nage_samp_ind_off)/sum(offspring_patch))
+						offspring_patch = np.asarray(offspring_patch,dtype='int')
+						noOffspring[mothers_patch_ind] = offspring_patch
+					
+				# ------------------
+				# Tracking numbers
+				# ------------------
+				# Store some numbers in this loop too.
+				SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
+				DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
+				PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind_all) 
+				Track_YYSelectionPackDeaths[gen][isub] = 0 # No selection in logistic for now
+				Track_WildSelectionPackDeaths[gen][isub] = 0 # No selection in logistic for now
+				
+		elif logisticAns.lower() == 'back': # What happens if implementcomp = Back 
+			# ------------------------
+			# Loop through each patch for tracking
+			for isub in range(len(K)):
+				
+				# Get each SubpopIN pop as array
+				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
+				
+				# Append all information to temp SubpopKeep variable
+				SubpopIN_keepAge1plus.append(SubpopIN_arr)
+				
+				# K,N for this population
+				Kpop = K[isub]
+				Npop = len(SubpopIN_arr)
+				
+				# Track P/N ratio calculated in Immigration, logistic=back
+				if gen > 0:
+					Kadj_track[gen].append(Track_KadjImmi[gen-1][isub+1]) # For Tracking
+				else:
+					Kadj_track[gen].append(1.0)
+				# Count up each uniages
+				age_adjusted = SubpopIN_arr['age']
+				
+				# Tracking numbers - N before packing, packing deaths (0), 
+				# -----------------------------------
+				N_beforePack_pop[gen].append(Npop)				
+				SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
+				DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
+				PackingDeaths[gen][isub] = 0 # No packing deaths here			
+				Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
+				Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
+				
+				for iage in range(len(N_beforePack_age[gen])):
+					sizeindex = np.where(age_adjusted==iage)[0]
+					N_beforePack_age[gen][iage].append(len(sizeindex))
+					PackingDeathsAge[gen][iage].append(0) # Store 0 for packing deaths age
+				# Special case where age class is greater than lastage
+				sizeindex = np.where(age_adjusted > iage)[0]
+				N_beforePack_age[gen][iage].append(len(sizeindex))
+		else:
+			print("Logistic popmodel option must specify either out or back.")
+			sys.exit(-1)
 	# Error check
 	else:
 		print('See user manual for population model options.')
@@ -2368,8 +2732,8 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 	# ------------------------------
 	# Get the survived SubpopIN_Age0
 	# ------------------------------
-	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,SubpopIN_keepAge1plus,PopTag)
-	
+	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,SubpopIN_keepAge1plus,PopTag,K)
+	'''
 	# Get dtype for offspring - first check to see if any Bearpairs/offspring
 	#if Bearpairs[0][0] != -9999:
 	#if len(Bearpairs[0][0]) != 1:
@@ -2380,6 +2744,16 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
 
 	offspring = np.asarray(offspring,dtype=offdtype) # Convert to array with dytpe
+	'''
+	# Get dtype for offspring - first check to see if any Bearpairs/offspring
+	#if Bearpairs[0][0] != -9999:
+	#if len(Bearpairs[0][0]) != 1:
+	if sum(noOffspring) > 0:
+	#if not (isinstance(Bearpairs[0][0],numbers.Integral)): # Checks for -9999 here and could be int or np.int32	
+		offdtype = [('Mother',('i',len(Bearpairs[0][0]['genes']))),('Father',('i',len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]		
+	else:
+		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
+	offspring = np.asarray(offspring,dtype=offdtype) # Convert to array with dytpe	
 	
 	# Update the Wright Fisher case for sex here
 	if Femalepercent == 'WrightFisher':
@@ -2578,7 +2952,7 @@ def CalculateDispersalMetrics(OffDisperseIN,FDispDistCD,MDispDistCD,FDispDistCDs
 	# End::CalculateDispersalMetrics()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring,Bearpairs,size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,egg_add,outans):
+def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDispDistCDstd,MDispDistCDstd,subpopmigration,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizeans,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring,Bearpairs,size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,egg_add,outans,age_percmort,f_leslie,f_leslie_std):
 
 	'''
 	DoEmigration()
@@ -2589,7 +2963,7 @@ def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDis
 	'''		
 		
 	# Population Extinct Check
-	if len(Bearpairs) != 0:
+	if not isinstance(Bearpairs[0][0],int):		
 		# Get size or age control here - for Mg Prob value
 		if sizeans == 'Y':
 			sizecall = 'size'
@@ -2599,7 +2973,7 @@ def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDis
 			print('Specify Y or N for size control parameters.')
 			sys.exit(-1)	
 		
-		SubpopIN = Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring[0],Bearpairs[0],size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,egg_add)
+		SubpopIN = Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring[0],Bearpairs[0],size_std,Femalepercent,transmissionprob,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,egg_add,age_percmort,f_leslie,f_leslie_std)
 		
 		# Calculate Dispersal Metrics for movers out
 		if outans == 'Y':
@@ -2613,6 +2987,7 @@ def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDis
 			# Add subpopmigration similar to Immigration? 
 	
 	else: # Population Extinct, return tracking variables 0 only
+		pdb.set_trace()
 		# Population variables here
 		Population.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		N_beforePack_pop.append( [0 for x in range(0,len(SubpopIN)+1)] )
