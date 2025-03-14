@@ -6,9 +6,9 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP in3formation
 appName = "CDmetaPOP"
-appVers = "version 2.76"
-appRele = "2024.10.08-09:09:09"
-authorNames = "Erin L Landguth, Casey Day, Andrew Bearlin, Ryan Simmons, Travis Seaborn, et al."
+appVers = "version 3.00"
+appRele = "2025.03.13-09:09:09"
+authorNames = "Erin L Landguth, Casey Day, et al."
 
 # ---------------
 # Global symbols
@@ -108,7 +108,7 @@ if __name__ == '__main__':
 		cdclimgentimelist = batchVars1['cdclimgentime'][irun]
 		startcomp = int(batchVars1['startcomp'][irun])
 		implementcomp = str(batchVars1['implementcomp'][irun])
-		
+				
 		# ------------------------------------------
 		# Error check: Rows in PopVars must be equal
 		# ------------------------------------------
