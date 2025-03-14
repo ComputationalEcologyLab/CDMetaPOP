@@ -2047,15 +2047,17 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 			countstates_inthispatch = np.bincount(indstates_inthispatch, minlength=disease_vars['noStates'][isub])					
 			#pdb.set_trace()			
 			# Begin looping through individuals in subpop
-			# -------------------------------------------
+			# -------------------------------------------			
 			for iind in range(len(SubpopIN[isub])):
 								
 				# -----------------------------------------------------
 				# Get this individuals original ClassVars file and bins
 				# -----------------------------------------------------				
+				#start_time1 = datetime.datetime.now()
 				natalP = int(SubpopIN[isub][iind]['classfile'].split('_')[0].split('P')[1])
 				theseclasspars = int(SubpopIN[isub][iind]['classfile'].split('_')[1].split('CV')[1])
-								
+				#print(datetime.datetime.now() -start_time1, "Grab classpars")
+				
 				# -----------------------------
 				# Grow here - middle and sample
 				# -----------------------------
@@ -2126,6 +2128,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 			# -----------------------------------------------------------------------------------
 			if ((gridsample == 'Middle' and disease_vars['ImpDisease'] in ['Both','Back']) or (gridsample == 'Sample' and disease_vars['ImpDisease'] in ['Both','Out'])) and disease_vars['TransMode'][isub] == 'Indirect':
 				updateEnvRes(disease_vars,isub,countstates_inthispatch)
+
 			
 			# -----------------------------------------------------------------
 			# For tracking age/size numbers, use min and max for multiple files
@@ -2208,15 +2211,14 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 	# -----------------------------------------------------
 	# Release the captured individuals - Middle and Sample
 	# Reset New maturers as well - ALL
-	# -----------------------------------------------------
+	# -----------------------------------------------------	
 	# Begin loop through subpopulations
 	for isub in range(len(K)):
 		if gridsample != 'Initial':
 			SubpopIN[isub]['capture'] = 0
 		SubpopIN[isub]['newmature'] = 0
 	
-	# Return variables only if updated age
+	# Return variables only if updated age	
 	return SubpopIN
 	
 	# End::DoUpdate()
-	

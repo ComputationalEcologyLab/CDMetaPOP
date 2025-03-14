@@ -242,7 +242,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 									
 		# Spot to add age 0s / eggs / pups /liter, etc
 		validate(egg_add not in ['mating', 'nonmating'], 'Egg add choice incorrect.')
-		validate(egg_add not in ['mating', 'nonmating'] and packans not in 'logistic', 'Nonmating option should use logistic model.')
+		validate(egg_add not in ['mating', 'nonmating'] and packans.split('_')[0] not in 'logistic', 'Nonmating option should use logistic model.')
 					
 		valid_values = ['N','Both','Back','Out']
 		validate(implementdisease not in valid_values, 'Implement disease value incorrect.')
@@ -553,6 +553,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				#pdb.set_trace()
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
+
 				SubpopIN = DoEmigration(SubpopIN,K,gen,F_EmiDist,M_EmiDist,cdevolveans,fitvals,F_EmiDist_sd,M_EmiDist_sd,subpopemigration,SelectionDeathsEmi,DisperseDeathsEmi,burningen_cdevolve,MgOut_patch_prob,MgSuccess,AdultNoMg,age_MgOUT,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,packans,PackingDeathsEmiAge,packpar1,timecdevolve,migrate_patches,outsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring_temp,Bearpairs_temp,age_size_std,Femalepercent_egg,age_mature,alleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Track_KadjEmi,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,egg_add,outputans,age_percmort_out, f_leslie,f_leslie_std,disease_vars,Track_DiseaseStates_AddAge0s)
 								
 				# Delete the noOffspring_temp and Bearpairs_temp egg_delay spots used: the first spot in list

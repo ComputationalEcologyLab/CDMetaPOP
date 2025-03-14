@@ -1,3 +1,12 @@
+Casey changes for v2.77
+0) Add ability for logistic mortality to be applied either out or back
+1) Change input options so logistic answer for popmodel must be 'logistic_back' or 'logistic_out'. Implementcomp answer now only applied to competition, and must match the popmodel timing
+2) Added ability to have density-independent mortality if logistic is selected, but only for the season when logistic is not applied (DoMortality line 625).
+# Need to update test input files
+
+Chnages v2.77.2024.10.11
+0) Index error with different combinations of 0;0|15;15 -> 0|15;15 throws index error ***
+=======
 Changes 2.82forked.2025.03.13 ell/ccd
 
 
@@ -342,6 +351,8 @@ c) Moved AddAge0s to Offspring module
 
 Changes v2.77.2024.10.11 - 12/12/2024
 0) Casey updated logisitic pulled and pushed. 
+
+CASEY CHANGES TO MOVE HERE
 
 Changes v2.76. 2024.10.8
 0) Type error with N for egg mortality parameters = 
@@ -1461,7 +1472,7 @@ Changes v1.10.20170322T14:41:00MDT (ell)
 fitness = p * exp (- (Xj - (Temperaturemin + (Temperaturemax - Temperaturemin) * HINDEX)) / (2 * s^2))
 a) where p scales the hybrid fitness between 0 and 1. 
 b) a min and max for what a hybrid is, that is, if HINDEX > a or HINDEX < b then p = 1 (i.e. parental species, so a and b represent the H index cutoffs for parental species) if b < HINDEX < a then p = whatever value we choose for hybrid penalty. 
-c) PopVars value enter: Hindex_mintemp;maxtemp;C;p;minparent;maxparent’ 
+c) PopVars value enter: Hindex_mintemp;maxtemp;C;p;minparent;maxparent  
 
 Changes v1.09.20170301T05:26:00MST (ell)
 0) Erroe in Immigraton with single sample indexing with Packans N. Fixed.
@@ -2218,7 +2229,7 @@ Changes: v1.2.14_2013.06.09T14:21:00MST (ell)
 4) Added error statement in allelefrequency file read in - must match up number of alleles and loci entered.
 
 Changes: v1.2.13_2013.05.25T09:27:00MST (ell)
-0) Adding Female-biased dispersal - expanding options for Philopatry field to N, F, and M now. Added error checks in CDPOP.py - strict cases for F and M biased movement: 0 movement, equal sexes initialized, ‘AtBirth’ sex ratio, and either movement rules 1, 2, 5 or 6.
+0) Adding Female-biased dispersal - expanding options for Philopatry field to N, F, and M now. Added error checks in CDPOP.py - strict cases for F and M biased movement: 0 movement, equal sexes initialized,  AtBirth  sex ratio, and either movement rules 1, 2, 5 or 6.
 
 Changes: v1.2.11_2012.12.16T09:26:00MST (ell)
 0) Corrections to GENEPOP output format file.
