@@ -9,7 +9,7 @@ CDMetaPOP 2.00 release
 Welcome to the CDMetaPOP v2.0 release! This release includes installation instructions, version notes, some examples, and technical documentation. 
   
 Program Contributors: Erin Landguth, Andrew Bearlin, Casey Day, Jason Dunham, Ryan Simmons, Brenna Forrester, Kaeli Davenport, and Travis Seaborn
-Link: http://cel.dbs.umt.edu/software/CDMetaPOP_MultiSpecies/
+Link: https://github.com/ComputationalEcologyLab/CDMetaPOP
 Version: 2.00 
 Python: 3.8
 Release Date: 2022.7.18
