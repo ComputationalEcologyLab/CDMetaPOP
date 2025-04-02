@@ -986,10 +986,14 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						
 						# If spots available to move to:
 						if sum(probarray_LD) != 0.0:
-						
 							# Select the w_choice item
-							iteminlist = w_choice_item(probarray_LD)
-							namethis = 'ED' 
+							iteminlist = w_choice_item(probarray_LD)							 
+							#Add age0 should turn Rs here not Es
+							if outpool['name'][0:4] == 'Age0':
+								namethis 'RD'
+							#Not Age0s
+							else:
+								namethis = 'ED'							
 							
 						elif sum(probarray_LD) == 0.0:
 							
@@ -1004,7 +1008,12 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					# ---------------------------------------------------------------------------------	
 					else:
 						iteminlist = isub
-						namethis = 'EO' 
+						#Add age0 should turn Rs here not Es
+						if outpool['name'][0:4] == 'Age0':
+							namethis = 'R' 
+						# Not age0s
+						else:
+							namethis = 'EO'
 						
 					# ----------------------------------------------------------
 					# Check CDEVOLVE Selection Death and spatial mortality Death
