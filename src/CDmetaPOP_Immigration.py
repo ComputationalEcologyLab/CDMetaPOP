@@ -990,7 +990,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							iteminlist = w_choice_item(probarray_LD)							 
 							#Add age0 should turn Rs here not Es
 							if outpool['name'][0:4] == 'Age0':
-								namethis 'RD'
+								namethis = 'RD'
 							#Not Age0s
 							else:
 								namethis = 'ED'							
