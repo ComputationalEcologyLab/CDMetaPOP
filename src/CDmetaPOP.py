@@ -6,9 +6,15 @@
 # ----------------------------------------------------------------------------
 # General CDmetaPOP in3formation
 appName = "CDmetaPOP"
+<<<<<<< Updated upstream
 appVers = "version 2.76"
 appRele = "2024.10.08-09:09:09"
 authorNames = "Erin L Landguth, Casey Day, Andrew Bearlin, Ryan Simmons, Travis Seaborn, et al."
+=======
+appVers = "version 3.08"
+appRele = "2025.07.28-09:09:09"
+authorNames = "Erin L Landguth, Casey Day, et al."
+>>>>>>> Stashed changes
 
 # ---------------
 # Global symbols

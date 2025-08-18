@@ -626,7 +626,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# Add Count totals
 	MatureCount[gen] = sum(MatureCount[gen])
 	ImmatureCount[gen] = sum(ImmatureCount[gen])
-	
+	#pdb.set_trace()
 	# Error statement here in case no females or males, then break from loop, update any tracking left in this function
 	if (ToTFemales[gen][0] + ToTYYFemales[gen][0])==0 or (ToTMales[gen][0] + ToTYYMales[gen][0])==0:			
 		MateDistCD.append(0)
@@ -637,6 +637,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		Track_BirthsMYY[gen] = [0 for x in range(0,len(K)+1)] 
 		Track_BirthsFYY[gen] = [0 for x in range(0,len(K)+1)] 
 		Track_EggDeaths[gen] = [0 for x in range(0,len(K)+1)] 
+		#pdb.set_trace()
 		Bearpairs_temp[egg_delay] = []	
 		noOffspring_temp[egg_delay] = []
 		return Bearpairs_temp,noOffspring_temp

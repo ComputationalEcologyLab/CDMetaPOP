@@ -232,7 +232,15 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			
 		# Warning check on multiplicative mortlaity	
 		if constMortans == '2':
+<<<<<<< Updated upstream
 			print('Warning: Using multiplicative mortality option, double check for patch and class values when 0%')
+=======
+			logMsg(logfHndl,'Warning: Using multiplicative mortality option, double check for patch and class values when 0%')
+				
+		# Check on cdevolve answer input
+		valid_values = ['1', '2', '1_mat', '2_mat', 'N', 'M', 'G', 'MG_ind', 'MG_link', 'stray', '1_G_ind', '1_G_link', 'Hindex', 'F', 'Plastic', 'Multilocus','runtiming']
+		validate(cdevolveans not in valid_values, 'Check CDEvolve answer options.')
+>>>>>>> Stashed changes
 		
 		# Check on cdevolve answer input
 		if not (cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == 'N' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'stray' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans.split('_')[0] == 'F' or cdevolveans.split('_')[0] == 'Hindex' or cdevolveans.split('_')[0] == 'P' or cdevolveans.split('_')[0] == 'FHindex'):
@@ -240,6 +248,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			sys.exit(-1)
 			
 		# For mature and size ans
+<<<<<<< Updated upstream
 		if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'G' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and sizeans == 'N':
 			print('CDEVOLVE answer is M or G and size answer must be Y.')
 			sys.exit(-1)
@@ -267,6 +276,17 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				print('CDEVOLVE and Hindex parameter not entered correctly, check user manual and example files.')
 				sys.exit(-1)
 		
+=======
+		valid_values = ['M', 'MG_ind', 'MG_link', 'G', '1_G_ind', '1_G_link']
+		validate(cdevolveans in valid_values and sizeans != 'Y','CDEVOLVE answer is M or G and size answer must be Y.')
+				
+		# For Hindex answer and each function
+		validate('Hindex' in cdevolveans and 'Gauss' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 6, 'CDEVOLVE answer is Hindex and 6 parameters for the Gaussian function must be specified, see user manual and example files.')
+		validate('Hindex' in cdevolveans and 'Para' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 3 parameters for the Parabolic function must be specified, see user manual and example files.')
+		validate('Hindex' in cdevolveans and 'Step' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 3 parameters for the Step function must be specified, see user manual and example files.')
+		validate('Hindex' in cdevolveans and 'Linear' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 2 parameters for the Linear function must be specified, see user manual and example files.')
+				
+>>>>>>> Stashed changes
 		# If cdevolve is turned on must have 2 alleles
 		if cdevolveans != 'N' and alleles[0] != 2:
 			print('Warning: More than 2 alleles per locus specified. CDEVOLVE only considers first 2 alleles in selection models (except Hindex scenario).')
@@ -343,6 +363,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				sys.exit(-1)
 			
 		# If egg_delay is gretter than 1 v2.68 turned off for further testing
+<<<<<<< Updated upstream
 		if egg_delay > 0:
 			print('Currently, egg delay is not operating beyond 0 year/time unit. Testing sourcePop and gen = 0 issue.')
 			sys.exit(-1)
@@ -371,6 +392,32 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			print('Logistic model should be used with nonmating add age 0 locations. See user manual')
 			sys.exit(-1)
 			
+=======
+		validate(egg_delay > 0,'Currently, egg delay is not operating beyond 0 year/time unit. Testing sourcePop and gen = 0 issue.')
+					
+		# Reproduction answers checks 	
+		validate((sexans == 'N' or sexans == 'Y' or sexans == 'H') == False,'Reproduction choices either N, Y or H, check user manual.')
+		validate(sexans == 'H' and (selfing == 'N' or selfing == 'Y'),'Hermaphroditic mating structure specified - H - then must specify the selfing probability.')
+									
+		# Spot to add age 0s / eggs / pups /liter, etc
+		validate(egg_add not in ['mating', 'nonmating'], 'Egg add choice incorrect.')
+		#validate(egg_add not in ['mating', 'nonmating'] and packans.split('_')[0] not in 'logistic', 'Nonmating option should use logistic model.')
+		validate(egg_add == 'nonmating' and packans != 'logistic_back', 'Nonmating option must be used with logistic in the back location.')
+					
+		valid_values = ['N','Both','Back','Out']
+		validate(implementdisease not in valid_values, 'Implement disease value incorrect.')
+		validate(implementdisease!='N' and alleles[0] != 2,'More than 2 alleles per locus specified with disease defense options.')
+		
+		valid_values = ['N','Both','Back','Out']
+		validate(implementcomp not in valid_values, 'Implement disease value incorrect.')
+		'''
+		# Error check here for runtiming and 4 mats
+		if len(dispBackcdmatfile) > 1:
+			validate(cdevolveans == 'runtiming' and len(dispBackcdmatfile[0].split('~')[0].split(';')) != 4, 'runtiming CDEvolve answer specified, 4 migrate back cdmats required.')
+		else:
+			validate(cdevolveans == 'runtiming' and len(dispBackcdmatfile.split('~')[0].split(';')) != 4, 'runtiming CDEvolve answer specified, 4 migrate back cdmats required.')
+		'''	
+>>>>>>> Stashed changes
 		# ---------------------------------------------	
 		# Begin Monte-Carlo Looping
 		# ---------------------------------------------
@@ -701,7 +748,11 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 					if temp_extinct == 0:
 						print(('There are no more females or males left from species ' + str(spcNO) + ' after year '+str(gen)+'.\n'))
 					#break
+<<<<<<< Updated upstream
 						
+=======
+					
+>>>>>>> Stashed changes
 				# --------------------------------------------------------------------------------------------------------
 				# Call 2nd DoUpdate() - grow, age (selection option),egglay,capture, output ind.csv file;no Age0s; ind.csv
 				# --------------------------------------------------------------------------------------------------------
@@ -720,8 +771,14 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				#pdb.set_trace()
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
+<<<<<<< Updated upstream
 				SubpopIN = DoEmigration(SubpopIN,K,gen,F_EmiDist,M_EmiDist,cdevolveans,fitvals,F_EmiDist_sd,M_EmiDist_sd,subpopemigration,SelectionDeathsEmi,DisperseDeathsEmi,burningen_cdevolve,MgOut_patch_prob,MgSuccess,AdultNoMg,age_MgOUT,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,packans,PackingDeathsEmiAge,packpar1,timecdevolve,migrate_patches,outsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring_temp,Bearpairs_temp,age_size_std,Femalepercent_egg,transmissionprob,age_mature,alleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Track_KadjEmi,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,egg_add,outputans)
 				
+=======
+
+				SubpopIN = DoEmigration(SubpopIN,K,gen,F_EmiDist,M_EmiDist,cdevolveans,fitvals,F_EmiDist_sd,M_EmiDist_sd,subpopemigration,SelectionDeathsEmi,DisperseDeathsEmi,burningen_cdevolve,MgOut_patch_prob,MgSuccess,AdultNoMg,age_MgOUT,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,packans,PackingDeathsEmiAge,packpar1,timecdevolve,migrate_patches,outsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring_temp,Bearpairs_temp,age_size_std,Femalepercent_egg,age_mature,alleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Track_KadjEmi,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,egg_add,outputans,age_percmort_out, f_leslie,f_leslie_std,disease_vars,Track_DiseaseStates_AddAge0s)
+							
+>>>>>>> Stashed changes
 				# Delete the noOffspring_temp and Bearpairs_temp egg_delay spots used: the first spot in list
 				if len(noOffspring_temp) != 0: # But check for extinction
 					del(noOffspring_temp[0])

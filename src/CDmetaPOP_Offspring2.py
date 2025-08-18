@@ -52,8 +52,13 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 						#tempspot.append([isub,imate,itemmate,FemalesInThisSubPOP[imove],itemmove])
 						# Update the 'EmiPop' location in Bearpairs
 						Bearpairs[imate][0]['EmiPop'] = str(isub + 1)
+<<<<<<< Updated upstream
 						continue			
 				
+=======
+						continue
+	#pdb.set_trace()
+>>>>>>> Stashed changes
 	# -----------------------------------------------------------------------------
 	# Only if pairing occured - Continue through initialization of individual loop
 	if sum(noOffspring) > 0:
@@ -197,6 +202,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				
 				# --------------------------
 				# Assign infection here
+<<<<<<< Updated upstream
 				# --------------------------			
 				# If parent has infection
 				if Bearpairs[i][0]['infection'] == 1 or\
@@ -214,6 +220,31 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				else:			
 					# Then append infection status to offspring
 					infect = 0
+=======
+				# --------------------------
+				if disease_vars['ImpDisease'] != 'N':
+					if disease_vars['OffAns'][patchindex].lower() == 'susceptible':
+						# Make all S state = 0
+						initialOffState = 0
+					elif disease_vars['OffAns'][patchindex].split(';')[0].lower() == 'vertical':
+						# Is mother infected
+						if str(Bearpairs[i][0]['states']) == disease_vars['InfComp'][patchindex]:
+							# Get vertical transmission rate
+							vrate = float(disease_vars['OffAns'][patchindex].split(';')[1])
+							randcheck = np.random.uniform()
+							if randcheck < vrate:
+								# Then vertical transmission occurs
+								initialOffState = int(disease_vars['InfComp'][patchindex])
+							else:
+								initialOffState = 0
+						else:
+							initialOffState = 0
+				else: # Else no disease wished.
+					# Make all S state = 0
+					initialOffState = 0
+				
+				#pdb.set_trace()
+>>>>>>> Stashed changes
 				
 				# --------------------------
 				# Assign ID here
@@ -389,8 +420,13 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob
 				count = count + 1 # For unique naming tracking				
 	# If there was not a pairing
 	else:
+<<<<<<< Updated upstream
 		offspring.append([])
 	
+=======
+		offspring = [[]]*len(K)
+	#pdb.set_trace()
+>>>>>>> Stashed changes
 	# Variables returned
 	return offspring
 	
@@ -629,6 +665,7 @@ def DoOffspringNo(offno,Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_
 		sys.exit(-1)
 	
 	return noOffspring		
+<<<<<<< Updated upstream
 			
 	'''		
 	
@@ -642,6 +679,235 @@ def DoOffspringNo(offno,Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_
 		noOffspring = np.delete(noOffspring,ind0)
 		if len(Bearpairs[egg_delay]) == 0:
 			Bearpairs[egg_delay] = [[-9999,-9999]]
+=======
+	
+	# End::DoOffspring()
+	
+# ---------------------------------------------------------------------------------------------------
+def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,disease_vars,Track_DiseaseStates_AddAge0s,EHom=None):
+
+	'''
+	Add in the Age 0 population.
+	'''
+	#pdb.set_trace()
+	classno = len(size_mean[0][0])
+	# Storage to keep
+	SubpopIN_keepK = []
+	# Add spot for next generation
+	Population.append([]) 
+	PopulationAge.append([])
+	PopulationAge[gen] = [[] for x in range(0,classno)]
+	SelectionDeaths_Age0s.append([])
+	Track_DiseaseStates_AddAge0s.append([])
+	if egg_add == 'mating': # Born in mating grounds
+		egg_add_call = 'NatalPop'
+	else: # Born in nonmating grounds
+		egg_add_call = 'EmiPop'	
+	#pdb.set_trace()			
+	# Loop through each patch
+	for isub in range(len(K)):
+		# Get each SubpopIN pop as array and Age0s array
+		SubpopIN_arr = np.array(SubpopIN_keepAge1plus[isub],dtype=dtype)
+		
+		# Get offspring to add to this patch
+		Age0Pop = SubpopIN_Age0[np.where(SubpopIN_Age0[egg_add_call] == str(isub+1))[0]]
+		
+		# Make sure there are offspring to add here
+		
+		'''
+		#if len(SubpopIN_Age0[np.where(SubpopIN_Age0[egg_add_call] == str(isub+1))[0]]) != 0:
+		#if len(SubpopIN_Age0[isub]) != 0:
+		
+		try:
+			len(SubpopIN_Age0[isub]) != 0
+		except:
+			pdb.set_trace()
+			
+		if len(SubpopIN_Age0[isub]) != 0:	
+			Age0Pop = SubpopIN_Age0[np.where(SubpopIN_Age0[egg_add_call] == str(isub+1))[0]]
+		else:
+			Age0Pop = SubpopIN_Age0[isub]		
+		#Age0Pop = SubpopIN_Age0[np.where(SubpopIN_Age0[egg_add_call] == str(isub+1))[0]]
+		'''
+		#pdb.set_trace()		
+		# ----------------
+		# InheritGenes()
+		# ----------------		
+		SubpopIN_Age0_temp = InheritGenes(gen,Age0Pop,loci,muterate,mtdna,mutationans,K,dtype,geneswap,allelst,assortmateModel,noalleles,plasticans,cdevolveans,egg_add_call,egg_add)
+		
+		# --------------------------------
+		# Apply spatial selection to Age0s (this might not be the right order)
+		# --------------------------------
+		# 1-locus selection model
+		if (cdevolveans in {'1', '1_mat', '1_G_ind', '1_G_link'}) and (gen >= burningen_cdevolve) and ('Eggs' in timecdevolve):			
+			SubpopIN_Age0_keep = []
+			for iind in range(len(SubpopIN_Age0_temp)):
+				outpool = SubpopIN_Age0_temp[iind]
+				# for option 3 in which has to be mature
+				if cdevolveans == '1_mat' and outpool['mature'] == 0:
+					differentialmortality = 0.0
+				else:
+					# Call 1-locus selection model
+					differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],isub)
+				# Then flip the coin to see if outpool survives its location
+				randcheck = np.random.uniform()
+				
+				# If outpool did not survive: break from loop, move to next outpool
+				if randcheck < differentialmortality:					
+					continue
+				else: # Record if survived
+					SubpopIN_Age0_keep.append(outpool)
+			# dtype here
+			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)		
+		
+		# 2-locus model
+		elif (cdevolveans in {'2','2_mat'}) and (gen >= burningen_cdevolve) and ('Eggs' in timecdevolve):
+			SubpopIN_Age0_keep = []
+			for iind in range(len(SubpopIN_Age0_temp)):
+				outpool = SubpopIN_Age0_temp[iind]
+				# for option 3 in which has to be mature
+				if cdevolveans == '2_mat' and outpool['mature'] == 0:
+					differentialmortality = 0.0
+				else:				
+					# Call 2-locus selection model
+					differentialmortality = Do2LocusSelection(fitvals,outpool['genes'][0:4],isub)			
+				# Then flip the coin to see if outpool survives its location
+				randcheck = np.random.uniform()				
+				# If outpool did not survive: break from loop, move to next outpool
+				if randcheck < differentialmortality:
+					continue
+				else: # Record if survived
+					SubpopIN_Age0_keep.append(outpool)			
+			# dtype here
+			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
+		
+		# Hindex cdevolveans
+		elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen_cdevolve) and ('Eggs' in timecdevolve):
+			SubpopIN_Age0_keep = []
+			for iind in range(len(SubpopIN_Age0_temp)):
+				outpool = SubpopIN_Age0_temp[iind]				
+				
+				# Call 2-locus selection model
+				differentialmortality =	DoHindexSelection(cdevolveans,outpool['hindex'],patchvals[isub])
+							
+				# Then flip the coin to see if outpool survives its location
+				randcheck = np.random.uniform()				
+				# If outpool did not survive: break from loop, move to next outpool
+				if randcheck < differentialmortality:
+					continue
+				else: # Record if survived
+					SubpopIN_Age0_keep.append(outpool)			
+			# dtype here
+			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
+					
+		# CDEVOLVE - Inbreeding F
+		elif (cdevolveans.split('_')[0] == 'F') and (gen >= burningen_cdevolve) and ('Eggs' in timecdevolve):			
+			SubpopIN_Age0_keep = []
+			for iind in range(len(SubpopIN_Age0_temp)):
+				outpool = SubpopIN_Age0_temp[iind]
+				
+				# Call F selection model
+				differentialmortality = DoFSelection(fitvals,outpool['genes'],isub,EHom,cdevolveans)
+									
+				# Then flip the coin to see if outpool survives its location
+				randcheck = np.random.uniform()				
+				# If outpool did not survive: break from loop, move to next outpool
+				if randcheck < differentialmortality:
+					continue
+				else: # Record if survived
+					SubpopIN_Age0_keep.append(outpool)			
+			# dtype here
+			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
+		
+		# CDEVOLVE - Inbreeding * Outbreeding
+		elif (cdevolveans.split('_')[0] == 'FHindex') and (gen >= burningen_cdevolve) and ('Eggs' in timecdevolve):
+			SubpopIN_Age0_keep = []
+			for iind in range(len(SubpopIN_Age0_temp)):
+				outpool = SubpopIN_Age0_temp[iind]			
+				
+				# Call Hindex selection model
+				differentialmortality = DoFHindexSelection(fitvals,outpool['genes'],isub,EHom,cdevolveans,outpool['hindex'],patchvals[isub])
+										
+				# Then flip the coin to see if outpool survives its location
+				randcheck = np.random.uniform()
+				# If outpool did not survive: break from loop, move to next outpool
+				if randcheck < differentialmortality:
+					continue
+				else: # Record if survived
+					SubpopIN_Age0_keep.append(outpool)			
+			# dtype here
+			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
+				
+		# MLocus Selection 
+		elif (cdevolveans.split('_')[0] == 'P') and (gen >= burningen_cdevolve) and ('Eggs' in timecdevolve):
+			SubpopIN_Age0_keep = []
+			for iind in range(len(SubpopIN_Age0_temp)):
+				outpool = SubpopIN_Age0_temp[iind]				
+				
+				# Call MLocus selection model
+				differentialmortality =	DoMLocusSelection(outpool['genes'],isub,cdevolveans,betas_selection,xvars_betas,maxfit,minfit)
+							
+				# Then flip the coin to see if outpool survives its location
+				randcheck = np.random.uniform()				
+				# If outpool did not survive: break from loop, move to next outpool
+				if randcheck < differentialmortality:
+					continue
+				else: # Record if survived
+					SubpopIN_Age0_keep.append(outpool)			
+			# dtype here
+			SubpopIN_Age0_keep = np.array(SubpopIN_Age0_keep,dtype=dtype)
+		
+		# Maturation values need to be updated here for cdevolveans M
+		elif (cdevolveans in {'M', 'MG_ind','MG_link'}) and (gen >= burningen_cdevolve): # cdevolve answer mature			
+			print('These cdevolveans debugging and checking still in progress: M, MG, etc.')
+			sys.exit(-1)
+						
+		else:
+			SubpopIN_Age0_keep = SubpopIN_Age0_temp
+		
+		#if len(SubpopIN_Age0_temp) == 0:
+		#	pdb.set_trace()
+		# Append all information to temp SubpopKeep variable
+		SubpopIN_keepK.append(np.concatenate([SubpopIN_arr,SubpopIN_Age0_keep]))
+		
+		# Tracking for disease
+		indstates_inthispatch = SubpopIN_Age0_keep['states'] 
+		updated_countstates = np.bincount(indstates_inthispatch, minlength=disease_vars['noStates'][isub])		
+		Track_DiseaseStates_AddAge0s[gen].append([])
+		Track_DiseaseStates_AddAge0s[gen][isub].extend(updated_countstates)
+		
+		# Store new Ns 
+		Population[gen].append(len(SubpopIN_keepK[isub]))
+		SelectionDeaths_Age0s[gen].append(len(SubpopIN_Age0_temp)-len(SubpopIN_Age0_keep))
+		#pdb.set_trace()		
+		# Age tracking
+		# Switch here for size or age control
+		if sizecall == 'size' and packans.split('_')[0] != 'logistic': # Use min and max for tracking numbers.
+			# Get the middles for finding closest values
+			size_bin = size_mean[0][0]
+			size_mean_middles = np.asarray(size_bin)[1:] - np.diff(np.asarray(size_bin).astype('f'))/2
+			age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keepK[isub]['size'])			
+		else:
+			# Count up each uniages
+			age_adjusted = SubpopIN_keepK[isub]['age']
+		
+		# Tracking age N
+		for iage in range(len(PopulationAge[gen])):
+			sizeindex = np.where(age_adjusted==iage)[0]
+			PopulationAge[gen][iage].append(len(sizeindex))
+			
+		# Special case where age class is greater than lastage
+		sizeindex = np.where(age_adjusted > iage)[0]
+		PopulationAge[gen][iage].append(len(sizeindex))		
+					
+	# Add total to Ns
+	Population[gen].insert(0,sum(Population[gen]))
+	Track_DiseaseStates_AddAge0s[gen].insert(0,np.sum(np.asarray(Track_DiseaseStates_AddAge0s[gen]),axis=0).tolist())
+	
+	# Age tracking
+	for iage in range(len(PopulationAge[gen])):
+		PopulationAge[gen][iage] = sum(PopulationAge[gen][iage])	
+>>>>>>> Stashed changes
 		
 	# -------------------------------------
 	# Call DoEggMortality()

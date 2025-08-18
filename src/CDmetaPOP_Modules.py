@@ -40,6 +40,97 @@ class ForkablePdb(pdb.Pdb):
         finally:
             sys.stdin = current_stdin
 
+<<<<<<< Updated upstream
+=======
+# ---------------------------------------------------------------------------
+def validate(condition, error_message, exit_code=-1):
+    """
+    Generic error-checking function.
+
+    Args:
+        condition (bool): The condition to evaluate.
+        error_message (str): The error message to display if the condition fails.
+        exit_code (int): The code to exit with if the condition fails. Default is -1.
+    """
+    if condition:
+        print(error_message)
+        sys.exit(exit_code)
+	
+	# End::validate()
+	
+# --------------------------------------------------------------------------
+def logMsg(outf,msg):
+	'''
+	logMsg() --log file message handler.
+	Inputs:
+	outf - open file handle
+	msg -- string containing formatted message
+	--always outputs to log file by default.
+	--using msgVerbose, can be set to "Tee" output to stdout as well
+	'''
+	outf.write(msg+ '\n')
+	if msgVerbose:
+		print(("%s"%(msg)))
+		
+	# End::logMsg()
+
+# ---------------------------------------------------------------------------
+def move_allele(allele, direction, possiblealleles, offgenes):
+    """Move an allele forward or backward based on the direction."""
+    offgenes[allele] -= 1
+    if direction == 'forward':
+        offgenes[allele + 1] += 1
+    elif direction == 'backward':
+        offgenes[allele - 1] += 1
+
+# ---------------------------------------------------------------------------
+def sample_allele(allele_pool, possiblealleles, offgenes, mothergenes, mtdna_ans, lastloci, plastic_or_not):
+	# Helper function for sampling alleles in inheritgenes()
+	if len(allele_pool) > 0:
+		sampled_index = np.random.choice(allele_pool, 1)[0]
+		allele_position = possiblealleles[sampled_index]
+		offgenes[allele_position] += 1
+        # Reset to 1 if allele becomes 2 and only if plastic True
+		if plastic_or_not and offgenes[allele_position] == 2:
+			offgenes[allele_position] = 1
+		# mtDNA is turned on, then override with mothergenes
+		if mtdna_ans == 'Y' and lastloci:
+			# Force last locus to be mothergenes - possible alleles are from the last loop above
+			offgenes[possiblealleles] = mothergenes[possiblealleles]
+	
+
+# ---------------------------------------------------------------------------
+def split_or_get(value, icdtime,cdclimgentime):
+	"""
+	Helper function to handle splitting by '|' and getting the corresponding value based on icdtime.
+	"""
+	# PopVars will come in as tuple if |	
+	if isinstance(value, (list, tuple)):
+		# Put in a check here to make sure same number of climate time check in values
+		if len(value) != len(cdclimgentime):
+			print('If using cdclimate, then variables swapped must be the same length. PopVars')
+			sys.exit(-1)
+		else: # Returns the correct cdclimate value 
+			return value[icdtime] 
+	else: # Patchbased values will not be split as a tuple
+		if len(value.split('|')) > 1: # There is a cdclimate var to swap here		
+			# Put in check for same sizes
+			if len(value.split('|')) != len(cdclimgentime):
+				print('If using cdclimate, then variables swapped must be the same length. PatchVars')
+				sys.exit(-1)
+			else: # If there is a cdclimate call for value, then split and take the index,   
+				return value.split('|')[icdtime]
+		else:
+			return value
+				
+
+# ---------------------------------------------------------------------------		
+def process_disp(disp_param, icdtime, sexchromo, cdclimgentime):
+	"""Helper function to handle dispersal parameter processing."""	
+	return sexsplit(split_or_get(disp_param, icdtime,cdclimgentime), sexchromo)
+
+
+>>>>>>> Stashed changes
 # --------------------------------------------------------------------------
 def PrepTextFile(textpath):
 	'''
@@ -250,7 +341,7 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	This function condenses the large blocks of calls to cdevolve, returning the differentialmortality value.
 	It calculates both selection and spatial mortality togethers
 	'''
-	
+	#pdb.set_trace()
 	# CDEVOLVE - No
 	# -------------
 	if cdevolveans == 'N':
@@ -269,14 +360,14 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 					differentialmortality = 0.0
 				else:
 					# Call 1-locus selection model
-					differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],location)
+					differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],location,False)
 		else:
 			# for option 3 in which has to be mature
 			if cdevolveans == '1_mat' and outpool['mature'] == 0:
 				differentialmortality = 0.0
 			else:
 				# Call 1-locus selection model
-				differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],location)
+				differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],location,False)
 	
 	# CDEVOLVE - Do2LocusSelection
 	# ----------------------------
@@ -357,6 +448,20 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 				# Call Hindex selection model
 				differentialmortality = DoMLocusSelection(outpool['genes'],location,cdevolveans,betas_selection,xvars_betas,maxfit,minfit)	
 	
+	# CDEVOLVE - runtiming
+	# ----------------------------
+	elif (cdevolveans.split('_')[0] == 'runtiming') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
+		if len(timecdevolve.split(':')) > 1: # User indicated age check						
+			# Check if individual's age matches user specified selection age
+			if outpool['age'] != int(timecdevolve.split(':')[1]):
+				differentialmortality = 0.0
+			else:
+				# Call Hindex selection model
+				differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],location,True)						
+		# Run differential mortality check for all ages
+		else:
+			differentialmortality = Do1LocusSelection(fitvals,outpool['genes'][0:2],location,True)
+	
 	#CDEVOLVE - is on (one of the above) but not equal to or aftern the burningen time
 	else:
 		differentialmortality = 0.0		
@@ -387,30 +492,37 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 
 
 # ---------------------------------------------------------------------------------------------------	
-def Do1LocusSelection(fitvals,genes,location):
+def Do1LocusSelection(fitvals,genes,location,runtimingON):
 	'''
 	Do1LocusSelection()
 	This function calculates individual differential mortality, ie,
 	viability selection, for the 1-locus selection model.
 	'''
 	
+	if runtimingON:
+		# Grab the patch-based values that match this inds Gene (given in 'fitvals')
+		tempfitvalsatPatch =  np.asarray(fitvals)[location,:]
+		thesefitvals = np.asarray([float(entry.split(';')[1]) for entry in tempfitvalsatPatch])	
+	else:
+		thesefitvals = fitvals[location]
+	
 	# If L0A0|L0A0 -- loci under selection:
 	if int(genes[0]) == 2:
 
 		# The grab it's fitness values
-		differentialmortality = float(fitvals[location][0])
+		differentialmortality = float(thesefitvals[0])
 																
 	# If L0A0|L0A1 -- loci under selection:
 	elif int(genes[0]) == 1 and int(genes[1]) == 1:
 
 		# The grab it's fitness values
-		differentialmortality = float(fitvals[location][1])
+		differentialmortality = float(thesefitvals[1])
 																															
 	# If L0A1|L0A1 -- loci under selection
 	elif int(genes[1]) == 2:
 		
 		# The grab it's fitness values
-		differentialmortality = float(fitvals[location][2])
+		differentialmortality = float(thesefitvals[2])
 		
 	# Another genotype
 	else:
@@ -1420,8 +1532,13 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 				matedpop = offpop
 			else: # First pop, need to look up where mother mated
 				matedpop = ''.join(str(num) for num in [int(idig) for idig in offspring[i]['MID'].split('_')[0] if idig.isdigit()])
+<<<<<<< Updated upstream
 			
 			recd = (matedpop,offpop,'NA',0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['infection'],id,offspring[i]['MID'],offspring[i]['FID'],0,0,offspring[i]['layeggs'],hindex,offspring[i]['classfile'],offspring[i]['popID'],offspring[i]['species'],offgenes)
+=======
+			#pdb.set_trace()
+			recd = (matedpop,offpop,'NA',0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['states'],id,offspring[i]['MID'],offspring[i]['FID'],0,0,offspring[i]['layeggs'],hindex,offspring[i]['classfile'],offspring[i]['popID'],offspring[i]['species'],offgenes)
+>>>>>>> Stashed changes
 			# Record offspring information to SubpopIN 
 			Age0_keep.append(recd)
 		
@@ -2067,6 +2184,46 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# ---------------------------------				
 				capInd(lastage,SubpopIN,isub,iind,sizecall,size_mean[natalP][theseclasspars],ClasscapProb[natalP][theseclasspars],PopcapProb[isub],sexchromo)
 				
+<<<<<<< Updated upstream
+=======
+				# ----------------------------------------
+				# Update Disease State for this individul
+				# ----------------------------------------
+				#pdb.set_trace()
+				if ((gridsample == 'Middle' and disease_vars['ImpDisease'] in ['Both','Back']) or (gridsample == 'Sample' and disease_vars['ImpDisease'] in ['Both','Out'])):
+					moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen)
+				
+			## End:: iind Loop for this patch-tracking numbers on updates next			
+			# -----------------------------------------------------------------
+			# For tracking disease states updates before deaths
+			# -----------------------------------------------------------------
+			Track_DiseaseStates[gen].append([])
+			indstates_inthispatch = SubpopIN[isub]['states'] 
+			updated_countstates = np.bincount(indstates_inthispatch, minlength=disease_vars['noStates'][isub])
+			Track_DiseaseStates[gen][isub].extend(updated_countstates)
+			
+			# -----------------------------------------------------------------------------------
+			# Update environmental reservoir concentration of contaminant - Indirect Transmission
+			# -----------------------------------------------------------------------------------
+			if ((gridsample == 'Middle' and disease_vars['ImpDisease'] in ['Both','Back']) or (gridsample == 'Sample' and disease_vars['ImpDisease'] in ['Both','Out'])) and disease_vars['TransMode'][isub] == 'Indirect':
+				updateEnvRes(disease_vars,isub,updated_countstates)
+			
+			# ------------------------------------------------------------------------
+			# If mortality comparment in Disease Module, then remove these individuals
+			# ------------------------------------------------------------------------
+			#pdb.set_trace()
+			if ((gridsample == 'Middle' and disease_vars['ImpDisease'] in ['Both','Back']) or (gridsample == 'Sample' and disease_vars['ImpDisease'] in ['Both','Out'])) and (disease_vars['DComp'][isub] != 'N'):
+				removeDStates(SubpopIN,isub,disease_vars,gen)
+						
+			# -----------------------------------------------------------------
+			# For tracking disease states updates after deaths
+			# -----------------------------------------------------------------
+			Track_DiseaseStates_AfterDeaths[gen].append([])
+			indstates_inthispatch = SubpopIN[isub]['states'] 
+			updated_countstates = np.bincount(indstates_inthispatch, minlength=disease_vars['noStates'][isub])
+			Track_DiseaseStates_AfterDeaths[gen][isub].extend(updated_countstates)
+			
+>>>>>>> Stashed changes
 			# -----------------------------------------------------------------
 			# For tracking age/size numbers, use min and max for multiple files
 			# -----------------------------------------------------------------
@@ -2121,8 +2278,19 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 		# Age tracking
 		for iage in range(len(CapClass[gen])):		
 			CapClass[gen][iage] = sum(CapClass[gen][iage])
+<<<<<<< Updated upstream
 			Nclass[gen][iage] = sum(Nclass[gen][iage])
 	
+=======
+			Nclass[gen][iage] = sum(Nclass[gen][iage])			
+		#pdb.set_trace()	
+		# ---------------------------------------------------------
+		# Track numbers for disease state totals - Middle and Sample
+		# ---------------------------------------------------------
+		Track_DiseaseStates[gen].insert(0,np.sum(np.asarray(Track_DiseaseStates[gen]),axis=0).tolist())
+		Track_DiseaseStates_AfterDeaths[gen].insert(0,np.sum(np.asarray(Track_DiseaseStates_AfterDeaths[gen]),axis=0).tolist())			
+
+>>>>>>> Stashed changes
 	# ------------------------------------------------------------
 	# Write out text file for generations specified by nthfile
 	# ------------------------------------------------------------	

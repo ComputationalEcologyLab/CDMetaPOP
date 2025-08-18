@@ -81,13 +81,14 @@ def count_unique(keys):
 	#End::count_unique()
 	
 # ---------------------------------------------------------------------------------------------------	
-def GetProbArray(offspring,answer,K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXX,cdmatrix_MXY,cdmatrix_MYY,cdmatrix_FYY):
+def GetProbArray(offspring,answer,K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXX,cdmatrix_MXY,cdmatrix_MYY,cdmatrix_FYY,fitvals=None):
 	'''
 	GetProbArray()
 	This function gets indices for F and M specific cdmatrix values
 	In direction cost, this is the row value; xycdmatrix[0] grabs column in original cdmatrix; xycdmatrix[:,0] grabs row vals in original cdmatrix or use xycdmatrix[currentpop][natalpop]
 	'''
-	
+	#if answer == 'immigrator':
+	#	pdb.set_trace()
 	# Index into offspring array
 	currentoff = offspring
 	
@@ -171,43 +172,90 @@ def GetProbArray(offspring,answer,K,natal_patches,patchvals,cdevolveans,gen,plas
 		
 	# Return home attempt
 	elif answer == 'immigrator':
-		# If K is 0, then can not return home # Added natal_patches[natalsubpop] check on 2 Jan 2024
-		if K[natalsubpop] == 0 or natal_patches[natalsubpop] == 0:
-			probarray = [0.0]
-		else:
-			# Append the freegrid probabilities for the offspring choice
-			if indSex == 'FXX': # Female 
-				# Get probarray from current to natal - only one number!
-				probarray_BA = [copy.deepcopy(cdmatrix_FXX[currentsubpop][natalsubpop])]
-				probarray_AB = [copy.deepcopy(cdmatrix_FXX[natalsubpop][currentsubpop])]
-			elif indSex == 'MXY': # Male 
-				# Get probarray from current to natal - only one number!
-				probarray_BA = [copy.deepcopy(cdmatrix_MXY[currentsubpop][natalsubpop])]
-				probarray_AB = [copy.deepcopy(cdmatrix_MXY[natalsubpop][currentsubpop])]
-			elif indSex == 'MYY': # Male 
-				# Get probarray from current to natal - only one number!
-				probarray_BA = [copy.deepcopy(cdmatrix_MYY[currentsubpop][natalsubpop])]
-				probarray_AB = [copy.deepcopy(cdmatrix_MYY[natalsubpop][currentsubpop])]
-			elif indSex == 'FYY': # FeMale YY 
-				# Get probarray from current to natal - only one number!
-				probarray_BA = [copy.deepcopy(cdmatrix_FYY[currentsubpop][natalsubpop])]
-				probarray_AB = [copy.deepcopy(cdmatrix_FYY[natalsubpop][currentsubpop])]			
-			else:
-				print('Invalid offspring list.')
-				sys.exit(-1)
-			# Check asymmetrical cost - get relative difference for probability
-			if probarray_BA[0] == 0.0: # Absolutely can not make it back, e.g., complete barrier
+		checkback = True
+		# Check for runtiming option
+		if cdevolveans == 'runtiming':
+			# Get this individuals genes
+			indGenes = currentoff['genes']
+			if indGenes[0] == 2:
+				fitvalspot = 0				
+			elif indGenes[0] == 1:
+				fitvalspot = 1			
+			elif indGenes[0] == 0:
+				fitvalspot = 2
+			
+			# Get the probability this ind will move to based on genotype
+			natalGeneProb = float(fitvals[natalsubpop][fitvalspot].split(';')[0])
+			randback = np.random.uniform()
+			if randback < natalGeneProb: # Gene matches natal patch location to go back to
+				checkback = True
+			else: # Gene does not match natal patch location, check for another spot to go to
+				checkback = False
+				# Grab the patch-based values that match this inds Gene (given in 'fitvals')
+				temptheseGenePatch =  np.asarray(fitvals)[:,fitvalspot]
+				theseGenePatch = np.asarray([float(entry.split(';')[0]) for entry in temptheseGenePatch])
+				
+				# Append the freegrid probabilities for the offspring choice
+				if indSex == 'FXX': # Female offspring
+					probarray = copy.deepcopy(cdmatrix_FXX[currentsubpop])
+				elif indSex == 'MXY': # Male offspring
+					probarray = copy.deepcopy(cdmatrix_MXY[currentsubpop])
+				elif indSex == 'MYY': # Male YY
+					probarray = copy.deepcopy(cdmatrix_MYY[currentsubpop])
+				elif indSex == 'FYY': # FeMale YY
+					probarray = copy.deepcopy(cdmatrix_FYY[currentsubpop])
+				else:
+					print('Invalid offspring list.')
+					sys.exit(-1)
+				
+				# Update probability matrix based on the patch values gene match
+				probarray = probarray * theseGenePatch				
+				# Where natal grounds = 0, set prob to 0
+				probarray[np.where(np.asarray(natal_patches)==0)[0]] = 0.
+				# Where K = 0, set prob to 0
+				probarray[np.where(np.asarray(K)==0)[0]] = 0.
+				
+		if checkback == True:	# If not runtiming or special case for runtiming	
+			# If K is 0, then can not return home # Added natal_patches[natalsubpop] check on 2 Jan 2024
+			if K[natalsubpop] == 0 or natal_patches[natalsubpop] == 0:
 				probarray = [0.0]
-			if probarray_BA[0] < probarray_AB[0]: # Harder to make it back - higher cost lower prob, e.g., partial barrier
-				probarray = [1. - ((probarray_AB[0] - probarray_BA[0]) / probarray_AB[0])]
-				# Here check if makes it back
-				randback = np.random.uniform()
-				if randback >= probarray[0]: # Does not make it back 
-					probarray[0] = 0.0
-				else: # Does make it back
-					probarray[0] = 1.0 
-			else: # Same probability/cost to make it back, then assume it migrates back
-				probarray = [1.0]
+			else:
+				# Append the freegrid probabilities for the offspring choice
+				if indSex == 'FXX': # Female 
+					# Get probarray from current to natal - only one number!
+					probarray_BA = [copy.deepcopy(cdmatrix_FXX[currentsubpop][natalsubpop])]
+					probarray_AB = [copy.deepcopy(cdmatrix_FXX[natalsubpop][currentsubpop])]
+				elif indSex == 'MXY': # Male 
+					# Get probarray from current to natal - only one number!
+					probarray_BA = [copy.deepcopy(cdmatrix_MXY[currentsubpop][natalsubpop])]
+					probarray_AB = [copy.deepcopy(cdmatrix_MXY[natalsubpop][currentsubpop])]
+				elif indSex == 'MYY': # Male 
+					# Get probarray from current to natal - only one number!
+					probarray_BA = [copy.deepcopy(cdmatrix_MYY[currentsubpop][natalsubpop])]
+					probarray_AB = [copy.deepcopy(cdmatrix_MYY[natalsubpop][currentsubpop])]
+				elif indSex == 'FYY': # FeMale YY 
+					# Get probarray from current to natal - only one number!
+					probarray_BA = [copy.deepcopy(cdmatrix_FYY[currentsubpop][natalsubpop])]
+					probarray_AB = [copy.deepcopy(cdmatrix_FYY[natalsubpop][currentsubpop])]			
+				else:
+					print('Invalid offspring list.')
+					sys.exit(-1)
+				# Check asymmetrical cost - get relative difference for probability
+				if probarray_BA[0] == 0.0: # Absolutely can not make it back, e.g., complete barrier
+					probarray = [0.0]
+				if probarray_BA[0] < probarray_AB[0]: # Harder to make it back - higher cost lower prob, e.g., partial barrier
+					probarray = [1. - ((probarray_AB[0] - probarray_BA[0]) / probarray_AB[0])]
+					# Here check if makes it back
+					randback = np.random.uniform()
+					if randback >= probarray[0]: # Does not make it back 
+						probarray[0] = 0.0
+					else: # Does make it back
+						probarray[0] = 1.0 
+				else: # Same probability/cost to make it back, then assume it migrates back
+					probarray = [1.0]
+	else:
+		print('wrong answer in GetProbArray.')
+		sys.exit(-1)
 	
 # Check plastic response here for temperature response and dominant "allele"
 	if (plasticans != 'N') and (gen >= burningen_plastic) and (timeplastic.find('Out') != -1) and (plasticans.split('_')[0] == 'Temp') and (plasticans.split('_')[1] == "dom"):
@@ -469,7 +517,7 @@ def GetProbArray(offspring,answer,K,natal_patches,patchvals,cdevolveans,gen,plas
 	# End::GetProbArray()
 	
 # ---------------------------------------------------------------------------------------------------	
-def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Str_patch_prob,StrSuccess,age_S,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD,sexchromo,age_MgBACK,MgBack_patch_prob,Disperse_patch_prob,MgOut_patch_prob,age_MgOUT,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,migrate):
+def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Str_patch_prob,StrSuccess,age_S,Population,dtype,sizecall,size_mean,PackingDeaths,PopulationAge,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeaths,Track_WildSelectionPackDeaths,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD,sexchromo,age_MgBACK,MgBack_patch_prob,Disperse_patch_prob,MgOut_patch_prob,age_MgOUT,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,migrate,egg_add):
 	
 	'''
 	Immigration()
@@ -538,7 +586,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			# Check if Migrant - 'E' assumes they have moved OUT or 'EO' they have been out for a while
 			# -----------------------------------------------------------------------------------------
 			#if isub + 1 != int(emipop): # If current patch is NOT the same as the individuals 'emipop' == 'Resident'
-			if outpool['name'][0] == 'E' or (outpool['name'][0:4] == 'Age0' and not packans == 'anadromy'):
+			if outpool['name'][0] == 'E' or (outpool['name'][0:4] == 'Age0' and not packans == 'anadromy' and egg_add == 'nonmating'):
 			#if outpool['name'][0] == 'E' or outpool['name'][0:4] == 'Age0':
 			#if outpool['name'][0] == 'E':
 				
@@ -588,13 +636,12 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# -------------------------------------------------------------------------------
 				if indProbans_MgBACK == 'Yes':	
 												
-					#pdb.set_trace()
 					# -----------------------------------
 					# Check for strayer first
 					# -----------------------------------
 					# No genotype tied to stray rate
 					if cdevolveans != 'stray':
-					
+											
 						# Check for patch stray probability - here we select the stray patch prob of it's origin pop
 						Str_Patch = Str_patch_prob[int(originalpop)-1] # index 1 minus
 						#Str_Patch = Str_patch_prob[isub] # changed 12/22/2023; stray from patch in or natal?
@@ -611,44 +658,32 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						if Find > len(age_S[natalP][theseclasspars]) - 1:
 							Find = len(age_S[natalP][theseclasspars]) - 1 # Make last age
 						Str_Class = age_S[natalP][theseclasspars][Find]
+													
+						# Get sex class options if given
+						if len(Str_Class.split('~')) == 1:
+							Str_Class = float(Str_Class.split('~')[0])
+						elif len(Str_Class.split('~')) != sexchromo:
+							print('Number of age-specific probability parameters must match sex_chromo.')
+							sys.exit(-1)
+						else:
+							Str_Class = float(Str_Class.split('~')[sxspot])
+
+						# Then multiply these together
+						indProb = Str_Patch * Str_Class
 											
 					# If genotype tied to stray rate
 					else:
+						#pdb.set_trace()
 						if outpool_genes[0] == 2: #AA
-							indProb = float(fitvals[isub][0][0])
+							indProb = float(fitvals[isub][0])
 						elif outpool_genes[0] == 1 and outpool_genes[1] == 1: #Aa
-							indProb = float(fitvals[isub][1][0])
+							indProb = float(fitvals[isub][1])
 						elif outpool_genes[1] == 2: #aa
-							indProb = float(fitvals[isub][2][0])
+							indProb = float(fitvals[isub][2])
 						else: #Something else
-							# Check for patch stray probability
-							Str_Patch = Str_patch_prob[int(originalpop)-1] # index 1 minus
-							
-							# Check for age/size stray
-							indexofProb = outpool[sizecall]
-							# If size control then get size nearest to values in age file
-							if sizecall == 'size':
-								closestval = min(size_mean[natalP][theseclasspars], key=lambda x:abs(x-indexofProb))
-								Find = np.where(np.asarray(size_mean[natalP][theseclasspars])==closestval)[0][0]
-							else:
-								Find = indexofProb
-							# Check for ages over last age
-							if Find > len(age_S[natalP][theseclasspars]) - 1:
-								Find = len(age_S[natalP][theseclasspars]) - 1 # Make last age
-							Str_Class = age_S[natalP][theseclasspars][Find]
-					
-					# Get sex class options if given
-					if len(Str_Class.split('~')) == 1:
-						Str_Class = float(Str_Class.split('~')[0])
-					elif len(Str_Class.split('~')) != sexchromo:
-						print('Number of age-specific probability parameters must match sex_chromo.')
-						sys.exit(-1)
-					else:
-						Str_Class = float(Str_Class.split('~')[sxspot])
-					
-					# Then multiply these together
-					indProb = Str_Patch * Str_Class
-					
+							print('Straying genotype in use - only single locus model used.')
+							sys.exit(-1)							
+
 					# Decide if strayer?
 					randProb = np.random.uniform()	# Get a random number			
 					# Flip the coin for patch stray
@@ -732,111 +767,33 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						# -------------------------------------
 						# Attempt to move back to natal grounds
 						# -------------------------------------
-						
-						# - Use partial cdmatrix - only natal supopulation values - should be only one number - check K = 0 and natal ground indeed 1
-						probarray = GetProbArray(outpool,'immigrator',K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack)
+						probarray = GetProbArray(outpool,'immigrator',K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack,fitvals)
+												
+						# If spots available to move to:
+						if sum(probarray) != 0.0:													
 							
-						# If it was possible to get back to original location
-						if sum(probarray) != 0.0:
-							
-							# Then it is assumed it made it back to it's natal patch area int(originalpop)-1
-							# Attempt Local Dispersal
-							# ------------------------------------------------------------------------------
-							Disp_Patch = Disperse_patch_prob[int(originalpop)-1]							
-							
-							# Next check if it decides to local dispersal given population and age
-							indexofProb = outpool[sizecall] # Check for age/size 
-							# If size control then get size nearest to values in age file
-							if sizecall == 'size':
-								closestval = min(size_mean[natalP][theseclasspars], key=lambda x:abs(x-indexofProb))
-								Find = np.where(np.asarray(size_mean[natalP][theseclasspars])==closestval)[0][0]
-							else:
-								Find = indexofProb
-							# Check for ages over last age
-							if Find > len(ageDispProb[natalP][theseclasspars]) - 1:
-								Find = len(ageDispProb[natalP][theseclasspars]) - 1 # Make last age					
-							Disp_Class = ageDispProb[natalP][theseclasspars][Find]
-							# Get sex class options if given
-							if len(Disp_Class.split('~')) == 1:
-								Disp_Class = float(Disp_Class.split('~')[0])
-							elif len(Disp_Class.split('~')) != sexchromo:
-								print('Number of age-specific capture probability parameters must match sex_chromo.')
-								sys.exit(-1)
-							else:
-								Disp_Class = float(Disp_Class.split('~')[sxspot])
-							
-							# Then multiply these together
-							indProb = Disp_Patch * Disp_Class
-							
-							# Decide if disperse?
-							randProb = np.random.uniform()	# Get a random number			
-							
-							# Flip the coin for patch stray
-							if randProb < indProb:									
-								# Then Disperse
-								indProbans_localD = True
+							# Special case for runtiming - could be an array here, then random grab new natal patch to move back to
+							if len(probarray) > 1:
 								
-							# Patch stray not a success
-							else:
-								indProbans_localD = False
-							
-							# ------------------------------------------------------------------------
-							# Local disperse this individual from it's natal patch once it moved back
-							# ------------------------------------------------------------------------
-							if indProbans_localD:
-								# Then locally move this individual - go anywhere from natal patch and use full cdmatrix, minus where K = 0 and natal grounds are 0
-								# ---------------------------------------------------------
-								
-								# Get the probability array - be careful not to overwrite previous if statement!
-								probarray_LD = GetProbArray(outpool,'localDispersal',K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD)
-								
-								# If spots available to move to:
-								if sum(probarray_LD) != 0.0:
-								
-									# Select the w_choice item
-									iteminlist = w_choice_item(probarray_LD)
-									namethis = 'ID'									
-									
-								# No spots available to move to, then stays in natal patch
-								elif sum(probarray_LD) == 0.0:
-									
-									# Then Break from the loop and move to next outpool	
-									print("Nowhere for this immigrant to disperse to. This individual dies.")
-									SelectionDeaths[gen][int(emipop)-1].append(0)
-									DisperseDeaths[gen][int(originalpop)-1].append(1)
-									StrSuccess[gen].append(0)
-									continue
-							# ---------------------------------------------------------------------------------
-							# Local dispersal is turned off - stays in it's natal patch area int(originalpop)-1
-							# ---------------------------------------------------------------------------------	
-							else:
-								# Then it makes it back to original pop - or pop it came from
-								iteminlist = int(originalpop)-1
+								# Select the w_choice item to move to
+								iteminlist = w_choice_item(probarray)
 								namethis = 'I'
 								
-							# ----------------------------------------------------------
-							# Check CDEVOLVE Selection Death and spatial mortality Death
-							# ----------------------------------------------------------
-							differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
-																							
-							# Then flip the coin to see if outpool survives its location
-							randcheck = np.random.uniform()
-							# If outpool did not survive: break from loop, move to next outpool
-							if randcheck < differentialmortality:
-								SelectionDeaths[gen][iteminlist].append(1)
-								DisperseDeaths[gen][iteminlist].append(0)
-								StrSuccess[gen].append(0)
-								continue
-																
-							# For recording purposes 
-							# -----------------------
-							disppop = str(iteminlist+1)
-							immipop = str(iteminlist+1)							
-							outpool_name = outpool['name']
-							outpool_name = outpool_name.split('_')
-							
-							name = namethis+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
+								# ----------------------------------------------------------
+								# Check CDEVOLVE Selection Death and spatial mortality Death
+								# ----------------------------------------------------------
+								differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+																								
+								# Then flip the coin to see if outpool survives its location
+								randcheck = np.random.uniform()
+								# If outpool did not survive: break from loop, move to next outpool
+								if randcheck < differentialmortality:
+									SelectionDeaths[gen][iteminlist].append(1)
+									DisperseDeaths[gen][iteminlist].append(0)
+									StrSuccess[gen].append(0)
+									continue
 																	
+<<<<<<< Updated upstream
 							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 												
 							# Record outpool disperse information	
@@ -846,6 +803,138 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							DisperseDeaths[gen][int(disppop)-1].append(0)
 							StrSuccess[gen].append(0)
 							continue							
+=======
+								# For recording purposes 
+								# -----------------------
+								disppop = str(iteminlist+1)
+								immipop = str(iteminlist+1)							
+								outpool_name = outpool['name']
+								outpool_name = outpool_name.split('_')
+								
+								name = namethis+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
+																		
+								recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+													
+								# Record outpool disperse information	
+								SubpopIN_keep[int(disppop)-1].append(recd)				
+							
+								SelectionDeaths[gen][int(disppop)-1].append(0)
+								DisperseDeaths[gen][int(disppop)-1].append(0)
+								StrSuccess[gen].append(0)
+								continue	
+
+							# Else probarray returned one value either [1.0] and it will move back to its natal patch and also attempt to local disperse 
+							else:
+								iteminlist = int(originalpop)-1
+							
+								# ------------------------------------------------------------------------------
+								# Attempt Local Dispersal
+								# ------------------------------------------------------------------------------
+								Disp_Patch = Disperse_patch_prob[iteminlist]						
+								
+								# Next check if it decides to local dispersal given population and age
+								indexofProb = outpool[sizecall] # Check for age/size 
+								# If size control then get size nearest to values in age file
+								if sizecall == 'size':
+									closestval = min(size_mean[natalP][theseclasspars], key=lambda x:abs(x-indexofProb))
+									Find = np.where(np.asarray(size_mean[natalP][theseclasspars])==closestval)[0][0]
+								else:
+									Find = indexofProb
+								# Check for ages over last age
+								if Find > len(ageDispProb[natalP][theseclasspars]) - 1:
+									Find = len(ageDispProb[natalP][theseclasspars]) - 1 # Make last age					
+								Disp_Class = ageDispProb[natalP][theseclasspars][Find]
+								# Get sex class options if given
+								if len(Disp_Class.split('~')) == 1:
+									Disp_Class = float(Disp_Class.split('~')[0])
+								elif len(Disp_Class.split('~')) != sexchromo:
+									print('Number of age-specific capture probability parameters must match sex_chromo.')
+									sys.exit(-1)
+								else:
+									Disp_Class = float(Disp_Class.split('~')[sxspot])
+								
+								# Then multiply these together
+								indProb = Disp_Patch * Disp_Class
+								
+								# Decide if disperse?
+								randProb = np.random.uniform()	# Get a random number			
+								
+								# Flip the coin for patch stray
+								if randProb < indProb:									
+									# Then Disperse
+									indProbans_localD = True
+									
+								# Patch stray not a success
+								else:
+									indProbans_localD = False
+								
+								# ------------------------------------------------------------------------
+								# Local disperse this individual from it's natal patch once it moved back
+								# ------------------------------------------------------------------------
+								if indProbans_localD:
+									# Then locally move this individual - go anywhere from natal patch and use full cdmatrix, minus where K = 0 and natal grounds are 0
+									# ---------------------------------------------------------
+									
+									# Get the probability array - be careful not to overwrite previous if statement!
+									probarray_LD = GetProbArray(outpool,'localDispersal',K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD)
+									
+									# If spots available to move to:
+									if sum(probarray_LD) != 0.0:
+									
+										# Select the w_choice item
+										iteminlist = w_choice_item(probarray_LD)
+										namethis = 'ID'									
+										
+									# No spots available to move to, then stays in natal patch
+									elif sum(probarray_LD) == 0.0:
+										
+										# Then Break from the loop and move to next outpool	
+										print("Nowhere for this immigrant to disperse to. This individual dies.")
+										SelectionDeaths[gen][int(emipop)-1].append(0)
+										DisperseDeaths[gen][int(originalpop)-1].append(1)
+										StrSuccess[gen].append(0)
+										continue
+								# ---------------------------------------------------------------------------------
+								# Local dispersal is turned off - stays in it's natal patch area int(originalpop)-1
+								# ---------------------------------------------------------------------------------	
+								else:
+									# Then it makes it back to original pop - or pop it came from
+									iteminlist = int(originalpop)-1
+									namethis = 'I'
+								#pdb.set_trace()	
+								# ----------------------------------------------------------
+								# Check CDEVOLVE Selection Death and spatial mortality Death
+								# ----------------------------------------------------------
+								differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+																								
+								# Then flip the coin to see if outpool survives its location
+								randcheck = np.random.uniform()
+								# If outpool did not survive: break from loop, move to next outpool
+								if randcheck < differentialmortality:
+									SelectionDeaths[gen][iteminlist].append(1)
+									DisperseDeaths[gen][iteminlist].append(0)
+									StrSuccess[gen].append(0)
+									continue
+																	
+								# For recording purposes 
+								# -----------------------
+								disppop = str(iteminlist+1)
+								immipop = str(iteminlist+1)							
+								outpool_name = outpool['name']
+								outpool_name = outpool_name.split('_')
+								
+								name = namethis+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
+																		
+								recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+													
+								# Record outpool disperse information	
+								SubpopIN_keep[int(disppop)-1].append(recd)				
+							
+								SelectionDeaths[gen][int(disppop)-1].append(0)
+								DisperseDeaths[gen][int(disppop)-1].append(0)
+								StrSuccess[gen].append(0)
+								continue							
+>>>>>>> Stashed changes
 										
 						# It did not make it back to natal grounds
 						elif sum(probarray) == 0.0:
@@ -928,9 +1017,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				#End::Migrant Checks
 				# ------------------------
 				
-				# -------------------------------------------------------------------------------------------------------
-				# Individual is not migrating back - consider local dispersal (not currently in) - check selection deaths
-				# -------------------------------------------------------------------------------------------------------
+				# ------------------------------------------------------------
+				# Individual is not migrating back - consider local dispersal 
+				# ------------------------------------------------------------
 				else:
 					# Check local dispersal, otherwise resident, not currently implemented
 					#pdb.set_trace()
@@ -957,9 +1046,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						Disp_Class = float(Disp_Class.split('~')[sxspot])
 					
 					# Then multiply these together
-					indProb = Disp_Patch * Disp_Class
-					
-					
+					indProb = Disp_Patch * Disp_Class					
 					
 					# Decide if disperse?
 					randProb = np.random.uniform()	# Get a random number			
@@ -984,8 +1071,11 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						# Get the probability array - be careful not to overwrite previous if statement!
 						probarray_LD = GetProbArray(outpool,'localDispersal',K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD)
 						
-						# If spots available to move to:
+						#-----------------------
+						# Open spots to move to
+						#----------------------
 						if sum(probarray_LD) != 0.0:
+<<<<<<< Updated upstream
 							# Select the w_choice item
 							iteminlist = w_choice_item(probarray_LD)							 
 							#Add age0 should turn Rs here not Es
@@ -994,7 +1084,22 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							#Not Age0s
 							else:
 								namethis = 'ED'							
+=======
 							
+							# Select the w_choice item
+							iteminlist = w_choice_item(probarray_LD)
+>>>>>>> Stashed changes
+							
+							# Age0s should not turn Es here - RDs
+							if outpool['name'][0:4] == 'Age0':
+								namethis = 'RD'
+							# Not Age0s
+							else:
+								namethis = 'ED' 
+							
+						#-----------------------
+						# NO Open spots to move to
+						#----------------------
 						elif sum(probarray_LD) == 0.0:
 							
 							print('Nowhere for this migrant to locally disperse to. This individual will die.')
@@ -1007,13 +1112,25 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					# Local dispersal is turned off - stays in it's migration patch
 					# ---------------------------------------------------------------------------------	
 					else:
+						# Set the iteminlist to not move
 						iteminlist = isub
+<<<<<<< Updated upstream
 						#Add age0 should turn Rs here not Es
 						if outpool['name'][0:4] == 'Age0':
 							namethis = 'R' 
 						# Not age0s
 						else:
 							namethis = 'EO'
+=======
+						
+						# Age0s should not turn Es here - Rs
+						if outpool['name'][0:4] == 'Age0':
+							namethis = 'R'
+						# Not Age0s
+						else:
+							namethis = 'EO' 
+						 
+>>>>>>> Stashed changes
 						
 					# ----------------------------------------------------------
 					# Check CDEVOLVE Selection Death and spatial mortality Death
@@ -1056,7 +1173,10 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			# Else not a migrant (resident or Age0) - 'emipop' == 'Resident' or isub + 1 == 'emipop'
 			# ------------------------------------------------------------------------------
 			else:
-				# Migrate Out check patch level
+				
+				# -----------------------------
+				# Check for a Migration OUT
+				#------------------------------
 				MgOut_Patch = MgOut_patch_prob[isub]
 				# Next check on age level
 				indexofProb = outpool[sizecall] # Check for age/size 
@@ -1092,16 +1212,19 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				else:
 					indProbans_MgOut = False
 				
-				# ---------------------------------
-				# Age0 individual that migrates Out
-				# ---------------------------------
-				if outpool['name'][0:4] == 'Age0' and indProbans_MgOut and packans == 'anadromy':
+				# -----------------------------------------------------------
+				# Age0 individual that migrates Out for anadromy option only
+				# -----------------------------------------------------------
+				if outpool['name'][0:4] == 'Age0' and packans == 'anadromy' and indProbans_MgOut:
+					#if outpool['name'][0:4] == 'Age0' and indProbans_MgOut and packans == 'anadromy':
 					#pdb.set_trace()
 					# -------------------------------------------------------------	--------------Then migrate Out				
 					# Get the probability array - call cdmatrix from current pop isub or natal pop to move to migration grounds only
 					probarray = GetProbArray(outpool,'localDispersal',K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut)				
 				
-					# If spots available to move to:
+					#-----------------------
+					# Open spots to move to
+					#----------------------
 					if sum(probarray) != 0.0:
 						
 						# Select the w_choice item
@@ -1138,7 +1261,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						StrSuccess[gen].append(0)
 						continue
 							
-					# No spots available to move to: 
+					#-------------------------
+					# NO Open spots to move to
+					#------------------------- 
 					elif sum(probarray) == 0.0:
 						print('Nowhere to locally disperse to. All individuals will die.')
 						# Then Break from the loop and move to next outpool	
@@ -1146,9 +1271,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						DisperseDeaths[gen][int(emipop)-1].append(1)
 						StrSuccess[gen].append(1)
 						continue
-						
+										
 				# -------------------------------------------------------
-				# Age0 and didn't migrate out or 'R'
+				# All IDs (including Age0s)
 				# -------------------------------------------------------
 				else:
 					# Local dispersal check
@@ -1197,7 +1322,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						# Get the probability array
 						probarray = GetProbArray(outpool,'localDispersal',K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD)			
 					
-						# If spots available to move to:
+						#-----------------------
+						# Open spots to move to
+						#----------------------
 						if sum(probarray) != 0.0:
 							
 							# Select the w_choice item
@@ -1234,7 +1361,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							StrSuccess[gen].append(0)
 							continue
 								
-						# No spots available to move to: 
+						#-----------------------
+						# NO Open spots to move to
+						#---------------------- 
 						elif sum(probarray) == 0.0:
 							print('Nowhere to locally disperse to. All individuals will die.')
 							# Then Break from the loop and move to next outpool	
@@ -3028,7 +3157,7 @@ def DoImmigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,subpopmigrati
 			sys.exit(-1)
 		
 		SubpopIN = Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,\
-		burningen_cdevolve,Str_patch_prob,StrSuccess,age_S,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD,sexchromo,age_MgBACK,MgBack_patch_prob,Disperse_patch_prob,MgOut_patch_prob,age_MgOUT,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,migrate)
+		burningen_cdevolve,Str_patch_prob,StrSuccess,age_S,Population,dtype,sizecall,size_mean,PackingDeaths,N_Immigration_age,packans,PackingDeathsAge,packpar1,homeattempt,timecdevolve,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,age_percmort,comp_coef,XQs,Kadj_track,Track_KadjEmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,f_leslie,f_leslie_std,ageDispProb,cdmatrix_FXXBack,cdmatrix_MXYBack,cdmatrix_MYYBack,cdmatrix_FYYBack,cdmatrix_FXXStr,cdmatrix_MXYStr,cdmatrix_MYYStr,cdmatrix_FYYStr,cdmatrix_FXXLD,cdmatrix_MXYLD,cdmatrix_MYYLD,cdmatrix_FYYLD,sexchromo,age_MgBACK,MgBack_patch_prob,Disperse_patch_prob,MgOut_patch_prob,age_MgOUT,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,migrate,egg_add)
 		
 		if outans == 'Y':
 			# Calculate Dispersal Metrics for strayers 'S' 

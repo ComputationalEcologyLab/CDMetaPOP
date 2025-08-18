@@ -1,3 +1,133 @@
+<<<<<<< Updated upstream
+=======
+Changes v3.08.2025.07.22 ell / A&M
+0) When /beta_d == 0, skips transition moveToindex - looking at transition matrix and nonzero values for possible state transitions, not considering the Pstate....updating.
+	-> Moved this up to the Indirect section 
+	# Calculate the additional force of infection
+			concentrationP_inEnv = pathogen_load_atthispatch / sum(countstates_inthispatch)
+			indirect_tran = concentrationP_inEnv * FROMpState_TOiStates[infected_state]
+			
+FOR CASEY: ***ln 594 DoImmigration
+if outpool['name'][0:4] == 'Age0' and not packans == 'anadromy' and egg_add == 'nonmating':
+					print('What patch do return age0 migrants go?')
+					sys.exit(-1)
+					
+1) Refactored the move_states function for readability
+
+2) A&M hit index error for R and RT runs when ';' used
+	-> fixed with input file updates.
+3) While running A&M files, hit ValueError setting an array element with a sequence in tracking numbers for disease
+	-> Extra state count in Tracking variable Modules DoUpdate()
+	-> Fixed, previous code had del(rates[P-state]) added this back in
+4) Checking pathogen load updates for deaths added into P-state
+	-> call to updateEnvRes() moved after new counts are updated after patch loop - Deaths included in this count
+	
+Changes v3.07.2025.07.22 ell / A&M
+0) In disease, add multiple transition rates tied to allele 
+	->ResDefense and TolDefense checks for ';' splits 0_1;3_1
+	->p_state search for last state updates
+	->Then depending on Res or Tol locus and genotype points to defense_vals[genotpy] and split ';' checks
+	-> ***concentrationP_inEnv = pathogen_load_atthispatch / sum(countstates_inthispatch) - check pathogen load values
+	
+
+Changes v3.06.2025.06.13 cday ell
+0) egg_add into DoImmigration for if age0 and not anadromy and not non_mating then skip right path of flowdiagram.
+	-> if outpool['name'][0] == 'E' or (outpool['name'][0:4] == 'Age0' and not packans == 'anadromy' and egg_add == 'nonmating'):
+1) Add sys exit to figure out this special case ***
+		if outpool['name'][0:4] == 'Age0' and not packans == 'anadromy' and egg_add == 'nonmating':
+					print('What patch do return age0 migrants go?')
+					sys.exit(-1)
+
+Changes v3.05.2025.06.10
+0) Issues with AddAge0s when population crashes/no age 0s to add. 
+	-> In AddAge0s - Age0Pop = SubpopIN_Age0[np.where(SubpopIN_Age0[egg_add_call] == str(isub+1))[0]]
+	-> Checking when no Offspring: AddAge0s working with 0 offspring.
+1) Checking through extinctions and adding individuals. 
+
+
+Changes v3.04.2025.04.17 -
+0) validate(egg_add == 'nonmating' and packans != 'logistic_back', 'Nonmating option must be used with logistic in the back location.')
+*** Will need to update DD section of code for all answers DoEmigration() - age 0s are in the wrong spot with egg_add == 'nonmating' and wrong Nt+1 at patch location numbers are being used. 
+1) When population crashes a Bearpair index error occurs
+	-> In DoMate() when no individuals check before Bearpairs check return Bearpairs_temp with 2 spots for [-9999,-9999]. 
+	-> The check in Emigration() becomes a list
+	-> Then throughs an error in PostProcessing - Disease
+	-> In Emigration put check to if len(Bearpairs[0]) != 0:
+	-> In Disease output when pop is extinct update the disease vars trackers, e.g. Track_DiseaseStates_AddAge0s.append( [[0]*disease_vars['noStates'][0] for x in range(0,len(SubpopIN)+1)])
+
+
+#### Sent to Casey for testing
+
+Changes v3.03.2025.04.09 - 
+0) Added  or cdevolveans == 'runtiming' to DoEmigration() GetProbArray()
+1) Check implementSelection for Out and Back
+	-> Make sure 'Back' is being used
+	-> *** If runtiming and 'Out' 'AddAge0s' selection will be called. 
+
+Other notes
+0) ***Combine secondary straying into the 'immigrator' of move back matrix. 
+1) *** DoImmigration() - move selection deaths to very end?
+2) *** immipop and disppop and emipop double checks
+
+Changes v3.02.2025.04.04
+0) DiseaseDev - added in vertical transmission
+	-> 'Vertical;0.5' must specify the rate after vertical in DiseaseVars file
+	-> Updated the error check for this par: validate(offspringTransmissionAns[isub].lower() != 'susceptible' or offspringTransmissionAns[isub].split(';')[0].lower() != 'vertical' , 'Incorrect option used for offspring transmission rules.')
+	-> Updated DoOffspringVars to include the vertical vrate check now.
+
+
+1) ***Add density dependence in disease update I/N or just I
+2) ***sum(noOffspring) coming into addage0s is not equalling the number of offspring coming out of DoOffsprinVars() for popmodel N - issue with nonmating and popmodel N - not sure if same issue with other popmodels
+3) ***PackingDeaths in Emigration not calculating right for tracking in N - check other places and Immigration too. 
+
+
+Changes v3.01.2025.03.20 
+1) Linking genes to run timing (Casey Skagit work). 
+
+	-> Quick test on the cdevolve stray option: 
+		-> DoImmigration section of code updated slightly (indenting and removing [0] from fitvals
+		-> Running
+	-> Set up input files add ‘runtiming’ to popvars (cdevolveans option) 
+	
+	-> PreProcssing – read in ‘fitvals’ from PatchVars that defines genotype-space network: Done
+
+	-> Set up input files for ‘;’ 4 cdmats in the Migrateback cdmat column 
+		-> Added error checks for len of 4 if RunTiming on in mainloop
+		-> split by | then ~ then ; is the order.		
+		-> In CDClimate removed the datadir call from runtiming since string of 4 filenames
+			if cdevolveans == 'runtiming': # Remove datadir for this: string of filenames and ;
+				FXXdispBackcdmatfile, MXYdispBackcdmatfile, MYYdispBackcdmatfile, FYYdispBackcdmatfile = [val for val in process_disp(dispBackcdmatfile, icdtime, sexchromo, cdclimgentime)]
+			else:
+				FXXdispBackcdmatfile, MXYdispBackcdmatfile, MYYdispBackcdmatfile, FYYdispBackcdmatfile = [datadir + val for val in process_disp(dispBackcdmatfile, icdtime, sexchromo, cdclimgentime)]
+		-> In CDClimate added check to convert the 4 cdmats to probarrays
+			-> Storing runtiming 4 mats in list now. 
+		-> Read list of matrices into DoImmigration	
+		-> Added fitvals=None to getprobarray patch x genotype probability of moving to that patch - defines stream network spatial location
+		-> 4 matrices: matrix 0 = default matrix 1 = AA, Matrix 2 = Aa, matrix 3 = aa
+	-> Ran through flow diagram for movement Emigration and Immigration
+	-> Added if 'Age0' check to the Immigration flow chart. 
+	-> Do we need 4 matrices - can we use selection start time and cdclimate module? ***
+	
+	-> DoImmigration() - point to the cdmatrix that matches genotype if runtiming is on - added 
+	-> 1Locus selection model added for runtiming!
+	-> In GetProbArray - if runtiming option then allow individual to grab a patch from its genotyped matrix (rather than the AB/BA 'immigrator' option
+
+Getprobarray function – check fitvals network and cdmatrix for genotype 
+
+Getprobarray function – update for runtime option 
+
+
+Changes v3.00.2025.03.15
+0) Merged Casey's 2.77 logistic and Erin's disease module
+
+
+Casey changes for v2.77
+0) Add ability for logistic mortality to be applied either out or back
+1) Change input options so logistic answer for popmodel must be 'logistic_back' or 'logistic_out'. Implementcomp answer now only applied to competition, and must match the popmodel timing
+2) Added ability to have density-independent mortality if logistic is selected, but only for the season when logistic is not applied (DoMortality line 625).
+# Need to update test input files
+
+>>>>>>> Stashed changes
 Chnages v2.77.2024.10.11
 0) Index error with different combinations of 0;0|15;15 -> 0|15;15 throws index error ***
 

@@ -1301,6 +1301,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	MYYdispmoveBackparC = tupVal[2]
 	FYYdispmoveBackparC = tupVal[3]
 	# Threshold -------------------------------------------
+<<<<<<< Updated upstream
 	if isinstance(dispmoveBackthresh, (list,tuple)):
 		tupVal = sexsplit(dispmoveBackthresh[icdtime],sexchromo)
 	else:
@@ -1312,6 +1313,11 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	# --------------------------------------
 	# Read in cdmatrix.csv - Dispersal Back
 	# --------------------------------------
+=======
+	FXXdispmoveBackthreshpass, MXYdispmoveBackthreshpass, MYYdispmoveBackthreshpass, FYYdispmoveBackthreshpass = [val for val in process_disp(dispmoveBackthresh, icdtime, sexchromo, cdclimgentime)]
+	
+	# CDmatrix and Vars-------------------------------------
+>>>>>>> Stashed changes
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
 		# For FXX
 		tupReadMat = ReadCDMatrix(FXXdispBackcdmatfile,FXXdispmoveBackno,FXXdispmoveBackthreshpass,float(FXXdispmoveBackparA),float(FXXdispmoveBackparB),float(FXXdispmoveBackparC))
@@ -1344,6 +1350,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		MYYdispBack_ScaleMax = tupReadMat[3]	
 	if sexchromo == 4:
 		# For FYY
+<<<<<<< Updated upstream
 		tupReadMat = ReadCDMatrix(FYYdispBackcdmatfile,FYYdispmoveBackno,FYYdispmoveBackthreshpass,float(FYYdispmoveBackparA),float(FYYdispmoveBackparB),float(FYYdispmoveBackparC))
 		FYYdispBackcdmatrix = np.asarray(tupReadMat[0])
 		FYYdispBackthresh = tupReadMat[1]
@@ -1360,6 +1367,17 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	MXYStrcdmatfile = datadir+tupVal[1]
 	MYYStrcdmatfile = datadir+tupVal[2]
 	FYYStrcdmatfile = datadir+tupVal[3]		
+=======
+		FYYdispBackcdmatrix,FYYdispBackthresh,FYYdispBack_ScaleMin,FYYdispBack_ScaleMax = ReadCDMatrix(FYYdispBackcdmatfile,FYYdispmoveBackno,FYYdispmoveBackthreshpass,float(FYYdispmoveBackparA),float(FYYdispmoveBackparB),float(FYYdispmoveBackparC))
+		FYYdispBackcdmatrix = np.asarray(FYYdispBackcdmatrix)	
+		
+	# -----------------------------------------------
+	# Straying parameters and cdmatrix
+	# -----------------------------------------------
+	# Apply the helper function for each straying parameter
+	FXXStrcdmatfile, MXYStrcdmatfile, MYYStrcdmatfile, FYYStrcdmatfile = [datadir + val for val in process_disp(straycdmatfile, icdtime, sexchromo, cdclimgentime)]
+
+>>>>>>> Stashed changes
 	# Function numbers next ----------------
 	if isinstance(StrBackno, (list,tuple)):
 		tupVal = sexsplit(StrBackno[icdtime],sexchromo)
@@ -1659,8 +1677,56 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		if len(allefreqfiles_pass[isub].split('|')) != len(N0_pass[isub].split('|')) != len(classvarsfiles_pass[isub].split('|')):
 			print('N0 split by | for Add Individual applications, must have matching Gene Initialization files and ClassVars files split by | - cdclimate.')
 			sys.exit(-1)
+<<<<<<< Updated upstream
 		if len(MgBack_patch_prob[isub].split('|')) > 1:
 			tempMgBack_patch_prob.append(float(MgBack_patch_prob[isub].split('|')[icdtime]))
+=======
+
+		# Using split_or_get function to streamline the code
+		tempMgBack_patch_prob.append(float(split_or_get(MgBack_patch_prob[isub], icdtime, cdclimgentime)))
+		tempDisperse_patch_prob.append(float(split_or_get(Disperse_patch_prob[isub], icdtime, cdclimgentime)))
+		tempStr_patch_prob.append(float(split_or_get(Str_patch_prob[isub], icdtime, cdclimgentime)))
+		tempMgOut_patch_prob.append(float(split_or_get(MgOut_patch_prob[isub], icdtime, cdclimgentime)))
+		tempoutsize.append(split_or_get(outsizevals[isub], icdtime, cdclimgentime))
+		tempbacksize.append(split_or_get(backsizevals[isub], icdtime, cdclimgentime))
+		tempoutgrow.append(split_or_get(outgrowdays[isub], icdtime, cdclimgentime))
+		tempbackgrow.append(split_or_get(backgrowdays[isub], icdtime, cdclimgentime))
+
+		tempoutsize_sd.append(split_or_get(outsizevals_sd[isub], icdtime, cdclimgentime))
+		tempbacksize_sd.append(split_or_get(backsizevals_sd[isub], icdtime, cdclimgentime))
+		tempoutgrow_sd.append(split_or_get(outgrowdays_sd[isub], icdtime, cdclimgentime))
+		tempbackgrow_sd.append(split_or_get(backgrowdays_sd[isub], icdtime, cdclimgentime))
+
+		tempK.append(int(split_or_get(K[isub], icdtime, cdclimgentime)))
+		tempKstd.append(int(split_or_get(Kstd[isub], icdtime, cdclimgentime)))
+		
+
+		temppopmort_back.append(split_or_get(popmort_back[isub], icdtime, cdclimgentime))
+		temppopmort_out.append(split_or_get(popmort_out[isub], icdtime, cdclimgentime))
+		tempeggmort.append(split_or_get(eggmort[isub], icdtime, cdclimgentime))
+		temppopmort_back_sd.append(float(split_or_get(popmort_back_sd[isub], icdtime, cdclimgentime)))
+		temppopmort_out_sd.append(float(split_or_get(popmort_out_sd[isub], icdtime, cdclimgentime)))
+		tempeggmort_sd.append(split_or_get(eggmort_sd[isub], icdtime, cdclimgentime))
+
+		temppopCapBack.append(split_or_get(pop_capture_back[isub], icdtime, cdclimgentime))
+		temppopCapOut.append(split_or_get(pop_capture_out[isub], icdtime, cdclimgentime))
+
+		tempN0.append(split_or_get(N0_pass[isub], icdtime, cdclimgentime))
+		tempAllelefile.append(split_or_get(allefreqfiles_pass[isub], icdtime, cdclimgentime))
+		tempClassVarsfile.append(split_or_get(classvarsfiles_pass[isub], icdtime, cdclimgentime))
+		tempcompcoef.append(split_or_get(comp_coef_pass[isub], icdtime, cdclimgentime))
+		#pdb.set_trace()
+		# Disease defense gene fitness
+		if implementdisease != 'N':
+			tempdiseaseVarsfile.append(split_or_get(alldiseaseVars_files[isub], icdtime, cdclimgentime))		
+			tempPathLoad.append(float(split_or_get(pathogen_load[isub], icdtime, cdclimgentime)))
+			tempdisease_fitvals.append([])
+			#pdb.set_trace()
+			for i in range(len(disease_fitvals_pass[isub])): # Loop through 6 genotype combinations
+				diseasefitval = split_or_get(disease_fitvals_pass[isub][i], icdtime, cdclimgentime)  # Split or get based on icdtime
+				tempdisease_fitvals[isub].append(diseasefitval)
+		# No disease
+>>>>>>> Stashed changes
 		else:
 			tempMgBack_patch_prob.append(float(MgBack_patch_prob[isub]))
 		if len(Disperse_patch_prob[isub].split('|')) > 1:
@@ -2283,8 +2349,20 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		outhabvals.append(xy[i+1][32])
 		backhabvals.append(xy[i+1][33])
 		comp_coef_temp.append(xy[i+1][49]) # Bar allowed here
+<<<<<<< Updated upstream
 		xvars_indexspot = 50 # for getting the xvars spot for indexing
 		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray':
+=======
+		
+		# Option columns section - xvars_indexspot note referenced above
+		if implementdisease != 'N':
+			alldiseasepars_files.append(xy[i+1][xvars_indexspot-8])
+			pathogen_load.append(xy[i+1][xvars_indexspot-7])
+			disease_fitvals.append([xy[i+1][xvars_indexspot-6],xy[i+1][xvars_indexspot-5],xy[i+1][xvars_indexspot-4],xy[i+1][xvars_indexspot-3],xy[i+1][xvars_indexspot-2],xy[i+1][xvars_indexspot-1]])
+	
+		# For fitness values - currently these are required fields in patchvars	
+		if cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == '1_mat' or cdevolveans == 'stray' or cdevolveans == 'runtiming':
+>>>>>>> Stashed changes
 			fitvals.append([xy[i+1][34],xy[i+1][35],xy[i+1][36]])
 		elif cdevolveans == 'G':
 			fitvals.append([xy[i+1][37],xy[i+1][38],xy[i+1][39]])

@@ -126,7 +126,7 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 		# Then the first l loci are for selection, next for plastic region
 		if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 			selloci = int(cdevolveans.split('_')[2].split('L')[1])
-		elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex' or cdevolveans == 'FHindex':
+		elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex' or cdevolveans == 'FHindex' or cdevolveans == 'runtiming':
 			selloci = 1
 		elif cdevolveans == '2' or cdevolveans == 'MG' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == '2_mat':
 			selloci = 2
@@ -532,7 +532,8 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					ProbSuccess[gen].append(1)
 					continue
 					
-				# If statement to check if there were not spots to disperse to
+				# No Open spot to move to
+				# -----------------------
 				elif sum(probarray) == 0.0:
 					
 					# Then Break from the loop and move to next outpool
@@ -982,6 +983,10 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			#---------------------------------------------
 						
 			# Clean up index - grabs largest to less than 0 class
+<<<<<<< Updated upstream
+=======
+			#pdb.set_trace()
+>>>>>>> Stashed changes
 			Nage_samp_ind_all = sum(Nage_samp_ind,[])
 			
 			# Find adults in samp list that survived
@@ -1833,7 +1838,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 	# Packing is turned off
 	# ---------------------
 	elif packans == 'N':
-		
+		#pdb.set_trace()
 		# ------------------------------------------
 		# Get other species Ns from all Patches here
 		# ------------------------------------------
@@ -1956,7 +1961,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				# Get size and age for rest of patch
 				tempSizePatch = SubpopIN_arr['size']
 				tempAgePatch = SubpopIN_arr['age']	
-						
+					
 			# K,N for this population
 			Kpop = K[isub]
 			Npop = len(tempAgePatch)
@@ -2027,7 +2032,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					# Get just the adults
 					index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
 					Nage_samp_ind_adults = Nage_samp_ind_all[index]
-					PackingDeaths[gen][isub] = len(Nage_samp_ind_all) - Kpop
+					PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind_all) # changed in v3.01 was Nage_samp_ind_all-Kpop
 			
 			# Select out the Age1+ adults
 			# ---------------------------
@@ -2054,7 +2059,8 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						offspring_patch[index_fix] = offspring_patch[index_fix] + 1		
 					# UPDATE master offspring list for all patches
 					noOffspring[mothers_patch_ind] = offspring_patch			
-			
+			#if sum(noOffspring) != 100 - len(Nage_samp_ind_adults):
+			#	pdb.set_trace()
 			# Tracking numbers - no packing deaths
 			# ------------------------------------
 			for iage in range(len(size_mean[0][0])):
@@ -2065,7 +2071,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
 			Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
 			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
-			
+			#pdb.set_trace()
 	# ---------------------
 	# Packing is turned off - this is a very special case, where eggs only enter into population and can exceed K, mortality applied to adult population only
 	# ---------------------
@@ -2273,7 +2279,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					else:
 						# Get index for Adults - randomly grabs index without replacement Kpop times (will keep these)
 						Nage_samp_ind_adults = np.asarray(np.random.choice(Nage_ind_adults,Kpop,replace=False).tolist())
-						PackingDeaths[gen][isub] = len(Nage_ind_adults) - len(Nage_samp_ind_adults)
+						PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind_adults)
 					'''				
 					# But only if  But only if it was NOT Age0s here
 					if len(Nage_ind_adults) != 0:					
@@ -2368,19 +2374,34 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 	# ------------------------------
 	# Get the survived SubpopIN_Age0
 	# ------------------------------
+<<<<<<< Updated upstream
 	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,transmissionprob,gen,sizecall,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,SubpopIN_keepAge1plus,PopTag)
 	
+=======
+	#pdb.set_trace()
+	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,gen,sizecall,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,SubpopIN_keepAge1plus,PopTag,disease_vars,K)
+	#if sum(noOffspring) == 0:
+	#	pdb.set_trace()
+>>>>>>> Stashed changes
 	# Get dtype for offspring - first check to see if any Bearpairs/offspring
 	#if Bearpairs[0][0] != -9999:
 	#if len(Bearpairs[0][0]) != 1:
 	if sum(noOffspring) > 0:
 	#if not (isinstance(Bearpairs[0][0],numbers.Integral)): # Checks for -9999 here and could be int or np.int32	
+<<<<<<< Updated upstream
 		offdtype = [('Mother',('i',len(Bearpairs[0][0]['genes']))),('Father',('i',len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
 	else:
 		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('infection',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
 
 	offspring = np.asarray(offspring,dtype=offdtype) # Convert to array with dytpe
 	
+=======
+		offdtype = [('Mother',('i',len(Bearpairs[0][0]['genes']))),('Father',('i',len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('states',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
+	else:
+		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('states',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]	
+	offspring = np.asarray(offspring,dtype=offdtype) # Convert to array with dytpe
+		
+>>>>>>> Stashed changes
 	# Update the Wright Fisher case for sex here
 	if Femalepercent == 'WrightFisher':
 		# If the subpopulation number is not even then sys exit
@@ -2395,6 +2416,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 		np.random.shuffle(offsex)
 		# And reassign the sex to offspring list
 		offspring['sex'] = offsex
+	#pdb.set_trace()
 	
 	# ---------------------------------------------------
 	# Call AddAge0() and InheritGenes() and track numbers
@@ -2589,7 +2611,15 @@ def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDis
 	'''		
 		
 	# Population Extinct Check
+<<<<<<< Updated upstream
 	if len(Bearpairs) != 0:
+=======
+	#if len(Bearpairs) != 0:
+	#if not isinstance(Bearpairs[0][0],int):
+	#if not isinstance(Bearpairs[0][0],list):
+	if len(Bearpairs[0]) != 0:
+
+>>>>>>> Stashed changes
 		# Get size or age control here - for Mg Prob value
 		if sizeans == 'Y':
 			sizecall = 'size'
@@ -2613,6 +2643,10 @@ def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDis
 			# Add subpopmigration similar to Immigration? 
 	
 	else: # Population Extinct, return tracking variables 0 only
+<<<<<<< Updated upstream
+=======
+		#pdb.set_trace()
+>>>>>>> Stashed changes
 		# Population variables here
 		Population.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		N_beforePack_pop.append( [0 for x in range(0,len(SubpopIN)+1)] )
@@ -2626,6 +2660,10 @@ def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDis
 		ProbSuccess.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		AdultNoMg.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		SelectionDeaths_Age0s.append( [0 for x in range(0,len(SubpopIN)+1)] )
+<<<<<<< Updated upstream
+=======
+		Track_DiseaseStates_AddAge0s.append( [[0]*disease_vars['noStates'][0] for x in range(0,len(SubpopIN)+1)])
+>>>>>>> Stashed changes
 		
 		# Age tracking variables here
 		N_beforePack_age.append( [0 for x in range(0,len(size_mean[0][0]))] )
