@@ -622,9 +622,9 @@ def DoMortality(SubpopIN,K,PopDeaths,pop_percmort,age_percmort,gen,Population,Ag
 	Patch level mortality first, then age mortality
 	'''	
 	
-	# If logistic, but only when in the 'back phase', all other options can occur both times.
-	#if packans.split('_')[0] != 'logistic' or (packans.split('_')[0] == 'logistic' and timingans == 'OUT'):
-	if packans.split('_')[0] != 'logistic':
+	# Allow density-independent mortality as long as not using classvars columns
+	# for logistic mortality out or back
+	if packans.split('_')[0] != 'logistic' or (packans.split('_')[0] == 'logistic' and timingans.lower() != packans.split('_')[1]):
 	
 		# Get size or age control here
 		if sizeans == 'Y':

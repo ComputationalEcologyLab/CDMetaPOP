@@ -10,7 +10,7 @@ import numpy as np
 import pdb, random, copy, os, sys,datetime,signal
 from ast import literal_eval 
 from CDmetaPOP_Modules import * 
-from CDmetaPOP_PostProcess import *
+from CDmetaPOP_PostProcess import * 
 from CDmetaPOP_PreProcess import *
 from CDmetaPOP_Mate import *
 from CDmetaPOP_Emigration import *
@@ -19,41 +19,19 @@ from CDmetaPOP_Offspring2 import *
 from CDmetaPOP_Mortality import *
 
 # ----------------------------------------------------------
-# Global symbols, if any :))
+# Global symbols
 #-----------------------------------------------------------
-# when set True, routes session log traffic to BOTH the
-# screen and to the log file. When False, log traffic just
-# sent to log file alone.
-msgVerbose = False
-
-# --------------------------------------------------------------------------
-def logMsg(outf,msg):
-	'''
-	logMsg() --log file message handler.
-	Inputs:
-	outf - open file handle
-	msg -- string containing formatted message
-	--always outputs to log file by default.
-	--using msgVerbose, can be set to "Tee" output to stdout as well
-	'''
-	outf.write(msg+ '\n')
-	if msgVerbose:
-		print(("%s"%(msg)))
-		
-	# End::logMsg()
+# If True routes log traffic to screen
+msgVerbose = False 
 
 # --------------------------------------------------------------------------------------------------------------------
 def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,passlogfHndl,XQs, nspecies, extinctQ, global_extinctQ,current_system_pid):
-	'''
-	Main loop here
-	'''
-	#if multiprocessing.current_process().name == "S1":
-	#	pdb.set_trace()
+	'''Main loop here'''
+	
 	# Open the logfHndl file
-	#passlogfHndl = outdir+"CDmetaPOP"+str(spcNO)+".log"
 	logfHndl = open(passlogfHndl,'a')
 	
-	# Call function and store inputvariables
+	# Call function and store PopVar variables
 	batchVars,batchVarsIndex,nSimulations = loadFile(fileans,1,',',True)
 
 	# ----------------------------------------	
@@ -122,8 +100,6 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		burningen_plastic = int(batchVars['startPlasticgene'][ibatch])
 		timeplastic = batchVars['implementPlasticgene'][ibatch]
 		
-		cdinfect = batchVars['cdinfect'][ibatch]
-		transmissionprob = float(batchVars['transmissionprob'][ibatch])
 		growans = batchVars['growth_option'][ibatch]
 		sizeLoo = batchVars['growth_Loo'][ibatch] # Check sex ratios
 		sizeR0 = batchVars['growth_R0'][ibatch]# Check sex ratios
@@ -148,135 +124,70 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		subpopmort_pass = batchVars['subpopmort_file'][ibatch]
 		egg_delay = int(batchVars['egg_delay'][ibatch])
 		egg_add = batchVars['egg_add'][ibatch]
+		
+		# PopVars Disease Pars
+		implementdisease = batchVars['implement_disease'][ibatch]		
 			
-		# -------------------------------
-		# Distill some vars
-		# -------------------------------
+		# ------------------------------------------------------------
+		# Get nthfile, cdclimgen, alleles in correct format and checks
+		# ------------------------------------------------------------
 		# Grab the nthfile list range specific to user input, list or sequence
-		#pdb.set_trace()
 		if not isinstance(nthfile_out, (list,tuple)):
 			nthfile_out = int(nthfile_out)
-			if nthfile_out != 0:
-				nthfile = list(range(0,looptime+nthfile_out,nthfile_out))
-				del(nthfile[-1]) # Delete the last value 0, looptime - 1
+			if nthfile_out > 0:
+				nthfile = list(range(0, looptime, nthfile_out))
 			else:
-				nthfile = [0]
-		# If specified years with |
-		else:
-			nthfile = []
+				nthfile = [0]		
+		else: # If specified years with |
 			# Split up list, removing space values, and appending to nthfile
-			for inum in range(len(nthfile_out)):
-				# Error check here if | at the end
-				if len(nthfile_out[inum]) != 0:
-					nthfile.append(int(nthfile_out[inum]))
+			nthfile = [int(value) for value in nthfile_out if value]
 		
 		# Error check on nthfile, must be 1 less than looptime for indexing
-		if max(nthfile) >= looptime:
-			print('nthfile selection maximum value must be less than to looptime.')
-			sys.exit(-1)
+		validate(max(nthfile) >= looptime, 'nthfile max value must be less than to looptime.')
 				
-		# Store cdmat file information - header file (loadFile()) passes tuple or string if only 1
-		if not isinstance(cdclimgentimelist, (list,tuple)):
-			cdclimgentime = [cdclimgentimelist]
-		else: 
-			cdclimgentime = cdclimgentimelist
-			
-		# Create allele array
-		if len(alleles.split(':')) == 1:
-			alleles = int(batchVars['alleles'][ibatch])*np.ones(loci,int)
-		else:
-			alleles = np.asarray(alleles.split(':'),dtype = int)
+		# Store cdmat file information for tuple or string option passed in from loadFile()
+		cdclimgentime = [cdclimgentimelist] if not isinstance(cdclimgentimelist, (list,tuple)) else cdclimgentimelist 
+		
+		# Create allele array depending on the input format
+		alleles = int(batchVars['alleles'][ibatch])*np.ones(loci,int) if len(alleles.split(':')) == 1 else np.asarray(alleles.split(':'),dtype = int)
 		
 		# ----------------------------
 		# For Sex ratios option splits
 		# ----------------------------
-		if sexchromo not in [2,3,4]:
-			print('Number of sex chromosome options must be 2,3, or 4.')
-			sys.exit()
+		validate(sexchromo not in [2, 3, 4], 'Number of sex chromosomes must be 2, 3,or 4.')
+
 		# Check Deterministic mature set value either age or size
 		tupVal = sexsplit(defaultMature, sexchromo)
-		FXXmat_set = tupVal[0]
-		MXYmat_set = tupVal[1]
-		MYYmat_set = tupVal[2]
-		FYYmat_set = tupVal[3]
-		
+		FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set = tupVal[0], tupVal[1], tupVal[2], tupVal[3]
+				
 		# Logistic equation for maturation as a function of size - slope
 		tupVal = sexsplit(mat_slope, sexchromo)
-		FXXmat_slope = tupVal[0]
-		MXYmat_slope = tupVal[1]
-		MYYmat_slope = tupVal[2]
-		FYYmat_slope = tupVal[3]
+		FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = tupVal[0],tupVal[1],tupVal[2],tupVal[3]
 		
 		# Logistic equation for maturation as a function of size - intercept
 		tupVal = sexsplit(mat_int, sexchromo)
-		FXXmat_int= tupVal[0]
-		MXYmat_int= tupVal[1]
-		MYYmat_int= tupVal[2]
-		FYYmat_int= tupVal[3]
+		FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= tupVal[0],tupVal[1],tupVal[2],tupVal[3]
 		
-		# ---------------------------------
-		# Some Error checking
-		# ---------------------------------
-		
+		# -------------------------------------
+		# Error checking 
+		# -------------------------------------		
 		# DoEmigration() skipped and warning for if selection on
-		if cdevolveans != 'N':
-			if timecdevolve.find('Out') != -1:
-				if dispOutcdmatfile == 'N':
-					stringout = 'Warning: DoEmigration module skipped and spatial selection during this time frame specified, which will also be skipped.'
-					logMsg(logfHndl,stringout)
-						# 	
+		if cdevolveans != 'N' and timecdevolve.find('Out') != -1:
+			if dispOutcdmatfile == 'N':
+				logMsg(logfHndl,'Warning: DoEmigration module skipped and spatial selection during this time frame specified, which will also be skipped.')
+					 	
 		# Constant mortality checks
-		if not (constMortans == '1' or constMortans == '2'):
-			print('Constant mortalities are compounded using option 1 or 2 specifiy correct values. If no constant mortalities are entered, then enter 1.')
-			sys.exit(-1)
+		validate(constMortans not in ['1','2'], 'Constant mortalities are compounded using option 1 or 2. Enter correct value here.')
 			
 		# Warning check on multiplicative mortlaity	
 		if constMortans == '2':
-<<<<<<< Updated upstream
-			print('Warning: Using multiplicative mortality option, double check for patch and class values when 0%')
-=======
 			logMsg(logfHndl,'Warning: Using multiplicative mortality option, double check for patch and class values when 0%')
 				
 		# Check on cdevolve answer input
 		valid_values = ['1', '2', '1_mat', '2_mat', 'N', 'M', 'G', 'MG_ind', 'MG_link', 'stray', '1_G_ind', '1_G_link', 'Hindex', 'F', 'Plastic', 'Multilocus','runtiming']
 		validate(cdevolveans not in valid_values, 'Check CDEvolve answer options.')
->>>>>>> Stashed changes
 		
-		# Check on cdevolve answer input
-		if not (cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == 'N' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'stray' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans.split('_')[0] == 'F' or cdevolveans.split('_')[0] == 'Hindex' or cdevolveans.split('_')[0] == 'P' or cdevolveans.split('_')[0] == 'FHindex'):
-			print('CDEVOLVE answer either N, 1, 2, M, G, MG_ind, MG_link, 1_mat, 2_mat, stray, 1_G_ind, 1_G_link, Hindex, F, Plastic, or Multilocus.')
-			sys.exit(-1)
-			
 		# For mature and size ans
-<<<<<<< Updated upstream
-		if (cdevolveans == 'M' or cdevolveans == 'MG_ind' or cdevolveans == 'MG_link' or cdevolveans == 'G' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and sizeans == 'N':
-			print('CDEVOLVE answer is M or G and size answer must be Y.')
-			sys.exit(-1)
-		
-		# For Hindex answer
-		if cdevolveans.split('_')[0] == 'Hindex':
-			# Split for Gaussian
-			if cdevolveans.split('_')[1] == 'Gauss':
-				if len(cdevolveans.split('_')[2].split(':')) != 6:
-					print('CDEVOLVE answer is Hindex and 6 parameters for the Gaussian function must be specified, see user manual and example files.')
-					sys.exit(-1)
-			elif cdevolveans.split('_')[1] == 'Para':
-				if len(cdevolveans.split('_')[2].split(':')) != 3:
-					print('CDEVOLVE answer is Hindex and 3 parameters for the Parabolic function must be specified, see user manual and example files.')
-					sys.exit(-1)
-			elif cdevolveans.split('_')[1] == 'Step':
-				if len(cdevolveans.split('_')[2].split(':')) != 3:
-					print('CDEVOLVE answer is Hindex and 3 parameters for the Step function must be specified, see user manual and example files.')
-					sys.exit(-1)
-			elif cdevolveans.split('_')[1] == 'Linear':
-				if len(cdevolveans.split('_')[2].split(':')) != 2:
-					print('CDEVOLVE answer is Hindex and 2 parameters for the Linear function must be specified, see user manual and example files.')
-					sys.exit(-1)					
-			else:
-				print('CDEVOLVE and Hindex parameter not entered correctly, check user manual and example files.')
-				sys.exit(-1)
-		
-=======
 		valid_values = ['M', 'MG_ind', 'MG_link', 'G', '1_G_ind', '1_G_link']
 		validate(cdevolveans in valid_values and sizeans != 'Y','CDEVOLVE answer is M or G and size answer must be Y.')
 				
@@ -286,113 +197,41 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		validate('Hindex' in cdevolveans and 'Step' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 3 parameters for the Step function must be specified, see user manual and example files.')
 		validate('Hindex' in cdevolveans and 'Linear' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 2 parameters for the Linear function must be specified, see user manual and example files.')
 				
->>>>>>> Stashed changes
 		# If cdevolve is turned on must have 2 alleles
-		if cdevolveans != 'N' and alleles[0] != 2:
-			print('Warning: More than 2 alleles per locus specified. CDEVOLVE only considers first 2 alleles in selection models (except Hindex scenario).')
-		if plasticans != 'N' and alleles[0] != 2:
-			print('Warning: More than 2 alleles per locus specified. Plastic gene turned on and only considers first 2 alleles in this model.')
-		
-		# For Plastic answer
+		validate((cdevolveans != 'N' or plasticans != 'N') and alleles[0] != 2,'More than 2 alleles per locus specified. CDEVOLVE Or plastic on and 2 alleles should be used needed.')
+
+		# For Plastic answer checks
 		if plasticans != 'N':
-			# Split for temp
-			if ((plasticans.split('_')[0] != 'Temp') and (plasticans.split('_')[0] != 'Hab')):
-				print('Plastic type (Temp/Hab) not entered corectly, check user manual and example files.')
-				sys.exit(-1)
-				
-		if plasticans != 'N':
-			# Split for temp
-			if ((plasticans.split('_')[1] != 'dom') and (plasticans.split('_')[1] != 'rec') and (plasticans.split('_')[1] != 'codom')):
-				print('Plastic type (dom/codom/rec) not entered corectly, check user manual and example files.')
-				sys.exit(-1)
-				
-		if plasticans != 'N':	
-			if ((timeplastic.find('Out') == -1) and (timeplastic.find('Back') == -1)):
-				print('Plastic timing must be specified (e.g., Out or Back).')
-				sys.exit(-1)
-				
+			validate((plasticans.split('_')[0] != 'Temp') and (plasticans.split('_')[0] != 'Hab'),'Plastic type (Temp/Hab) not entered corectly, check user manual and example files.')
+			validate((plasticans.split('_')[1] != 'dom') and (plasticans.split('_')[1] != 'rec') and (plasticans.split('_')[1] != 'codom'), 'Plastic type (dom/codom/rec) not entered corectly, check user manual and example files.')
+			validate((timeplastic.find('Out') == -1) and (timeplastic.find('Back') == -1),'Plastic timing must be specified (e.g., Out or Back).')
+								
 		# Must have more than 1 loci
-		if loci <= 1:
-			print('Currently, CDmetaPOP needs more than 1 locus to run.')
-			sys.exit(-1)
-		if cdevolveans == '1' or cdevolveans == '2' or cdevolveans == '1_mat' or cdevolveans == '2_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans.split('_')[0] == 'Hindex' or cdevolveans.split('_')[0] == 'FHindex':
-			if ((timecdevolve.find('Eggs') == -1) and (timecdevolve.find('Out') == -1) and (timecdevolve.find('Back') == -1) and timecdevolve.find('packing') == -1):
-				print('CDEVOLVE timing must be specified (e.g., Out, Back or Eggs).')
-				sys.exit(-1)
-			
-		# Error check on forward mutation in A and backward mutation in B
-		#	Can only happen if cdevolve == 2.
-		if mutationans == 'forwardAbackwardBrandomN' and (cdevolveans != '2' or cdevolveans == '2_mat'):
-			print('This special case of mutation is for AAbb ancestors and 2-locus selection.')
-			sys.exit(-1)		
-					
+		validate(loci <= 1, 'CDmetaPOP needs more than 1 locus to run.')
+		if cdevolveans != 'N':
+			validate((timecdevolve.find('Eggs') == -1) and (timecdevolve.find('Out') == -1) and (timecdevolve.find('Back') == -1) and timecdevolve.find('packing') == -1, 'CDEVOLVE timing must be specified (e.g., Out, Back or Eggs).')
+							
 		# grid format
-		if (gridformat == 'cdpop' or gridformat == 'general' or gridformat == 'genalex' or gridformat == 'genepop' or gridformat == 'structure') == False:
-			print('Grid format parameter not an option.')
-			sys.exit(-1)
-		
-		# If genepop, some conditions
-		if gridformat == 'genepop' and (alleles[0] > 99 or loci > 99):
-			print('GENEPOP format requires less than 99 alleles and 99 loci.')
-			sys.exit(-1)
-		
+		validate((gridformat == 'cdpop' or gridformat == 'general' or gridformat == 'genalex' or gridformat == 'genepop' or gridformat == 'structure') == False, 'Grid format parameter not an option.')
+				
 		# Check burn in times
 		if cdevolveans != 'N' and burningen_cdevolve < geneswap:
-			stringout = 'Warning: Selection burnin time < time at which genetic exchange is to initialize, setting burnin time = start genetic exchange time.'
-			logMsg(logfHndl,stringout)
-			
-			burningen_cdevolve = geneswap
+			logMsg(logfHndl,'Warning: Selection burnin time < time at which genetic exchange is to initialize, setting burnin time = start genetic exchange time.')			
+			burningen_cdevolve = geneswap			
 		if plasticans != 'N' and burningen_plastic < geneswap:
-			stringout = 'Warning: Selection burnin time < time at which genetic exchange is to initialize, setting burnin time = start genetic exchange time.'
-			logMsg(logfHndl,stringout)
+			logMsg(logfHndl,'Warning: Selection burnin time < time at which genetic exchange is to initialize, setting burnin time = start genetic exchange time.')
 			burningen_plastic = geneswap
 			
 		# Inherit answer can only be:
-		if not (inheritans_classfiles == 'random' or inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'):
-			print('Inherit answer for multiple class files is not correct: enter either random or Hindex.')
-			sys.exit(-1)
-		
+		validate(not (inheritans_classfiles == 'random' or inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'),'Inherit answer for multiple class files is not correct: enter either random or Hindex.')
+				
 		# If inherit answer uses Hindex, mutation can't be on
 		if len(muterate_pass) > 1:
-			if sum(np.asarray(muterate_pass,dtype=float)) != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'):
-				print('Mutation is not operating with Hindex inheritance options in this version.')
-				sys.exit(-1)
+			validate(sum(np.asarray(muterate_pass,dtype=float)) != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'),'Mutation is not operating with Hindex inheritance options in this version.')
 		else:
-			if sum(np.asarray([muterate_pass],dtype=float)) != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'):
-				print('Mutation is not operating with Hindex inheritance options in this version.')
-				sys.exit(-1)
+			validate(sum(np.asarray([muterate_pass],dtype=float)) != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'),'Mutation is not operating with Hindex inheritance options in this version.')
 			
 		# If egg_delay is gretter than 1 v2.68 turned off for further testing
-<<<<<<< Updated upstream
-		if egg_delay > 0:
-			print('Currently, egg delay is not operating beyond 0 year/time unit. Testing sourcePop and gen = 0 issue.')
-			sys.exit(-1)
-		
-		# Reproduction answers checks - check with Erin		
-		if (sexans == 'N' or sexans == 'Y' or sexans == 'H') == False:
-			print('Reproduction choices either N, Y or H, check user manual.')
-			sys.exit(-1)
-		if sexans == 'H' and (selfing == 'N' or selfing == 'Y'):
-			print('Hermaphroditic mating structure specified - H - then must specify the selfing probability.')
-			sys.exit(-1)
-		'''if sexans == 'H':
-			try:
-				float(selfing)
-			except ValueError:
-				# Currently this causes a crash but I couldn't get try/except to work right.
-				raise ValueError('Sexans "H" for hermaphroditic system must be paired with a probability for selfing (selfans).') from None
-				print('Sexans "H" for hermaphroditic system must be paired with a probability for selfing (selfans).')
-				sys.exit(-1)'''
-				
-		# Spot to add age 0s / eggs / pups /liter, etc
-		if (egg_add == 'mating' or egg_add == 'nonmating') == False:
-			print('Egg add choices either mating or nonmating, check user manual.')
-			sys.exit(-1)
-		if egg_add == 'nonmating' and packans != 'logistic':
-			print('Logistic model should be used with nonmating add age 0 locations. See user manual')
-			sys.exit(-1)
-			
-=======
 		validate(egg_delay > 0,'Currently, egg delay is not operating beyond 0 year/time unit. Testing sourcePop and gen = 0 issue.')
 					
 		# Reproduction answers checks 	
@@ -417,12 +256,9 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		else:
 			validate(cdevolveans == 'runtiming' and len(dispBackcdmatfile.split('~')[0].split(';')) != 4, 'runtiming CDEvolve answer specified, 4 migrate back cdmats required.')
 		'''	
->>>>>>> Stashed changes
 		# ---------------------------------------------	
 		# Begin Monte-Carlo Looping
-		# ---------------------------------------------
-		
-		# range(mcruns) is typically 10 - 50...and it takes a long time.
+		# ---------------------------------------------		
 		for ithmcrun in range(mcruns):	
 			
 			# Timing events: start
@@ -436,16 +272,19 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			# These variables will be stored in output.csv at the end of the simulation						
 			
 			# GetMetrics()
-			Track_p1, Track_p2, Track_q1, Track_q2, Track_Alleles, Track_He, Track_Ho, Track_N_Init_pop, Track_N_Init_age, Track_N_Init_class, Track_K, Track_CaptureCount_Out, Track_CaptureCount_ClassOut, Track_CaptureCount_Back, Track_CaptureCount_ClassBack, maxfit, minfit = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+			Track_p1, Track_p2, Track_q1, Track_q2, Track_Alleles, Track_He, Track_Ho, Track_N_Init_pop, Track_N_Init_age, Track_N_Init_class, Track_K, Track_CaptureCount_Out, Track_CaptureCount_ClassOut, Track_CaptureCount_Back, Track_CaptureCount_ClassBack, maxfit, minfit,Track_DiseaseStates_pop, Track_DiseaseStates_EnvRes  = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[]
+			
+			# AddIndividuals()
+			Track_DiseaseStates_AddedInds = []
 									
 			# DoMate()
 			Track_FAvgMate, Track_MAvgMate, Track_FSDMate, Track_MSDMate, Track_MateDistCD, Track_MateDistCDstd, Track_BreedEvents, Track_AAaaMates, Track_AAAAMates, Track_aaaaMates, Track_AAAaMates, Track_aaAaMates, Track_AaAaMates, Track_BreedFemales, Track_BreedMales, Track_BreedYYMales, Track_BreedYYFemales, Track_MatureCount, Track_ImmatureCount, Track_ToTFemales, Track_ToTMales, Track_ToTYYMales, Track_ToTYYFemales = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
 			
 			# DoOffspring
-			Track_Births, Track_EggDeaths, Track_BirthsMYY, Track_BirthsFYY = [], [], [], []
+			Track_Births, Track_EggDeaths, Track_BirthsMYY, Track_BirthsFYY, Track_DiseaseStates_AddAge0s = [], [], [], [], []
 			
 			# DoUpdate
-			Track_N_back_age, Track_N_out_age = [], []
+			Track_N_back_age, Track_N_out_age, Track_DiseaseStates_SecondUpdate, Track_DiseaseStates_ThirdUpdate,Track_DiseaseStates_AfterDeaths_SecondUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate = [], [],[],[],[],[]
 			
 			# Emigration()
 			N_Emigration_pop, N_Emigration_age, subpopemigration, F_EmiDist, M_EmiDist, F_EmiDist_sd, M_EmiDist_sd, SelectionDeathsEmi, DisperseDeathsEmi, PackingDeathsEmi, PackingDeathsEmiAge, MgSuccess, AdultNoMg, Track_YYSelectionPackDeathsEmi, Track_WildSelectionPackDeathsEmi, SelectionDeaths_Age0s, N_beforePack_pop, N_beforePack_age, Track_KadjEmi = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
@@ -460,7 +299,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			N_ImmiMortality, PopDeathsIN, AgeDeathsIN, SizeDeathsIN = [], [], [], []
 			
 			# DoOutput()
-			Infected, Residors, Strayers1, Strayers2, Immigrators, IDispersers, RDispersers, PopSizes_Mean, PopSizes_Std, AgeSizes_Mean, AgeSizes_Std, ClassSizes_Mean, ClassSizes_Std = [], [], [], [], [], [], [], [], [], [], [], [], []
+			Residors, Strayers1, Strayers2, Immigrators, IDispersers, RDispersers, PopSizes_Mean, PopSizes_Std, AgeSizes_Mean, AgeSizes_Std, ClassSizes_Mean, ClassSizes_Std = [], [], [], [], [], [], [], [], [], [], [], []
 			
 			# Non-tracking variables - create empty 2-D list
 			noOffspring_temp = [np.asarray([]),np.asarray([])] 
@@ -475,8 +314,8 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			
 			# Call function
 			tupPreProcess = DoPreProcess(outdir,datadir,irun,ithmcrun,\
-			xyfilename,loci,alleles,0,logfHndl,cdevolveans,cdinfect,\
-			subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd)
+			xyfilename,loci,alleles,0,logfHndl,cdevolveans,\
+			subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,implementdisease)
 			ithmcrundir = tupPreProcess[0]			
 			fitvals_pass = tupPreProcess[1] # sex ratio check throughout
 			allelst = tupPreProcess[2]
@@ -525,30 +364,30 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			tempbetas_selection = tupPreProcess[45]
 			outhabvals_pass = tupPreProcess[46]
 			backhabvals_pass = tupPreProcess[47]
-			
-			#disperse_patches = tupPreProcess[48] # Pass into DoImmigration / 
-			#stray_patches = tupPreProcess[49] # Pass into DoImmigration
-			
 			MgBack_patch_prob_pass = tupPreProcess[48] # CDClimate then DoImmigrtion
 			Disperse_patch_prob_pass = tupPreProcess[49] # Cdclimate thenDoImmigration
-			
-			# Grab first one only
-			K = K_mu # Initialize K with mu		
+			alldiseaseVars_files = tupPreProcess[50]
+			# These are temporary disease vars to pass into the first GetMetrics, will use the cdclimate returned variables for the time loop
+			disease_vars_pass = tupPreProcess[51] 
+			pathogen_load_pass = tupPreProcess[52]
+			disease_fitvals_pass = tupPreProcess[53]
+						
+			K = K_mu # Initialize K with mu	, Grab first one only	
 						
 			# Print to log
 			stringout = 'DoPreProcess(): '+str(datetime.datetime.now() -start_time1) + ''
 			logMsg(logfHndl,stringout)
 			if multiprocessing.current_process().name == "S0" or multiprocessing.current_process().name == "MainProcess":
 				print(('DoPreProcess(): ',str(datetime.datetime.now() -start_time1),''))
-			
+			#pdb.set_trace()
 			# ---------------------------------
 			# Call GetMetrics()
 			# ---------------------------------
-			
 			# Timing events: start
 			start_time1 = datetime.datetime.now()
 			
-			GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,loci,alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_N_Init_age,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,packans,RDispersers,IDispersers,xvars_betas_pass,tempbetas_selection,maxfit,minfit,cdevolveans)
+			GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,loci,alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_N_Init_age,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,packans,RDispersers,IDispersers,xvars_betas_pass,tempbetas_selection,maxfit,minfit,cdevolveans,disease_vars_pass,Track_DiseaseStates_pop,Track_DiseaseStates_EnvRes)
+			
 			# Print to log
 			stringout = 'GetMetrics() Initial: '+str(datetime.datetime.now() -start_time1) + ''
 			logMsg(logfHndl,stringout)
@@ -557,23 +396,16 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			# Error statements
 			# ---------------------------------			
 			# Error statement here in case no females or males, then break
-			if Track_N_Init_pop[0][0] == 0:
-				print('There are no individuals to begin time loop.\n')
-				
-				#ThisSystem = psutil.Process(os.getpid())
-				#ThisSystem.terminate()
-				#os.killpg(current_system_pid, signal.SIGTERM)
-				
-				sys.exit(-1)
-				
+			validate(Track_N_Init_pop[0][0] == 0, 'There are no individuals to begin time loop for this species ',str(spcNO))
+						
 			# ----------------------------------------------------
 			# Call DoUpdate() - output initial file here ind-1.csv
 			# ----------------------------------------------------
-						
 			# Timing events: start
 			start_time1 = datetime.datetime.now()
 			
 			DoUpdate(packans,SubpopIN_init,K,xgridpop,ygridpop,-1,nthfile,ithmcrundir,loci,alleles,logfHndl,'Initial')
+			
 			# Print to log
 			stringout = 'DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
 			logMsg(logfHndl,stringout)
@@ -582,8 +414,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			# Start Generation Looping 
 			# -------------------------------------------
 			# Begin generation loop
-			for gen in range(looptime):
-				
+			for gen in range(looptime):				
 				# Timing events: start
 				start_timeGen = datetime.datetime.now()
 									
@@ -594,7 +425,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 					# Use NatalPop in first generation 
 					sourcePop = 'NatalPop'		
 				else: # This was for versions previous v1.37
-					sourcePop = 'ImmiPop' # For generations greater than 0, this is where the individual is located.
+					sourcePop = 'ImmiPop' # For generations greater than 0, this is where the individual is located after DoEmi and DoImmi
 					#sourcePop = 'NatalPop'
 				
 				# Exit the system if population is 0 or 1
@@ -631,104 +462,67 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 							global_extinctQ.put(0)	
 				if global_extinctQ.get() == 1:
 					break
-				#pdb.set_trace()
+				
 				# ---------------------------------
 				# Call CDClimate()
 				# ---------------------------------			
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
-				
+				#pdb.set_trace()
 				# Check gen time equal to cdclimgentime
 				for icdtime in range(len(cdclimgentime)): 
 					if gen == int(cdclimgentime[icdtime]):
 						tupClimate = DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,\
-						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_pass,Str_patch_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob_pass,Disperse_patch_prob_pass)
+						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_pass,Str_patch_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob_pass,Disperse_patch_prob_pass,alldiseaseVars_files,implementdisease,pathogen_load_pass,disease_fitvals_pass)
 						
 						# Cdmatrix values
-						cdmatrix_mate,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,cdmatrix_FXXBack,cdmatrix_MXYBack, cdmatrix_MYYBack, cdmatrix_FYYBack, cdmatrix_FXXStr, cdmatrix_MXYStr, cdmatrix_MYYStr, cdmatrix_FYYStr, cdmatrix_FXXLD, 	cdmatrix_MXYLD, cdmatrix_MYYLD, cdmatrix_FYYLD = tupClimate[0],tupClimate[1],tupClimate[2],tupClimate[3],tupClimate[4], tupClimate[5],tupClimate[6],tupClimate[7],tupClimate[8],tupClimate[9],tupClimate[10],tupClimate[11],tupClimate[12],tupClimate[13],tupClimate[14],tupClimate[15],tupClimate[16]						
+						cdmatrix_mate, cdmatrix_FXXOut, cdmatrix_MXYOut, cdmatrix_MYYOut, cdmatrix_FYYOut, cdmatrix_FXXBack, cdmatrix_MXYBack, cdmatrix_MYYBack, cdmatrix_FYYBack, cdmatrix_FXXStr, cdmatrix_MXYStr, cdmatrix_MYYStr, cdmatrix_FYYStr, cdmatrix_FXXLD, cdmatrix_MXYLD, cdmatrix_MYYLD, cdmatrix_FYYLD = tupClimate[:17]
 						# Threshold values
-						thresh_mate, thresh_FXXOut, thresh_MXYOut, thresh_MYYOut, thresh_FYYOut, thresh_FXXBack, thresh_MXYBack, thresh_MYYBack, thresh_FYYBack, thresh_FXXStr, thresh_MXYStr, thresh_MYYStr, thresh_FYYStr, thresh_FXXLD, thresh_MXYLD, thresh_MYYLD, thresh_FYYLD = tupClimate[17], tupClimate[18], tupClimate[19],tupClimate[20],tupClimate[21], tupClimate[22],tupClimate[23],tupClimate[24],tupClimate[25],tupClimate[26],tupClimate[27],tupClimate[28],tupClimate[29],tupClimate[30],tupClimate[31],tupClimate[32],tupClimate[33]						
+						thresh_mate, thresh_FXXOut, thresh_MXYOut, thresh_MYYOut, thresh_FYYOut, thresh_FXXBack, thresh_MXYBack, thresh_MYYBack, thresh_FYYBack, thresh_FXXStr, thresh_MXYStr, thresh_MYYStr, thresh_FYYStr, thresh_FXXLD, thresh_MXYLD, thresh_MYYLD, thresh_FYYLD = tupClimate[17:34]						
 						# Scale Min
-						scalemin_mate,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemin_FXXBack,scalemin_MXYBack,scalemin_MYYBack,scalemin_FYYBack,scalemin_FXXStr,scalemin_MXYStr,scalemin_MYYStr,scalemin_FYYStr,scalemin_FXXLD,scalemin_MXYLD,scalemin_MYYLD,scalemin_FYYLD = tupClimate[34], tupClimate[35], tupClimate[36],tupClimate[37],tupClimate[38], tupClimate[39],tupClimate[40],tupClimate[41],tupClimate[42],tupClimate[43],tupClimate[44],tupClimate[45],tupClimate[46],tupClimate[47],tupClimate[48],tupClimate[49],tupClimate[50]
+						scalemin_mate,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemin_FXXBack,scalemin_MXYBack,scalemin_MYYBack,scalemin_FYYBack,scalemin_FXXStr,scalemin_MXYStr,scalemin_MYYStr,scalemin_FYYStr,scalemin_FXXLD,scalemin_MXYLD,scalemin_MYYLD,scalemin_FYYLD = tupClimate[34:51]
 						# Scale Max
-						scalemax_mate, scalemax_FXXOut, scalemax_MXYOut, scalemax_MYYOut,scalemax_FYYOut ,scalemax_FXXBack,scalemax_MXYBack,scalemax_MYYBack,scalemax_FYYBack,scalemax_FXXStr,scalemax_MXYStr,scalemax_MYYStr,scalemax_FYYStr,scalemax_FXXLD,scalemax_MXYLD,scalemax_MYYLD,scalemax_FYYLD = tupClimate[51],tupClimate[52],tupClimate[53],tupClimate[54],tupClimate[55],tupClimate[56],tupClimate[57],tupClimate[58],tupClimate[59],tupClimate[60],tupClimate[61],tupClimate[62],tupClimate[63],tupClimate[64],tupClimate[65],tupClimate[66],tupClimate[67]
+						scalemax_mate, scalemax_FXXOut, scalemax_MXYOut, scalemax_MYYOut,scalemax_FYYOut ,scalemax_FXXBack,scalemax_MXYBack,scalemax_MYYBack,scalemax_FYYBack,scalemax_FXXStr,scalemax_MXYStr,scalemax_MYYStr,scalemax_FYYStr,scalemax_FXXLD,scalemax_MXYLD,scalemax_MYYLD,scalemax_FYYLD = tupClimate[51:68]
 						# ParA
-						parA_mate,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parA_FXXBack,parA_MXYBack,parA_MYYBack,parA_FYYBack,parA_FXXStr,parA_MXYStr,parA_MYYStr,parA_FYYStr,parA_FXXLD,parA_MXYLD,parA_MYYLD,parA_FYYLD = tupClimate[68],tupClimate[69],tupClimate[70],tupClimate[71],tupClimate[72],tupClimate[73],tupClimate[74],tupClimate[75],tupClimate[76],tupClimate[77],tupClimate[78],tupClimate[79],tupClimate[80],tupClimate[81],tupClimate[82],tupClimate[83],tupClimate[84]
+						parA_mate,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parA_FXXBack,parA_MXYBack,parA_MYYBack,parA_FYYBack,parA_FXXStr,parA_MXYStr,parA_MYYStr,parA_FYYStr,parA_FXXLD,parA_MXYLD,parA_MYYLD,parA_FYYLD = tupClimate[68:85]
 						# ParB
-						parB_mate,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parB_FXXBack,parB_MXYBack,parB_MYYBack,parB_FYYBack,parB_FXXStr,parB_MXYStr,parB_MYYStr,parB_FYYStr,parB_FXXLD,parB_MXYLD,parB_MYYLD,parB_FYYLD = tupClimate[85],tupClimate[86],tupClimate[87],tupClimate[88],tupClimate[89],tupClimate[90],tupClimate[91],tupClimate[92],tupClimate[93],tupClimate[94],tupClimate[95],tupClimate[96],tupClimate[97],tupClimate[98],tupClimate[99],tupClimate[100],tupClimate[101]
+						parB_mate,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parB_FXXBack,parB_MXYBack,parB_MYYBack,parB_FYYBack,parB_FXXStr,parB_MXYStr,parB_MYYStr,parB_FYYStr,parB_FXXLD,parB_MXYLD,parB_MYYLD,parB_FYYLD = tupClimate[85:102]
 						# ParC
-						parC_mate,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,parC_FXXBack,parC_MXYBack,parC_MYYBack,parC_FYYBack,parC_FXXStr,parC_MXYStr,parC_MYYStr,parC_FYYStr,parC_FXXLD,parC_MXYLD,parC_MYYLD,parC_FYYLD = tupClimate[102],tupClimate[103],tupClimate[104],tupClimate[105],tupClimate[106],tupClimate[107],tupClimate[108],tupClimate[109],tupClimate[110],tupClimate[111],tupClimate[112],tupClimate[113],tupClimate[114],tupClimate[115],tupClimate[116],tupClimate[117],tupClimate[118]
+						parC_mate,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,parC_FXXBack,parC_MXYBack,parC_MYYBack,parC_FYYBack,parC_FXXStr,parC_MXYStr,parC_MYYStr,parC_FYYStr,parC_FXXLD,parC_MXYLD,parC_MYYLD,parC_FYYLD = tupClimate[102:119]
 						# Movement No
-						moveno_mate,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,moveno_FXXBack,moveno_MXYBack,moveno_MYYBack,moveno_FYYBack,moveno_FXXStr,moveno_MXYStr,moveno_MYYStr,moveno_FYYStr,moveno_FXXLD,moveno_MXYLD,moveno_MYYLD,moveno_FYYLD = tupClimate[119],tupClimate[120],tupClimate[121],tupClimate[122],tupClimate[123],tupClimate[124],tupClimate[125],tupClimate[126],tupClimate[127],tupClimate[128],tupClimate[129],tupClimate[130],tupClimate[131],tupClimate[132],tupClimate[133],tupClimate[134],tupClimate[135]						
+						moveno_mate,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,moveno_FXXBack,moveno_MXYBack,moveno_MYYBack,moveno_FYYBack,moveno_FXXStr,moveno_MXYStr,moveno_MYYStr,moveno_FYYStr,moveno_FXXLD,moveno_MXYLD,moveno_MYYLD,moveno_FYYLD = tupClimate[119:136]						
 						MgOut_patch_prob = tupClimate[136]
 						Str_patch_prob = tupClimate[137]						
-						outsizevals_mu = tupClimate[138]
-						backsizevals_mu = tupClimate[139]
-						outgrowdays_mu = tupClimate[140]
-						backgrowdays_mu = tupClimate[141]
-						fitvals = tupClimate[142]
-						K_mu = tupClimate[143]
-						popmort_back_mu = tupClimate[144]
-						popmort_out_mu = tupClimate[145]
-						eggmort_mu = tupClimate[146]
-						K_std = tupClimate[147]
-						popmort_back_sd = tupClimate[148]
-						popmort_out_sd = tupClimate[149]
-						eggmort_sd = tupClimate[150]
-						outsizevals_sd = tupClimate[151]
-						backsizevals_sd = tupClimate[152]
-						outgrowdays_sd = tupClimate[153]
-						backgrowdays_sd = tupClimate[154]
-						pop_capture_back = tupClimate[155]
-						pop_capture_out = tupClimate[156]
-						tempN0 = tupClimate[157]
-						tempAllelefile = tupClimate[158]
-						tempClassVarsfile = tupClimate[159]
-						assortmateModel = tupClimate[160]
-						assortmateC = tupClimate[161]
-						subpopmort_mat = tupClimate[162]
-						comp_coef = tupClimate[163]
-						betas_selection = tupClimate[164]
-						xvars_betas = tupClimate[165]
-						outhabvals = tupClimate[166]
-						backhabvals = tupClimate[167]
-						plastic_signalresp = tupClimate[168] #ts added
-						plastic_behaviorresp = tupClimate[169] #ts added, note that plasticans not listed here, but present in tupClimate. in 1.72, present in tupClimate as last piece but not defined down here.
+						# Temp/grow vars (mu)
+						outsizevals_mu,backsizevals_mu,outgrowdays_mu,backgrowdays_mu = tupClimate[138:142]
+						fitvals, K_mu, popmort_back_mu, popmort_out_mu, eggmort_mu, K_std, popmort_back_sd, popmort_out_sd, eggmort_sd = tupClimate[142:151]
+						# Temp/grow vars (sd)
+						outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd = tupClimate[151:155]
+						pop_capture_back, pop_capture_out, tempN0, tempAllelefile, tempClassVarsfile, assortmateModel, assortmateC, subpopmort_mat, comp_coef, betas_selection, xvars_betas = tupClimate[155:166]
+						# Plastic selection vars
+						outhabvals,backhabvals,plastic_signalresp,plastic_behaviorresp = tupClimate[166:170] #ts added, note that plasticans not listed here, but present in tupClimate. in 1.72, present in tupClimate as last piece but not defined down here.
 						muterate = tupClimate[170]						
 						if gen == 0:
-							age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_MgOUT, age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie_mu,f_leslie_std,age_capture_out,age_capture_back = tupClimate[171],tupClimate[172],tupClimate[173],tupClimate[174],tupClimate[175],tupClimate[176],tupClimate[177],tupClimate[178],tupClimate[179],tupClimate[180],tupClimate[181],tupClimate[182],tupClimate[183],tupClimate[184],tupClimate[185],tupClimate[186],tupClimate[187],tupClimate[188],tupClimate[189]
-						MgBack_patch_prob = tupClimate[190]
-						Disperse_patch_prob = tupClimate[191]
-	
+							age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_MgOUT, age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie_mu,f_leslie_std,age_capture_out,age_capture_back = tupClimate[171:190]
+						MgBack_patch_prob, Disperse_patch_prob =  tupClimate[190:192]
+						disease_vars = tupClimate[192]
+												
 						# ----------------------------------------
 						# Introduce new individuals
 						# ----------------------------------------
 						if (gen != 0 and len(N0_pass[0].split('|')) > 1):							
-							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdinfect,cdevolveans,burningen_cdevolve,fitvals,dtype,N0,natal_patches,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd)											
+							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdevolveans,burningen_cdevolve,fitvals,dtype,N0,natal_patches,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,disease_vars)
+				#pdb.set_trace()
 				# -------------------------------------------
 				# Update stochastic parameters each year here
 				# -------------------------------------------
-				tupStoch = DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,egg_percmort_mu,egg_percmort_sd,cor_mat,age_mu,age_sigma,f_leslie_mu,f_leslie_std,sexchromo)
-				K = tupStoch[0]
-				popmort_back = tupStoch[1]
-				popmort_out = tupStoch[2]
-				eggmort_patch = tupStoch[3]
-				outsizevals = tupStoch[4]
-				backsizevals = tupStoch[5]
-				outgrowdays = tupStoch[6]
-				backgrowdays = tupStoch[7]
-				age_percmort_out = tupStoch[8] # sex ratio check throughout
-				age_percmort_back = tupStoch[9] # sex ratio check throughout
-				size_percmort_out = tupStoch[10] # sex ratio check throughout
-				size_percmort_back = tupStoch[11] # sex ratio check throughout
-				eggmort_pop = tupStoch[12]
-				f_ind = tupStoch[13]
-				f_leslie = tupStoch[14]
+				tupStoch = DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,egg_percmort_mu,egg_percmort_sd,cor_mat,age_mu,age_sigma,f_leslie_mu,f_leslie_std,sexchromo,disease_vars)
+				K, popmort_back, popmort_out, eggmort_patch, outsizevals, backsizevals, outgrowdays, backgrowdays, age_percmort_out, age_percmort_back, size_percmort_out, size_percmort_back, eggmort_pop, f_ind, f_leslie = tupStoch[:15]
 				
 				# Print to log
 				stringout = 'DoCDClimate(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
-				
+			
 				# ---------------------------------------
 				# Call DoMate() - DoOffspring()
 				# ---------------------------------------
@@ -736,10 +530,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				# Timing events: start
 				start_time1 = datetime.datetime.now()				
 				
-				Bearpairs_temp,noOffspring_temp = DoMate(SubpopIN,K,\
-				freplace,mreplace,moveno_mate,thresh_mate,\
-				cdmatrix_mate,Track_MateDistCD,xgridpop,\
-				ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,scalemax_mate,scalemin_mate,parA_mate,parB_mate,parC_mate,Femalepercent_egg,sexans,selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,assortmateModel,subpopmort_mat,Track_BreedFemales,Track_BreedMales,Track_BreedYYMales,Track_BreedYYFemales,Track_MatureCount, Track_ImmatureCount,Track_ToTFemales,Track_ToTMales,Track_ToTYYMales,Track_ToTYYFemales,egg_delay,Bearpairs_temp,natal_patches,offno,transmissionprob,f_ind,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,constMortans,outputans)
+				Bearpairs_temp,noOffspring_temp = DoMate(SubpopIN,K,freplace,mreplace,moveno_mate,thresh_mate,cdmatrix_mate,Track_MateDistCD,xgridpop,ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,scalemax_mate,scalemin_mate,parA_mate,parB_mate,parC_mate,Femalepercent_egg,sexans,selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,assortmateModel,subpopmort_mat,Track_BreedFemales,Track_BreedMales,Track_BreedYYMales,Track_BreedYYFemales,Track_MatureCount, Track_ImmatureCount,Track_ToTFemales,Track_ToTMales,Track_ToTYYMales,Track_ToTYYFemales,egg_delay,Bearpairs_temp,natal_patches,offno,f_ind,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,constMortans,outputans,Track_DiseaseStates_AddedInds,disease_vars)
 				
 				# Print to log
 				stringout = 'DoMate() and DoOffspring: '+str(datetime.datetime.now() -start_time1) + ''
@@ -748,37 +539,28 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 					if temp_extinct == 0:
 						print(('There are no more females or males left from species ' + str(spcNO) + ' after year '+str(gen)+'.\n'))
 					#break
-<<<<<<< Updated upstream
-						
-=======
 					
->>>>>>> Stashed changes
 				# --------------------------------------------------------------------------------------------------------
-				# Call 2nd DoUpdate() - grow, age (selection option),egglay,capture, output ind.csv file;no Age0s; ind.csv
+				# Call 2nd DoUpdate() - grow, age (selection option),egglay,capture, output ind.csv file;no Age0s; ind.csv, disease
 				# --------------------------------------------------------------------------------------------------------
 				#pdb.set_trace()
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
-				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,'Middle',growans,cdevolveans,fitvals,burningen_cdevolve,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,sizeans,age_size_mean,Track_N_back_age,eggFreq_mu,eggFreq_sd,backsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,backgrowdays,plasticans,burningen_plastic,timeplastic,plastic_signalresp,geneswap,backhabvals,sexchromo)
+				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,'Middle',growans,cdevolveans,fitvals,burningen_cdevolve,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,sizeans,age_size_mean,Track_N_back_age,eggFreq_mu,eggFreq_sd,backsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,backgrowdays,plasticans,burningen_plastic,timeplastic,plastic_signalresp,geneswap,backhabvals,sexchromo,Track_DiseaseStates_SecondUpdate,Track_DiseaseStates_AfterDeaths_SecondUpdate,disease_vars)
 												
 				# Print to log
 				stringout = 'Second DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
 				logMsg(logfHndl,stringout)
-				
-				# --------------------------------------------------------
-				# Call DoEmigration() - Age0s adding into population here
-				# --------------------------------------------------------
+				#pdb.set_trace()
+				# -----------------------------------------------------------------------
+				# Call DoEmigration() - Age0s adding into population here - OUT vars here
+				# -----------------------------------------------------------------------
 				#pdb.set_trace()
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
-<<<<<<< Updated upstream
-				SubpopIN = DoEmigration(SubpopIN,K,gen,F_EmiDist,M_EmiDist,cdevolveans,fitvals,F_EmiDist_sd,M_EmiDist_sd,subpopemigration,SelectionDeathsEmi,DisperseDeathsEmi,burningen_cdevolve,MgOut_patch_prob,MgSuccess,AdultNoMg,age_MgOUT,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,packans,PackingDeathsEmiAge,packpar1,timecdevolve,migrate_patches,outsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring_temp,Bearpairs_temp,age_size_std,Femalepercent_egg,transmissionprob,age_mature,alleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Track_KadjEmi,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,egg_add,outputans)
-				
-=======
 
 				SubpopIN = DoEmigration(SubpopIN,K,gen,F_EmiDist,M_EmiDist,cdevolveans,fitvals,F_EmiDist_sd,M_EmiDist_sd,subpopemigration,SelectionDeathsEmi,DisperseDeathsEmi,burningen_cdevolve,MgOut_patch_prob,MgSuccess,AdultNoMg,age_MgOUT,N_Emigration_pop,sourcePop,dtype,setmigrate,sizeans,age_size_mean,PackingDeathsEmi,N_Emigration_age,loci,muterate,mtdna,mutationans,packans,PackingDeathsEmiAge,packpar1,timecdevolve,migrate_patches,outsizevals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring_temp,Bearpairs_temp,age_size_std,Femalepercent_egg,age_mature,alleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Track_KadjEmi,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,egg_add,outputans,age_percmort_out, f_leslie,f_leslie_std,disease_vars,Track_DiseaseStates_AddAge0s)
 							
->>>>>>> Stashed changes
 				# Delete the noOffspring_temp and Bearpairs_temp egg_delay spots used: the first spot in list
 				if len(noOffspring_temp) != 0: # But check for extinction
 					del(noOffspring_temp[0])
@@ -807,7 +589,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				# ----------------------------------------------------
 				#pdb.set_trace()
 				start_time1 = datetime.datetime.now() # Timing events: start
-				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,fitvals,burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq_mu,eggFreq_sd,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,plasticans,burningen_plastic,timeplastic,plastic_signalresp,geneswap,outhabvals,sexchromo,age_mature,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope)
+				SubpopIN = DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,alleles,logfHndl,gridsample,growans,cdevolveans,fitvals,burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,sizeans,age_size_mean,Track_N_out_age,eggFreq_mu,eggFreq_sd,outsizevals,sizeLoo,sizeR0,size_eqn_1,size_eqn_2,size_eqn_3,outgrowdays,plasticans,burningen_plastic,timeplastic,plastic_signalresp,geneswap,outhabvals,sexchromo,Track_DiseaseStates_ThirdUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,disease_vars,age_mature,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope)
 			
 				# Print to log
 				stringout = 'Third DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -842,7 +624,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				#pdb.set_trace()
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
-				GetMetrics(SubpopIN,K,Track_N_Init_pop,Track_K,loci,alleles,gen+1,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_N_Init_age,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,packans,RDispersers,IDispersers,xvars_betas,betas_selection,maxfit,minfit,cdevolveans)
+				GetMetrics(SubpopIN,K,Track_N_Init_pop,Track_K,loci,alleles,gen+1,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_N_Init_age,sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,packans,RDispersers,IDispersers,xvars_betas,betas_selection,maxfit,minfit,cdevolveans,disease_vars,Track_DiseaseStates_pop,Track_DiseaseStates_EnvRes)
 				
 				# Print to log
 				stringout = 'GetMetrics(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -859,7 +641,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			# ------------------------------------------
 			# Call DoPostProcess()
 			# ------------------------------------------
-			#pdb.set_trace()
+			#pdb.set_trace() # DiseaseStates_pop in place of Infected
 			# Timing events: start
 			start_time1 = datetime.datetime.now()
 			
@@ -872,7 +654,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			DisperseDeathsEmi,DisperseDeathsImm,\
 			Track_BreedEvents,gridformat,\
 			MgSuccess,AdultNoMg,StrSuccess,\
-			Track_EggDeaths,Track_K,Track_N_Init_pop,N_Emigration_pop,N_EmiMortality,N_Immigration_pop,N_ImmiMortality,Infected,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,Track_N_Init_age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,Track_MatureCount,Track_ImmatureCount,Track_N_back_age,Track_N_out_age,outputans,gen,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,age_size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,Track_ToTYYMales,Track_BreedYYMales,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,RDispersers,IDispersers,Track_BirthsMYY,Track_KadjEmi,Track_KadjImmi,Track_ToTYYFemales,Track_BirthsFYY,Track_BreedYYFemales)
+			Track_EggDeaths,Track_K,Track_N_Init_pop,N_Emigration_pop,N_EmiMortality,N_Immigration_pop,N_ImmiMortality,Track_DiseaseStates_pop,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,PackingDeathsEmi,PackingDeathsImm,Track_N_Init_age,N_Emigration_age,N_Immigration_age,AgeDeathsOUT,AgeDeathsIN,PackingDeathsEmiAge,PackingDeathsImmAge,Track_MatureCount,Track_ImmatureCount,Track_N_back_age,Track_N_out_age,outputans,gen,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,age_size_mean,sizeans,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,SizeDeathsOUT,SizeDeathsIN,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,F_StrayDist,M_StrayDist,F_StrayDist_sd,M_StrayDist_sd,F_ZtrayDist,M_ZtrayDist,F_ZtrayDist_sd,M_ZtrayDist_sd,F_HomeDist,M_HomeDist,F_HomeDist_sd,M_HomeDist_sd,F_EmiDist,M_EmiDist,F_EmiDist_sd,M_EmiDist_sd,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,Track_ToTYYMales,Track_BreedYYMales,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,Track_YYSelectionPackDeathsImmi,Track_WildSelectionPackDeathsImmi,RDispersers,IDispersers,Track_BirthsMYY,Track_KadjEmi,Track_KadjImmi,Track_ToTYYFemales,Track_BirthsFYY,Track_BreedYYFemales,disease_vars['ImpDisease'],Track_DiseaseStates_SecondUpdate,Track_DiseaseStates_ThirdUpdate,Track_DiseaseStates_AddAge0s,Track_DiseaseStates_AddedInds,Track_DiseaseStates_AfterDeaths_SecondUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,Track_DiseaseStates_EnvRes)
 			
 			# Print to log
 			stringout = 'DoPostProcess(): '+str(datetime.datetime.now() -start_time1) + ''

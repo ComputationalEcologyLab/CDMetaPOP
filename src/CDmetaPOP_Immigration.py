@@ -590,6 +590,10 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			#if outpool['name'][0] == 'E' or outpool['name'][0:4] == 'Age0':
 			#if outpool['name'][0] == 'E':
 				
+				#if outpool['name'][0:4] == 'Age0' and not packans == 'anadromy' and egg_add == 'nonmating':
+				#	print('What patch do return age0 migrants go?')
+				#	sys.exit(-1)
+				
 				#----------------------------------------------------
 				# Check if migrate back (age_MgBACK) * (patch_MgBack)
 				#---------------------------------------------------- 			
@@ -746,7 +750,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						name = namethis+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 						
 						# Note 'NatalPop' gets updated here to the new straypop now
-						recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+						recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 									
 						# Record outpool disperse information	
 						SubpopIN_keep[int(disppop)-1].append(recd)		
@@ -793,17 +797,6 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 									StrSuccess[gen].append(0)
 									continue
 																	
-<<<<<<< Updated upstream
-							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
-												
-							# Record outpool disperse information	
-							SubpopIN_keep[int(disppop)-1].append(recd)				
-						
-							SelectionDeaths[gen][int(disppop)-1].append(0)
-							DisperseDeaths[gen][int(disppop)-1].append(0)
-							StrSuccess[gen].append(0)
-							continue							
-=======
 								# For recording purposes 
 								# -----------------------
 								disppop = str(iteminlist+1)
@@ -934,7 +927,6 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 								DisperseDeaths[gen][int(disppop)-1].append(0)
 								StrSuccess[gen].append(0)
 								continue							
->>>>>>> Stashed changes
 										
 						# It did not make it back to natal grounds
 						elif sum(probarray) == 0.0:
@@ -1002,7 +994,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							
 							name = namethis+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 								
-							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 											
 							# Record outpool disperse information	
 							SubpopIN_keep[int(disppop)-1].append(recd)		
@@ -1075,20 +1067,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						# Open spots to move to
 						#----------------------
 						if sum(probarray_LD) != 0.0:
-<<<<<<< Updated upstream
-							# Select the w_choice item
-							iteminlist = w_choice_item(probarray_LD)							 
-							#Add age0 should turn Rs here not Es
-							if outpool['name'][0:4] == 'Age0':
-								namethis = 'RD'
-							#Not Age0s
-							else:
-								namethis = 'ED'							
-=======
 							
 							# Select the w_choice item
 							iteminlist = w_choice_item(probarray_LD)
->>>>>>> Stashed changes
 							
 							# Age0s should not turn Es here - RDs
 							if outpool['name'][0:4] == 'Age0':
@@ -1114,14 +1095,6 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					else:
 						# Set the iteminlist to not move
 						iteminlist = isub
-<<<<<<< Updated upstream
-						#Add age0 should turn Rs here not Es
-						if outpool['name'][0:4] == 'Age0':
-							namethis = 'R' 
-						# Not age0s
-						else:
-							namethis = 'EO'
-=======
 						
 						# Age0s should not turn Es here - Rs
 						if outpool['name'][0:4] == 'Age0':
@@ -1130,7 +1103,6 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						else:
 							namethis = 'EO' 
 						 
->>>>>>> Stashed changes
 						
 					# ----------------------------------------------------------
 					# Check CDEVOLVE Selection Death and spatial mortality Death
@@ -1157,9 +1129,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					# Not sure if this is right to get the individual to migrate back to its original patch after potentially dispersing to new emigration patch
 					name = namethis+str(originalpop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
 															
-					#recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+					#recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 					# Because this individual is in the ocean, we keep original pop and emipop becomes disppop
-					recd = (originalpop,disppop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+					recd = (originalpop,disppop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 										
 					# Record outpool disperse information	
 					SubpopIN_keep[int(disppop)-1].append(recd)				
@@ -1243,7 +1215,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							StrSuccess[gen].append(1)
 							continue					
 						
-						# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,infection,capture,name
+						# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,states,capture,name
 						# ---------------------------------------
 						disppop = str(iteminlist+1)
 						immipop = disppop
@@ -1251,7 +1223,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						outpool_name = outpool_name.split('_')
 						name = 'E'+str(disppop)+'_F'+str(isub+1)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 						
-						recd = (str(isub+1),disppop,'NA',outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+						recd = (str(isub+1),disppop,'NA',outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 									
 						# Record outpool disperse information	
 						SubpopIN_keep[int(disppop)-1].append(recd)				
@@ -1343,7 +1315,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 								StrSuccess[gen].append(1)
 								continue					
 							
-							# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,infection,capture,name
+							# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,states,capture,name
 							# ---------------------------------------
 							disppop = str(iteminlist+1)
 							immipop = disppop
@@ -1351,7 +1323,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							outpool_name = outpool_name.split('_')
 							name = 'RD'+str(disppop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 							
-							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+							recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 										
 							# Record outpool disperse information	
 							SubpopIN_keep[int(disppop)-1].append(recd)				
@@ -1390,7 +1362,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							StrSuccess[gen].append(0)
 							continue
 							
-						# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,infection,capture,name
+						# Record string name of outpool,OrigninalSubpop,EmiSubpop,ImmiSubpop,EmiCD,ImmiCD-get in DoCal,age,sex,size,states,capture,name
 						# ---------------------------------------
 						disppop = str(iteminlist+1)
 						immipop = disppop # or Currentpop
@@ -1398,7 +1370,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						outpool_name = outpool_name.split('_')
 						name = 'R'+str(immipop)+'_F'+str(emipop)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
 						
-						recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['infection']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['species'],outpool['genes'])
+						recd = (disppop,emipop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(immipop)-1],outpool['species'],outpool['genes'])
 									
 						# Record outpool disperse information	
 						SubpopIN_keep[int(immipop)-1].append(recd)				
@@ -2708,78 +2680,87 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now	
 	
 	# --------------------------------------------
-	# Logistic selected - 
+	# Logistic selected with implementcomp = 'back' 
 	# -------------------------------------------- 
 	elif packans.split('_')[0] == 'logistic':	
-		
+		# Check that popmodel answer is either logistic_out or logistic_back
+		try:
+			logisticAns = packans.split('_')[1]
+		except:
+			print("Logistic popmodel option must specify out or back.")
+			sys.exit(-1)
 		# ------------------------------------------
 		# Get other species Ns from all Patches here
 		# ------------------------------------------		
-		Ntself_pop = []
-		# Length of each patch without age 0s
-		#if multiprocessing.current_process().name == "S0":
-			#ForkablePdb().set_trace()	
-			# Adjusting N instead of adjusting K
-		for isub in range(0,len(SubpopIN_keep)):
-			SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
-			thisone = SubpopIN_arr['age']
-			thisone_ages = count_unique(thisone[np.where(thisone!=0)])
-			# Create Nt from countages
-			Nt = []
-			# Exclude age 0s that were just added
-			for iage in range(len(size_mean[0][0])): #Use len(size_mean) for # of ages
-				if iage+1 in thisone_ages[0]:
-					Nt.append(thisone_ages[1][thisone_ages[0].tolist().index(iage+1)])
-				else:
-					Nt.append(0)
-			# Create list of Nt's, one for each patch
-			Ntself_pop.append(Nt)	
-		
-		# Add to queues if more than one species
-		if len(XQs) > 0:
-			# Loop through queue spots, Putting Nself_pop for grabbing for other species.
-			for ispecies in range(len(XQs[spcNO])): 
-				XQs[spcNO][ispecies].put(Ntself_pop) 
-		Ntother_pop = []
-		popcount = 0
-		# Grab from queues only if more than one species
-		if len(XQs) > 0:
-			for ispecies in range(len(XQs[spcNO])):			
-				if ispecies != spcNO: 
-					#Nt other pop
-					Ntother_pop.append(XQs[ispecies][spcNO].get(block = True))
-					# Error check here for equal patches
-					if len(Ntother_pop[popcount]) != len(Ntself_pop):
-						print("Species systems must have the same number of patches.")
-						sys.exit(-1)
-					popcount = popcount + 1
-		
-		# -----------------------
-		# Loop through each patch
-		for isub in range(len(K)):
-			
-			# Get each SubpopIN pop as array
-			SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
-			
-			# Count up each uniages - logistic function uses actual ages even if size control is specified.
-			countages = count_unique(SubpopIN_arr['age']) # ages will be 1+
-			
-			# K,N for this population
-			Kpop = K[isub]
-			# Includes age 0s
-			Npop = len(SubpopIN_arr)
-			# Excludes age 0s
-			Nt = Ntself_pop[isub]
-			# Keep track of P for logistic P/K 
-			Pisub = sum(Nt)
-			#if multiprocessing.current_process().name == "S1":
-				#ForkablePdb().set_trace()
-			# ----------------------------
-			# Parameters for Second species (comp_coef = alpha2_1)
-			# ----------------------------
+		if logisticAns.lower() == 'back':
 			if len(XQs) > 0:
-				alphas = comp_coef[isub].split(';') # Relabling here, so clear for us right now
-				if gen >= startcomp:
+				if implementcomp.lower() != 'back':
+					print("Competition must be implemented during the same time step (out or back) as the logistic growth model")
+					sys.exit(-1)
+			Ntself_pop = []
+			# Length of each patch without age 0s
+			#if multiprocessing.current_process().name == "S0":
+				#ForkablePdb().set_trace()	
+				# Adjusting N instead of adjusting K
+			for isub in range(0,len(SubpopIN_keep)):
+				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
+				thisone = SubpopIN_arr['age']
+				thisone_ages = count_unique(thisone[np.where(thisone!=0)])
+				# Create Nt from countages
+				Nt = []
+				# Exclude age 0s that were just added
+				for iage in range(len(size_mean[0][0])): #Use len(size_mean) for # of ages
+					if iage+1 in thisone_ages[0]:
+						Nt.append(thisone_ages[1][thisone_ages[0].tolist().index(iage+1)])
+					else:
+						Nt.append(0)
+				# Create list of Nt's, one for each patch
+				Ntself_pop.append(Nt)	
+			
+			# Add to queues if more than one species
+			if len(XQs) > 0:
+				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
+				for ispecies in range(len(XQs[spcNO])): 
+					XQs[spcNO][ispecies].put(Ntself_pop) 
+			Ntother_pop = []
+			popcount = 0
+			# Grab from queues only if more than one species
+			if len(XQs) > 0:
+				for ispecies in range(len(XQs[spcNO])):			
+					if ispecies != spcNO: 
+						#Nt other pop
+						Ntother_pop.append(XQs[ispecies][spcNO].get(block = True))
+						# Error check here for equal patches
+						if len(Ntother_pop[popcount]) != len(Ntself_pop):
+							print("Species systems must have the same number of patches.")
+							sys.exit(-1)
+						popcount = popcount + 1
+				
+			# -----------------------
+			# Loop through each patch
+			for isub in range(len(K)):
+				
+				# Get each SubpopIN pop as array
+				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
+				
+				# Count up each uniages - logistic function uses actual ages even if size control is specified.
+				countages = count_unique(SubpopIN_arr['age']) # ages will be 1+
+				
+				# K,N for this population
+				Kpop = K[isub]
+				# Includes age 0s
+				Npop = len(SubpopIN_arr)
+				# Excludes age 0s
+				Nt = Ntself_pop[isub]
+				# Keep track of P for logistic P/K 
+				Pisub = sum(Nt)
+				#if multiprocessing.current_process().name == "S1":
+					#ForkablePdb().set_trace()
+				# ----------------------------
+				# Parameters for Second species (comp_coef = alpha2_1)
+				# ----------------------------
+				if len(XQs) > 0 and gen >= startcomp:
+					alphas = comp_coef[isub].split(';') # Relabling here, so clear for us right now				
 					tempspeciesSum = []
 					for ispecies in range(len(Ntother_pop)):
 						# if species/patch is extinct, add 0
@@ -2792,144 +2773,182 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							
 					# This is the adjusted N for the N/K ratio in the logistic (P/K, Miller and Ankley 2004)
 					Pisub = sum(Nt) + sum(tempspeciesSum)
-			# May not need adjusted K anymore but could replace with adjusted N
-			#Kadj_track[gen].append(Kpop)
-			if sum(Nt) != 0:
-				Kadj_track[gen].append(Pisub/sum(Nt))
-			else:
-				Kadj_track[gen].append(np.nan)
-			
-			# If none in this patch
-			if Npop == 0 or Kpop == 0:
-				# Append all information to temp SubpopKeep variable
-				Nage_samp_ind = np.arange(0)
 				
-			# If populated - continue with DDMortality
-			else:			
-				# -------------------------
-				# Age loop
-				# -------------------------
-				Nage_samp_ind = []
-				# Define Leslie matrix M; Jensen 1995 Eco Modelling
+				# Track P/N ratio when using competition
+				if sum(Nt) != 0 and len(XQs) > 0:
+					Kadj_track[gen].append(Pisub/sum(Nt))
+				else:
+					Kadj_track[gen].append(np.nan)
 				
-				# Error check here for more than 1 class vars - move to preprocessing eventually
-				if len(f_leslie[isub]) > 1:
-					print('Leslie matrix option does not allow for multiple classvars.')
-					sys.exit(-1)
-				fecund = np.asarray(f_leslie[isub][0], dtype=float) #Import from classvars
-				#if multiprocessing.current_process().name == "S0":
-				#	ForkablePdb().set_trace()	
-								
-				Mb = [] # Create N x N-1 matrix				
-				for idx in range(len(fecund)-1): 
-					for idx2 in range(len(fecund)):
-						if idx==idx2:
-							if age_percmort[isub][0][idx].split('~')[0] != age_percmort[isub][0][idx].split('~')[1]:
-								print('Leslie matrix option does not allow for sex specific mortality.')
-								sys.exit(-1)
-							Mb.append(1-float(age_percmort[isub][0][idx].split('~')[0]))
-						else:
-							Mb.append(0.)
-				# Add the final row for complete N x N
-				M = np.array(fecund.tolist() + Mb).reshape(len(fecund),len(fecund))		
-				# dominant eigenvector of M - Stable age distribution or proportion of K allocated to each age class
-				vals, vects = np.linalg.eig(M)
-				maxcol = list(vals).index(max(vals))
-				# Dominant (right) eigenvector
-				eigenvect = vects[:,maxcol]
-				# Stable Age Distribution
-				SAD = eigenvect/sum(eigenvect)
-				# Calculate intrinsic growth rate r
-				valsabs = np.abs(vals)
-				max_index = np.argmax(valsabs)
-				# Dominant eigenvalue (greatest magnitude from 0)
-				valdom = vals[max_index]
-				if valdom == 0:
-					print("Invalid Leslie matrix")
-					print(M)
-					sys.exit(-1)
-				# intrinsic growth rate
-				# Updated to use absolte value of dominant eigenvalue. I'm not sure if this is ok, but a negative value is impossible to calculate a growth rate. So 
-				# either abs(valdom) or max(vals), not sure which as the dominant eigenvalue is meant to be the value with the greatest magnitude
-				igr = np.log(abs(valdom))
-				# Add a check here for if length of Nt is not len of fecund
-				if len(Nt) != len(fecund): 
-					print("Check code")
-					pdb.set_trace()
-				
-				# Get total number of deaths for each age class
-				Ntplus1 = np.exp((igr*-1)*(Pisub/Kpop))*(np.dot(M,Nt))
-				#Ntplus1 = np.rint(Ntplus1) # Round
-				# CDay; fix for low population sizes compared to age classes
-				Ntplus1 = np.divmod(Ntplus1,1)[0] + (np.divmod(Ntplus1,1)[1] >= np.random.rand(len(Ntplus1)))
-				Ntplus1[Ntplus1<0] = 0 # Ensure not negative
+				# If none in this patch
+				if Npop == 0 or Kpop == 0:
+					# Append all information to temp SubpopKeep variable
+					Nage_samp_ind = np.arange(0)
+					
+				# If populated - continue with DDMortality
+				else:			
+					# -------------------------
+					# Age loop
+					# -------------------------
+					Nage_samp_ind = []
+					# Define Leslie matrix M; Jensen 1995 Eco Modelling
+					
+					# Error check here for more than 1 class vars - move to preprocessing eventually
+					if len(f_leslie[isub]) > 1:
+						print('Leslie matrix option does not allow for multiple classvars.')
+						sys.exit(-1)
+					fecund = np.asarray(f_leslie[isub][0], dtype=float) #Import from classvars
+					#if multiprocessing.current_process().name == "S0":
+					#	ForkablePdb().set_trace()	
+									
+					Mb = [] # Create N x N-1 matrix				
+					for idx in range(len(fecund)-1): 
+						for idx2 in range(len(fecund)):
+							if idx==idx2:
+								if age_percmort[isub][0][idx].split('~')[0] != age_percmort[isub][0][idx].split('~')[1]:
+									print('Leslie matrix option does not allow for sex specific mortality.')
+									sys.exit(-1)
+								Mb.append(1-float(age_percmort[isub][0][idx].split('~')[0]))
+							else:
+								Mb.append(0.)
+					# Add the final row for complete N x N
+					M = np.array(fecund.tolist() + Mb).reshape(len(fecund),len(fecund))		
+					# dominant eigenvector of M - Stable age distribution or proportion of K allocated to each age class
+					vals, vects = np.linalg.eig(M)
+					maxcol = list(vals).index(max(vals))
+					# Dominant (right) eigenvector
+					eigenvect = vects[:,maxcol]
+					# Stable Age Distribution
+					SAD = eigenvect/sum(eigenvect)
+					# Calculate intrinsic growth rate r
+					valsabs = np.abs(vals)
+					max_index = np.argmax(valsabs)
+					# Dominant eigenvalue (greatest magnitude from 0)
+					valdom = vals[max_index]
+					if valdom == 0:
+						print("Invalid Leslie matrix")
+						print(M)
+						sys.exit(-1)
+					# intrinsic growth rate
+					# Updated to use absolte value of dominant eigenvalue. I'm not sure if this is ok, but a negative value is impossible to calculate a growth rate. So 
+					# either abs(valdom) or max(vals), not sure which as the dominant eigenvalue is meant to be the value with the greatest magnitude
+					igr = np.log(abs(valdom))
+					# Add a check here for if length of Nt is not len of fecund
+					if len(Nt) != len(fecund): 
+						print("Check code")
+						pdb.set_trace()
+					
+					# Get total number of deaths for each age class
+					Ntplus1 = np.exp((igr*-1)*(Pisub/Kpop))*(np.dot(M,Nt))
+					#Ntplus1 = np.rint(Ntplus1) # Round
+					# CDay fix for low population sizes compared to age classes
+					Ntplus1 = np.divmod(Ntplus1,1)[0] + (np.divmod(Ntplus1,1)[1] >= np.random.rand(len(Ntplus1)))
+					Ntplus1[Ntplus1<0] = 0 # Ensure not negative
 
-				#for iage in countages[0]: # Age 0+
-				for iage in range(len(Ntplus1)):
-					
-					# Age class
-					Ageclass = iage									
-					if Ageclass in countages[0]:
-					# Get index for where these ages are
-					
-						Nage = countages[1][np.where(countages[0]==Ageclass)[0][0]]
-					
-						Nage_index = np.where(SubpopIN_arr['age']==Ageclass)[0]
+					#for iage in countages[0]: # Age 0+
+					for iage in range(len(Ntplus1)):
 						
-						# Special case: if last age class, no survivros
-						if Ageclass > len(fecund)-1:
-							mortreturn = Nage # Then apply mortality to all age class.
-							indexforAgeclass = len(fecund) - 1
-						else:
-							mortreturn = Nage - round(Ntplus1[Ageclass])
-							if mortreturn <= 0: # No mortality
-								mortreturn = 0
-								# Grab all the ages
-								Nage_samp_ind.append(list(Nage_index))
-							else: # Mortality occurs
-								if Nage-mortreturn <= 0: # Kill off all
-									Nage_samp_ind.append([])
-								else:
-									# Grab a random draw of these ages to keep
-									Nage_samp_ind.append(np.random.choice(Nage_index,int(Nage-mortreturn),replace=False).tolist())
-						# Tracker
-						PackingDeathsAge[gen][Ageclass].append(Nage - len(Nage_samp_ind[-1]))
+						# Age class
+						Ageclass = iage									
+						if Ageclass in countages[0]:
+						# Get index for where these ages are
+						
+							Nage = countages[1][np.where(countages[0]==Ageclass)[0][0]]
+						
+							Nage_index = np.where(SubpopIN_arr['age']==Ageclass)[0]
 							
-					else:
-						Nage_samp_ind.append([])
-						# Tracker
-						PackingDeathsAge[gen][Ageclass].append(0)
+							# Special case: if last age class, no survivros
+							if Ageclass > len(fecund)-1:
+								mortreturn = Nage # Then apply mortality to all age class.
+								indexforAgeclass = len(fecund) - 1
+							else:
+								mortreturn = Nage - round(Ntplus1[Ageclass])
+								if mortreturn <= 0: # No mortality
+									mortreturn = 0
+									# Grab all the ages
+									Nage_samp_ind.append(list(Nage_index))
+								else: # Mortality occurs
+									if Nage-mortreturn <= 0: # Kill off all
+										Nage_samp_ind.append([])
+									else:
+										# Grab a random draw of these ages to keep
+										Nage_samp_ind.append(np.random.choice(Nage_index,int(Nage-mortreturn),replace=False).tolist())
+							# Tracker
+							PackingDeathsAge[gen][Ageclass].append(Nage - len(Nage_samp_ind[-1]))
+								
+						else:
+							Nage_samp_ind.append([])
+							# Tracker
+							PackingDeathsAge[gen][Ageclass].append(0)
 					
-			# Clean up index
-			Nage_samp_ind = sum(Nage_samp_ind,[])	
-			
-			# Append all information to temp SubpopKeep variable
-			SubpopIN_keepK.append(SubpopIN_arr[Nage_samp_ind])
-			
-			# Store new N - it can be possible to be less than K - its OK - rounding error
-			Population[gen].append(len(SubpopIN_keepK[isub]))			
-			# Store some numbers in this loop too.
-			SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
-			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
-			PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind)
-			Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
-			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
-			
-			# Count up each uniages
-			age_adjusted = SubpopIN_keepK[isub]['age']			
-			# Tracking age N
-			for iage in range(len(PopulationAge[gen])):
-				sizeindex = np.where(age_adjusted==iage)[0]
+				# Clean up index
+				Nage_samp_ind = sum(Nage_samp_ind,[])	
+				
+				# Append all information to temp SubpopKeep variable
+				SubpopIN_keepK.append(SubpopIN_arr[Nage_samp_ind])
+				
+				# Store new N - it can be possible to be less than K - its OK - rounding error
+				Population[gen].append(len(SubpopIN_keepK[isub]))			
+				# Store some numbers in this loop too.
+				SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
+				DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
+				PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind)
+				Track_YYSelectionPackDeaths[gen][isub] = 0 # # No selection in logistic for now
+				Track_WildSelectionPackDeaths[gen][isub] = 0 # No selection in logistic for now
+				
+				# Count up each uniages
+				age_adjusted = SubpopIN_keepK[isub]['age']			
+				# Tracking age N
+				for iage in range(len(PopulationAge[gen])):
+					sizeindex = np.where(age_adjusted==iage)[0]
+					PopulationAge[gen][iage].append(len(sizeindex))
+				# Special case where age class is greater than last age
+				sizeindex = np.where(age_adjusted > iage)[0]
+				PopulationAge[gen][iage].append(len(sizeindex))	
+		
+		elif logisticAns.lower() == 'out': # What happens if implementcomp = Out
+			# Loop through patches for tracking
+			for isub in range(len(K)):
+				# Get each SubpopIN pop as array
+				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
+				
+				# Append all information to temp SubpopKeep variable
+				SubpopIN_keepK.append(SubpopIN_arr)
+				# Store new N - it can be possible to be less than K - its OK - rounding error
+				Population[gen].append(len(SubpopIN_keepK[isub]))			
+				# K,N for this population
+				Kpop = K[isub]
+				Npop = len(SubpopIN_arr) # Don't think this is needed
+				
+				# Track P/N ratio calculated in Emigration, logistic=out
+				Kadj_track[gen].append(Track_KadjEmi[gen][isub+1]) # For Tracking
+				
+				# Store some numbers in this loop too.
+				SelectionDeaths[gen][isub] = sum(SelectionDeaths[gen][isub])
+				DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
+				PackingDeaths[gen][isub] = 0 # No packing deaths here			
+				Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
+				Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
+				
+				# Count up each uniages
+				age_adjusted = SubpopIN_arr['age']
+				
+				# Tracking numbers - N before packing, packing deaths (0), 
+				# -----------------------------------
+				
+				for iage in range(len(PopulationAge[gen])):
+					sizeindex = np.where(age_adjusted==iage)[0]
+					PopulationAge[gen][iage].append(len(sizeindex))
+					PackingDeathsAge[gen][iage].append(0) # Store 0 for packing deaths age
+				# Special case where age class is greater than lastage
+				sizeindex = np.where(age_adjusted > iage)[0]
 				PopulationAge[gen][iage].append(len(sizeindex))
-			# Special case where age class is greater than lastage
-			sizeindex = np.where(age_adjusted > iage)[0]
-			PopulationAge[gen][iage].append(len(sizeindex))	
-
-			
+		else:
+			print("Logistic popmodel option must specify either out or back.")
+			sys.exit(-1)
 	else:
 		print('See user manual for population model options.')
 		sys.exit(-1)
-	#pdb.set_trace()	
 	# Summary numbers
 	SelectionDeaths[gen].insert(0,sum(SelectionDeaths[gen]))
 	DisperseDeaths[gen].insert(0,sum(DisperseDeaths[gen]))
