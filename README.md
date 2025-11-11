@@ -22,7 +22,9 @@ Contents
 Included in this release are the following:
 
 src -> CDMetaPOP source files
+
 doc -> README.txt, user manual, history, and disclaimer
+
 example_files -> test example files
   
 ---------------------------------------
