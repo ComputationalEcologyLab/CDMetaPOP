@@ -1,2 +1,0 @@
-Number of States,Initial Conditions,Transition Rates,Susceptible States,Infection States,Death States,Initial Conditions Offspring,Start Disease,Transmission Mode,Disease Resistant,Disease Tolerant
-4,.90;.1;0;0,otherfiles/disease/DiseaseDefense/TransitionMatrix_SIRD_Defense.csv,0,1,3,Susceptible,0,Direct,0_1,N
