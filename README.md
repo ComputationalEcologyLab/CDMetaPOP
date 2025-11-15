@@ -7,6 +7,8 @@ CDMetaPOP 3.00 release
 ----------------------
   
 Welcome to the CDMetaPOP v3.0 release! This release includes installation instructions, version notes, some examples, and technical documentation. 
+
+For the user manual that contains complete documentation, please see the doc/ directory in this repository.
   
 Program Contributors: Erin Landguth, Casey Day, Andrew Bearlin, Jason Dunham, Ryan Simmons, Brenna Forrester, Kaeli Davenport, and Travis Seaborn
 Link: https://github.com/ComputationalEcologyLab/CDMetaPOP
@@ -26,6 +28,12 @@ src -> CDMetaPOP source files
 doc -> README.txt, user manual, history, and disclaimer
 
 example_files -> test example files
+- RunVars.csv - Runs several scenarios (Variable climate, population introduction) with varying life history parameters.
+- RunVars_AddMyy.csv and RunVars_AddFyy.csv - Demonstrates the Trojan Y chromosome control strategy using YY males or YY females, respectively.
+- RunVars_multispecies.csv - Demonstrates 2- and 3-species applications, including competition.
+- DiseaseExamples
+    - Adaptive_Run06 - Demonstrates genetic adaptation to disease via resistance and tolerance.
+    - OnePatch_SIDP - SIR simulations to match simple theoretical patterns. 
   
 ---------------------------------------
 Requirements and Pre-requisite Software
