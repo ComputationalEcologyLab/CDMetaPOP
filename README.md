@@ -83,12 +83,8 @@ The primary example run ('RunVars.csv') is for 7 patches representing an effecti
 
 Happy Simulations!
 
-Erin.
-
-Contact Information
-Erin Landguth
 Computational Ecology Laboratory
 The University of Montana
 32 Campus Drive
 Missoula MT, 59812-1002
-erin.landguth@mso.umt.edu
+computationalecologylab@gmail.com
