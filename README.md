@@ -41,6 +41,16 @@ Requirements and Pre-requisite Software
 
 1. Baseline Requirements. CDMetaPOP requires the Python3.8.x interpreter, NumPy package, and SciPy package. Remember that Python modules usually require particular Python interpreters, so be sure the version ID for any external Python module or package (e.g. NumPy or others) matches the version of your Python interpreter (normally v3.8.x). To avoid Python installation errors, we highly recommend installing Python from any number of the freely available bundlers that include the NumPy and SciPy packages, e.g., Anaconda (recommended), Canopy, ActiveState.
 
+2. Example Python installation using 'conda'. First, download the Anaconda software at https://www.anaconda.com/download. Then open an Anaconda prompt (Windows) or run conda from the terminal (Mac, Linux) and run the following.
+
+`conda create --name <env_name> python=<version> package1 package2=<version>`
+
+`conda activate <env_name>`
+
+`_Run-your-CDMetaPOP-code_`
+
+`conda deactivate`
+
 ---------------------------
 CDMetaPOP v3.0 Installation
 --------------------------- 
