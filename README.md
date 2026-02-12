@@ -57,6 +57,19 @@ CDMetaPOP v3.0 Installation
 
 Linux or Windows: Download the repository from Github. Navigate to the directory on your PC where you wish to install CDMetaPOP, and unpack the zipped repository using a free archive tool like 7Zip (7z.exe), Pkunzip, Unzip, or an equivalent. Seven-Zip (7Z.exe) is highly recommended since it can handle all common formats on Windows, MAC OS X and Linux. On Windows, it is best to set up a project specific modeling subdirectory to perform your modeling outside of any folder that has spaces in its name (like "My Documents").
 
+--------------------------------------
+Understanding CDMetaPOP file structure
+--------------------------------------
+1. In the example_files directory, the included file ‘RunVars.csv’ specifies the parameters that apply to all species that can be changed and used in a sample CDMetaPOP run. Open ‘RunVars.csv’ in your editor of choice. A spreadsheet program like Microsoft Excel allows for easy editing of the tabular values. The location(s) of the 'PopVars' files (one for each species in the simulation) are specified in the first column.
+
+2. The various ‘PopVars’ files define the patch files in the first column. The included ‘PatchVars’ files will also be in the same folder (../example_files/patchvars). ‘ClassVars’ files are in turn specified in the ‘PatchVars’ files and example ‘ClassVars’ files will be in the ../example_files/classvars/ folder. 
+
+3. There will be 5 lines of information in ‘RunVars.csv’: a header line and 4 lines of information corresponding to 4 separate, single-species CDMetaPOP runs. See Table 1 in user manual which contains a breakdown for each column header and the parameters that can be defined. The ‘Input’ in the table listed is for the first row in the file. Make sure you save this file in the same format – a comma delimited file – when you make changes to the parameters. Do not change the ‘Input’ (first row) labeling. Select ‘Yes’ or ‘OK’ for any Excel questions about saving in this format. 'RunVars_multispecies.csv' contains two runs, the first for a 2-species example and the second for a 3-species example.
+
+4. The file structure for basic CDMetaPOP runs is displayed in the figure below.
+
+<img width="361" height="511" alt="FileStructure drawio" src="https://github.com/user-attachments/assets/c3aeecff-26a5-43b7-995e-1fdd57bd8d91" />
+ 
 ---------------------
 Example CDMetaPOP Run
 ---------------------
@@ -68,16 +81,9 @@ The primary example run ('RunVars.csv') is for 7 patches representing an effecti
       * doc
       * example_files
       * src 
+2. Start the program: For example, if you use python from the command line, then open a terminal window and change your shell directory to the CDMetaPOP src home directory (i.e., > cd C:\"homedirectorylocation"\src). 
 
-2. The included file ‘RunVars.csv’ in the example_files directory specifies the parameters that apply to all species that can be changed and used in a sample CDMetaPOP run. Open ‘RunVars.csv’ in your editor of choice. A spreadsheet program like Microsoft Excel allows for easy editing of the tabular values. The location(s) of the 'PopVars' files (one for each species in the simulation) are specified in the first column.
-
-3. The various ‘PopVars’ files define the patch files in the first column. The included ‘PatchVars’ files will also be in the same folder (../example_files/patchvars). ‘ClassVars’ files are in turn specified in the ‘PatchVars’ files and example ‘ClassVars’ files will be in the ../example_files/classvars/ folder. 
-
-4. There will be 5 lines of information in ‘RunVars.csv’: a header line and 4 lines of information corresponding to 4 separate, single-species CDMetaPOP runs. See Table 1 in user manual which contains a breakdown for each column header and the parameters that can be defined. The ‘Input’ in the table listed is for the first row in the file. Make sure you save this file in the same format – a comma delimited file – when you make changes to the parameters. Do not change the ‘Input’ (first row) labeling. Select ‘Yes’ or ‘OK’ for any Excel questions about saving in this format. 'RunVars_multispecies.csv' contains two runs, the first for a 2-species example and the second for a 3-species example.
-
-5. Start the program: For example, if you use python from the command line, then open a terminal window and change your shell directory to the CDMetaPOP src home directory (i.e., > cd C:\"homedirectorylocation"\src). 
-
-6. Launch CDMetaPOP: There are a number of ways to run CDMetaPOP. If you are using a command shell you can run the program by typing
+3. Launch CDMetaPOP: There are a number of ways to run CDMetaPOP. If you are using a command shell you can run the program by typing
 
     `python CDMetaPOP.py C:/”homedirectorylocation”/example_files/ RunVars.csv output_test`
 
@@ -93,7 +99,7 @@ The primary example run ('RunVars.csv') is for 7 patches representing an effecti
     4. `RunVars.csv` is the primary parameter file (comma delimited) which can be renamed (e.g., “RunVars_WCT.csv”). Caution should be taken when going between operating systems and saving this file as a .csv.
     5. `output_test` is the name of the directory that will be created with CDMetaPOP output in the directory specified by the third argument above.
 
-9. Check for successful model run completion: The program will provide step-by-step output in the Shell window. Each row of RunVars.csv will run an independent simulation in sequence for each line in PopVars.csv (batches). Once completed, a simulation time will be printed out and folders run0batch0mc0species0, run0batch0mc1species0,  run0batch1mc0species0, etc. will be created in your CDMetaPOP home directory to store output from the separate runs, batches Monte-Carlo replicates, and species (each line in the RunVars file corresponds to a separate 'run' and each line in the PopVars file corresponds to a separate 'batch'. Monte Carlo runs are specified by 'mc'). These folders are located in the data folder specified in above step. The output folder will have a unique date/time stamp after the name of the output folder in case you want to run multiple CDMetaPOP runs in this same directory. The program will also provide a log file with program steps in your specified output directory. If parameters are such that all species become extinct before the specified generation time, the program will end. The program will provide error and feedback for parameters that are outside of ranges or incorrectly entered.
+4. Check for successful model run completion: The program will provide step-by-step output in the Shell window. Each row of RunVars.csv will run an independent simulation in sequence for each line in PopVars.csv (batches). Once completed, a simulation time will be printed out and folders run0batch0mc0species0, run0batch0mc1species0,  run0batch1mc0species0, etc. will be created in your CDMetaPOP home directory to store output from the separate runs, batches Monte-Carlo replicates, and species (each line in the RunVars file corresponds to a separate 'run' and each line in the PopVars file corresponds to a separate 'batch'. Monte Carlo runs are specified by 'mc'). These folders are located in the data folder specified in above step. The output folder will have a unique date/time stamp after the name of the output folder in case you want to run multiple CDMetaPOP runs in this same directory. The program will also provide a log file with program steps in your specified output directory. If parameters are such that all species become extinct before the specified generation time, the program will end. The program will provide error and feedback for parameters that are outside of ranges or incorrectly entered.
 
 Happy Simulations!
 
