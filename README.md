@@ -83,20 +83,20 @@ The primary example run ('RunVars.csv') is for 7 patches representing an effecti
       * src 
 2. Start the program: For example, if you use python from the command line, then open a terminal window and change your shell directory to the CDMetaPOP src home directory (i.e., > cd C:\"homedirectorylocation"\src). 
 
-3. Launch CDMetaPOP: There are a number of ways to run CDMetaPOP. If you are using a command shell you can run the program by typing
+3. Launch CDMetaPOP: There are a number of ways to run CDMetaPOP. If you are using a command shell you can run the program by setting your working directory to the location of the src/ folder and typing
 
     `python CDMetaPOP.py C:/”homedirectorylocation”/example_files/ RunVars.csv output_test`
 
-   Or a short-cut if your data is located at the same folder level as the src folder:
+   Or a short-cut if your example files are located in the same folder level as the src folder:
    
    `python CDMetaPOP.py ../example_files/ RunVars.csv output_test`
 
    Note that there are 5 arguments here that must be included with spaces in between: 
 
     1. `python` starts python, for example from the command line. Note that other python environments may have different calls here. In iPython (the IDE distributed with Anaconda) the call is “run”. 
-    2. `CDMetaPOP.py` runs CDMetaPOP program.
+    2. `CDMetaPOP.py` runs CDMetaPOP program. If your working directory is not the src/ folder, then you use the full filepath to the CDMetaPOP.py run instead of just CDMetaPOP.py.
     3. `C:/”homedirectorylocation”/example_files` is the directory location of the input test files. You can point this directory to other project files, for example. We suggest not having any spaces in your directory names. So as projects accumulate you can rename input folders that contain the project specific files (e.g., dataWestslope or dataBullTrout).
-    4. `RunVars.csv` is the primary parameter file (comma delimited) which can be renamed (e.g., “RunVars_WCT.csv”). Caution should be taken when going between operating systems and saving this file as a .csv.
+    4. `RunVars.csv` is the primary parameter file (comma delimited) which can be renamed (e.g., RunVars_WCT.csv or your_favorite_name.csv). Caution should be taken when going between operating systems and saving this file as a .csv.
     5. `output_test` is the name of the directory that will be created with CDMetaPOP output in the directory specified by the third argument above.
 
 4. Check for successful model run completion: The program will provide step-by-step output in the Shell window. Each row of RunVars.csv will run an independent simulation in sequence for each line in PopVars.csv (batches). Once completed, a simulation time will be printed out and folders run0batch0mc0species0, run0batch0mc1species0,  run0batch1mc0species0, etc. will be created in your CDMetaPOP home directory to store output from the separate runs, batches Monte-Carlo replicates, and species (each line in the RunVars file corresponds to a separate 'run' and each line in the PopVars file corresponds to a separate 'batch'. Monte Carlo runs are specified by 'mc'). These folders are located in the data folder specified in above step. The output folder will have a unique date/time stamp after the name of the output folder in case you want to run multiple CDMetaPOP runs in this same directory. The program will also provide a log file with program steps in your specified output directory. If parameters are such that all species become extinct before the specified generation time, the program will end. The program will provide error and feedback for parameters that are outside of ranges or incorrectly entered.
