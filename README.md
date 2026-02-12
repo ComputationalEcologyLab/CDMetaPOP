@@ -63,7 +63,11 @@ Example CDMetaPOP Run
 
 The primary example run ('RunVars.csv') is for 7 patches representing an effective distance matrix calculated using a least-cost path algorithm through riverine distance . To run the following example, follow these steps:
 
-1. Double check that the 3 directories provided in the Git download are in the same directory. 
+1. Double check that the 3 directories provided in the Git download are in the same directory.
+
+      * doc
+      * example_files
+      * src 
 
 2. The included file ‘RunVars.csv’ in the example_files directory specifies the parameters that apply to all species that can be changed and used in a sample CDMetaPOP run. Open ‘RunVars.csv’ in your editor of choice. A spreadsheet program like Microsoft Excel allows for easy editing of the tabular values. The location(s) of the 'PopVars' files (one for each species in the simulation) are specified in the first column.
 
