@@ -47,7 +47,7 @@ Requirements and Pre-requisite Software
 
 `conda activate <env_name>`
 
-`_Run-your-CDMetaPOP-code_`
+`_Run-your-CDMetaPOP-code_` (see example below)
 
 `conda deactivate`
 
