@@ -238,9 +238,7 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 				transition_prob = direct_foi + indirect_foi						
 		else:					
 			# For other transitions (e.g., I -> R), rate is a fixed probability
-			transition_prob = rate 
-		if next_state == 3:
-			pdb.set_trace()	
+			transition_prob = rate 		
 		# Perform the stochastic check
 		if random.uniform(0, 1) <= transition_prob:
 			individual['states'] = next_state
