@@ -1,0 +1,9 @@
+name: cdmetapop
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - python
+    - numpy=2.3.5
+    - scipy
+    - pandas

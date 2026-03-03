@@ -51,6 +51,12 @@ Requirements and Pre-requisite Software
 
 `conda deactivate`
 
+Or, use the environment file provided with CDMetaPOP:
+
+`conda env create -f environment.yml`
+
+`conda activate cdmetapop`
+
 ---------------------------
 CDMetaPOP v3.0 Installation
 --------------------------- 
