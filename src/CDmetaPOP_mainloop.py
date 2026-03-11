@@ -106,9 +106,12 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		size_eqn_1 = batchVars['growth_temp_max'][ibatch]# Check sex ratios
 		size_eqn_2 = batchVars['growth_temp_CV'][ibatch]# Check sex ratios
 		size_eqn_3 = batchVars['growth_temp_t0'][ibatch]# Check sex ratios
-		#mat_set = batchVars['mature_length_set'][ibatch]
-		mat_slope = batchVars['mature_eqn_slope'][ibatch]
-		mat_int = batchVars['mature_eqn_int'][ibatch]
+		
+		#Maturation pars
+		defaultMature_pass = batchVars['mature_default'][ibatch]
+		mat_slope_pass = batchVars['mature_eqn_slope'][ibatch]
+		mat_int_pass = batchVars['mature_eqn_int'][ibatch]
+		
 		eggFreq_mu = float(batchVars['Egg_Freq_Mean'][ibatch])
 		eggFreq_sd = float(batchVars['Egg_Freq_StDev'][ibatch])
 		egg_mean_ans = batchVars['Egg_Mean_ans'][ibatch]
@@ -120,7 +123,6 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		packans = batchVars['popmodel'][ibatch]
 		packpar1 = float(batchVars['popmodel_par1'][ibatch])
 		cor_mat_ans = batchVars['correlation_matrix'][ibatch]
-		defaultMature = batchVars['mature_default'][ibatch]
 		subpopmort_pass = batchVars['subpopmort_file'][ibatch]
 		egg_delay = int(batchVars['egg_delay'][ibatch])
 		egg_add = batchVars['egg_add'][ibatch]
@@ -155,19 +157,20 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		# For Sex ratios option splits
 		# ----------------------------
 		validate(sexchromo not in [2, 3, 4], 'Number of sex chromosomes must be 2, 3,or 4.')
-
+		
+		'''
 		# Check Deterministic mature set value either age or size
-		tupVal = sexsplit(defaultMature, sexchromo)
+		tupVal = sexsplit(defaultMature_pass, sexchromo)
 		FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set = tupVal[0], tupVal[1], tupVal[2], tupVal[3]
 				
 		# Logistic equation for maturation as a function of size - slope
-		tupVal = sexsplit(mat_slope, sexchromo)
+		tupVal = sexsplit(mat_slope_pass, sexchromo)
 		FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = tupVal[0],tupVal[1],tupVal[2],tupVal[3]
 		
 		# Logistic equation for maturation as a function of size - intercept
-		tupVal = sexsplit(mat_int, sexchromo)
+		tupVal = sexsplit(mat_int_pass, sexchromo)
 		FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= tupVal[0],tupVal[1],tupVal[2],tupVal[3]
-		
+		'''		
 		# -------------------------------------
 		# Error checking 
 		# -------------------------------------		
@@ -224,9 +227,10 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			
 		# Inherit answer can only be:
 		validate(not (inheritans_classfiles == 'random' or inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'),'Inherit answer for multiple class files is not correct: enter either random or Hindex.')
-				
+			
 		# If inherit answer uses Hindex, mutation can't be on
-		if isinstance(muterate_pass, list):
+		#if isinstance(muterate_pass, list):
+		if len(muterate_pass) > 1:
 			validate(sum(np.asarray(muterate_pass,dtype=float)) != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'),'Mutation is not operating with Hindex inheritance options in this version.')
 		else:
 			validate(sum(np.asarray([muterate_pass],dtype=float)) != 0.0 and (inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'),'Mutation is not operating with Hindex inheritance options in this version.')
@@ -249,13 +253,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		
 		valid_values = ['N','Both','Back','Out']
 		validate(implementcomp not in valid_values, 'Implement disease value incorrect.')
-		'''
-		# Error check here for runtiming and 4 mats
-		if len(dispBackcdmatfile) > 1:
-			validate(cdevolveans == 'runtiming' and len(dispBackcdmatfile[0].split('~')[0].split(';')) != 4, 'runtiming CDEvolve answer specified, 4 migrate back cdmats required.')
-		else:
-			validate(cdevolveans == 'runtiming' and len(dispBackcdmatfile.split('~')[0].split(';')) != 4, 'runtiming CDEvolve answer specified, 4 migrate back cdmats required.')
-		'''	
+		
 		# ---------------------------------------------	
 		# Begin Monte-Carlo Looping
 		# ---------------------------------------------		
@@ -315,7 +313,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			# Call function
 			tupPreProcess = DoPreProcess(outdir,datadir,irun,ithmcrun,\
 			xyfilename,loci,alleles,0,logfHndl,cdevolveans,\
-			subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,implementdisease)
+			subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,defaultMature_pass,mat_slope_pass,mat_int_pass,sexchromo,eggFreq_mu,eggFreq_sd,implementdisease)
 			ithmcrundir = tupPreProcess[0]			
 			fitvals_pass = tupPreProcess[1] # sex ratio check throughout
 			allelst = tupPreProcess[2]
@@ -468,12 +466,12 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 				# ---------------------------------			
 				# Timing events: start
 				start_time1 = datetime.datetime.now()
-				#pdb.set_trace()
+				
 				# Check gen time equal to cdclimgentime
 				for icdtime in range(len(cdclimgentime)): 
 					if gen == int(cdclimgentime[icdtime]):
 						tupClimate = DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,\
-						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_pass,Str_patch_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob_pass,Disperse_patch_prob_pass,alldiseaseVars_files,implementdisease,pathogen_load_pass,disease_fitvals_pass)
+						dispBackcdmatfile,straycdmatfile,matemoveno,dispmoveOutno,dispmoveBackno,StrBackno,matemovethreshval,dispmoveOutthreshval,dispmoveBackthreshval,StrBackthreshval,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_pass,Str_patch_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthreshval,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob_pass,Disperse_patch_prob_pass,alldiseaseVars_files,implementdisease,pathogen_load_pass,disease_fitvals_pass,defaultMature_pass,mat_slope_pass,mat_int_pass)
 						
 						# Cdmatrix values
 						cdmatrix_mate, cdmatrix_FXXOut, cdmatrix_MXYOut, cdmatrix_MYYOut, cdmatrix_FYYOut, cdmatrix_FXXBack, cdmatrix_MXYBack, cdmatrix_MYYBack, cdmatrix_FYYBack, cdmatrix_FXXStr, cdmatrix_MXYStr, cdmatrix_MYYStr, cdmatrix_FYYStr, cdmatrix_FXXLD, cdmatrix_MXYLD, cdmatrix_MYYLD, cdmatrix_FYYLD = tupClimate[:17]
@@ -506,13 +504,15 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 							age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_MgOUT, age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie_mu,f_leslie_std,age_capture_out,age_capture_back = tupClimate[171:190]
 						MgBack_patch_prob, Disperse_patch_prob =  tupClimate[190:192]
 						disease_vars = tupClimate[192]
+						# Matruation vars
+						FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set,FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope,FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int = tupClimate[193:205]
 												
 						# ----------------------------------------
 						# Introduce new individuals
 						# ----------------------------------------
 						if (gen != 0 and len(N0_pass[0].split('|')) > 1):							
 							SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdevolveans,burningen_cdevolve,fitvals,dtype,N0,natal_patches,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,disease_vars)
-				#pdb.set_trace()
+				
 				# -------------------------------------------
 				# Update stochastic parameters each year here
 				# -------------------------------------------
