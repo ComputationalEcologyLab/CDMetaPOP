@@ -978,8 +978,8 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			
 			# Find adults in samp list that survived
 			Nage_ind_adults = np.arange(len(SubpopIN_arr))
-			index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
-			#index = np.in1d(Nage_ind_adults,Nage_samp_ind_all)
+			index = np.isin(Nage_samp_ind_all,Nage_ind_adults)
+			#index = np.isin(Nage_ind_adults,Nage_samp_ind_all)
 			Nage_samp_ind_adults = np.asarray(Nage_samp_ind_all)[index]	
 			
 			# Temp for Age 1+ to keep
@@ -1388,8 +1388,8 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			
 			# Find adults in samp list that survived
 			Nage_ind_adults = np.arange(len(SubpopIN_arr))
-			index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
-			#index = np.in1d(Nage_ind_adults,Nage_samp_ind_all)
+			index = np.isin(Nage_samp_ind_all,Nage_ind_adults)
+			#index = np.isin(Nage_ind_adults,Nage_samp_ind_all)
 			Nage_samp_ind_adults = np.asarray(Nage_samp_ind_all)[index]	
 			
 			# Temp for Age 1+ to keep
@@ -1782,8 +1782,8 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			
 			# Find adults in samp list that survived
 			Nage_ind_adults = np.arange(len(SubpopIN_arr)) # This is all individuals surviving age 1+
-			index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)# This is indexing only age 1s out of the list of just age 1s and age 0s
-			#index = np.in1d(Nage_ind_adults,Nage_samp_ind_all)
+			index = np.isin(Nage_samp_ind_all,Nage_ind_adults)# This is indexing only age 1s out of the list of just age 1s and age 0s
+			#index = np.isin(Nage_ind_adults,Nage_samp_ind_all)
 			# Age 1s that survive after packing
 			Nage_samp_ind_adults = np.asarray(Nage_samp_ind_all)[index].tolist() # This is only age 1s and excludes adults older than age 1
 			# Add index for all age 2+ (or larger than max packing age) to Nage_samp_ind_adults
@@ -2017,7 +2017,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					# Get index for all
 					Nage_samp_ind_all = np.asarray(np.random.choice(Nage_ind_all,int(Kpop),replace=False).tolist())
 					# Get just the adults
-					index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
+					index = np.isin(Nage_samp_ind_all,Nage_ind_adults)
 					Nage_samp_ind_adults = Nage_samp_ind_all[index]
 					PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind_all) # changed in v3.01 was Nage_samp_ind_all-Kpop
 			
@@ -2273,12 +2273,12 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						# Get index for all
 						Nage_samp_ind_all = np.asarray(np.random.choice(Nage_ind_all,Kpop,replace=False).tolist())
 						# Get just the adults
-						index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
+						index = np.isin(Nage_samp_ind_all,Nage_ind_adults)
 						Nage_samp_ind_adults = Nage_samp_ind_all[index]	
 					else:
 						Nage_samp_ind_all = np.asarray(np.random.choice(Nage_ind_all,Npop,replace=False).tolist())
 						# Get just the adults
-						index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
+						index = np.isin(Nage_samp_ind_all,Nage_ind_adults)
 						Nage_samp_ind_adults = Nage_samp_ind_all[index]
 					'''
 			# Select out the Age1+ adults
@@ -2642,7 +2642,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					
 				# Find adults in samp list that survived
 				Nage_ind_adults = np.arange(len(SubpopIN_arr))
-				index = np.in1d(Nage_samp_ind_all,Nage_ind_adults)
+				index = np.isin(Nage_samp_ind_all,Nage_ind_adults)
 				Nage_samp_ind_adults = np.asarray(Nage_samp_ind_all)[index]	
 				
 				# Temp for Age 1+ to keep
