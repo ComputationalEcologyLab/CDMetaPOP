@@ -262,7 +262,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		# ---------------------------------------------		
 		# Create set of variable arguments to pass into mc_loop(). Multiprocessing.pool() requires a single argument to be passed in.
 		logfHndl.close() # Close log file because you can't pass an open file to multiprocessing.pool
-		multi_process = "species" # Use Erin's validation function for this, can equal 'species', 'N', or 'mc'
+		multi_process = "mc" # Use Erin's validation function for this, can equal 'species', 'N', or 'mc'
 		ncores = 2
 		mc_args = {
 			'ibatch':ibatch,
