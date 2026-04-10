@@ -29,10 +29,17 @@ def logMsg(outf,msg):
 	--always outputs to log file by default.
 	--using msgVerbose, can be set to "Tee" output to stdout as well
 	'''
-	outf.write(msg+ '\n')
+	'''outf.write(msg+ '\n')
 	if msgVerbose:
-		print(("%s"%(msg)))
+		print(("%s"%(msg)))'''
 		
+	identity = multiprocessing.current_process()._identity
+	name = multiprocessing.current_process().name 
+	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
+	if not identity or identity[0] == 1 or name[0]=='S':
+		outf.write(msg+ '\n')
+		if msgVerbose:
+			print(("%s"%(msg)))
 	# End::logMsg()
 
 # ---------------------------------------------------------------------------------------------------	 
@@ -2247,7 +2254,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			# K,N for this population
 			Kpop = K[isub]
 			# Add in to popvars as variable eventually e.g., anadromy_1
-			packAge = 1 # Age of oldest individuals to be packed
+			packAge = 1 # Age or size (class) of oldest individuals to be packed
 			Npop = sum(countages[1])
 			# Only ages 0 and 1 contriubte to Npop for packing
 			Npop = sum(countages[1][np.where(countages[0]<=packAge)])

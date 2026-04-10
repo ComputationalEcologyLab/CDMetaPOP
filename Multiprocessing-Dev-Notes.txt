@@ -1,0 +1,207 @@
+4/2/26 - Adding multiprocessing to cdmetapop mc replicates
+
+Currently, Queue's are created in mainloop, outside of the mcloop. We could move queues inside the mc loop, but if you split mcs across cores and multiple cores are creating queues, these queues would all overlap and you would need to use a queue manager and it would get messy. 
+
+Better option is to restrict multiprocessing of MCs to single-species
+
+I think a variable in RunVars could be 'multi-processing', and the response could be 'species', 'mc', or 'genes', to allow the user to pick one process to run in parallel. And only one.
+
+4/3/26
+Ok, current plan is to take the mcrun for loop and pull it out of the mainloop() function. I will make it it's own function, then inside mainloop() I can either call it using a normal for loop, or using the multiprocessing pool thing. If I leave it inside, I think I will have to duplicate the whole thing, once for single process or multi-species, and again for multiprocessing across mcs.
+
+Note that I will have to return everything as a tuple in a single variable to pass to the multiprocess pool function.
+
+Ok scrap that idea. Instead I'm going variable by variable upstream from the mc loop and recording which variables are being used inside the mc loop - * indicates the are used
+
+#Passed directly into main_loop
+spcNO*,
+fileans,x
+irun*,
+datadir*,
+sizeans*,
+constMortans*,
+mcruns,x
+looptime*,
+nthfile_out,x
+gridformat*,
+gridsample*,
+outputans*,
+cdclimgentimelist, x
+outdir*,
+startcomp*,
+implementcomp*,
+passlogfHndl,x
+XQs*, 
+nspecies*, 
+extinctQ*, - Might need to think how to handle this, not needed in mc parallel loop with pool? Nah just pass it in
+global_extinctQ*, - Same as above
+current_system_pid x
+
+#Created inside main loop
+batchVars x
+batchVarsindex x
+nSimulations x
+logfHndl* - Claude says this needs special handling - come back to it
+
+# Created inside batch oop
+		*xyfilename = datadir+batchVars['xyfilename'][ibatch]
+		*matecdmatfile = batchVars['mate_cdmat'][ibatch]
+		*dispOutcdmatfile = batchVars['migrateout_cdmat'][ibatch]
+		*dispBackcdmatfile = batchVars['migrateback_cdmat'][ibatch]
+		*straycdmatfile = batchVars['stray_cdmat'][ibatch]
+		*dispLocalcdmatfile = batchVars['disperseLocal_cdmat'][ibatch]
+		*matemoveno = batchVars['matemoveno'][ibatch]
+		*matemoveparA = batchVars['matemoveparA'][ibatch]
+		*matemoveparB = batchVars['matemoveparB'][ibatch]
+		*matemoveparC = batchVars['matemoveparC'][ibatch]
+		*matemovethreshval = batchVars['matemovethresh'][ibatch]
+		*freplace = batchVars['Freplace'][ibatch]
+		*mreplace = batchVars['Mreplace'][ibatch]
+		*selfing = batchVars['selfans'][ibatch]
+		*sexchromo = int(batchVars['sex_chromo'][ibatch])
+		*sexans = batchVars['sexans'][ibatch]
+		*assortmateModel_pass = batchVars['AssortativeMate_Model'][ibatch]
+		*assortmateC_pass = batchVars['AssortativeMate_Factor'][ibatch]
+		*dispmoveOutno = batchVars['migratemoveOutno'][ibatch]
+		*dispmoveOutparA = batchVars['migratemoveOutparA'][ibatch]
+		*dispmoveOutparB = batchVars['migratemoveOutparB'][ibatch]
+		*dispmoveOutparC = batchVars['migratemoveOutparC'][ibatch]
+		*dispmoveOutthreshval = batchVars['migratemoveOutthresh'][ibatch]
+		*dispmoveBackno = batchVars['migratemoveBackno'][ibatch]
+		*dispmoveBackparA = batchVars['migratemoveBackparA'][ibatch]
+		*dispmoveBackparB = batchVars['migratemoveBackparB'][ibatch]
+		*dispmoveBackparC = batchVars['migratemoveBackparC'][ibatch]
+		*dispmoveBackthreshval = batchVars['migratemoveBackthresh'][ibatch]
+		*StrBackno = batchVars['StrayBackno'][ibatch]
+		*StrBackparA = batchVars['StrayBackparA'][ibatch]
+		*StrBackparB = batchVars['StrayBackparB'][ibatch]
+		*StrBackparC = batchVars['StrayBackparC'][ibatch]
+		*StrBackthreshval = batchVars['StrayBackthresh'][ibatch]
+		*dispLocalno = batchVars['disperseLocalno'][ibatch]
+		*dispLocalparA = batchVars['disperseLocalparA'][ibatch]
+		*dispLocalparB = batchVars['disperseLocalparB'][ibatch]
+		*dispLocalparC = batchVars['disperseLocalparC'][ibatch]
+		*dispLocalthreshval = batchVars['disperseLocalthresh'][ibatch]
+		*homeattempt = batchVars['HomeAttempt'][ibatch]
+		*offno = batchVars['offno'][ibatch]
+		*inheritans_classfiles = batchVars['offans_InheritClassVars'][ibatch]
+		*equalClutch = batchVars['equalClutchSize'][ibatch]
+		*muterate_pass = batchVars['muterate'][ibatch]
+		*mutationans = batchVars['mutationtype'][ibatch]
+		*loci = int(batchVars['loci'][ibatch])
+		*alleles = batchVars['alleles'][ibatch]
+		*mtdna = batchVars['mtdna'][ibatch]
+		*geneswap = int(batchVars['startGenes'][ibatch])
+		*cdevolveans = batchVars['cdevolveans'][ibatch]
+		*burningen_cdevolve = int(batchVars['startSelection'][ibatch])
+		*timecdevolve = batchVars['implementSelection'][ibatch]
+		*betaFile_selection = batchVars['betaFile_selection'][ibatch]
+		
+		*plasticans = batchVars['plasticgeneans'][ibatch]
+		*plastic_signalresp_pass = batchVars['plasticSignalResponse'][ibatch]
+		*plastic_behaviorresp_pass = batchVars['plasticBehavioralResponse'][ibatch]
+		*burningen_plastic = int(batchVars['startPlasticgene'][ibatch])
+		*timeplastic = batchVars['implementPlasticgene'][ibatch]
+		
+		*growans = batchVars['growth_option'][ibatch]
+		*sizeLoo = batchVars['growth_Loo'][ibatch] # Check sex ratios
+		*sizeR0 = batchVars['growth_R0'][ibatch]# Check sex ratios
+		*size_eqn_1 = batchVars['growth_temp_max'][ibatch]# Check sex ratios
+		*size_eqn_2 = batchVars['growth_temp_CV'][ibatch]# Check sex ratios
+		*size_eqn_3 = batchVars['growth_temp_t0'][ibatch]# Check sex ratios
+		#mat_set = batchVars['mature_length_set'][ibatch]
+		x mat_slope = batchVars['mature_eqn_slope'][ibatch]
+		x mat_int = batchVars['mature_eqn_int'][ibatch]
+		*eggFreq_mu = float(batchVars['Egg_Freq_Mean'][ibatch])
+		*eggFreq_sd = float(batchVars['Egg_Freq_StDev'][ibatch])
+		*egg_mean_ans = batchVars['Egg_Mean_ans'][ibatch]
+		*egg_mean_1 = float(batchVars['Egg_Mean_par1'][ibatch])
+		*egg_mean_2 = float(batchVars['Egg_Mean_par2'][ibatch])
+		*egg_percmort_mu = batchVars['Egg_Mortality'][ibatch]
+		*egg_percmort_sd = batchVars['Egg_Mortality_StDev'][ibatch]
+		*Femalepercent_egg = batchVars['Egg_FemaleProb'][ibatch]
+		*packans = batchVars['popmodel'][ibatch]
+		*packpar1 = float(batchVars['popmodel_par1'][ibatch])
+		*cor_mat_ans = batchVars['correlation_matrix'][ibatch]
+		x defaultMature = batchVars['mature_default'][ibatch]
+		*subpopmort_pass = batchVars['subpopmort_file'][ibatch]
+		*egg_delay = int(batchVars['egg_delay'][ibatch])
+		*egg_add = batchVars['egg_add'][ibatch]
+		
+		# PopVars Disease Pars
+		*implementdisease = batchVars['implement_disease'][ibatch]
+
+nthfile* - may need special consideration		
+cdclimgentime* may need special consideration
+tupVal x	- we don't want this, it is temporary and shouldn't be used in mc loop
+
+FXXmat_set*, 
+MXYmat_set*, 
+MYYmat_set*, 
+FYYmat_set*
+
+FXXmat_slope*,
+MXYmat_slope*,
+MYYmat_slope*,
+FYYmat_slope*
+
+FXXmat_int*,
+MXYmat_int*,
+MYYmat_int*,
+FYYmat_int*
+
+valid_values x (this is error checking don't think it i sneeded in for loop
+
+**Single core runs are working with new function. 
+Need to test standard runvars multispecies
+Then test mc = 2 with ncores = 2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##############
+Coding 'size' back option for anadromy
+May need to add package as an input parameter
+How to deal with package when size control? packsize? 
+
+For parallel processing
+	Added variables - multi-process and ncores
+	need to figure out logging - maybe only have it log if it's the main processor or the first process from pool? Since they are mcs, there should be no difference among runs
+	
+
+# Updated logMsg function in Moudels.py to check for a multiprocessor. If 
+
+Added forkable pdb class to postprocess. Could remove.
+Currently can't figure eout why logMsg in postprocess is not writing to the log files for multispecies applications. Something weird happening.
+Ok using outf.flush worked. But now I am only writing logs for one species. I want it to write logs for all species, but only one mc. Need to work on it more. THIS IS UNRESOLVED
+
+Had to change Queue logic because multiprocessing wouldn't let me pass in queues.
+
+Had to close log file before launching multiprocessing, then reopen after launching.
+
+Need to figure out what to do with extinctQ and globalextinctQ putting things and getting things from those, because this will be handled differently in the for loop vs the multiprocess loop
+
+Now trying to find some index I can use to only have one worker writing to terminal at a time. It never resets to 1, always incrementing up.
+-Ok, got it working. I had to create another function recommended by ai to rename the workers. But it seems to work.
+
+Now multispecies is broken - hanging. Need to check where it's going wrong, but it's surely something to do with the if statements around queues.
+Next thing I would try is to go back to passing the Queue in for multispecies instead fo reassigning it at the beginning of the mc loop
+
+Ok fixed. Some issues with Queues, and then some issues with logging, but all working now. All species get logged (only one printed to console), but if parallel processing, only one mc gets logged and printed to console.

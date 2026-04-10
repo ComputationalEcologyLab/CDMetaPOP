@@ -27,8 +27,8 @@ SRC_PATH =  "../src/"
 import datetime,time,pdb,os,sys,shutil,gc,warnings
 
 # For parallel processing
-from multiprocessing import Process
-from multiprocessing import Queue
+from multiprocessing import Process, Pool, Queue
+#from multiprocessing import Queue
 import multiprocessing
 import numpy as np
 
@@ -126,8 +126,13 @@ if __name__ == '__main__':
 		# Create Qs for multiprocessing Put/Gets 
 		# ------------------------------------------------------
 		XQs = [] # For multiprocessing setup, create empty list to fill with # species Qs
-		extinctQ = Queue() # To track extinction. If all species extinct, exit system
-		global_extinctQ = Queue() # To track global extinction
+		# Only assign Queues to these object for multispecies parallel applications, they cannot be passed to mc replicate multiprocessing in mainloop later as Queues
+		if len(popvarsfile) > 1:
+			extinctQ = Queue() # To track extinction. If all species extinct, exit system
+			global_extinctQ = Queue() # To track global extinction
+		else:
+			extinctQ = None
+			global_extinctQ = None
 		logfHndl = []
 		for ispecies in range(len(popvarsfile)):
 			#Ignore queues if only one species
@@ -153,8 +158,8 @@ if __name__ == '__main__':
 		# Split processors here len(popvarsfile)
 		# -------------------------------------- 
 		#pdb.set_trace()
-		if len(popvarsfile) > multiprocessing.cpu_count():
-			print("PopVars files given greater than number of CPUs.")
+		if len(popvarsfile) > multiprocessing.cpu_count() - 1:
+			print("PopVars files given greater than number of CPU cores available.")
 			sys.exit(-1)
 		sp = [] # list of processes for appending
 		__spec__ = None #This is a fix for an Ipython error that was looking for this variable when using multiprocessing
