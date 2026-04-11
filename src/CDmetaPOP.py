@@ -108,7 +108,9 @@ if __name__ == '__main__':
 		cdclimgentimelist = batchVars1['cdclimgentime'][irun]
 		startcomp = int(batchVars1['startcomp'][irun])
 		implementcomp = str(batchVars1['implementcomp'][irun])
-				
+		ncores = int(batchVars1['ncores'][irun])
+		parallel = str(batchVars1['parallel'][irun])
+
 		# ------------------------------------------
 		# Error check: Rows in PopVars must be equal
 		# ------------------------------------------
@@ -150,7 +152,8 @@ if __name__ == '__main__':
 			logMsg(logfHndl[ispecies],"Author(s): %s"%(authorNames)+'\n')
 			logMsg(logfHndl[ispecies],"Session runtime inputs from: %s"%(fileans)+'\n\n') 
 			logMsg(logfHndl[ispecies],"Session popvars inputs from: %s"%(popvarsfile[ispecies])+'\n\n')
-			logMsg(logfHndl[ispecies],"On run: %s"%(str(irun))+'\n\n')
+			logMsg(logfHndl[ispecies],"Parallel processing across Monte Carlo replicates started across %s"%(str(ncores))+" cores." + '\n\n')
+			logMsg(logfHndl[ispecies],"On run: %s"%(str(irun))+'\n\n')			
 			logfHndl[ispecies].close() # in order to write out above			
 			msgVerbose = False
 			
@@ -167,7 +170,7 @@ if __name__ == '__main__':
 			
 			for ispecies in range(len(popvarsfile)):
 				# Need to create target function main_loop
-				sp.append(Process(target=main_loop, name='S'+str(ispecies), args=(ispecies,datadir+popvarsfile[ispecies],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP"+str(ispecies)+".log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid)))
+				sp.append(Process(target=main_loop, name='S'+str(ispecies), args=(ispecies,datadir+popvarsfile[ispecies],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP"+str(ispecies)+".log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid, ncores, parallel)))
 			# Now Start Processes
 			for ispecies in range(len(popvarsfile)):
 				sp[ispecies].start()
@@ -175,7 +178,7 @@ if __name__ == '__main__':
 			for ispecies in range(len(popvarsfile)):
 				sp[ispecies].join()
 		elif len(popvarsfile) == 1:
-			main_loop(0,datadir+popvarsfile[0],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP0.log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid)
+			main_loop(0,datadir+popvarsfile[0],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP0.log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid, ncores, parallel)
 			
 	# Close the logfHndl file
 	for ispecies in range(len(popvarsfile)):

@@ -25,7 +25,7 @@ from CDmetaPOP_Mortality import *
 msgVerbose = False 
 
 # --------------------------------------------------------------------------------------------------------------------
-def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,passlogfHndl,XQs, nspecies, extinctQ, global_extinctQ,current_system_pid):
+def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,passlogfHndl,XQs, nspecies, extinctQ, global_extinctQ,current_system_pid, ncores, parallel):
 	'''Main loop here'''
 	
 	
@@ -250,6 +250,9 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		
 		valid_values = ['N','Both','Back','Out']
 		validate(implementcomp not in valid_values, 'Implement competition value incorrect.')
+		
+		valid_values = ['N', 'mc', 'species']
+		validate(parallel not in valid_values, 'Parallel value in RunVars not correct.')
 		'''
 		# Error check here for runtiming and 4 mats
 		if len(dispBackcdmatfile) > 1:
@@ -262,8 +265,6 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		# ---------------------------------------------		
 		# Create set of variable arguments to pass into mc_loop(). Multiprocessing.pool() requires a single argument to be passed in.
 		logfHndl.close() # Close log file because you can't pass an open file to multiprocessing.pool
-		multi_process = "mc" # Use Erin's validation function for this, can equal 'species', 'N', or 'mc'
-		ncores = 2
 		mc_args = {
 			'ibatch':ibatch,
 			'spcNO':spcNO,
@@ -375,7 +376,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			'MXYmat_int':MXYmat_int,
 			'MYYmat_int':MYYmat_int,
 			'FYYmat_int':FYYmat_int,
-			'multi_process':multi_process,
+			'parallel':parallel,
 			'ncores':ncores,			
 		}
 		# Check number of processors requested is available
@@ -385,11 +386,11 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		# Prevent attempts to split cores across MCs when cihld processes have already spawned to handle multiple species.
 		# This ensures __name__ == 'main'
 		if nspecies > 1:
-			if multi_process != "species":
-				print("For multispecies applications, Multiprocessing response must be 'species'. Cannot use parallel processing for both species and for monte carlo replicate.")
+			if parallel != "species":
+				print("For multispecies applications, parallel response must be 'species'. Cannot use parallel processing for both species and monte carlo replicate.")
 				sys.exit()
 		# If using multipsecies, or single species without multiprocessing, run as for loop
-		if nspecies > 1 or ncores == 1 or multi_process == 'N' or mcruns == 1:			
+		if nspecies > 1 or ncores == 1 or parallel in ['N','species'] or mcruns == 1:			
 			# Monte carlo replicate loop
 			for ithmcrun in range(mcruns):
 				# Need to pass in which mc is running
@@ -525,7 +526,7 @@ def mc_loop(mc_args):
 	MXYmat_int = mc_args['MXYmat_int']
 	MYYmat_int = mc_args['MYYmat_int']
 	FYYmat_int = mc_args['FYYmat_int']
-	multi_process = mc_args['multi_process']
+	parallel = mc_args['parallel']
 	ncores = mc_args['ncores']
 	
 	# Timing events: start
@@ -728,7 +729,7 @@ def mc_loop(mc_args):
 		# List to track extinctions - S0 so only one species handles queues in a multispecies application (i.e., NOT 'S1'), MainProcess for a single species, single core run,
 		# and multiprocess for single-species, multi-core runs
 		
-		if multiprocessing.current_process().name == "S0" or multiprocessing.current_process().name == "MainProcess" or multi_process == 'mc':
+		if multiprocessing.current_process().name == "S0" or multiprocessing.current_process().name == "MainProcess" or parallel == 'mc':
 			ext_list = []	
 			for ispecies in range(nspecies):
 				ext_list.append(extinctQ.get(block=True))
