@@ -1425,9 +1425,9 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 	# Anadromy is selected
 	# -------------------
 	elif packans == 'anadromy':
-		if sizecall == "size": # For now, only allow for age-based option
-			print("Currently, only age-based simulations are allowed for the 'anadromy' popmodel")
-			sys.exit(-1)
+		#if sizecall == "size": # For now, only allow for age-based option
+		#	print("Currently, only age-based simulations are allowed for the 'anadromy' popmodel")
+		#	sys.exit(-1)
 		# ------------------------------------------
 		# Get other species Ns from all Patches here
 		# ------------------------------------------
