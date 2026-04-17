@@ -109,7 +109,6 @@ if __name__ == '__main__':
 		startcomp = int(batchVars1['startcomp'][irun])
 		implementcomp = str(batchVars1['implementcomp'][irun])
 		ncores = int(batchVars1['ncores'][irun])
-		parallel = str(batchVars1['parallel'][irun])
 
 		# ------------------------------------------
 		# Error check: Rows in PopVars must be equal
@@ -170,17 +169,17 @@ if __name__ == '__main__':
 			
 			for ispecies in range(len(popvarsfile)):
 				# Need to create target function main_loop
-				sp.append(Process(target=main_loop, name='S'+str(ispecies), args=(ispecies,datadir+popvarsfile[ispecies],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP"+str(ispecies)+".log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid, ncores, parallel)))
+				sp.append(Process(target=main_loop, name='S'+str(ispecies), args=(ispecies,datadir+popvarsfile[ispecies],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP"+str(ispecies)+".log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid, ncores)))
 			# Now Start Processes
 			for ispecies in range(len(popvarsfile)):
-				sp[ispecies].start()
-			# Now Join Processes
-			for ispecies in range(len(popvarsfile)):
-				sp[ispecies].join()
+				sp[ispecies].start()			
+			# Now Join Processes			
+			for ispecies in range(len(popvarsfile)):				
+				sp[ispecies].join()			
 		elif len(popvarsfile) == 1:
-			main_loop(0,datadir+popvarsfile[0],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP0.log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid, ncores, parallel)
+			main_loop(0,datadir+popvarsfile[0],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP0.log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid, ncores)
 			
-	# Close the logfHndl file
+	# Close the logfHndl file	
 	for ispecies in range(len(popvarsfile)):
 		logfHndl[ispecies].close()	
 	#End::Batch Loop

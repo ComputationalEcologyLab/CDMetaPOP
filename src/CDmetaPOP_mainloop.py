@@ -25,11 +25,8 @@ from CDmetaPOP_Mortality import *
 msgVerbose = False 
 
 # --------------------------------------------------------------------------------------------------------------------
-def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,passlogfHndl,XQs, nspecies, extinctQ, global_extinctQ,current_system_pid, ncores, parallel):
+def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,passlogfHndl,XQs, nspecies, extinctQ, global_extinctQ,current_system_pid, ncores):
 	'''Main loop here'''
-	
-	
-	
 	# Call function and store PopVar variables
 	batchVars,batchVarsIndex,nSimulations = loadFile(fileans,1,',',True)
 
@@ -251,8 +248,24 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		valid_values = ['N','Both','Back','Out']
 		validate(implementcomp not in valid_values, 'Implement competition value incorrect.')
 		
-		valid_values = ['N', 'mc', 'species']
-		validate(parallel not in valid_values, 'Parallel value in RunVars not correct.')
+		# Check number of processors requested is available
+		if ncores > multiprocessing.cpu_count() - 1:
+			print("Error: Processors requested (ncores) is greater than number of processors available.")
+			sys.exit()
+		# Prevent attempts to split cores across MCs when cihld processes have already spawned to handle multiple species and set type of parallel processing.		
+		if nspecies > 1:
+			parallel = 'species' # Species parallel processing
+			if ncores > 1:
+				ncores = 1
+				if multiprocessing.current_process().name == "S0":
+					print("Note: Parallel processing of Monte Carlo replicates is unavailable for multispecies runs. Proceeding with replicates in series.")		
+		elif mcruns == 1 or ncores == 1:
+			parallel = 'N' # No parallel processing
+		elif ncores > 1 and mcruns > 1 and nspecies == 1:
+			parallel = 'mc' # Monte Carlo parallel processing
+		else:
+			print("Error: Check inputs for ncores and mcruns in RunVars file.")
+			sys.exit()
 		'''
 		# Error check here for runtiming and 4 mats
 		if len(dispBackcdmatfile) > 1:
@@ -376,29 +389,19 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			'MXYmat_int':MXYmat_int,
 			'MYYmat_int':MYYmat_int,
 			'FYYmat_int':FYYmat_int,
-			'parallel':parallel,
-			'ncores':ncores,			
+			'ncores':ncores,
+			'parallel':parallel
 		}
-		# Check number of processors requested is available
-		if ncores > multiprocessing.cpu_count() - 1:
-			print("Error: Processors requested (ncores) is greater than number of processors available.")
-			sys.exit()
-		# Prevent attempts to split cores across MCs when cihld processes have already spawned to handle multiple species.
-		# This ensures __name__ == 'main'
-		if nspecies > 1:
-			if parallel != "species":
-				print("For multispecies applications, parallel response must be 'species'. Cannot use parallel processing for both species and monte carlo replicate.")
-				sys.exit()
 		# If using multipsecies, or single species without multiprocessing, run as for loop
-		if nspecies > 1 or ncores == 1 or parallel in ['N','species'] or mcruns == 1:			
+		if parallel in ['species','N']:
 			# Monte carlo replicate loop
 			for ithmcrun in range(mcruns):
 				# Need to pass in which mc is running
 				mc_args['ithmcrun'] = ithmcrun
 				# Run the mc loop
-				mc_loop(mc_args)
+				mc_loop(mc_args)				
 		# If single species with multiprocessing mc replicates, use with Pool()
-		elif nspecies == 1 and ncores > 1:			
+		elif parallel == 'mc':
 			# List comprehension that creates an iterable list of dictionaries to loop through, with an added element of 'ithmcrun' for the mc number
 			mc_args_list = [{**mc_args, 'ithmcrun': ithmcrun} for ithmcrun in range(mcruns)]
 			# Reset counter to name worker id for every new pool creation
@@ -410,6 +413,14 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		else:
 			print("Error: Check values for multiprocessing and number of cores.")
 			sys.exit()
+	# Empty queues before ending batch run to prevent hanging 
+	for q in XQs:
+		for q2 in q: 
+			while not q2.empty():
+				q2.get()
+			q2.close()
+			q2.join_thread()
+	logfHndl.close()
 	# End::Batch Loop
 	
 # Function to run monte carlo loop
@@ -525,9 +536,9 @@ def mc_loop(mc_args):
 	FXXmat_int = mc_args['FXXmat_int']
 	MXYmat_int = mc_args['MXYmat_int']
 	MYYmat_int = mc_args['MYYmat_int']
-	FYYmat_int = mc_args['FYYmat_int']
-	parallel = mc_args['parallel']
+	FYYmat_int = mc_args['FYYmat_int']	
 	ncores = mc_args['ncores']
+	parallel = mc_args['parallel']
 	
 	# Timing events: start
 	start_timeMC = datetime.datetime.now()
@@ -537,15 +548,11 @@ def mc_loop(mc_args):
 	logfHndl = open(passlogfHndl,'a')
 	
 	# If multi-species, queues were created before the multiprocess split, so they can't be closed and created again here.
-	if nspecies > 1:
+	if parallel == 'species':
 		pass
 	else:
 		# Re-create Queues to keep track of extinctions, since Queues cannot be passed to multiprocessing
-		extinctQ = multiprocessing.Queue() # To track extinction. If all species extinct, exit system
-	if nspecies > 1:
-		pass
-	else:
-		# Re-create Queues to keep track of extinctions, since Queues cannot be passed to multiprocessing
+		extinctQ = multiprocessing.Queue() # To track extinction. If all species extinct, exit system			
 		global_extinctQ = multiprocessing.Queue() # To track global extinction
 	# -----------------------------------------
 	# Create storage variables
