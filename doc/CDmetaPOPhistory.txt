@@ -1,3 +1,25 @@
+Changes v3.09.2026.03.02.2026 ell
+0) Added PopVars maturation parameters to cdclimate.
+a) add _pass call to mat pars
+		defaultMature_pass = batchVars['mature_default'][ibatch]
+		mat_slope_pass = batchVars['mature_eqn_slope'][ibatch]
+		mat_int_pass = batchVars['mature_eqn_int'][ibatch]
+b) Read in defaultMature,mat_slope,mat_int, to Preprocess, moved the tupVal in mainloop calls for sexsplit mat values. Here, just need the first values for _set, _slope and _int for each sex chromo option for initialization. Code updated in PreProcess
+	FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set=[val for val in process_disp(defaultMature, 0, sexchromo, defaultMature)]
+				
+	# Logistic equation for maturation as a function of size - slope
+	FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = [val for val in process_disp(mat_slope, 0, sexchromo, mat_slope)]
+	
+	# Logistic equation for maturation as a function of size - intercept
+	FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= [val for val in process_disp(mat_int, 0, sexchromo, mat_int)]
+c) Next read in the _pass to cdclimate and extract the _set, _slope, and _int pars for each sexchromo option here.
+defaultMature_pass,mat_slope_pass,mat_int_pass read into cdclimate, calls added to CDClimate:
+	FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set=[val for val in process_disp(defaultMature_pass, icdtime, sexchromo, cdclimgentime)]
+	FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = [val for val in process_disp(mat_slope_pass, icdtime, sexchromo, cdclimgentime)]
+	FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= [val for val in process_disp(mat_int_pass, icdtime, sexchromo, cdclimgentime)]
+d) These variables read out of cdclimate and into main loop FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set,FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope,FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int	
+	
+
 <<<<<<< Updated upstream
 =======
 

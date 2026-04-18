@@ -103,9 +103,12 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		size_eqn_1 = batchVars['growth_temp_max'][ibatch]# Check sex ratios
 		size_eqn_2 = batchVars['growth_temp_CV'][ibatch]# Check sex ratios
 		size_eqn_3 = batchVars['growth_temp_t0'][ibatch]# Check sex ratios
-		#mat_set = batchVars['mature_length_set'][ibatch]
-		mat_slope = batchVars['mature_eqn_slope'][ibatch]
-		mat_int = batchVars['mature_eqn_int'][ibatch]
+		
+		#Maturation pars
+		defaultMature_pass = batchVars['mature_default'][ibatch]
+		mat_slope_pass = batchVars['mature_eqn_slope'][ibatch]
+		mat_int_pass = batchVars['mature_eqn_int'][ibatch]
+		
 		eggFreq_mu = float(batchVars['Egg_Freq_Mean'][ibatch])
 		eggFreq_sd = float(batchVars['Egg_Freq_StDev'][ibatch])
 		egg_mean_ans = batchVars['Egg_Mean_ans'][ibatch]
@@ -117,7 +120,6 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		packans = batchVars['popmodel'][ibatch]
 		packpar1 = float(batchVars['popmodel_par1'][ibatch])
 		cor_mat_ans = batchVars['correlation_matrix'][ibatch]
-		defaultMature = batchVars['mature_default'][ibatch]
 		subpopmort_pass = batchVars['subpopmort_file'][ibatch]
 		egg_delay = int(batchVars['egg_delay'][ibatch])
 		egg_add = batchVars['egg_add'][ibatch]
@@ -152,19 +154,20 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 		# For Sex ratios option splits
 		# ----------------------------
 		validate(sexchromo not in [2, 3, 4], 'Number of sex chromosomes must be 2, 3,or 4.')
-
+		
+		'''
 		# Check Deterministic mature set value either age or size
-		tupVal = sexsplit(defaultMature, sexchromo)
+		tupVal = sexsplit(defaultMature_pass, sexchromo)
 		FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set = tupVal[0], tupVal[1], tupVal[2], tupVal[3]
 				
 		# Logistic equation for maturation as a function of size - slope
-		tupVal = sexsplit(mat_slope, sexchromo)
+		tupVal = sexsplit(mat_slope_pass, sexchromo)
 		FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = tupVal[0],tupVal[1],tupVal[2],tupVal[3]
 		
 		# Logistic equation for maturation as a function of size - intercept
-		tupVal = sexsplit(mat_int, sexchromo)
+		tupVal = sexsplit(mat_int_pass, sexchromo)
 		FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= tupVal[0],tupVal[1],tupVal[2],tupVal[3]
-		
+		'''		
 		# -------------------------------------
 		# Error checking 
 		# -------------------------------------		
@@ -221,7 +224,7 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			
 		# Inherit answer can only be:
 		validate(not (inheritans_classfiles == 'random' or inheritans_classfiles == 'Hindex' or inheritans_classfiles == 'mother'),'Inherit answer for multiple class files is not correct: enter either random or Hindex.')
-				
+			
 		# If inherit answer uses Hindex, mutation can't be on
 		#if isinstance(muterate_pass, list):
 		if len(muterate_pass) > 1:
