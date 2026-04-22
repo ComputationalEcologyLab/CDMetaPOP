@@ -1099,12 +1099,12 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno_pass,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_prob,Str_patch_prob,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob,Disperse_patch_prob,alldiseaseVars_files,implementdisease,pathogen_load,disease_fitvals_pass):
+def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno_pass,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_prob,Str_patch_prob,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob,Disperse_patch_prob,alldiseaseVars_files,implementdisease,pathogen_load,disease_fitvals_pass,defaultMature_pass,mat_slope_pass,mat_int_pass):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
 	'''
-		
+	
 	# -------------------------------
 	# Extract cdclimate values here
 	# -------------------------------
@@ -1351,6 +1351,11 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		# Add Beta0
 		tempbetas_selection.append(0.0 if not betavals[0][0] else float(betavals[0][0]))
 	
+	# Maturation values - split by sexchromo possible - _set, _slope, _int
+	FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set=[val for val in process_disp(defaultMature_pass, icdtime, sexchromo, cdclimgentime)]
+	FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = [val for val in process_disp(mat_slope_pass, icdtime, sexchromo, cdclimgentime)]
+	FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= [val for val in process_disp(mat_int_pass, icdtime, sexchromo, cdclimgentime)]
+	
 	# ----------------------
 	# Patch based parameters
 	# ----------------------	
@@ -1489,7 +1494,7 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	FXXdispmoveBackno,MXYdispmoveBackno,MYYdispmoveBackno,FYYdispmoveBackno,\
 	FXXStrno,MXYStrno,MYYStrno,FYYStrno,\
 	FXXdispLocalno,MXYdispLocalno,MYYdispLocalno,FYYdispLocalno,\
-	tempMgOut_patch_prob,tempStr_patch_prob,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_MgOUT,age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back,tempMgBack_patch_prob,tempDisperse_patch_prob,tupDisease_Vars
+	tempMgOut_patch_prob,tempStr_patch_prob,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_MgOUT,age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back,tempMgBack_patch_prob,tempDisperse_patch_prob,tupDisease_Vars,FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set,FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope,FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int
 	
 	return tupClimate 
 	# End::DoCDClimate()
@@ -1800,7 +1805,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,implementdisease):
+def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,defaultMature,mat_slope,mat_int,sexchromo,eggFreq_mu,eggFreq_sd,implementdisease):
 
 	'''
 	DoPreProcess()
@@ -1915,9 +1920,18 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		cor_mat = np.asarray(np.asarray(cor_mat)[1:,1:],dtype='float')
 		
 	# -----------------------------------------------------------------------------
-	# Extract variables needed for initialization that vary with cdclimategen (bar)
+	# Extract variables needed for initialization that vary with cdclimategen (bar) 
 	# -----------------------------------------------------------------------------	
-	#pdb.set_trace()
+		
+	# Check Deterministic mature set value either age or size - split by bar and sex options, icdtime = 0 and length of cdclimate just needs to match the split par length
+	FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set=[val for val in process_disp(defaultMature, 0, sexchromo, defaultMature)]
+				
+	# Logistic equation for maturation as a function of size - slope
+	FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = [val for val in process_disp(mat_slope, 0, sexchromo, mat_slope)]
+	
+	# Logistic equation for maturation as a function of size - intercept
+	FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= [val for val in process_disp(mat_int, 0, sexchromo, mat_int)]
+	
 	K, Kstd, pop_capture_back, N0, allefreqfiles, classvarsfiles, tempdiseaseVarsfile = [],[],[],[],[],[],[]
 	for isub in range(len(K_temp)):
 		mu = int(K_temp[isub].split('|')[0])

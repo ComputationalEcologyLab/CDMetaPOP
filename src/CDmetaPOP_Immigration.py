@@ -29,10 +29,17 @@ def logMsg(outf,msg):
 	--always outputs to log file by default.
 	--using msgVerbose, can be set to "Tee" output to stdout as well
 	'''
-	outf.write(msg+ '\n')
+	'''outf.write(msg+ '\n')
 	if msgVerbose:
-		print(("%s"%(msg)))
+		print(("%s"%(msg)))'''
 		
+	identity = multiprocessing.current_process()._identity
+	name = multiprocessing.current_process().name 
+	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
+	if not identity or identity[0] == 1 or name[0]=='S':
+		outf.write(msg+ '\n')
+		if msgVerbose:
+			print(("%s"%(msg)))
 	# End::logMsg()
 
 # ---------------------------------------------------------------------------------------------------	 
@@ -535,6 +542,11 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			
 	# Get unique number of subpops
 	nosubpops = len(K)
+	
+	# Get number of species - refer to this instead of length of XQs
+	if len(XQs) > 0:
+		nspecies = len(XQs)
+	else: nspecies = 1
 	
 	# Add spot to track numbers of individuals
 	DisperseDeaths.append([])
@@ -1427,14 +1439,14 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 		if implementcomp == 'Back':
 			Nself_pop = [len(SubpopIN_keep[x]) for x in range(0,len(SubpopIN_keep))]
 			# Ignore queus if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
 				for ispecies in range(len(XQs[spcNO])):
 					XQs[spcNO][ispecies].put(Nself_pop) 
 			Nother_pop = []
 			popcount = 0
 			# Ignore queues if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				for ispecies in range(len(XQs[spcNO])):			
 					if ispecies != spcNO: 
 						Nother_pop.append(XQs[ispecies][spcNO].get(block = True))
@@ -1480,7 +1492,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# Adjustment for K if more than one species
 				# -----------------
 				#Ignore K adjustment if only one species
-				if len(XQs) > 0:
+				if nspecies > 1:
 					alphas = comp_coef[isub].split(';') # Extracting alphas
 					if gen >= startcomp: # Check timing 
 						tempspeciesSum = [] # Create sum list for  >= 2 species
@@ -1672,14 +1684,14 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 		if implementcomp == 'Back':
 			Nself_pop = [len(SubpopIN_keep[x]) for x in range(0,len(SubpopIN_keep))]
 			# Ignore queus if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
 				for ispecies in range(len(XQs[spcNO])):
 					XQs[spcNO][ispecies].put(Nself_pop) 
 			Nother_pop = []
 			popcount = 0
 			# Ignore queues if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				for ispecies in range(len(XQs[spcNO])):			
 					if ispecies != spcNO: 
 						Nother_pop.append(XQs[ispecies][spcNO].get(block = True))
@@ -1725,7 +1737,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# Adjustment for K if more than one species
 				# -----------------
 				#Ignore K adjustment if only one species
-				if len(XQs) > 0:
+				if nspecies > 1:
 					alphas = comp_coef[isub].split(';') # Extracting alphas
 					if gen >= startcomp: # Check timing 
 						tempspeciesSum = [] # Create sum list for  >= 2 species
@@ -1928,14 +1940,14 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 		if implementcomp == 'Back':
 			Nself_pop = [len(SubpopIN_keep[x]) for x in range(0,len(SubpopIN_keep))]
 			# Ignore queus if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
 				for ispecies in range(len(XQs[spcNO])):
 					XQs[spcNO][ispecies].put(Nself_pop) 
 			Nother_pop = []
 			popcount = 0
 			# Ignore queues if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				for ispecies in range(len(XQs[spcNO])):			
 					if ispecies != spcNO: 
 						Nother_pop.append(XQs[ispecies][spcNO].get(block = True))
@@ -1980,7 +1992,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# Adjustment for K if more than one species
 				# -----------------
 				#Ignore K adjustment if only one species
-				if len(XQs) > 0:
+				if nspecies > 1:
 					alphas = comp_coef[isub].split(';') # Extracting alphas
 					if gen >= startcomp: # Check timing 
 						tempspeciesSum = [] # Create sum list for  >= 2 species
@@ -2204,7 +2216,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 		if implementcomp == 'Back':
 			Nself_pop = [len(SubpopIN_keep[x]) for x in range(0,len(SubpopIN_keep))]
 			# Ignore queus if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				print("Single species models only for anadromy popmodel option for now")
 				sys.exit(-1)
 				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
@@ -2213,7 +2225,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			Nother_pop = []
 			popcount = 0
 			# Ignore queues if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				for ispecies in range(len(XQs[spcNO])):			
 					if ispecies != spcNO: 
 						Nother_pop.append(XQs[ispecies][spcNO].get(block = True))
@@ -2247,7 +2259,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			# K,N for this population
 			Kpop = K[isub]
 			# Add in to popvars as variable eventually e.g., anadromy_1
-			packAge = 1 # Age of oldest individuals to be packed
+			packAge = 1 # Age or size (class) of oldest individuals to be packed
 			Npop = sum(countages[1])
 			# Only ages 0 and 1 contriubte to Npop for packing
 			Npop = sum(countages[1][np.where(countages[0]<=packAge)])
@@ -2263,7 +2275,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# Adjustment for K if more than one species
 				# -----------------
 				#Ignore K adjustment if only one species
-				if len(XQs) > 0:
+				if nspecies > 1:
 					alphas = comp_coef[isub].split(';') # Extracting alphas
 					if gen >= startcomp: # Check timing 
 						tempspeciesSum = [] # Create sum list for  >= 2 species
@@ -2460,14 +2472,14 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 		if implementcomp == 'Back':
 			Nself_pop = [len(SubpopIN_keep[x]) for x in range(0,len(SubpopIN_keep))]
 			# Ignore queus if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
 				for ispecies in range(len(XQs[spcNO])):
 					XQs[spcNO][ispecies].put(Nself_pop) 
 			Nother_pop = []
 			popcount = 0
 			# Ignore queues if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				for ispecies in range(len(XQs[spcNO])):			
 					if ispecies != spcNO: 
 						Nother_pop.append(XQs[ispecies][spcNO].get(block = True))
@@ -2566,14 +2578,14 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 		if implementcomp == 'Back':
 			Nself_pop = [len(SubpopIN_keep[x]) for x in range(0,len(SubpopIN_keep))]
 			# Ignore queus if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
 				for ispecies in range(len(XQs[spcNO])):
 					XQs[spcNO][ispecies].put(Nself_pop) 
 			Nother_pop = []
 			popcount = 0
 			# Ignore queues if only one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				for ispecies in range(len(XQs[spcNO])):			
 					if ispecies != spcNO: 
 						Nother_pop.append(XQs[ispecies][spcNO].get(block = True))
@@ -2603,7 +2615,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# Adjustment for K if more than one species
 				# -----------------
 				#Ignore K adjustment if only one species
-				if len(XQs) > 0:
+				if nspecies > 1:
 					alphas = comp_coef[isub].split(';') # Extracting alphas
 					if gen >= startcomp: # Check timing 
 						tempspeciesSum = [] # Create sum list for  >= 2 species
@@ -2693,7 +2705,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 		# Get other species Ns from all Patches here
 		# ------------------------------------------		
 		if logisticAns.lower() == 'back':
-			if len(XQs) > 0:
+			if nspecies > 1:
 				if implementcomp.lower() != 'back':
 					print("Competition must be implemented during the same time step (out or back) as the logistic growth model")
 					sys.exit(-1)
@@ -2718,14 +2730,14 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				Ntself_pop.append(Nt)	
 			
 			# Add to queues if more than one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
 				for ispecies in range(len(XQs[spcNO])): 
 					XQs[spcNO][ispecies].put(Ntself_pop) 
 			Ntother_pop = []
 			popcount = 0
 			# Grab from queues only if more than one species
-			if len(XQs) > 0:
+			if nspecies > 1:
 				for ispecies in range(len(XQs[spcNO])):			
 					if ispecies != spcNO: 
 						#Nt other pop
@@ -2759,7 +2771,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# ----------------------------
 				# Parameters for Second species (comp_coef = alpha2_1)
 				# ----------------------------
-				if len(XQs) > 0 and gen >= startcomp:
+				if nspecies > 1 and gen >= startcomp:
 					alphas = comp_coef[isub].split(';') # Relabling here, so clear for us right now				
 					tempspeciesSum = []
 					for ispecies in range(len(Ntother_pop)):
@@ -2775,7 +2787,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					Pisub = sum(Nt) + sum(tempspeciesSum)
 				
 				# Track P/N ratio when using competition
-				if sum(Nt) != 0 and len(XQs) > 0:
+				if sum(Nt) != 0 and nspecies > 1:
 					Kadj_track[gen].append(Pisub/sum(Nt))
 				else:
 					Kadj_track[gen].append(np.nan)

@@ -27,8 +27,8 @@ SRC_PATH =  "../src/"
 import datetime,time,pdb,os,sys,shutil,gc,warnings
 
 # For parallel processing
-from multiprocessing import Process
-from multiprocessing import Queue
+from multiprocessing import Process, Pool, Queue
+#from multiprocessing import Queue
 import multiprocessing
 import numpy as np
 
@@ -108,7 +108,8 @@ if __name__ == '__main__':
 		cdclimgentimelist = batchVars1['cdclimgentime'][irun]
 		startcomp = int(batchVars1['startcomp'][irun])
 		implementcomp = str(batchVars1['implementcomp'][irun])
-				
+		ncores = int(batchVars1['ncores'][irun])
+
 		# ------------------------------------------
 		# Error check: Rows in PopVars must be equal
 		# ------------------------------------------
@@ -126,8 +127,13 @@ if __name__ == '__main__':
 		# Create Qs for multiprocessing Put/Gets 
 		# ------------------------------------------------------
 		XQs = [] # For multiprocessing setup, create empty list to fill with # species Qs
-		extinctQ = Queue() # To track extinction. If all species extinct, exit system
-		global_extinctQ = Queue() # To track global extinction
+		# Only assign Queues to these object for multispecies parallel applications, they cannot be passed to mc replicate multiprocessing in mainloop later as Queues
+		if len(popvarsfile) > 1:
+			extinctQ = Queue() # To track extinction. If all species extinct, exit system
+			global_extinctQ = Queue() # To track global extinction
+		else:
+			extinctQ = None
+			global_extinctQ = None
 		logfHndl = []
 		for ispecies in range(len(popvarsfile)):
 			#Ignore queues if only one species
@@ -145,7 +151,8 @@ if __name__ == '__main__':
 			logMsg(logfHndl[ispecies],"Author(s): %s"%(authorNames)+'\n')
 			logMsg(logfHndl[ispecies],"Session runtime inputs from: %s"%(fileans)+'\n\n') 
 			logMsg(logfHndl[ispecies],"Session popvars inputs from: %s"%(popvarsfile[ispecies])+'\n\n')
-			logMsg(logfHndl[ispecies],"On run: %s"%(str(irun))+'\n\n')
+			logMsg(logfHndl[ispecies],"Parallel processing across Monte Carlo replicates started across %s"%(str(ncores))+" cores." + '\n\n')
+			logMsg(logfHndl[ispecies],"On run: %s"%(str(irun))+'\n\n')			
 			logfHndl[ispecies].close() # in order to write out above			
 			msgVerbose = False
 			
@@ -153,8 +160,8 @@ if __name__ == '__main__':
 		# Split processors here len(popvarsfile)
 		# -------------------------------------- 
 		#pdb.set_trace()
-		if len(popvarsfile) > multiprocessing.cpu_count():
-			print("PopVars files given greater than number of CPUs.")
+		if len(popvarsfile) > multiprocessing.cpu_count() - 1:
+			print("PopVars files given greater than number of CPU cores available.")
 			sys.exit(-1)
 		sp = [] # list of processes for appending
 		__spec__ = None #This is a fix for an Ipython error that was looking for this variable when using multiprocessing
@@ -162,17 +169,17 @@ if __name__ == '__main__':
 			
 			for ispecies in range(len(popvarsfile)):
 				# Need to create target function main_loop
-				sp.append(Process(target=main_loop, name='S'+str(ispecies), args=(ispecies,datadir+popvarsfile[ispecies],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP"+str(ispecies)+".log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid)))
+				sp.append(Process(target=main_loop, name='S'+str(ispecies), args=(ispecies,datadir+popvarsfile[ispecies],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP"+str(ispecies)+".log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid, ncores)))
 			# Now Start Processes
 			for ispecies in range(len(popvarsfile)):
-				sp[ispecies].start()
-			# Now Join Processes
-			for ispecies in range(len(popvarsfile)):
-				sp[ispecies].join()
+				sp[ispecies].start()			
+			# Now Join Processes			
+			for ispecies in range(len(popvarsfile)):				
+				sp[ispecies].join()			
 		elif len(popvarsfile) == 1:
-			main_loop(0,datadir+popvarsfile[0],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP0.log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid)
+			main_loop(0,datadir+popvarsfile[0],irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,outdir+"CDmetaPOP0.log",XQs, len(popvarsfile), extinctQ, global_extinctQ,current_system_pid, ncores)
 			
-	# Close the logfHndl file
+	# Close the logfHndl file	
 	for ispecies in range(len(popvarsfile)):
 		logfHndl[ispecies].close()	
 	#End::Batch Loop

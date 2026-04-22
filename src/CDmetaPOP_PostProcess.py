@@ -5,11 +5,12 @@
 # Description: This is the function/module file post processing.
 # --------------------------------------------------------------------------------------------------
 
-import pdb,random,os,sys,glob,warnings
+import pdb,random,os,sys,glob,warnings, multiprocessing
 from ast import literal_eval 
 import numpy as np 
 from numpy.random import *
 from CDmetaPOP_Disease import *
+from CDmetaPOP_Modules import *
 
 # ----------------------------------------------------------
 # Global symbols, if any :))
@@ -20,6 +21,25 @@ from CDmetaPOP_Disease import *
 msgVerbose = False
 warnings.filterwarnings("ignore")
 
+# ---------------------------------------------------------------------------
+class ForkablePdb(pdb.Pdb):
+
+    _original_stdin_fd = sys.stdin.fileno()
+    _original_stdin = None
+
+    def __init__(self):
+        pdb.Pdb.__init__(self, nosigint=True)
+
+    def _cmdloop(self):
+        current_stdin = sys.stdin
+        try:
+            if not self._original_stdin:
+                self._original_stdin = os.fdopen(self._original_stdin_fd)
+            sys.stdin = self._original_stdin
+            self.cmdloop()
+        finally:
+            sys.stdin = current_stdin
+
 # --------------------------------------------------------------------------
 def logMsg(outf,msg):
 	'''
@@ -29,10 +49,16 @@ def logMsg(outf,msg):
 	msg -- string containing formatted message
 	--always outputs to log file by default.
 	--using msgVerbose, can be set to "Tee" output to stdout as well
-	'''
-	outf.write(msg+ '\n')
-	if msgVerbose:
-		print(("%s"%(msg)))
+	'''	
+	#if multiprocessing.current_process().name == "S1":
+		#ForkablePdb().set_trace()
+	identity = multiprocessing.current_process()._identity
+	name = multiprocessing.current_process().name 
+	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
+	if not identity or identity[0] == 1 or name[0]=='S':
+		outf.write(msg+ '\n')
+		if msgVerbose:
+			print(("%s"%(msg)))
 		
 	# End::logMsg()
 	
