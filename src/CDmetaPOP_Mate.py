@@ -536,7 +536,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# Select males and females for mating
 	# ---------------------------------------------------
 	# Loop through and grab each female and male for probability of mature and probability to lay eggs
-	for isub in range(len(K)):
+	for isub in range(len(K)):		
 		indexF = np.where(SubpopIN[isub]['sex']=='FXX')[0]
 		indexM = np.where(SubpopIN[isub]['sex']=='MXY')[0]
 		indexMYY = np.where(SubpopIN[isub]['sex']=='MYY')[0]
@@ -620,7 +620,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		Track_DiseaseStates_AddedInds[gen].append([])
 		indstates_inthispatch = SubpopIN[isub]['states'] 
 		updated_countstates = np.bincount(indstates_inthispatch, minlength=disease_vars['noStates'][isub])
-		Track_DiseaseStates_AddedInds[gen][isub].extend(updated_countstates)		
+		Track_DiseaseStates_AddedInds[gen][isub].extend(updated_countstates)			
 	# For total
 	Track_DiseaseStates_AddedInds[gen].insert(0,np.sum(np.asarray(Track_DiseaseStates_AddedInds[gen]),axis=0).tolist())
 	
@@ -704,8 +704,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		femalesmated = [0]
 	
 	# If there were reproducing males and females
-	if nomales != 0 and nofemales != 0:
-	
+	if nomales != 0 and nofemales != 0:		
 		# For the case of a Female without replacement and a male with replacement
 		if (freplace == 'N' and mreplace == 'Y'):
 						
@@ -763,7 +762,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 				
 				intfemale = int(len(females)*np.random.uniform())
 				# Extract the subpopulation this female is in if in natal pop == 0 then skip this females
-				femalepop = int(females[intfemale][sourcePop] ) - 1
+				femalepop = int(females[intfemale][sourcePop] ) - 1				
 				# Checks this females location and will mate only if female in natal ground patch, else skip this female
 				if femalepop in np.where(np.asarray(natal_patches)==1)[0]:					
 

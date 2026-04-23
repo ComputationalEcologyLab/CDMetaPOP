@@ -598,14 +598,15 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			# Check if Migrant - 'E' assumes they have moved OUT or 'EO' they have been out for a while
 			# -----------------------------------------------------------------------------------------
 			#if isub + 1 != int(emipop): # If current patch is NOT the same as the individuals 'emipop' == 'Resident'
+			#if outpool['name'][0:4] == 'Age0':
+				#pdb.set_trace()
 			if outpool['name'][0] == 'E' or (outpool['name'][0:4] == 'Age0' and not packans == 'anadromy' and egg_add == 'nonmating'):
 			#if outpool['name'][0] == 'E' or outpool['name'][0:4] == 'Age0':
 			#if outpool['name'][0] == 'E':
 				
 				#if outpool['name'][0:4] == 'Age0' and not packans == 'anadromy' and egg_add == 'nonmating':
 				#	print('What patch do return age0 migrants go?')
-				#	sys.exit(-1)
-				
+				#	sys.exit(-1)				
 				#----------------------------------------------------
 				# Check if migrate back (age_MgBACK) * (patch_MgBack)
 				#---------------------------------------------------- 			
@@ -649,7 +650,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				
 				# ------------------------------------------------------------------------------
 				# Individual is migrating back (either through straying or back to natal grounds)
-				# -------------------------------------------------------------------------------
+				# -------------------------------------------------------------------------------				
 				if indProbans_MgBACK == 'Yes':	
 												
 					# -----------------------------------
@@ -715,6 +716,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					# ---------------------------------
 					# Straying occurred for the Migrant
 					# ---------------------------------
+					
 					if indProbans_stray == 'Yes':				
 						# Stray success - go anywhere from current location and use full cdmatrix, minus where K = 0 and natal grounds are 0
 						# ---------------------------------------------------------
@@ -1234,8 +1236,10 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						outpool_name = outpool['name']
 						outpool_name = outpool_name.split('_')
 						name = 'E'+str(disppop)+'_F'+str(isub+1)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]
+						# 4/15/26 - Changed immipop from 'NA' to immipop for Age 0 out-migrants here due to reproductive age 0 migrants getting error in DoMate
+						#recd = (str(isub+1),disppop,'NA',outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 						
-						recd = (str(isub+1),disppop,'NA',outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
+						recd = (str(isub+1),disppop,immipop,outpool['EmiCD'],-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(disppop)-1],outpool['species'],outpool['genes'])
 									
 						# Record outpool disperse information	
 						SubpopIN_keep[int(disppop)-1].append(recd)				
@@ -2207,9 +2211,9 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 	# Anadromy is selected
 	# -------------------
 	elif packans == 'anadromy':
-		if sizecall == "size": # For now, only allow for age-based option
-			print("Currently, only age-based simulations are allowed for the 'anadromy' popmodel")
-			sys.exit(-1)
+		#if sizecall == "size": # For now, only allow for age-based option
+		#	print("Currently, only age-based simulations are allowed for the 'anadromy' popmodel")
+		#	sys.exit(-1)
 		# ------------------------------------------
 		# Get other species Ns from all Patches here
 		# ------------------------------------------
