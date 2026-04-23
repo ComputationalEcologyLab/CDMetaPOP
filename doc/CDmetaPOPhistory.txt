@@ -1,3 +1,32 @@
+Changes v3.10.2026.04.23.2026 ccd
+0) Adding multiprocessing
+a) CDMetaPOP.py
+    - Import additional functions from multiprocessing
+    - Queues cannot be passed to multiple processes, so now only created here for multispecies. For parallel applications, they are opened inside the mc loop
+    -Updated error check for requesting more cores than available.
+b) Emigration.py, Immigration.py., Modules.py, PostProcess.py - Updated function logMsg() to handle different parallel processing cases. Deleted a replicate logMsg() function in Modules.py.
+c) Added ForkablePdb class to PostProcess.py to allow multiprocessing debugging.
+d) Mainloop.py
+    -Moved entire mc for loop to its own function called mc_loop, which takes one argument, mc_args. mc_args is a dictionary that passes all of the variables created upstream in main_loop() or passed into main_loop and used in mc_loop.
+    -Added variable ncores, needs to be added to inputs. Allows the user to request any number of cores for mc multiprocessing.    
+    -Had to close the log file, pass in passlogfHndl to mc_loop, and then reopen.
+    -Added checks only launch parallel mcs in right conditions.
+        -ncores must be less than available processors.
+        -If nspecies is greater than 1, multi_process value must = 'species'
+        -If multispecies, ncores=1, paralle='N' or 'species', or mcruns=1, then just run a normal for loop that calls mcloop()
+        -If nspecies = 1, multi_process = mc, and ncores is greater than 1, then we call multiprocessing.Pool() in place of the for loop.
+e) Multiprocessing
+    -.pool() only takes one argument, which is why we pass in the dictionary of variables.
+    -Added an ithmcrun element to the dictionary inside the for/pool loop, for logging purposes.
+    -Added a function at the end of mainprocess.py called worker_init(), to help rename spawned processes to make it easier to identify which process should be logging.
+f) Added variable 'ncores' to RunVars. Only used for mc parallel processing.
+g) Changed from using length of XQs to using nspecies to do multispecies tasks, this is to prevent draining of queues from happening before each process is finished accessing queues.
+h) Drain XQs at the end of batchloop to prevent hanging between batches.
+
+1) Adding size option for anadromy
+a) Fixed bug where size option resulted in age 0 fish becoming mature and getting assigned 'NA' for immipop in Immigration.py, assigned that spot to 'immipop' instead.
+b) Removed checks that crashed the run if size control was used with anadromy.
+
 Changes v3.09.2026.03.02.2026 ell
 0) Added PopVars maturation parameters to cdclimate.
 a) add _pass call to mat pars
