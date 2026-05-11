@@ -1,3 +1,20 @@
+Changes adding_Rt 2026.04.29 ell
+0) Adding Rt to the Do_AllTimeDiseasePatch function
+1) Read disease_vars into PostProcessing functions to get S index - eventually move this tracker to GetMetrics/or where disease is tracked.
+	# Get Sus Index
+	SusIndex = int(disease_vars['SusComp'][0])
+	# Use the s_before number after the add individual count
+	s_before = Track_DiseaseStates_AddedInds[i][j][SusIndex]
+	# Use the s after number for the last tracker event
+	s_after = Track_DiseaseStates_AfterDeaths_ThirdUpdate[i][j][SusIndex]
+	delta_inew = max(0, s_before - s_after)
+	
+	# Get Infected Index
+	InfIndex = int(disease_vars['InfComp'][0])
+	i_start = Track_DiseaseStates_pop[i][j][InfIndex] 
+	if i_start > 0:
+		rt = (delta_inew / float(i_start)) * infectious_period 
+
 Changes v3.10.2026.04.23.2026 ccd
 0) Adding multiprocessing
 a) CDMetaPOP.py

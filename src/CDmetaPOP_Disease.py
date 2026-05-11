@@ -364,7 +364,7 @@ def test_patchlevel_diseasestates_update(gen,startdisease,gridsample,implementdi
 	#End::test_patchlevel_diseasestates_update()
 
 # ---------------------------------------------------------------------------
-def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_DiseaseStates_SecondUpdate,N_Emigration,N_EmiMortality, Track_DiseaseStates_ThirdUpdate,N_Immigration,N_ImmiMortality,ithmcrundir,Track_DiseaseStates_AddAge0s,Track_DiseaseStates_AddedInds,Track_DiseaseStates_AfterDeaths_SecondUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,Track_DiseaseStates_EnvRes):
+def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_DiseaseStates_SecondUpdate,N_Emigration,N_EmiMortality, Track_DiseaseStates_ThirdUpdate,N_Immigration,N_ImmiMortality,ithmcrundir,Track_DiseaseStates_AddAge0s,Track_DiseaseStates_AddedInds,Track_DiseaseStates_AfterDeaths_SecondUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,Track_DiseaseStates_EnvRes,disease_vars):
 	'''Output tracking for Disease Counts'''
 	
 	# Create time array
@@ -378,9 +378,8 @@ def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_Disea
 	
 	# Write out the titles
 	# Add Titles from xypoints
-	outputtitle = ['Year','N_Initial','States_GetMetrics','EnvResivoir_GetMetrics','States_AfterAnyAddedInds','States_SecondUpdate','States_SecondUpdate_AfterDeathsRemoved','N_AfterEmigration','States_AddedAge0s','N_AfterEmiMort','States_ThirdUpdate','States_ThirdUpdate_AfterDeathsRemoved','N_AfterImmigration','N_AfterImmiMort']
-	
-	
+	outputtitle = ['Year','N_Initial','States_GetMetrics','EnvResivoir_GetMetrics','States_AfterAnyAddedInds','States_SecondUpdate','States_SecondUpdate_AfterDeathsRemoved','N_AfterEmigration','States_AddedAge0s','N_AfterEmiMort','States_ThirdUpdate','States_ThirdUpdate_AfterDeathsRemoved','N_AfterImmigration','N_AfterImmiMort','Rt']
+		
 	# Write out the title
 	for i in range(len(outputtitle)-1):
 		outputfile.write(outputtitle[i]+',')
@@ -468,11 +467,38 @@ def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_Disea
 					
 		for j in range(nosubpops+1):
 			outputfile.write(str(N_ImmiMortality[i][j])+'|')
-		outputfile.write('\n')		
+		outputfile.write(',')		
 		
-	# Logging message
-	#stringout = 'The file summary_popAllTime_DiseaseStates.csv has been created'
-	#logMsg(logfHndl,stringout)	
+		# ----------------------------------------------------------------------
+		# New adding_Rt branch: Calculate Delta_Inew and Rt for the time step
+		#---------------------------------------------------------------------
+		infectious_period = 1.0  # Update to 1/gamma if you want the final Rt output directly
+		
+		# 1. Calculate Rt
+		for j in range(nosubpops+1):
+			rt = 0.0
+			try:
+				# Get Sus Index
+				SusIndex = int(disease_vars['SusComp'][0])
+				# Use the s_before number after the add individual count
+				s_before = Track_DiseaseStates_AddedInds[i][j][SusIndex]
+				# Use the s after number for the last tracker event
+				s_after = Track_DiseaseStates_AfterDeaths_ThirdUpdate[i][j][SusIndex]
+				delta_inew = max(0, s_before - s_after)
+				
+				# Get Infected Index
+				InfIndex = int(disease_vars['InfComp'][0])
+				i_start = Track_DiseaseStates_pop[i][j][InfIndex] 
+				if i_start > 0:
+					rt = (delta_inew / float(i_start)) * infectious_period
+			except IndexError:
+				pass # Failsafe if states are empty
+			outputfile.write(str(round(rt, 4))+'|')
+
+		# Final line break for the row
+		outputfile.write('\n')
+	
+	
 	
 	# Close file
 	outputfile.close()
