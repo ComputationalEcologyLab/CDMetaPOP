@@ -100,6 +100,43 @@ The primary example run ('RunVars.csv') is for 7 patches representing an effecti
     5. `output_test` is the name of the directory that will be created with CDMetaPOP output in the directory specified by the third argument above.
 
 4. Check for successful model run completion: The program will provide step-by-step output in the Shell window. Each row of RunVars.csv will run an independent simulation in sequence for each line in PopVars.csv (batches). Once completed, a simulation time will be printed out and folders run0batch0mc0species0, run0batch0mc1species0,  run0batch1mc0species0, etc. will be created in your CDMetaPOP home directory to store output from the separate runs, batches Monte-Carlo replicates, and species (each line in the RunVars file corresponds to a separate 'run' and each line in the PopVars file corresponds to a separate 'batch'. Monte Carlo runs are specified by 'mc'). These folders are located in the data folder specified in above step. The output folder will have a unique date/time stamp after the name of the output folder in case you want to run multiple CDMetaPOP runs in this same directory. The program will also provide a log file with program steps in your specified output directory. If parameters are such that all species become extinct before the specified generation time, the program will end. The program will provide error and feedback for parameters that are outside of ranges or incorrectly entered.
+-------------------------------------------------
+Developing your own simulations – Getting started
+-------------------------------------------------	
+
+“CDMetaPOP has so many variables and options. Where do I start?” Below, we list some of the critical parameters and processes that will help to tailor the simulations to your own system. For more detail and additional options, see Uesr Manual Section 3 – Input.
+
+**Demographics**
+
+We recommend calibrating demographics prior to incorporating additional complexity to ensure that population growth is behaving as expected in isolation.
+* **sizecontrol** (RunVars file) – This parameter determines whether several processes (maturation, growth, fecundity) are determined by the individual’s age or size. When getting started, we recommend **sizecontrol=N**, because these processes can be more easily controlled – primarily via the ClassVars file (see below).
+* **popmodel** (Popvars file) – This parameter controls the model of population growth that will be implemented. When starting, we recommend **popmodel = N** (exponential model) for its simplicity.
+* Maturation – If **sizecontrol=N**, age-specific probability of maturation can be defined in the **Maturation** column in the ClassVars file. If **sizecontrol=Y**, probability of maturation is controlled as a logistic function of size using the **mature_eqn_slope** and **mature_eqn_int** parameters in the PopVars file.
+* Fecundity – If **sizecontrol=N**, age-specific fecundity is defined in the **Fecundity ind** column in the ClassVars file. If **sizecontrol=Y**, fecundity is controlled as a function of size using the **Egg_mean_ans**, **Egg_mean_par1**, and **Egg_mean_par2** parameters in the PopVars file. 
+* Growth – Determined by the **growth_option** parameter in PopVars. The simplest option is to use **growth_option=N** to ignore growth altogether (if **sizecontrol=N**), or **growth_option=’known’** will set size based on age and equal to that listed in the **Body Size Mean** column in the ClassVars file. 
+
+**Movement**
+
+There are 4 modes of movement in CDMetaPOP – mating, migration, straying, and dispersal. It is only mandatory to define mating movement, as all others can be turned off by setting their probabilities to 0 in the PatchVars and ClassVars files. Each mode of movement has 5 parameters associated with it. We highlight 2 of these that are needed for basic simulations.
+* **matemoveno** (PopVars file) – Defines the movement distribution. The simplest cases are **matemoveno=4**, which will move individuals to random locations, and **matemoveno=6**, which will prevent movement outside of the individual’s current patch.
+* **Matemovethresh** (PopVars file) – Defines a movement distance threshold. **matemovethresh=max** will not apply any cap on the distance individuals may move.
+
+**Genetics**
+
+Many options exist for simulating neutral and adaptive genetics in CDMetaPOP. Below, we list a few critical parameters to get started.
+* **loci** (PopVars file) – Define number of loci to track.
+* **Alleles** (PopVars file) – Define number of alleles to track per locus.
+* **Genes Initialize** (PatchVars file) – Determine whether initial allele assignment will be **random**, or based on an allele frequency file (see example files folder), which can vary by patch.
+
+**Outputs**
+
+Below, we suggest some key metrics that can serve as a starting point for evaluating simulation outcomes.
+* **N_initial** (summary_popAllTime.csv) – Helpful for evaluating population size over time.*
+* **EggLayEvents** and **Births** (summary_popAllTime.csv) – Helpful for evaluating fecundity and reproduction.
+* **He**, **Ho** (summary_popAllTime.csv) – Simple heterozygosity measures over time.
+* **N_Initial_Age** (summary_classAllTime.csv) – Provides population size by age.
+* **AgeSize_Mean** (summary_classAllTime.csv) – Provides mean size at age to check the growth model.
+
 
 Happy Simulations!
 
