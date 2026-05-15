@@ -1,3 +1,7 @@
+Changes addint_rt 2026.05.15 ell
+0) rt = (delta_inew / (float(i_start) * s_before)) * N_ImmiMortality[i][j]
+= effective transmission rate = Ct
+
 Changes adding_Rt 2026.05.11 ell
 0) Relabel Rt to Ct ***
 1) ct = delta_inew / (i_start * s_before) ***check

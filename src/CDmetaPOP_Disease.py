@@ -490,7 +490,7 @@ def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_Disea
 				InfIndex = int(disease_vars['InfComp'][0])
 				i_start = Track_DiseaseStates_pop[i][j][InfIndex] 
 				if i_start > 0:
-					rt = delta_inew / (float(i_start) * s_before)
+					rt = (delta_inew / (float(i_start) * s_before)) * N_ImmiMortality[i][j]
 			except IndexError:
 				pass # Failsafe if states are empty
 			outputfile.write(str(round(rt, 4))+'|')
