@@ -1,3 +1,8 @@
+Changes adding_Rt 2026.05.11 ell
+0) Relabel Rt to Ct ***
+1) ct = delta_inew / (i_start * s_before) ***check
+
+
 Changes adding_Rt 2026.04.29 ell
 0) Adding Rt to the Do_AllTimeDiseasePatch function
 1) Read disease_vars into PostProcessing functions to get S index - eventually move this tracker to GetMetrics/or where disease is tracked.

@@ -378,7 +378,7 @@ def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_Disea
 	
 	# Write out the titles
 	# Add Titles from xypoints
-	outputtitle = ['Year','N_Initial','States_GetMetrics','EnvResivoir_GetMetrics','States_AfterAnyAddedInds','States_SecondUpdate','States_SecondUpdate_AfterDeathsRemoved','N_AfterEmigration','States_AddedAge0s','N_AfterEmiMort','States_ThirdUpdate','States_ThirdUpdate_AfterDeathsRemoved','N_AfterImmigration','N_AfterImmiMort','Rt']
+	outputtitle = ['Year','N_Initial','States_GetMetrics','EnvResivoir_GetMetrics','States_AfterAnyAddedInds','States_SecondUpdate','States_SecondUpdate_AfterDeathsRemoved','N_AfterEmigration','States_AddedAge0s','N_AfterEmiMort','States_ThirdUpdate','States_ThirdUpdate_AfterDeathsRemoved','N_AfterImmigration','N_AfterImmiMort','Ct']
 		
 	# Write out the title
 	for i in range(len(outputtitle)-1):
@@ -472,9 +472,9 @@ def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_Disea
 		# ----------------------------------------------------------------------
 		# New adding_Rt branch: Calculate Delta_Inew and Rt for the time step
 		#---------------------------------------------------------------------
-		infectious_period = 1.0  # Update to 1/gamma if you want the final Rt output directly
+		#infectious_period = 1.0  
 		
-		# 1. Calculate Rt
+		# 1. Calculate Rt - Note labeled rt but this is really effective contact rate.
 		for j in range(nosubpops+1):
 			rt = 0.0
 			try:
@@ -490,15 +490,13 @@ def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_Disea
 				InfIndex = int(disease_vars['InfComp'][0])
 				i_start = Track_DiseaseStates_pop[i][j][InfIndex] 
 				if i_start > 0:
-					rt = (delta_inew / float(i_start)) * infectious_period
+					rt = delta_inew / (float(i_start) * s_before)
 			except IndexError:
 				pass # Failsafe if states are empty
 			outputfile.write(str(round(rt, 4))+'|')
 
 		# Final line break for the row
-		outputfile.write('\n')
-	
-	
+		outputfile.write('\n')	
 	
 	# Close file
 	outputfile.close()
