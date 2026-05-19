@@ -1,3 +1,6 @@
+Commit 5/19/2026 - Casey update to fix Kadj tracking for packing_1 option.
+Also updated user manual to include 'Developing your own simulations' section.
+
 Changes v3.11.2026.5.15 ell and ccd reviewed
 Changes addint_rt 2026.05.15 ell
 0) rt = (delta_inew / (float(i_start) * s_before)) * N_ImmiMortality[i][j]

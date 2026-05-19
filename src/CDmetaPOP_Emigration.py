@@ -808,7 +808,8 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				#Kpop = Track_KadjImmi[gen-1][isub+1]
 				Kpop = Track_KadjImmi[gen-1][isub+1]
 				Kadj_track[gen].append(Kpop) # For Tracking
-			
+			else:
+				Kadj_track[gen].append(Kpop) # For Tracking
 			# Tracking N before packing
 			# -------------------------
 			N_beforePack_pop[gen].append(Npop) 
@@ -1070,6 +1071,9 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				offspring_patch = noOffspring[mothers_patch_ind]
 				Popoffspring = sum(offspring_patch)
 				offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
+				if len(np.where(noOffspring < 0)[0]) >= 1:
+					print('Issue with number of offspring less than zero.')
+					pdb.set_trace()
 				
 				offspring_size = [] # sizes
 				#offspring_file = [] # files assigned
@@ -1097,7 +1101,6 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						# Where the numbers are < 0.5, assign fathers class file information
 						offspring_mu[np.where(randnos < 0.5)[0]] = size_mean[fathers_natalP][fathers_theseclasspars][0]
 						offspring_sigma[np.where(randnos < 0.5)[0]] = size_std[fathers_natalP][fathers_theseclasspars][0]
-												
 						# Else assign to mother
 						offspring_mu[np.where(randnos >= 0.5)[0]] = size_mean[mothers_natalP][mothers_theseclasspars][0]
 						offspring_sigma[np.where(randnos >= 0.5)[0]] = size_std[mothers_natalP][mothers_theseclasspars][0]
@@ -1182,10 +1185,13 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			Npop = sum(countages[1])
 			
 			# Overwrite Kpop to K adjusted tracking from DoEmigration that was updated from competition - careful of indexing Tracking variable is patch + 1, first value is total
-			if gen > 0 and implementcomp == 'Back':
+			if gen == 0 and implementcomp == 'Back':
+				Kadj_track[gen].append(1.0)
+			elif gen > 0 and implementcomp == 'Back':
 				#Kpop = Track_KadjImmi[gen-1][isub+1]
-				Kpop = Track_KadjImmi[gen-1][isub]
-			if implementcomp == 'Out':			
+				Kpop = Track_KadjImmi[gen-1][isub+1]
+				Kadj_track[gen].append(Kpop) # For Tracking
+				'''if implementcomp == 'Out':			
 				#if multiprocessing.current_process().name == "S1":
 				#	pdb.set_trace()	
 				# -----------------
@@ -1198,8 +1204,9 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						tempspeciesSum = [] # Create sum list for  >= 2 species
 						for ispecies in range(len(Nother_pop)):
 							tempspeciesSum.append(Nother_pop[ispecies][isub]*float(alphas[ispecies]))
-						Kpop = int(Kpop - sum(tempspeciesSum)) # Adjustment or K		
-			Kadj_track[gen].append(Kpop) # For Tracking
+						Kpop = int(Kpop - sum(tempspeciesSum)) # Adjustment or K		'''
+			else:
+				Kadj_track[gen].append(Kpop) # For Tracking
 			
 			# Tracking N before packing
 			# -------------------------
