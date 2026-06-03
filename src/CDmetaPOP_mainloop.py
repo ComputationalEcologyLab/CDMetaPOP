@@ -17,6 +17,7 @@ from CDmetaPOP_Emigration import *
 from CDmetaPOP_Immigration import *
 from CDmetaPOP_Offspring2 import *
 from CDmetaPOP_Mortality import *
+import CDmetaPOP_Modules as modules
 
 # ----------------------------------------------------------
 # Global symbols
@@ -25,7 +26,47 @@ from CDmetaPOP_Mortality import *
 msgVerbose = False 
 
 # --------------------------------------------------------------------------------------------------------------------
-def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nthfile_out,gridformat,gridsample,outputans,cdclimgentimelist,outdir,startcomp,implementcomp,passlogfHndl,XQs, nspecies, extinctQ, global_extinctQ,current_system_pid, ncores):
+def main_loop(inputs, context, XQs, extinctQ, global_extinctQ):
+
+	sizeans = inputs.sizeans
+	constMortans = inputs.constMortans
+	mcruns = inputs.mcruns
+	looptime = inputs.looptime
+	nthfile_out = inputs.nthfile_out
+	gridformat = inputs.gridformat
+	gridsample = inputs.gridsample
+	outputans = inputs.outputans
+	cdclimgentimelist = inputs.cdclimgentimelist
+	startcomp = inputs.startcomp
+	implementcomp = inputs.implementcomp
+	ncores = inputs.ncores
+
+	appName = context.appName
+	appVers = context.appVers
+	appRele = context.appRele
+	authorNames = context.authorNames
+	popvarsfile = context.popvarsfile
+	spcNO = context.spcNO
+	fileans = context.fileans
+	irun = context.irun
+	datadir = context.datadir
+	outdir = context.outdir
+	passlogfHndl = context.passlogfHndl
+	nspecies = context.nspecies
+	current_system_pid = context.current_system_pid
+
+
+	with open(passlogfHndl, 'a') as infile:
+
+		msgVerbose = True
+		modules.logMsg(infile,"\n%s Release %s Version %s\n"%(appName,appRele,appVers))
+		modules.logMsg(infile,"Author(s): %s"%(authorNames)+'\n')
+		modules.logMsg(infile,"Session runtime inputs from: %s"%(fileans)+'\n\n') 
+		modules.logMsg(infile,"Session popvars inputs from: %s"%(popvarsfile[spcNO])+'\n\n')
+		modules.logMsg(infile,"On run: %s"%(str(irun))+'\n\n')
+
+		msgVerbose = False
+
 	'''Main loop here'''
 	# Call function and store PopVar variables
 	batchVars,batchVarsIndex,nSimulations = loadFile(fileans,1,',',True)
