@@ -46,5 +46,9 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+# Python cache files
 __pycache__/
 *.pyc
+
+# Simulation output data
+example_files/output/
