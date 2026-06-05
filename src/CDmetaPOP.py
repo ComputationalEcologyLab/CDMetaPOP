@@ -10,14 +10,6 @@ appVers = "version 3.08"
 appRele = "2025.07.28-09:09:09"
 authorNames = "Erin L Landguth, Casey Day, et al."
 
-# ---------------
-# Global symbols
-#----------------
-# when set True, routes session log traffic to BOTH the
-# screen and to the log file. When False, log traffic just
-# sent to log file alone.
-msgVerbose = False
-
 # ------------------------------------------
 # Import Modules with Except/Try statements
 # ------------------------------------------

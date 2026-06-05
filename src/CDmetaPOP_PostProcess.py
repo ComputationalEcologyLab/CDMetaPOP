@@ -13,36 +13,7 @@ import multiprocessing as mp
 import CDmetaPOP_Modules as modules
 import CDmetaPOP_Disease as disease
 
-# ----------------------------------------------------------
-# Global symbols, if any :))
-#-----------------------------------------------------------
-# when set True, routes session log traffic to BOTH the
-# screen and to the log file. When False, log traffic just
-# sent to log file alone.
-msgVerbose = False
 warnings.filterwarnings("ignore")
-
-# --------------------------------------------------------------------------
-def logMsg(outf,msg):
-	'''
-	logMsg() --log file message handler.
-	Inputs:
-	outf - open file handle
-	msg -- string containing formatted message
-	--always outputs to log file by default.
-	--using msgVerbose, can be set to "Tee" output to stdout as well
-	'''	
-	#if mp.current_process().name == "S1":
-		#ForkablePdb().set_trace()
-	identity = mp.current_process()._identity
-	name = mp.current_process().name 
-	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
-	if not identity or identity[0] == 1 or name[0]=='S':
-		outf.write(msg+ '\n')
-		if msgVerbose:
-			print(("%s"%(msg)))
-		
-	# End::logMsg()
 	
 # ---------------------------------------------------------------------------------------------------	 
 def w_choice_general(lst):
@@ -248,13 +219,13 @@ def DoGridOut_general(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot):
 											
 		# Logging message
 		stringout = 'The file ind'+outputfilename[0]+'/general'+outputfilename[1]+'.csv has been created'
-		logMsg(logfHndl,stringout)		
+		modules.logMsg(logfHndl,stringout)		
 		
 		# Close file
 		outputfile.close()
 	
 	stringout = 'General ind format file conversion complete.'
-	logMsg(logfHndl,stringout)
+	modules.logMsg(logfHndl,stringout)
 	# End::DoGridOut_general()
 
 # ---------------------------------------------------------------------------------------------------	 
@@ -427,13 +398,13 @@ def DoGridOut_genalex(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot):
 											
 		# Logging message
 		stringout = 'The file ind'+outputfilename[0]+'/genalex'+outputfilename[1]+'.csv has been created'
-		logMsg(logfHndl,stringout)		
+		modules.logMsg(logfHndl,stringout)		
 		
 		# Close file
 		outputfile.close()
 	
 	stringout = 'GENALEX ind format file conversion complete.'
-	logMsg(logfHndl,stringout)
+	modules.logMsg(logfHndl,stringout)
 	# End::DoGridOut_genalex()
 
 # ---------------------------------------------------------------------------------------------------	 
@@ -592,13 +563,13 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot)
 						
 		# Logging message
 		stringout = 'The file ind'+outputfilename[0]+'/structure'+outputfilename[1]+'.stru has been created'
-		logMsg(logfHndl,stringout)		
+		modules.logMsg(logfHndl,stringout)		
 		
 		# Close file
 		outputfile.close()
 		
 	stringout = 'STRUCTURE ind format file conversion complete.'
-	logMsg(logfHndl,stringout)
+	modules.logMsg(logfHndl,stringout)
 	# End::DoGridOut_structure()
 
 # ---------------------------------------------------------------------------------------------------	 
@@ -763,13 +734,13 @@ def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot):
 													
 		# Logging message
 		stringout = 'The file ind'+outputfilename[0]+'/genepop'+outputfilename[1]+'.csv has been created'
-		logMsg(logfHndl,stringout)		
+		modules.logMsg(logfHndl,stringout)		
 		
 		# Close file
 		outputfile.close()
 	
 	stringout = 'GENEPOP ind format file conversion complete.'
-	logMsg(logfHndl,stringout)
+	modules.logMsg(logfHndl,stringout)
 	# End::DoGridOut_genepop()	
 
 # ---------------------------------------------------------------------------------------------------	 
@@ -852,11 +823,11 @@ def DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gr
 	if gridsample == 'Initial' or 'Middle':
 		# Logging message
 		stringout = 'The file ind'+str(gen)+'.csv has been created'
-		logMsg(logfHndl,stringout)
+		modules.logMsg(logfHndl,stringout)
 	elif gridsample == 'Sample':
 		# Logging message
 		stringout = 'The file indSample'+str(gen)+'.csv has been created'
-		logMsg(logfHndl,stringout)
+		modules.logMsg(logfHndl,stringout)
 	
 	# Close file
 	outputfile.close()
@@ -1028,7 +999,7 @@ def DoOut_AllTimeClass(K_track,ithmcrundir,logfHndl,N_Init_Age,N_back_age,Packin
 	
 	# Logging message
 	stringout = 'The file summary_classAllTime.csv has been created'
-	logMsg(logfHndl,stringout)	
+	modules.logMsg(logfHndl,stringout)	
 	
 	# Close file
 	outputfile.close()
@@ -1260,7 +1231,7 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 		
 	# Logging message
 	stringout = 'The file summary_popAllTime.csv has been created'
-	logMsg(logfHndl,stringout)	
+	modules.logMsg(logfHndl,stringout)	
 	
 	# Close file
 	outputfile.close()
@@ -1378,7 +1349,7 @@ def DoOut_Patch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,BreedFem
 		
 		# Logging message
 		stringout = 'The files summary_pop.csv have been created'
-		logMsg(logfHndl,stringout)	
+		modules.logMsg(logfHndl,stringout)	
 		
 		# Close file
 		outputfile.close()
@@ -1472,7 +1443,7 @@ def DoOut_Class(ithmcrundir,logfHndl,N_Init_Age,N_back_age,PackingDeathsEmiAge,N
 		
 		# Logging message
 		stringout = 'The files summary_class{year}.csv has been created'
-		logMsg(logfHndl,stringout)	
+		modules.logMsg(logfHndl,stringout)	
 		
 		# Close file
 		outputfile.close()

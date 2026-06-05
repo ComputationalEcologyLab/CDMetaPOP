@@ -15,14 +15,6 @@ import multiprocessing as mp
 import CDmetaPOP_PostProcess as postprocess
 import CDmetaPOP_Disease as disease
 
-# ----------------------------------------------------------
-# Global symbols, if any :))
-#-----------------------------------------------------------
-# when set True, routes session log traffic to BOTH the
-# screen and to the log file. When False, log traffic just
-# sent to log file alone.
-msgVerbose = False
-
 # ---------------------------------------------------------------------------
 def validate(condition, error_message, exit_code=-1):
     """
@@ -40,7 +32,7 @@ def validate(condition, error_message, exit_code=-1):
 	# End::validate()
 	
 # --------------------------------------------------------------------------
-def logMsg(outf,msg):
+def logMsg(outf,msg, msgVerbose = False):
 	'''
 	logMsg() --log file message handler.
 	Inputs:
@@ -51,7 +43,7 @@ def logMsg(outf,msg):
 	'''
 	identity = mp.current_process()._identity
 	name = mp.current_process().name 
-	# Log all species in multispecies applications, otherwise only log 1 process for mc mp
+	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
 	if not identity or identity[0] == 1 or name[0]=='S':
 		outf.write(msg+ '\n')
 		if msgVerbose:

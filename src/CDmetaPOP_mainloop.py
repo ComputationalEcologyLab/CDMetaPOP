@@ -19,13 +19,6 @@ import CDmetaPOP_Emigration as emigration
 import CDmetaPOP_Immigration as immigration
 import CDmetaPOP_Mortality as mortality
 
-
-# ----------------------------------------------------------
-# Global symbols
-#-----------------------------------------------------------
-# If True routes log traffic to screen
-msgVerbose = False 
-
 # --------------------------------------------------------------------------------------------------------------------
 def main_loop(inputs, context, XQs, extinctQ, global_extinctQ):
 
@@ -59,14 +52,11 @@ def main_loop(inputs, context, XQs, extinctQ, global_extinctQ):
 
 	with open(passlogfHndl, 'a') as infile:
 
-		msgVerbose = True
-		modules.logMsg(infile,"\n%s Release %s Version %s\n"%(appName,appRele,appVers))
-		modules.logMsg(infile,"Author(s): %s"%(authorNames)+'\n')
-		modules.logMsg(infile,"Session runtime inputs from: %s"%(fileans)+'\n\n') 
-		modules.logMsg(infile,"Session popvars inputs from: %s"%(popvarsfile[spcNO])+'\n\n')
-		modules.logMsg(infile,"On run: %s"%(str(irun))+'\n\n')
-
-		msgVerbose = False
+		modules.logMsg(infile,"\n%s Release %s Version %s\n"%(appName,appRele,appVers), msgVerbose = True)
+		modules.logMsg(infile,"Author(s): %s"%(authorNames)+'\n', msgVerbose = True)
+		modules.logMsg(infile,"Session runtime inputs from: %s"%(fileans)+'\n\n', msgVerbose = True) 
+		modules.logMsg(infile,"Session popvars inputs from: %s"%(popvarsfile[spcNO])+'\n\n', msgVerbose = True)
+		modules.logMsg(infile,"On run: %s"%(str(irun))+'\n\n', msgVerbose = True)
 
 	'''Main loop here'''
 	# Call function and store PopVar variables

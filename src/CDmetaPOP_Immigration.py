@@ -13,37 +13,6 @@ import numpy as np
 # CDmetaPOP functions
 import CDmetaPOP_Modules as modules
 
-# ----------------------------------------------------------
-# Global symbols, if any :))
-#-----------------------------------------------------------
-# when set True, routes session log traffic to BOTH the
-# screen and to the log file. When False, log traffic just
-# sent to log file alone.
-msgVerbose = False
-
-# --------------------------------------------------------------------------
-def logMsg(outf,msg):
-	'''
-	logMsg() --log file message handler.
-	Inputs:
-	outf - open file handle
-	msg -- string containing formatted message
-	--always outputs to log file by default.
-	--using msgVerbose, can be set to "Tee" output to stdout as well
-	'''
-	'''outf.write(msg+ '\n')
-	if msgVerbose:
-		print(("%s"%(msg)))'''
-		
-	identity = mp.current_process()._identity
-	name = mp.current_process().name 
-	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
-	if not identity or identity[0] == 1 or name[0]=='S':
-		outf.write(msg+ '\n')
-		if msgVerbose:
-			print(("%s"%(msg)))
-	# End::logMsg()
-
 # ---------------------------------------------------------------------------------------------------	 
 def w_choice_general(lst):
 	'''

@@ -9,14 +9,6 @@
 import pdb, sys, numbers
 import numpy as np
 
-# ----------------------------------------------------------
-# Global symbols, if any :))
-#-----------------------------------------------------------
-# when set True, routes session log traffic to BOTH the
-# screen and to the log file. When False, log traffic just
-# sent to log file alone.
-msgVerbose = False
-
 # ---------------------------------------------------------------------------------------------------
 def count_unique(keys):
     uniq_keys = np.unique(keys)
