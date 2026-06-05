@@ -51,4 +51,5 @@ __pycache__/
 *.pyc
 
 # Simulation output data
-example_files/output/
+example_files/output/*
+!example_files/output/.gitkeep

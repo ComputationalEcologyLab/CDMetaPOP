@@ -8,8 +8,6 @@
 # Python specific functions
 import numpy as np 
 import sys, datetime
-
-# For parallel processing
 import multiprocessing as mp
 
 # CDmetaPOP functions
@@ -824,7 +822,7 @@ def mc_loop(mc_args):
 				# Introduce new individuals
 				# ----------------------------------------
 				if (gen != 0 and len(N0_pass[0].split('|')) > 1):							
-					SubpopIN = AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdevolveans,burningen_cdevolve,fitvals,dtype,N0,natal_patches,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,disease_vars)
+					SubpopIN = preprocess.AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci,alleles,sizeans,cdevolveans,burningen_cdevolve,fitvals,dtype,N0,natal_patches,gen,PopTag,sexans,logfHndl,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,eggFreq_mu,eggFreq_sd,disease_vars)
 
 		# -------------------------------------------
 		# Update stochastic parameters each year here

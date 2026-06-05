@@ -6,8 +6,7 @@
 # --------------------------------------------------------------------------------------------------
 	
 # Python specific functions
-import os, random, copy, pdb, sys, numbers
-from numpy.random import *
+import pdb, sys, numbers
 import numpy as np
 
 # ----------------------------------------------------------
@@ -365,7 +364,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 	Constant mortality applied to each age within each population.
 	Returns: Updated SubpopIN and new N for each subpop.	
 	'''
-	#pdb.set_trace()
+	
 	# Get number of population deaths 
 	SubpopIN_keep = []
 	Population.append([]) # Add spot for generation
@@ -527,7 +526,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 							# Then apply mortality for all perc - check on N cases
 							# ----------------------------------------------------
 							# If there are all 'N' - no mortality
-							#pdb.set_trace()
+							
 							if len(np.asarray([i for i, val in enumerate(MortAge) if 'N' in val])) == len(MortAge.split('~')) and len(np.asarray([i for i, val in enumerate(MortSize) if 'N' in val])) == len(MortSize.split('~')) and MortPatch == 'N':
 								# Keep them all   - no mortality
 								N_samp_ind = N_samp_ind + Nsize_age_index.tolist()
@@ -548,7 +547,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 									thisoneMortAge = MortAge.split('~')[sxspot]
 									thisoneMortSize = MortSize.split('~')[sxspot]
 														
-									#pdb.set_trace()
+									
 									# Then get total mort values
 									if thisoneMortSize == 'N' and thisoneMortAge == 'N' and MortPatch == 'N':
 										thisoneMortAll = 0.0

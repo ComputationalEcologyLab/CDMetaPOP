@@ -6,32 +6,18 @@
 # --------------------------------------------------------------------------------------------------
 	
 # Python specific functions
-import os, copy, pdb, sys,random
+import copy, random
 import numpy as np
 import pandas as pd
-#from CDmetaPOP_Modules import validate # circular import somewhere 
 
-# ---------------------------------------------------------------------------
-def validate(condition, error_message, exit_code=-1):
-    """
-    Generic error-checking function.
-
-    Args:
-        condition (bool): The condition to evaluate.
-        error_message (str): The error message to display if the condition fails.
-        exit_code (int): The code to exit with if the condition fails. Default is -1.
-    """
-    if condition:
-        print(error_message)
-        sys.exit(exit_code)
-	
-	# End::validate()
+# CDmetaPOP functions
+import CDmetaPOP_Modules as modules
 
 # ---------------------------------------------------------------------------
 def read_disease_vars_files(filelist, datadir,implementdisease,pathogen_load,disease_fitvals):    
 	''' Helper function to read in DiseaseVars file'''
 	
-	#pdb.set_trace()
+	
 	noStates,InitCond,TranRates_Files,SusCompartment,infectCompartment,deathCompartment,offspringTransmissionAns,TranRates,ImplementWhen,StartDiseaseWhen,TransMode,TranRates_copy,RDefense,TDefense = [],[],[],[],[],[],[],[],[],[],[],[],[],[]
 	if implementdisease != 'N':
 		for isub in range(len(filelist)):
@@ -53,23 +39,23 @@ def read_disease_vars_files(filelist, datadir,implementdisease,pathogen_load,dis
 			df1 = pd.read_csv(datadir+TranRates_Files[isub],header=None)
 			TranRates.append(np.asarray(df1,dtype=str).tolist())
 			TranRates_copy.append(np.asarray(df1,dtype=str).tolist())
-			#pdb.set_trace()		
+					
 			# Error Checks
 			if RDefense[isub] != 'N':
-				validate(len(RDefense[isub].split(';')[0].split('_')) != 2, 'Resistant disease defense option is in incorrect format. Specify N or state to state.')
+				modules.validate(len(RDefense[isub].split(';')[0].split('_')) != 2, 'Resistant disease defense option is in incorrect format. Specify N or state to state.')
 			if TDefense[isub] != 'N':
-				validate(len(TDefense[isub].split(';')[0].split('_')) != 2, 'Tolerant disease defense option is in incorrect format. Specify N or state to state.')
-			validate(TransMode[isub].lower() != 'direct' and TransMode[isub].lower() !='indirect', 'Transmission mode can be direct or indirect.')
-			validate(noStates[isub] != len(InitCond[isub]), 'Number of Disease States must equal Initial Conditions specified.')
-			validate(sum(InitCond[isub]) != 1.0, 'Initial conditions for disease states must sum to 1.')		
-			validate((TransMode[isub].lower() == 'direct') and ((len(TranRates[isub]) or len(TranRates[isub][0])) != noStates[isub]), 'Transition matrix must be number of States x number of States if direct transmission is specified.')
-			validate((TransMode[isub].lower() == 'indirect') and ((len(TranRates[isub]) or len(TranRates[isub][0])) != noStates[isub]+1), 'Transition matrix must be number of States + 1 x number of States + 1 if indirect transmission is specified.')
+				modules.validate(len(TDefense[isub].split(';')[0].split('_')) != 2, 'Tolerant disease defense option is in incorrect format. Specify N or state to state.')
+			modules.validate(TransMode[isub].lower() != 'direct' and TransMode[isub].lower() !='indirect', 'Transmission mode can be direct or indirect.')
+			modules.validate(noStates[isub] != len(InitCond[isub]), 'Number of Disease States must equal Initial Conditions specified.')
+			modules.validate(sum(InitCond[isub]) != 1.0, 'Initial conditions for disease states must sum to 1.')		
+			modules.validate((TransMode[isub].lower() == 'direct') and ((len(TranRates[isub]) or len(TranRates[isub][0])) != noStates[isub]), 'Transition matrix must be number of States x number of States if direct transmission is specified.')
+			modules.validate((TransMode[isub].lower() == 'indirect') and ((len(TranRates[isub]) or len(TranRates[isub][0])) != noStates[isub]+1), 'Transition matrix must be number of States + 1 x number of States + 1 if indirect transmission is specified.')
 			
-			validate(not(offspringTransmissionAns[isub].lower() != 'susceptible' or offspringTransmissionAns[isub].split(';')[0].lower()) != 'vertical' , 'Incorrect option used for offspring transmission rules.')
+			modules.validate(not(offspringTransmissionAns[isub].lower() != 'susceptible' or offspringTransmissionAns[isub].split(';')[0].lower()) != 'vertical' , 'Incorrect option used for offspring transmission rules.')
 			if deathCompartment[isub] != 'N':
-				validate(noStates[isub] <= int(deathCompartment[isub]), 'Specific compartments (death) must be less than total number of states.')
-			validate(noStates[isub] <= int(infectCompartment[isub]), 'Specific compartments (infect) must be less than total number of states.')
-			validate(noStates[isub] <= int(SusCompartment[isub]), 'Specific compartments (susceptible) must be less than total number of states.')
+				modules.validate(noStates[isub] <= int(deathCompartment[isub]), 'Specific compartments (death) must be less than total number of states.')
+			modules.validate(noStates[isub] <= int(infectCompartment[isub]), 'Specific compartments (infect) must be less than total number of states.')
+			modules.validate(noStates[isub] <= int(SusCompartment[isub]), 'Specific compartments (susceptible) must be less than total number of states.')
 
 	else: # No disease, but initialize with one state
 		for isub in range(len(filelist)):
@@ -90,7 +76,7 @@ def read_disease_vars_files(filelist, datadir,implementdisease,pathogen_load,dis
 			#disease_fitvals.append([])
 	
 	tupDiseaseVars = {'noStates':noStates,'InitCond':InitCond,'TransRates':TranRates,'SusComp':SusCompartment,'InfComp':infectCompartment,'DComp':deathCompartment,'OffAns':offspringTransmissionAns, 'StartDisease': StartDiseaseWhen, 'TransRates_ForStochasticUpdates':TranRates_copy,'TransMode':TransMode, 'ImpDisease':implementdisease, 'PathLoad':pathogen_load, 'ResDefense':RDefense, 'TolDefense':TDefense, 'DefenseVals':disease_fitvals}
-	#pdb.set_trace()
+	
 	return tupDiseaseVars
 	#End::read_disease_rate_files()
 
@@ -104,7 +90,7 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 	#Return early if disease module has not started
 	if gen < disease_vars['StartDisease'][isub]:
 		return
-	#pdb.set_trace()	
+		
 	# --- 1. Setup and variable initialize ---
 	individual = SubpopIN[isub][iind]
 	current_state = individual['states']
@@ -127,7 +113,7 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 	if has_resistance or has_tolerance:
 		# Assumes 4 loci (8 alleles); resistance is 3rd, tolerance is 4th
 		igenes = individual['genes']
-		validate(len(igenes) < 4*2, 'Specify 4 loci (8 alleles); disease defense - e.g., resistance is 3rd, disease defense - e.g., tolerance is 4th.')
+		modules.validate(len(igenes) < 4*2, 'Specify 4 loci (8 alleles); disease defense - e.g., resistance is 3rd, disease defense - e.g., tolerance is 4th.')
 		Clocus = igenes[4:6]  # resistant-locus
 		Dlocus = igenes[6:8]  # tolerant-locus
 		defense_vals = disease_vars['DefenseVals'][isub]
@@ -135,7 +121,7 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 	# --- 3. Calculate Indirect Force of Infection ($S \to I$) ---
 	indirect_foi = 0.0
 	if disease_vars['TransMode'][isub] == 'Indirect' and current_state == susceptible_state:
-		#pdb.set_trace()		
+				
 		# Base transition rate from environment (pathogen) to host states - column
 		rates_from_pathogen = [row[pathogen_state_idx] for row in disease_vars['TransRates'][isub]]
 				
@@ -185,7 +171,7 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 	possible_state_transitions = np.where(np.asarray(rates_from_current_state) > 0)[0]
 	
 	# Check for multiple S transitions - not possible currently
-	validate(len(possible_state_transitions) > 1 and current_state == 0, 'S cannot transition to more than 1 compartment at this time.')
+	modules.validate(len(possible_state_transitions) > 1 and current_state == 0, 'S cannot transition to more than 1 compartment at this time.')
 	
 	# Shuffle the possible_state_transitions and loop through these possible moves
 	random.shuffle(possible_state_transitions)
@@ -255,7 +241,7 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 # ---------------------------------------------------------------------------
 def updateEnvRes(disease_vars,isub,countstates_inthispatch):
 	'''If indirect transmission then update contaminant in environment'''
-	#pdb.set_trace()
+	
 	# Get P variables
 	p_state = disease_vars['noStates'][isub] # assume this is the last state
 	pathogen_load_atthispatch = disease_vars['PathLoad'][isub]
@@ -264,7 +250,7 @@ def updateEnvRes(disease_vars,isub,countstates_inthispatch):
 	
 	# Get the compartment(s) involved in infection - currently only 1 allowed
 	infected_state = int(disease_vars['InfComp'][isub]) # index into infected state
-	#pdb.set_trace()
+	
 	transition_rates_pstate = np.where(np.asarray(TOpState_FROMiStates) != 0)[0]
 	tplus1_pathogen_load_atthispatch = []
 	for iP in transition_rates_pstate:

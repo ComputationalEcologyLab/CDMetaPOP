@@ -6,11 +6,17 @@
 # --------------------------------------------------------------------------------------------------
 
 # Python specific functions
-import pdb, copy, os, sys, multiprocessing, numbers
-from ast import literal_eval 
-from CDmetaPOP_Modules import *
+import sys, copy
+import numpy as np
+import multiprocessing as mp
+
+# CDmetaPOP functions
+import CDmetaPOP_Modules as modules
 from CDmetaPOP_Offspring2 import DoOffspringVars, AddAge0s
-import numpy as np 
+#import CDmetaPOP_Offspring2 as offspring
+print("Fix this after imputs fixed")
+print("undefined name Fxycdmatrix")
+print("undefined name Mxycdmatrix")
 
 # ----------------------------------------------------------
 # Global symbols, if any :))
@@ -34,8 +40,8 @@ def logMsg(outf,msg):
 	if msgVerbose:
 		print(("%s"%(msg)))'''
 		
-	identity = multiprocessing.current_process()._identity
-	name = multiprocessing.current_process().name 
+	identity = mp.current_process()._identity
+	name = mp.current_process().name 
 	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
 	if not identity or identity[0] == 1 or name[0]=='S':
 		outf.write(msg+ '\n')
@@ -419,7 +425,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 
 	# If F Selection is On, then calculation of EHom here for entire population
 	if (cdevolveans.split('_')[0] == 'F' or cdevolveans.split('_')[0] == 'FHindex') and (gen >= burningen_cdevolve) and ((timecdevolve.find('Out') != -1) or (timecdevolve.find('Eggs') != -1)):
-		EHom = calc_EHom(SubpopIN)
+		EHom = modules.calc_EHom(SubpopIN)
 	else:
 		EHom = [] # Make empty to pass null into callDiffMortality funcitons
 				
@@ -510,7 +516,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					# ----------------------------------------------------------
 					# Check CDEVOLVE Selection Death and spatial mortality Death
 					# ----------------------------------------------------------
-					differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Out',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+					differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Out',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
 					
 					# Then flip the coin to see if outpool survives its location
 					randcheck = np.random.uniform()
@@ -527,7 +533,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					outpool_name = outpool['name']
 					outpool_name = outpool_name.split('_')
 					name = 'E'+str(tosubpop)+'_F'+str(isub+1)+'_'+outpool_name[2]+'_'+outpool_name[3]+'_'+outpool_name[4]+'_'+outpool_name[5]	
-					#pdb.set_trace()
+					
 					# Record string name of Where it Came from,ToSubpop,NAsubpop,EmiCD,ImmiCD,age,sex,size,states, name,capture,layeggs,species,genes				
 					recd = (str(isub+1),tosubpop,'NA',-9999,-9999,outpool['age'],outpool['sex'],outpool['size'],outpool['mature'],outpool['newmature'],int(outpool['states']),name,outpool['MID'],outpool['FID'],outpool['capture'],outpool['recapture'],outpool['layeggs'],outpool['hindex'],outpool['classfile'],PopTag[int(tosubpop)-1],outpool['species'],outpool['genes'])
 								
@@ -561,7 +567,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				# ----------------------------------------------------------
 				# Check CDEVOLVE Selection Death and spatial mortality Death
 				# ----------------------------------------------------------
-				differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Out',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+				differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Out',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
 												
 				# Then flip the coin to see if outpool survives its location
 				randcheck = np.random.uniform()
@@ -582,11 +588,6 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				
 				#if outpool_name[0][0] == 'E' and not outpool_name[0][0:2] == 'EO': # Only Age0 migrants should have an 'E' here. 
 				if outpool_name[0][0] == 'E': # Only Age0 migrants should have an 'E' here. 
-				
-					#if outpool['age'] != 1:
-						#pdb.set_trace()
-						#print('Check v2.68 functionality with anadromy: Emigration() E and EO')
-						#sys.exit(-1)
 						
 					currentlyhere = outpool['EmiPop']
 					fromhere = outpool['NatalPop']
@@ -633,9 +634,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 	N_beforePack_age.append([])
 	N_beforePack_age[gen] = [[] for x in range(0,len(size_mean[0][0]))]
 	Kadj_track.append([])
-	
-	#if multiprocessing.current_process().name == "S1":
-	#	pdb.set_trace()	
+
 	# -------------------
 	# Packing is selected
 	# -------------------
@@ -690,7 +689,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
 				if len(np.where(noOffspring < 0)[0]) >= 1:
 					print('Issue with number of offspring less than zero.')
-					pdb.set_trace()
+					sys.exit(-1)
 				
 				offspring_size = [] # sizes
 				#offspring_file = [] # files assigned
@@ -968,7 +967,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						
 						# Tracking numbers ----------------------------------
 						PackingDeathsAge[gen][indexforAgeclass].append(Nage-Kused)
-						#pdb.set_trace()
+						
 						
 					# The adjust the habitat or reallocation for next class
 					if Kage == 0:
@@ -981,7 +980,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			#---------------------------------------------
 						
 			# Clean up index - grabs largest to less than 0 class
-			#pdb.set_trace()
+			
 			Nage_samp_ind_all = sum(Nage_samp_ind,[])
 			
 			# Find adults in samp list that survived
@@ -1018,7 +1017,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			PackingDeaths[gen][isub] = Npop - len(Nage_samp_ind_all)
 			Track_YYSelectionPackDeaths[gen][isub] = sum(Track_YYSelectionPackDeaths[gen][isub])
 			Track_WildSelectionPackDeaths[gen][isub] = sum(Track_WildSelectionPackDeaths[gen][isub])
-			#pdb.set_trace()
+			
 	# ---------------------
 	# Packing option 1, extra space only allocated to one size class below
 	# ---------------------	
@@ -1073,7 +1072,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
 				if len(np.where(noOffspring < 0)[0]) >= 1:
 					print('Issue with number of offspring less than zero.')
-					pdb.set_trace()
+					sys.exit(-1)
 				
 				offspring_size = [] # sizes
 				#offspring_file = [] # files assigned
@@ -1337,7 +1336,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						Track_YYSelectionPackDeaths[gen][isub].append(0)
 						Track_WildSelectionPackDeaths[gen][isub].append(0)
 					else: # some die
-						#pdb.set_trace()
+						
 						Kused_new.append(int(round(Kage_new[iage])))
 						if timecdevolve == 'packing' and cdevolveans.split('_')[0] == 'Hindex':
 							
@@ -1386,7 +1385,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						# CDEVOLVE Packing option off
 						else:
 							# Grab a random number of Kused from Nage sample. 
-							#pdb.set_trace()
+							
 							Nage_samp_ind.append(np.random.choice(Nage_index,Kused_new[iage],replace=False).tolist())
 							# Tracking numbers ----------------------------------
 							Track_YYSelectionPackDeaths[gen][isub].append(0)
@@ -1493,7 +1492,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
 				if len(np.where(noOffspring < 0)[0]) >= 1:
 					print('Issue with number of offspring less than zero.')
-					pdb.set_trace()
+					sys.exit(-1)
 				
 				offspring_size = [] # sizes
 				#offspring_file = [] # files assigned
@@ -1839,7 +1838,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 	# Packing is turned off
 	# ---------------------
 	elif packans == 'N':
-		#pdb.set_trace()
+		
 		# ------------------------------------------
 		# Get other species Ns from all Patches here
 		# ------------------------------------------
@@ -2060,8 +2059,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						offspring_patch[index_fix] = offspring_patch[index_fix] + 1		
 					# UPDATE master offspring list for all patches
 					noOffspring[mothers_patch_ind] = offspring_patch			
-			#if sum(noOffspring) != 100 - len(Nage_samp_ind_adults):
-			#	pdb.set_trace()
+
 			# Tracking numbers - no packing deaths
 			# ------------------------------------
 			for iage in range(len(size_mean[0][0])):
@@ -2072,7 +2070,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			DisperseDeaths[gen][isub] = sum(DisperseDeaths[gen][isub])
 			Track_YYSelectionPackDeaths[gen][isub] = 0 # Zero for now
 			Track_WildSelectionPackDeaths[gen][isub] = 0 # Zero fro now
-			#pdb.set_trace()
+			
 	# ---------------------
 	# Packing is turned off - this is a very special case, where eggs only enter into population and can exceed K, mortality applied to adult population only
 	# ---------------------
@@ -2343,8 +2341,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			# in the queue for other species to pull from
 			Ntself_pop = []
 			# Length of each patch without age 0s
-			#if multiprocessing.current_process().name == "S0":
-				#ForkablePdb().set_trace()	
+
 				# Adjusting N instead of adjusting K
 			for isub in range(0,len(SubpopIN_keep)):
 				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
@@ -2360,7 +2357,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						Nt.append(0)
 				# Create list of Nt's, one for each patch
 				Ntself_pop.append(Nt)	
-			#pdb.set_trace()
+			
 			# Add to queues if more than one species
 			if len(XQs) > 0:
 				# Loop through queue spots, Putting Nself_pop for grabbing for other species.
@@ -2388,7 +2385,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			for isub in range(len(K)):
 				# Get each SubpopIN pop as array
 				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
-				#pdb.set_trace()
+				
 				# ----------------------------------------
 				# Get the number of eggs/fry in this patch
 				# ----------------------------------------
@@ -2410,7 +2407,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					offspring_patch_hindex = mothers_patch_hindex/2. + fathers_patch_hindex/2.
 					if len(np.where(noOffspring < 0)[0]) >= 1:
 						print('Issue with number of offspring less than zero.')
-						pdb.set_trace()
+						sys.exit(-1)
 					
 					offspring_size = [] # sizes
 					#offspring_file = [] # files assigned
@@ -2516,8 +2513,6 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				Nt = Ntself_pop[isub]
 				# Keep track of P for logistic P/K 
 				Pisub = sum(Nt)
-				#if multiprocessing.current_process().name == "S1":
-					#ForkablePdb().set_trace()
 				
 				# Tracking for before packing
 				N_beforePack_pop[gen].append(Npop) 
@@ -2565,8 +2560,6 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 						print('Leslie matrix option does not allow for multiple classvars.')
 						sys.exit(-1)
 					fecund = np.asarray(f_leslie[isub][0], dtype=float) #Import from classvars
-					#if multiprocessing.current_process().name == "S0":
-					#	ForkablePdb().set_trace()	
 									
 					Mb = [] # Create N x N-1 matrix				
 					for idx in range(len(fecund)-1): 
@@ -2603,7 +2596,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 					# Add a check here for if length of Nt is not len of fecund
 					if len(Nt) != len(fecund): 
 						print("Check code")
-						pdb.set_trace()
+						sys.exit(-1)
 					
 					# Get total number of deaths for each age class
 					Ntplus1 = np.exp((igr*-1)*(Pisub/Kpop))*(np.dot(M,Nt))
@@ -2738,15 +2731,14 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 	# ------------------------------
 	# Get the survived SubpopIN_Age0
 	# ------------------------------
-	#pdb.set_trace()
+	
 	offspring = DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,gen,sizecall,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,SubpopIN_keepAge1plus,PopTag,disease_vars,K)
-	#if sum(noOffspring) == 0:
-	#	pdb.set_trace()
+
 	# Get dtype for offspring - first check to see if any Bearpairs/offspring
 	#if Bearpairs[0][0] != -9999:
 	#if len(Bearpairs[0][0]) != 1:
 	if sum(noOffspring) > 0:
-	#if not (isinstance(Bearpairs[0][0],numbers.Integral)): # Checks for -9999 here and could be int or np.int32	
+
 		offdtype = [('Mother',('i',len(Bearpairs[0][0]['genes']))),('Father',('i',len(Bearpairs[0][0]['genes']))),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('ImmiPop',(str,len(SubpopIN)+1)),('EmiCD',float),('ImmiCD',float),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('states',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]
 	else:
 		offdtype = [('Mother',(str,2)),('Father',(str,2)),('NatalPop',(str,len(SubpopIN)+1)),('EmiPop',(str,len(SubpopIN)+1)),('age',int),('sex',(str,3)),('size',float),('mature',int),('newmature',int),('states',int),('name',(str,100)),('MID',(str,100)),('FID',(str,100)),('capture',int),('recapture',int),('layeggs',float),('M_hindex',float),('F_hindex',float),('classfile',(str,100)),('popID',(str,100)),('species',int)]	
@@ -2766,7 +2758,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 		np.random.shuffle(offsex)
 		# And reassign the sex to offspring list
 		offspring['sex'] = offsex
-	#pdb.set_trace()
+	
 	
 	# ---------------------------------------------------
 	# Call AddAge0() and InheritGenes() and track numbers
@@ -2991,7 +2983,7 @@ def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDis
 			# Add subpopmigration similar to Immigration? 
 	
 	else: # Population Extinct, return tracking variables 0 only
-		#pdb.set_trace()
+		
 		# Population variables here
 		Population.append( [0 for x in range(0,len(SubpopIN)+1)] )
 		N_beforePack_pop.append( [0 for x in range(0,len(SubpopIN)+1)] )

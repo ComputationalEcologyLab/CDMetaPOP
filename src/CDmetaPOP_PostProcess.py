@@ -5,12 +5,13 @@
 # Description: This is the function/module file post processing.
 # --------------------------------------------------------------------------------------------------
 
-import pdb,random,os,sys,glob,warnings, multiprocessing
-from ast import literal_eval 
-import numpy as np 
-from numpy.random import *
-from CDmetaPOP_Disease import *
-from CDmetaPOP_Modules import *
+import sys, glob, warnings
+import numpy as np
+import multiprocessing as mp
+
+# CDmetaPOP functions
+import CDmetaPOP_Modules as modules
+import CDmetaPOP_Disease as disease
 
 # ----------------------------------------------------------
 # Global symbols, if any :))
@@ -20,25 +21,6 @@ from CDmetaPOP_Modules import *
 # sent to log file alone.
 msgVerbose = False
 warnings.filterwarnings("ignore")
-
-# ---------------------------------------------------------------------------
-class ForkablePdb(pdb.Pdb):
-
-    _original_stdin_fd = sys.stdin.fileno()
-    _original_stdin = None
-
-    def __init__(self):
-        pdb.Pdb.__init__(self, nosigint=True)
-
-    def _cmdloop(self):
-        current_stdin = sys.stdin
-        try:
-            if not self._original_stdin:
-                self._original_stdin = os.fdopen(self._original_stdin_fd)
-            sys.stdin = self._original_stdin
-            self.cmdloop()
-        finally:
-            sys.stdin = current_stdin
 
 # --------------------------------------------------------------------------
 def logMsg(outf,msg):
@@ -50,10 +32,10 @@ def logMsg(outf,msg):
 	--always outputs to log file by default.
 	--using msgVerbose, can be set to "Tee" output to stdout as well
 	'''	
-	#if multiprocessing.current_process().name == "S1":
+	#if mp.current_process().name == "S1":
 		#ForkablePdb().set_trace()
-	identity = multiprocessing.current_process()._identity
-	name = multiprocessing.current_process().name 
+	identity = mp.current_process()._identity
+	name = mp.current_process().name 
 	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
 	if not identity or identity[0] == 1 or name[0]=='S':
 		outf.write(msg+ '\n')
@@ -1133,7 +1115,7 @@ def DoOut_AllTimePatch(K_track,ithmcrundir,logfHndl,N_Init,ToTFemales,ToTMales,B
 				outputfile.write(str(Births[i][j])+'|')
 			outputfile.write(',')
 		except:
-			pdb.set_trace()
+			sys.exit(-1)
 		for j in range(len(EggDeaths[i])):
 			outputfile.write(str(EggDeaths[i][j])+'|')
 		outputfile.write(',')
@@ -1560,6 +1542,6 @@ StrSuccess,EggDeaths,K_track,N_Init,N_Emigration,N_EmiMortality,N_Immigration,N_
 		# ---------------------------------------------
 		# Output Disease Tracking numbers
 		# ---------------------------------------------	
-		DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_DiseaseStates_SecondUpdate,N_Emigration,N_EmiMortality, Track_DiseaseStates_ThirdUpdate,N_Immigration,N_ImmiMortality,ithmcrundir,Track_DiseaseStates_AddAge0s,Track_DiseaseStates_AddedInds,Track_DiseaseStates_AfterDeaths_SecondUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,Track_DiseaseStates_EnvRes,disease_vars)
+		disease.DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_DiseaseStates_SecondUpdate,N_Emigration,N_EmiMortality, Track_DiseaseStates_ThirdUpdate,N_Immigration,N_ImmiMortality,ithmcrundir,Track_DiseaseStates_AddAge0s,Track_DiseaseStates_AddedInds,Track_DiseaseStates_AfterDeaths_SecondUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,Track_DiseaseStates_EnvRes,disease_vars)
 		
 	#End:DoPostProcess()

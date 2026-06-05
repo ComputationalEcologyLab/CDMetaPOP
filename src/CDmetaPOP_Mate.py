@@ -6,11 +6,12 @@
 # --------------------------------------------------------------------------------------------------
 	
 # Python specific functions
-import pdb, os, sys, copy,numbers
-from ast import literal_eval
-import numpy as np 
-from CDmetaPOP_Offspring2 import *
-from CDmetaPOP_Mortality import *
+import sys, copy
+import numpy as np
+
+# CDmetaPOP functions
+import CDmetaPOP_Offspring2 as offspring
+import CDmetaPOP_Mortality as mortality
 
 # ---------------------------------------------------------------------------------------------------
 def count_unique(keys):
@@ -288,7 +289,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				# Special case for sneaker Males - technically not the dominant preference model
 				elif assortmateModel == '4_gene':
 					# Get female genes
-					#pdb.set_trace()
+					
 					female_genes = females[intfemale]['genes'][0:2]
 					# Get the males Genes and frequency of each
 					males_genes = patchmales['genes'][:,0:2]
@@ -616,7 +617,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		# -----------------------------------------------------------------
 		# For tracking disease states updates
 		# -----------------------------------------------------------------
-		#pdb.set_trace()
+		
 		Track_DiseaseStates_AddedInds[gen].append([])
 		indstates_inthispatch = SubpopIN[isub]['states'] 
 		updated_countstates = np.bincount(indstates_inthispatch, minlength=disease_vars['noStates'][isub])
@@ -637,7 +638,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# Add Count totals
 	MatureCount[gen] = sum(MatureCount[gen])
 	ImmatureCount[gen] = sum(ImmatureCount[gen])
-	#pdb.set_trace()
+	
 	# Error statement here in case no females or males, then break from loop, update any tracking left in this function
 	if (ToTFemales[gen][0] + ToTYYFemales[gen][0])==0 or (ToTMales[gen][0] + ToTYYMales[gen][0])==0:			
 		MateDistCD.append(0)
@@ -648,7 +649,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 		Track_BirthsMYY[gen] = [0 for x in range(0,len(K)+1)] 
 		Track_BirthsFYY[gen] = [0 for x in range(0,len(K)+1)] 
 		Track_EggDeaths[gen] = [0 for x in range(0,len(K)+1)] 
-		#pdb.set_trace()
+		
 		Bearpairs_temp[egg_delay] = []	
 		noOffspring_temp[egg_delay] = []
 		return Bearpairs_temp,noOffspring_temp
@@ -726,12 +727,12 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 						# --------------------------------------
 						# Call DoOffspringNo() for this Bearpair
 						# --------------------------------------
-						thisBearpair_noOffspring = DoOffspringNo(offno,Bearpairs[count],f_ind,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans)
+						thisBearpair_noOffspring = offspring.DoOffspringNo(offno,Bearpairs[count],f_ind,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans)
 						
 						# -------------------------------------
 						# Call DoEggMortality()
 						# -------------------------------------	
-						thisBearpair_noOffspring = DoIndividualEggMortality(Bearpairs[count],eggmort_patch,Track_EggDeaths,gen,eggmort_pop,Track_Births,Track_BirthsMYY,Track_BirthsFYY,thisBearpair_noOffspring,constMortans)
+						thisBearpair_noOffspring = mortality.DoIndividualEggMortality(Bearpairs[count],eggmort_patch,Track_EggDeaths,gen,eggmort_pop,Track_Births,Track_BirthsMYY,Track_BirthsFYY,thisBearpair_noOffspring,constMortans)
 						
 						# Append to noOffspring list
 						noOffspring.append(thisBearpair_noOffspring)
@@ -776,12 +777,12 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 						# --------------------------------------
 						# Call DoOffspringNo() for this Bearpair
 						# --------------------------------------
-						thisBearpair_noOffspring = DoOffspringNo(offno,Bearpairs[count],f_ind,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans)
+						thisBearpair_noOffspring = offspring.DoOffspringNo(offno,Bearpairs[count],f_ind,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans)
 					
 						# -------------------------------------
 						# Call DoEggMortality()
 						# -------------------------------------	
-						thisBearpair_noOffspring = DoIndividualEggMortality(Bearpairs[count],eggmort_patch,Track_EggDeaths,gen,eggmort_pop,Track_Births,Track_BirthsMYY,Track_BirthsFYY,thisBearpair_noOffspring,constMortans)
+						thisBearpair_noOffspring = mortality.DoIndividualEggMortality(Bearpairs[count],eggmort_patch,Track_EggDeaths,gen,eggmort_pop,Track_Births,Track_BirthsMYY,Track_BirthsFYY,thisBearpair_noOffspring,constMortans)
 						
 						# Append to noOffspring list
 						noOffspring.append(thisBearpair_noOffspring)
@@ -832,12 +833,12 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 						# --------------------------------------
 						# Call DoOffspringNo() for this Bearpair
 						# --------------------------------------
-						thisBearpair_noOffspring = DoOffspringNo(offno,Bearpairs[count],f_ind,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans)
+						thisBearpair_noOffspring = offspring.DoOffspringNo(offno,Bearpairs[count],f_ind,age_sigma,sizecall,egg_mean_1,egg_mean_2,egg_mean_ans)
 					
 						# -------------------------------------
 						# Call DoEggMortality()
 						# -------------------------------------	
-						thisBearpair_noOffspring = DoIndividualEggMortality(Bearpairs[count],eggmort_patch,Track_EggDeaths,gen,eggmort_pop,Track_Births,Track_BirthsMYY,Track_BirthsFYY,thisBearpair_noOffspring,constMortans)
+						thisBearpair_noOffspring = mortality.DoIndividualEggMortality(Bearpairs[count],eggmort_patch,Track_EggDeaths,gen,eggmort_pop,Track_Births,Track_BirthsMYY,Track_BirthsFYY,thisBearpair_noOffspring,constMortans)
 						
 						# Append to noOffspring list
 						noOffspring.append(thisBearpair_noOffspring)
@@ -895,7 +896,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 	# --------------------------------------------
 	# If equal clutch size is turned on
 	if equalClutch == 'Y' and freplace == 'Y':
-		noOffspring = DoOffspringClutch(Bearpairs,dtype,noOffspring)
+		noOffspring = offspring.DoOffspringClutch(Bearpairs,dtype,noOffspring)
 		# A quick update to Tracking: Note only updating Births tracking; Egg deaths not accurate 
 		Track_Births[gen][0] = sum(noOffspring)
 	

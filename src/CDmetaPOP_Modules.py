@@ -6,14 +6,14 @@
 # --------------------------------------------------------------------------------------------------
 	
 # Python specific functions
-import os, copy, pdb, sys, multiprocessing
-from ast import literal_eval
-import numpy as np 
-from CDmetaPOP_PostProcess import DoOutput
-import scipy.stats
-from inspect import currentframe, getframeinfo
-import pandas as pd
-from CDmetaPOP_Disease import *
+import sys
+import numpy as np
+import scipy.stats as sps
+import multiprocessing as mp
+
+# CDmetaPOP functions
+import CDmetaPOP_PostProcess as postprocess
+import CDmetaPOP_Disease as disease
 
 # ----------------------------------------------------------
 # Global symbols, if any :))
@@ -22,25 +22,6 @@ from CDmetaPOP_Disease import *
 # screen and to the log file. When False, log traffic just
 # sent to log file alone.
 msgVerbose = False
-
-# ---------------------------------------------------------------------------
-class ForkablePdb(pdb.Pdb):
-
-    _original_stdin_fd = sys.stdin.fileno()
-    _original_stdin = None
-
-    def __init__(self):
-        pdb.Pdb.__init__(self, nosigint=True)
-
-    def _cmdloop(self):
-        current_stdin = sys.stdin
-        try:
-            if not self._original_stdin:
-                self._original_stdin = os.fdopen(self._original_stdin_fd)
-            sys.stdin = self._original_stdin
-            self.cmdloop()
-        finally:
-            sys.stdin = current_stdin
 
 # ---------------------------------------------------------------------------
 def validate(condition, error_message, exit_code=-1):
@@ -68,9 +49,9 @@ def logMsg(outf,msg):
 	--always outputs to log file by default.
 	--using msgVerbose, can be set to "Tee" output to stdout as well
 	'''
-	identity = multiprocessing.current_process()._identity
-	name = multiprocessing.current_process().name 
-	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
+	identity = mp.current_process()._identity
+	name = mp.current_process().name 
+	# Log all species in multispecies applications, otherwise only log 1 process for mc mp
 	if not identity or identity[0] == 1 or name[0]=='S':
 		outf.write(msg+ '\n')
 		if msgVerbose:
@@ -323,7 +304,7 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	This function condenses the large blocks of calls to cdevolve, returning the differentialmortality value.
 	It calculates both selection and spatial mortality togethers
 	'''
-	#pdb.set_trace()
+	
 	# CDEVOLVE - No
 	# -------------
 	if cdevolveans == 'N':
@@ -1012,14 +993,14 @@ def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p
 		# Extract count of disease states
 		state_counts = np.bincount(SubpopIN[isub]['states'], minlength=disease_vars['noStates'][isub])
 		DiseaseStates_pop[gen].append(state_counts)				
-		#pdb.set_trace()
+		
 		if disease_vars['ImpDisease'] != 'N' and gen == 0:
 			DiseaseStates_EnvRes[gen].append(float(disease_vars['PathLoad'][isub].split('|')[gen]))
 		elif disease_vars['ImpDisease'] != 'N' and gen > 0:
 			DiseaseStates_EnvRes[gen].append(round(disease_vars['PathLoad'][isub],2))
 		else:
 			DiseaseStates_EnvRes[gen].append(0)	
-		#pdb.set_trace()								
+										
 		# Switch here for size or age control - # Note that first size classes used for binning
 		if sizecall == 'Y' and packans.split('_')[0] != 'logistic': 
 			age_adjusted = np.searchsorted(size_mean_middles, SubpopIN[isub]['size'])
@@ -1443,7 +1424,7 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 				matedpop = offpop
 			else: # First pop, need to look up where mother mated
 				matedpop = ''.join(str(num) for num in [int(idig) for idig in offspring[i]['MID'].split('_')[0] if idig.isdigit()])
-			#pdb.set_trace()
+			
 			recd = (matedpop,offpop,'NA',0.0,-9999,offspring[i]['age'],offspring[i]['sex'],offspring[i]['size'],offspring[i]['mature'],offspring[i]['newmature'],offspring[i]['states'],id,offspring[i]['MID'],offspring[i]['FID'],0,0,offspring[i]['layeggs'],hindex,offspring[i]['classfile'],offspring[i]['popID'],offspring[i]['species'],offgenes)
 			# Record offspring information to SubpopIN 
 			Age0_keep.append(recd)
@@ -1710,9 +1691,9 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 			tempval = float(sizevals[int(Indloc) - 1])
 			grow = float(size_4[int(Indloc) - 1]) / 365. # Note size_4 is growdays
 			# size_2 = CV				
-			int_R = -float(sizeR0) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
+			int_R = -float(sizeR0) * ((sps.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (sps.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
 			
-			L_inc = float(sizeLoo) * (1. - np.exp(int_R * (Indage+1-float(size_3)))) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
+			L_inc = float(sizeLoo) * (1. - np.exp(int_R * (Indage+1-float(size_3)))) * ((sps.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (sps.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
 			# Get the incremental growth
 			
 			#L_inc_age = L_inc * np.exp((Indage+1) * int_R) #old ebt version
@@ -1733,7 +1714,7 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 			tempval = float(sizevals[int(Indloc) - 1])
 			grow = float(size_4[int(Indloc) - 1]) / 365.
 							
-			int_R = -float(sizeR0) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
+			int_R = -float(sizeR0) * ((sps.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (sps.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
 			
 			# Get the Loo for this HIndex
 			Indhindex = SubpopIN[isub][iind]['hindex']
@@ -1745,7 +1726,7 @@ def growInd(Indloc,SubpopIN,sizeLoo,sizeR0,size_1,size_2,size_3,size_4,sizevals,
 			sizeLoo_max = float(bothLoo[1])
 			sizeLoo_hindex = Indhindex * (sizeLoo_max - sizeLoo_min) + sizeLoo_min
 			
-			L_inc = float(sizeLoo_hindex) * (1. - np.exp(int_R * (Indage+1-float(size_3)))) * ((scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (scipy.stats.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
+			L_inc = float(sizeLoo_hindex) * (1. - np.exp(int_R * (Indage+1-float(size_3)))) * ((sps.norm(float(size_1),float(size_2)*float(size_1)).pdf(tempval)) / (sps.norm(float(size_1),float(size_2)*float(size_1)).pdf(float(size_1))))
 			# Get the incremental growth
 			#L_inc_age = L_inc * np.exp((Indage+1) * int_R)
 			L_inc_age = L_inc * np.exp((Indage+1) * (float(sizeR0)*-1))
@@ -2044,7 +2025,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 		# Add spots for disease tracking
 		Track_DiseaseStates.append([])
 		Track_DiseaseStates_AfterDeaths.append([])
-		#pdb.set_trace()				
+						
 		# ---------------------------------------------------------------------
 		# Begin loop through subpopulations updating tasks at appropriate times
 		for isub in range(len(K)):
@@ -2054,7 +2035,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 			# -------------------------------------------------------
 			indstates_inthispatch = SubpopIN[isub]['states'] 
 			countstates_inthispatch = np.bincount(indstates_inthispatch, minlength=disease_vars['noStates'][isub])					
-			#pdb.set_trace()			
+						
 			# Begin looping through individuals in subpop
 			# -------------------------------------------			
 			for iind in range(len(SubpopIN[isub])):
@@ -2103,9 +2084,9 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 				# ----------------------------------------
 				# Update Disease State for this individul
 				# ----------------------------------------
-				#pdb.set_trace()
+				
 				if ((gridsample == 'Middle' and disease_vars['ImpDisease'] in ['Both','Back']) or (gridsample == 'Sample' and disease_vars['ImpDisease'] in ['Both','Out'])):
-					moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen)
+					disease.moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen)
 				
 			## End:: iind Loop for this patch-tracking numbers on updates next			
 			# -----------------------------------------------------------------
@@ -2120,14 +2101,14 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 			# Update environmental reservoir concentration of contaminant - Indirect Transmission
 			# -----------------------------------------------------------------------------------
 			if ((gridsample == 'Middle' and disease_vars['ImpDisease'] in ['Both','Back']) or (gridsample == 'Sample' and disease_vars['ImpDisease'] in ['Both','Out'])) and disease_vars['TransMode'][isub] == 'Indirect':
-				updateEnvRes(disease_vars,isub,updated_countstates)
+				disease.updateEnvRes(disease_vars,isub,updated_countstates)
 			
 			# ------------------------------------------------------------------------
 			# If mortality comparment in Disease Module, then remove these individuals
 			# ------------------------------------------------------------------------
-			#pdb.set_trace()
+			
 			if ((gridsample == 'Middle' and disease_vars['ImpDisease'] in ['Both','Back']) or (gridsample == 'Sample' and disease_vars['ImpDisease'] in ['Both','Out'])) and (disease_vars['DComp'][isub] != 'N'):
-				removeDStates(SubpopIN,isub,disease_vars,gen)
+				disease.removeDStates(SubpopIN,isub,disease_vars,gen)
 						
 			# -----------------------------------------------------------------
 			# For tracking disease states updates after deaths
@@ -2194,7 +2175,7 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 		for iage in range(len(CapClass[gen])):		
 			CapClass[gen][iage] = sum(CapClass[gen][iage])
 			Nclass[gen][iage] = sum(Nclass[gen][iage])			
-		#pdb.set_trace()	
+			
 		# ---------------------------------------------------------
 		# Track numbers for disease state totals - Middle and Sample
 		# ---------------------------------------------------------
@@ -2207,13 +2188,13 @@ def DoUpdate(packans,SubpopIN,K,xgridpop,ygridpop,gen,nthfile,ithmcrundir,loci,a
 	# Check if nthfile == generation or "Initial" or "Middle" or "Sample"
 	nthfile = np.asarray(nthfile)
 	if gridsample == 'Initial':
-		DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gridsample)
+		postprocess.DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gridsample)
 	elif gridsample == 'Middle' or gridsample == 'Sample':
 		# If extinct don't do that
 		getyear = np.where(gen == nthfile)[0] # Checks for nthfile output
 		checkPopN = [len(SubpopIN[x]) for x in range(0,len(SubpopIN))] # Checks for population extinction
 		if len(getyear) != 0 and sum(checkPopN) != 0: # Only write output it not extinct
-			DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gridsample)
+			postprocess.DoOutput(SubpopIN,xgridpop,ygridpop,gen,ithmcrundir,loci,alleles,logfHndl,gridsample)
 	
 	# -----------------------------------------------------
 	# Release the captured individuals - Middle and Sample

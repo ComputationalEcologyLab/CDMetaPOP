@@ -12,9 +12,11 @@ import numpy as np
 # General python imports
 import os,sys,pdb,copy
 from ast import literal_eval 
-from CDmetaPOP_Modules import *
 from inspect import currentframe, getframeinfo
-from CDmetaPOP_Disease import *
+
+# CDmetaPOP functions
+import CDmetaPOP_Modules as modules
+import CDmetaPOP_Disease as disease
 
 # ---------------------------------------------------------------------------------------------------
 def count_unique(keys):
@@ -680,7 +682,7 @@ def InitializeID(K,N,DisVars):
 			Nspecies = N[isub].split(';')
 			
 			if DisVars['ImpDisease'] != 'N':
-				validate(len(DisVars['TransRates'])==0,'Disease transmission rates are needed.')
+				modules.validate(len(DisVars['TransRates'])==0,'Disease transmission rates are needed.')
 				noStatesSplitAsRatioList = []
 				for idis in range(DisVars['noStates'][isub]): # To create the prob list 
 					noStatesSplitAsRatioList.append([idis,DisVars['InitCond'][isub][idis]])
@@ -1030,7 +1032,7 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 			mature.append(1)
 			# Get Egg laying rate 
 			tempEggFreq=[] # Temp list value to store egg lay events
-			stochastic_update(eggFreq_mu,eggFreq_sd,tempEggFreq)
+			modules.stochastic_update(eggFreq_mu,eggFreq_sd,tempEggFreq)
 			tempEggFreq = tempEggFreq[0] # Note indexing into first spot since list created above
 			# If sexans 'Y' and female, check layEggs
 			if sexans == 'Y' or sexans == 'H':
@@ -1121,17 +1123,17 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	# Mating parameters and cdmatrix
 	# -----------------------------------------------
 	# Process matecdmatfile for current time step
-	matecdmatfile = datadir + split_or_get(matecdmatfile, icdtime, cdclimgentime)
+	matecdmatfile = datadir + modules.split_or_get(matecdmatfile, icdtime, cdclimgentime)
 
 	# Process matemoveno for current time step
-	matemoveno = split_or_get(matemoveno_pass, icdtime, cdclimgentime)
+	matemoveno = modules.split_or_get(matemoveno_pass, icdtime, cdclimgentime)
 
 	# Process A, B, C movement parameters for current time step
-	matemoveparA = float(split_or_get(matemoveparA, icdtime, cdclimgentime))
-	matemoveparB = float(split_or_get(matemoveparB, icdtime, cdclimgentime))
-	matemoveparC = float(split_or_get(matemoveparC, icdtime, cdclimgentime))
+	matemoveparA = float(modules.split_or_get(matemoveparA, icdtime, cdclimgentime))
+	matemoveparB = float(modules.split_or_get(matemoveparB, icdtime, cdclimgentime))
+	matemoveparC = float(modules.split_or_get(matemoveparC, icdtime, cdclimgentime))
 	# Process movement threshold
-	matemovethreshpass = split_or_get(matemovethresh, icdtime, cdclimgentime)
+	matemovethreshpass = modules.split_or_get(matemovethresh, icdtime, cdclimgentime)
 	
 	# Assuming ReadCDMatrix returns a tuple with 4 elements
 	matecdmatrix, matemovethresh, mate_ScaleMin, mate_ScaleMax = ReadCDMatrix(matecdmatfile, matemoveno, matemovethreshpass, float(matemoveparA), float(matemoveparB), float(matemoveparC))
@@ -1142,18 +1144,18 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	# Dispersal Out parameters and cdmatrix
 	# -----------------------------------------------
 	# Apply the helper function for each dispersal parameter
-	FXXdispOutcdmatfile, MXYdispOutcdmatfile, MYYdispOutcdmatfile, FYYdispOutcdmatfile = [datadir + val for val in process_disp(dispOutcdmatfile, icdtime, sexchromo, cdclimgentime)]
+	FXXdispOutcdmatfile, MXYdispOutcdmatfile, MYYdispOutcdmatfile, FYYdispOutcdmatfile = [datadir + val for val in modules.process_disp(dispOutcdmatfile, icdtime, sexchromo, cdclimgentime)]
 
 	# Function numbers next ----------------
-	FXXdispmoveOutno, MXYdispmoveOutno, MYYdispmoveOutno, FYYdispmoveOutno = [val for val in process_disp(dispmoveOutno, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveOutno, MXYdispmoveOutno, MYYdispmoveOutno, FYYdispmoveOutno = [val for val in modules.process_disp(dispmoveOutno, icdtime, sexchromo, cdclimgentime)]
 
 	# A, B, C next ---------------------------------------
-	FXXdispmoveOutparA, MXYdispmoveOutparA, MYYdispmoveOutparA, FYYdispmoveOutparA = [val for val in process_disp(dispmoveOutparA, icdtime, sexchromo, cdclimgentime)]
-	FXXdispmoveOutparB, MXYdispmoveOutparB, MYYdispmoveOutparB, FYYdispmoveOutparB = [val for val in process_disp(dispmoveOutparB, icdtime, sexchromo, cdclimgentime)]
-	FXXdispmoveOutparC, MXYdispmoveOutparC, MYYdispmoveOutparC, FYYdispmoveOutparC = [val for val in process_disp(dispmoveOutparC, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveOutparA, MXYdispmoveOutparA, MYYdispmoveOutparA, FYYdispmoveOutparA = [val for val in modules.process_disp(dispmoveOutparA, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveOutparB, MXYdispmoveOutparB, MYYdispmoveOutparB, FYYdispmoveOutparB = [val for val in modules.process_disp(dispmoveOutparB, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveOutparC, MXYdispmoveOutparC, MYYdispmoveOutparC, FYYdispmoveOutparC = [val for val in modules.process_disp(dispmoveOutparC, icdtime, sexchromo, cdclimgentime)]
 
 	# Threshold -------------------------------------------
-	FXXdispmoveOutthreshpass, MXYdispmoveOutthreshpass, MYYdispmoveOutthreshpass, FYYdispmoveOutthreshpass = [val for val in process_disp(dispmoveOutthresh, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveOutthreshpass, MXYdispmoveOutthreshpass, MYYdispmoveOutthreshpass, FYYdispmoveOutthreshpass = [val for val in modules.process_disp(dispmoveOutthresh, icdtime, sexchromo, cdclimgentime)]
 	
 	# CDMatrix vars-----------------------------------------
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
@@ -1180,18 +1182,18 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	# Dispersal Back parameters and cdmatrix
 	# -----------------------------------------------
 	# Apply the helper function for each dispersal back parameter
-	FXXdispBackcdmatfile, MXYdispBackcdmatfile, MYYdispBackcdmatfile, FYYdispBackcdmatfile = [datadir + val for val in process_disp(dispBackcdmatfile, icdtime, sexchromo, cdclimgentime)]
+	FXXdispBackcdmatfile, MXYdispBackcdmatfile, MYYdispBackcdmatfile, FYYdispBackcdmatfile = [datadir + val for val in modules.process_disp(dispBackcdmatfile, icdtime, sexchromo, cdclimgentime)]
 
 	# Function numbers next ----------------
-	FXXdispmoveBackno, MXYdispmoveBackno, MYYdispmoveBackno, FYYdispmoveBackno = [val for val in process_disp(dispmoveBackno, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveBackno, MXYdispmoveBackno, MYYdispmoveBackno, FYYdispmoveBackno = [val for val in modules.process_disp(dispmoveBackno, icdtime, sexchromo, cdclimgentime)]
 
 	# A, B, C next ---------------------------------------
-	FXXdispmoveBackparA, MXYdispmoveBackparA, MYYdispmoveBackparA, FYYdispmoveBackparA = [val for val in process_disp(dispmoveBackparA, icdtime, sexchromo, cdclimgentime)]
-	FXXdispmoveBackparB, MXYdispmoveBackparB, MYYdispmoveBackparB, FYYdispmoveBackparB = [val for val in process_disp(dispmoveBackparB, icdtime, sexchromo, cdclimgentime)]
-	FXXdispmoveBackparC, MXYdispmoveBackparC, MYYdispmoveBackparC, FYYdispmoveBackparC = [val for val in process_disp(dispmoveBackparC, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveBackparA, MXYdispmoveBackparA, MYYdispmoveBackparA, FYYdispmoveBackparA = [val for val in modules.process_disp(dispmoveBackparA, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveBackparB, MXYdispmoveBackparB, MYYdispmoveBackparB, FYYdispmoveBackparB = [val for val in modules.process_disp(dispmoveBackparB, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveBackparC, MXYdispmoveBackparC, MYYdispmoveBackparC, FYYdispmoveBackparC = [val for val in modules.process_disp(dispmoveBackparC, icdtime, sexchromo, cdclimgentime)]
 
 	# Threshold -------------------------------------------
-	FXXdispmoveBackthreshpass, MXYdispmoveBackthreshpass, MYYdispmoveBackthreshpass, FYYdispmoveBackthreshpass = [val for val in process_disp(dispmoveBackthresh, icdtime, sexchromo, cdclimgentime)]
+	FXXdispmoveBackthreshpass, MXYdispmoveBackthreshpass, MYYdispmoveBackthreshpass, FYYdispmoveBackthreshpass = [val for val in modules.process_disp(dispmoveBackthresh, icdtime, sexchromo, cdclimgentime)]
 	
 	# CDmatrix and Vars-------------------------------------
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
@@ -1218,18 +1220,18 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	# Straying parameters and cdmatrix
 	# -----------------------------------------------
 	# Apply the helper function for each straying parameter
-	FXXStrcdmatfile, MXYStrcdmatfile, MYYStrcdmatfile, FYYStrcdmatfile = [datadir + val for val in process_disp(straycdmatfile, icdtime, sexchromo, cdclimgentime)]
+	FXXStrcdmatfile, MXYStrcdmatfile, MYYStrcdmatfile, FYYStrcdmatfile = [datadir + val for val in modules.process_disp(straycdmatfile, icdtime, sexchromo, cdclimgentime)]
 
 	# Function numbers next ----------------
-	FXXStrno, MXYStrno, MYYStrno, FYYStrno = [val for val in process_disp(StrBackno, icdtime, sexchromo, cdclimgentime)]
+	FXXStrno, MXYStrno, MYYStrno, FYYStrno = [val for val in modules.process_disp(StrBackno, icdtime, sexchromo, cdclimgentime)]
 
 	# A, B, C next ---------------------------------------
-	FXXStrparA, MXYStrparA, MYYStrparA, FYYStrparA = [val for val in process_disp(StrBackparA, icdtime, sexchromo, cdclimgentime)]
-	FXXStrparB, MXYStrparB, MYYStrparB, FYYStrparB = [val for val in process_disp(StrBackparB, icdtime, sexchromo, cdclimgentime)]
-	FXXStrparC, MXYStrparC, MYYStrparC, FYYStrparC = [val for val in process_disp(StrBackparC, icdtime, sexchromo, cdclimgentime)]
+	FXXStrparA, MXYStrparA, MYYStrparA, FYYStrparA = [val for val in modules.process_disp(StrBackparA, icdtime, sexchromo, cdclimgentime)]
+	FXXStrparB, MXYStrparB, MYYStrparB, FYYStrparB = [val for val in modules.process_disp(StrBackparB, icdtime, sexchromo, cdclimgentime)]
+	FXXStrparC, MXYStrparC, MYYStrparC, FYYStrparC = [val for val in modules.process_disp(StrBackparC, icdtime, sexchromo, cdclimgentime)]
 
 	# Threshold -------------------------------------------
-	FXXStrthreshpass, MXYStrthreshpass, MYYStrthreshpass, FYYStrthreshpass = [val for val in process_disp(StrBackthresh, icdtime, sexchromo, cdclimgentime)]
+	FXXStrthreshpass, MXYStrthreshpass, MYYStrthreshpass, FYYStrthreshpass = [val for val in modules.process_disp(StrBackthresh, icdtime, sexchromo, cdclimgentime)]
 	
 	# CDmatrix and Vars--------------------------------------
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
@@ -1256,18 +1258,18 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	# Local Dispersal parameters and cdmatrix
 	# -----------------------------------------------
 	# Apply the helper function for each local dispersal parameter
-	FXXdispLocalcdmatfile, MXYdispLocalcdmatfile, MYYdispLocalcdmatfile, FYYdispLocalcdmatfile = [datadir + val for val in process_disp(dispLocalcdmatfile, icdtime, sexchromo, cdclimgentime)]
+	FXXdispLocalcdmatfile, MXYdispLocalcdmatfile, MYYdispLocalcdmatfile, FYYdispLocalcdmatfile = [datadir + val for val in modules.process_disp(dispLocalcdmatfile, icdtime, sexchromo, cdclimgentime)]
 
 	# Function numbers next ----------------
-	FXXdispLocalno, MXYdispLocalno, MYYdispLocalno, FYYdispLocalno = [val for val in process_disp(dispLocalno, icdtime, sexchromo, cdclimgentime)]
+	FXXdispLocalno, MXYdispLocalno, MYYdispLocalno, FYYdispLocalno = [val for val in modules.process_disp(dispLocalno, icdtime, sexchromo, cdclimgentime)]
 
 	# A, B, C next ---------------------------------------
-	FXXdispLocalparA, MXYdispLocalparA, MYYdispLocalparA, FYYdispLocalparA = [val for val in process_disp(dispLocalparA, icdtime, sexchromo, cdclimgentime)]
-	FXXdispLocalparB, MXYdispLocalparB, MYYdispLocalparB, FYYdispLocalparB = [val for val in process_disp(dispLocalparB, icdtime, sexchromo, cdclimgentime)]
-	FXXdispLocalparC, MXYdispLocalparC, MYYdispLocalparC, FYYdispLocalparC = [val for val in process_disp(dispLocalparC, icdtime, sexchromo, cdclimgentime)]
+	FXXdispLocalparA, MXYdispLocalparA, MYYdispLocalparA, FYYdispLocalparA = [val for val in modules.process_disp(dispLocalparA, icdtime, sexchromo, cdclimgentime)]
+	FXXdispLocalparB, MXYdispLocalparB, MYYdispLocalparB, FYYdispLocalparB = [val for val in modules.process_disp(dispLocalparB, icdtime, sexchromo, cdclimgentime)]
+	FXXdispLocalparC, MXYdispLocalparC, MYYdispLocalparC, FYYdispLocalparC = [val for val in modules.process_disp(dispLocalparC, icdtime, sexchromo, cdclimgentime)]
 
 	# Threshold -------------------------------------------
-	FXXdispLocalthreshpass, MXYdispLocalthreshpass, MYYdispLocalthreshpass, FYYdispLocalthreshpass = [val for val in process_disp(dispLocalthresh, icdtime, sexchromo, cdclimgentime)]
+	FXXdispLocalthreshpass, MXYdispLocalthreshpass, MYYdispLocalthreshpass, FYYdispLocalthreshpass = [val for val in modules.process_disp(dispLocalthresh, icdtime, sexchromo, cdclimgentime)]
 
 	# CDMatrix and Vars--------------------------------------
 	if sexchromo == 2 or sexchromo == 3 or sexchromo == 4:
@@ -1295,11 +1297,11 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	# ---------------------------------------------------------
 	# ---------------------------------------------------------------------------
 	# Assortative mating model pars ---------------------------
-	assortmateModel = str(split_or_get(assortmateModel_pass, icdtime, cdclimgentime))
-	assortmateC = float(split_or_get(assortmateC_pass, icdtime, cdclimgentime))
+	assortmateModel = str(modules.split_or_get(assortmateModel_pass, icdtime, cdclimgentime))
+	assortmateC = float(modules.split_or_get(assortmateC_pass, icdtime, cdclimgentime))
 	
 	# Subpopmort percent matrix file, check and read in 
-	subpopmort_file = split_or_get(subpopmort_pass, icdtime, cdclimgentime)
+	subpopmort_file = modules.split_or_get(subpopmort_pass, icdtime, cdclimgentime)
 	if subpopmort_file != 'N':
 		subpopmort_mat = np.asarray(np.asarray(ReadXY(datadir + subpopmort_file))[1:, 1:], dtype='float')
 		if len(np.unique(PopTag)) != len(subpopmort_mat[0]):
@@ -1310,19 +1312,19 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 	
 	# Plastic Temp/Hab values - plastic_signalres_pass,plastic_behaviorres_pass
 	if plasticans != 'N':
-		plastic_signalresp = float(split_or_get(plastic_signalresp_pass, icdtime, cdclimgentime))
-		plastic_behaviorresp = float(split_or_get(plastic_behaviorresp_pass, icdtime, cdclimgentime))
+		plastic_signalresp = float(modules.split_or_get(plastic_signalresp_pass, icdtime, cdclimgentime))
+		plastic_behaviorresp = float(modules.split_or_get(plastic_behaviorresp_pass, icdtime, cdclimgentime))
 	else:
 		plastic_signalresp = plastic_signalresp_pass
 		plastic_behaviorresp = plastic_behaviorresp_pass
 
 	# Mutation Rate
-	muterate = float(split_or_get(muterate_pass, icdtime, cdclimgentime))
+	muterate = float(modules.split_or_get(muterate_pass, icdtime, cdclimgentime))
 				
 	# ---------------------------------------------
 	# Read in Beta File for Multiple Loci Selection
 	# ---------------------------------------------
-	tempbetaFile_selection = datadir + split_or_get(betaFile_selection, icdtime, cdclimgentime)
+	tempbetaFile_selection = datadir + modules.split_or_get(betaFile_selection, icdtime, cdclimgentime)
 	tempbetas_selection = []
 	if cdevolveans.startswith('P'):
 		# Read in Beta File
@@ -1352,9 +1354,9 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		tempbetas_selection.append(0.0 if not betavals[0][0] else float(betavals[0][0]))
 	
 	# Maturation values - split by sexchromo possible - _set, _slope, _int
-	FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set=[val for val in process_disp(defaultMature_pass, icdtime, sexchromo, cdclimgentime)]
-	FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = [val for val in process_disp(mat_slope_pass, icdtime, sexchromo, cdclimgentime)]
-	FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= [val for val in process_disp(mat_int_pass, icdtime, sexchromo, cdclimgentime)]
+	FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set=[val for val in modules.process_disp(defaultMature_pass, icdtime, sexchromo, cdclimgentime)]
+	FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = [val for val in modules.process_disp(mat_slope_pass, icdtime, sexchromo, cdclimgentime)]
+	FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= [val for val in modules.process_disp(mat_int_pass, icdtime, sexchromo, cdclimgentime)]
 	
 	# ----------------------
 	# Patch based parameters
@@ -1369,47 +1371,47 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 			sys.exit(-1)
 
 		# Using split_or_get function to streamline the code
-		tempMgBack_patch_prob.append(float(split_or_get(MgBack_patch_prob[isub], icdtime, cdclimgentime)))
-		tempDisperse_patch_prob.append(float(split_or_get(Disperse_patch_prob[isub], icdtime, cdclimgentime)))
-		tempStr_patch_prob.append(float(split_or_get(Str_patch_prob[isub], icdtime, cdclimgentime)))
-		tempMgOut_patch_prob.append(float(split_or_get(MgOut_patch_prob[isub], icdtime, cdclimgentime)))
-		tempoutsize.append(split_or_get(outsizevals[isub], icdtime, cdclimgentime))
-		tempbacksize.append(split_or_get(backsizevals[isub], icdtime, cdclimgentime))
-		tempoutgrow.append(split_or_get(outgrowdays[isub], icdtime, cdclimgentime))
-		tempbackgrow.append(split_or_get(backgrowdays[isub], icdtime, cdclimgentime))
+		tempMgBack_patch_prob.append(float(modules.split_or_get(MgBack_patch_prob[isub], icdtime, cdclimgentime)))
+		tempDisperse_patch_prob.append(float(modules.split_or_get(Disperse_patch_prob[isub], icdtime, cdclimgentime)))
+		tempStr_patch_prob.append(float(modules.split_or_get(Str_patch_prob[isub], icdtime, cdclimgentime)))
+		tempMgOut_patch_prob.append(float(modules.split_or_get(MgOut_patch_prob[isub], icdtime, cdclimgentime)))
+		tempoutsize.append(modules.split_or_get(outsizevals[isub], icdtime, cdclimgentime))
+		tempbacksize.append(modules.split_or_get(backsizevals[isub], icdtime, cdclimgentime))
+		tempoutgrow.append(modules.split_or_get(outgrowdays[isub], icdtime, cdclimgentime))
+		tempbackgrow.append(modules.split_or_get(backgrowdays[isub], icdtime, cdclimgentime))
 
-		tempoutsize_sd.append(split_or_get(outsizevals_sd[isub], icdtime, cdclimgentime))
-		tempbacksize_sd.append(split_or_get(backsizevals_sd[isub], icdtime, cdclimgentime))
-		tempoutgrow_sd.append(split_or_get(outgrowdays_sd[isub], icdtime, cdclimgentime))
-		tempbackgrow_sd.append(split_or_get(backgrowdays_sd[isub], icdtime, cdclimgentime))
+		tempoutsize_sd.append(modules.split_or_get(outsizevals_sd[isub], icdtime, cdclimgentime))
+		tempbacksize_sd.append(modules.split_or_get(backsizevals_sd[isub], icdtime, cdclimgentime))
+		tempoutgrow_sd.append(modules.split_or_get(outgrowdays_sd[isub], icdtime, cdclimgentime))
+		tempbackgrow_sd.append(modules.split_or_get(backgrowdays_sd[isub], icdtime, cdclimgentime))
 
-		tempK.append(int(split_or_get(K[isub], icdtime, cdclimgentime)))
-		tempKstd.append(int(split_or_get(Kstd[isub], icdtime, cdclimgentime)))
+		tempK.append(int(modules.split_or_get(K[isub], icdtime, cdclimgentime)))
+		tempKstd.append(int(modules.split_or_get(Kstd[isub], icdtime, cdclimgentime)))
 		
 
-		temppopmort_back.append(split_or_get(popmort_back[isub], icdtime, cdclimgentime))
-		temppopmort_out.append(split_or_get(popmort_out[isub], icdtime, cdclimgentime))
-		tempeggmort.append(split_or_get(eggmort[isub], icdtime, cdclimgentime))
-		temppopmort_back_sd.append(float(split_or_get(popmort_back_sd[isub], icdtime, cdclimgentime)))
-		temppopmort_out_sd.append(float(split_or_get(popmort_out_sd[isub], icdtime, cdclimgentime)))
-		tempeggmort_sd.append(split_or_get(eggmort_sd[isub], icdtime, cdclimgentime))
+		temppopmort_back.append(modules.split_or_get(popmort_back[isub], icdtime, cdclimgentime))
+		temppopmort_out.append(modules.split_or_get(popmort_out[isub], icdtime, cdclimgentime))
+		tempeggmort.append(modules.split_or_get(eggmort[isub], icdtime, cdclimgentime))
+		temppopmort_back_sd.append(float(modules.split_or_get(popmort_back_sd[isub], icdtime, cdclimgentime)))
+		temppopmort_out_sd.append(float(modules.split_or_get(popmort_out_sd[isub], icdtime, cdclimgentime)))
+		tempeggmort_sd.append(modules.split_or_get(eggmort_sd[isub], icdtime, cdclimgentime))
 
-		temppopCapBack.append(split_or_get(pop_capture_back[isub], icdtime, cdclimgentime))
-		temppopCapOut.append(split_or_get(pop_capture_out[isub], icdtime, cdclimgentime))
+		temppopCapBack.append(modules.split_or_get(pop_capture_back[isub], icdtime, cdclimgentime))
+		temppopCapOut.append(modules.split_or_get(pop_capture_out[isub], icdtime, cdclimgentime))
 
-		tempN0.append(split_or_get(N0_pass[isub], icdtime, cdclimgentime))
-		tempAllelefile.append(split_or_get(allefreqfiles_pass[isub], icdtime, cdclimgentime))
-		tempClassVarsfile.append(split_or_get(classvarsfiles_pass[isub], icdtime, cdclimgentime))
-		tempcompcoef.append(split_or_get(comp_coef_pass[isub], icdtime, cdclimgentime))
+		tempN0.append(modules.split_or_get(N0_pass[isub], icdtime, cdclimgentime))
+		tempAllelefile.append(modules.split_or_get(allefreqfiles_pass[isub], icdtime, cdclimgentime))
+		tempClassVarsfile.append(modules.split_or_get(classvarsfiles_pass[isub], icdtime, cdclimgentime))
+		tempcompcoef.append(modules.split_or_get(comp_coef_pass[isub], icdtime, cdclimgentime))
 		#pdb.set_trace()
 		# Disease defense gene fitness
 		if implementdisease != 'N':
-			tempdiseaseVarsfile.append(split_or_get(alldiseaseVars_files[isub], icdtime, cdclimgentime))		
-			tempPathLoad.append(float(split_or_get(pathogen_load[isub], icdtime, cdclimgentime)))
+			tempdiseaseVarsfile.append(modules.split_or_get(alldiseaseVars_files[isub], icdtime, cdclimgentime))		
+			tempPathLoad.append(float(modules.split_or_get(pathogen_load[isub], icdtime, cdclimgentime)))
 			tempdisease_fitvals.append([])
 			#pdb.set_trace()
 			for i in range(len(disease_fitvals_pass[isub])): # Loop through 6 genotype combinations
-				diseasefitval = split_or_get(disease_fitvals_pass[isub][i], icdtime, cdclimgentime)  # Split or get based on icdtime
+				diseasefitval = modules.split_or_get(disease_fitvals_pass[isub][i], icdtime, cdclimgentime)  # Split or get based on icdtime
 				tempdisease_fitvals[isub].append(diseasefitval)
 		# No disease
 		else:
@@ -1421,20 +1423,20 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 		if len(fitvals) > 0: # This makes sure cdevolve ans is on			
 			tempfitvals.append([])
 			for i in range(len(fitvals[isub])): # loop through 9 genotype combinations
-				fitval = split_or_get(fitvals[isub][i], icdtime, cdclimgentime)  # Split or get based on icdtime
+				fitval = modules.split_or_get(fitvals[isub][i], icdtime, cdclimgentime)  # Split or get based on icdtime
 				if len(fitval.split('~')) > 1:  # G or M parameters []
 					tempfitvals[isub].append(fitval.split('~'))
 				else:  # Just fitness values 1 or 2
 					tempfitvals[isub].append(fitval)					
 			# Error checks
 			if cdevolveans == 'G':
-				validate(len(tempfitvals[isub][0][0].split(':')) != 6,'CDEVOLVE answer is G, 6 parameter values must be entered for growth equation, see user manual.')
+				modules.validate(len(tempfitvals[isub][0][0].split(':')) != 6,'CDEVOLVE answer is G, 6 parameter values must be entered for growth equation, see user manual.')
 			if cdevolveans == 'MG_ind' or cdevolveans == 'MG_link':
-				validate(len(tempfitvals[isub][0][0].split(':')) != 2 and len(len(tempfitvals[isub][3][0].split(':'))) != 6, 'CDEVOLVE answer is MG, 6 parameter values must be entered for growth equation and 2 for maturation equation, see user manual.')
+				modules.validate(len(tempfitvals[isub][0][0].split(':')) != 2 and len(len(tempfitvals[isub][3][0].split(':'))) != 6, 'CDEVOLVE answer is MG, 6 parameter values must be entered for growth equation and 2 for maturation equation, see user manual.')
 							
 		# MLocus Selection Variables
 		if len(xvars_betas_pass) > 0:
-			tempxvars_betas.append([split_or_get(xvars_betas_pass[isub][i], icdtime, cdclimgentime) for i in range(len(xvars_betas_pass[isub]))])
+			tempxvars_betas.append([modules.split_or_get(xvars_betas_pass[isub][i], icdtime, cdclimgentime) for i in range(len(xvars_betas_pass[isub]))])
 
 		# Error check on grow days, must be equal to 365 if both entered
 		if tempoutsize[isub] != 'N' and tempbacksize[isub] != 'N':
@@ -1442,13 +1444,13 @@ def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dis
 				print('Grow days back and out must be <= 365.')
 				sys.exit(-1)
 
-		tempouthabvals.append(split_or_get(outhabvals_pass[isub], icdtime, cdclimgentime))
-		tempbackhabvals.append(split_or_get(backhabvals_pass[isub], icdtime, cdclimgentime))
+		tempouthabvals.append(modules.split_or_get(outhabvals_pass[isub], icdtime, cdclimgentime))
+		tempbackhabvals.append(modules.split_or_get(backhabvals_pass[isub], icdtime, cdclimgentime))
 	#pdb.set_trace()
 	# -----------------------------------------------------
 	# Extract files to parameters - Disease vars
 	# -----------------------------------------------------
-	tupDisease_Vars = read_disease_vars_files(tempdiseaseVarsfile,datadir,implementdisease,tempPathLoad,tempdisease_fitvals)
+	tupDisease_Vars = disease.read_disease_vars_files(tempdiseaseVarsfile,datadir,implementdisease,tempPathLoad,tempdisease_fitvals)
 	#pdb.set_trace()
 	# -----------------------------------------------------
 	# Class Vars
@@ -1518,17 +1520,17 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 		#if not((sum(K_std) == sum(popmort_out_sd) == sum(popmort_back_sd)== sum(np.asarray(eggmort_sd,float))== sum(np.asarray(outsizevals_sd,float)) == sum(np.asarray(backsizevals_sd,float))== sum(np.asarray(outgrowdays_sd,float))== sum(np.asarray(backgrowdays_sd,float))== 0) and disease_vars['ImpDisease'] != 'N'):
 		for isub in range(len(K_mu)):
 			# K ------------------
-			stochastic_update(K_mu[isub],K_std[isub],K)
+			modules.stochastic_update(K_mu[isub],K_std[isub],K)
 			# mort out --------------
-			stochastic_update(popmort_out_mu[isub],popmort_out_sd[isub],popmort_out)
+			modules.stochastic_update(popmort_out_mu[isub],popmort_out_sd[isub],popmort_out)
 			# mort back ---------------
-			stochastic_update(popmort_back_mu[isub],popmort_back_sd[isub],popmort_back)
+			modules.stochastic_update(popmort_back_mu[isub],popmort_back_sd[isub],popmort_back)
 			# egg mort ------------------
-			stochastic_update(eggmort_mu[isub],eggmort_sd[isub],eggmort_patch)
+			modules.stochastic_update(eggmort_mu[isub],eggmort_sd[isub],eggmort_patch)
 			# temp vals out ----------------
-			stochastic_update(outsizevals_mu[isub],outsizevals_sd[isub],outsizevals, True)
+			modules.stochastic_update(outsizevals_mu[isub],outsizevals_sd[isub],outsizevals, True)
 			# temp vals back ----------------
-			stochastic_update(backsizevals_mu[isub],backsizevals_sd[isub],backsizevals, True)
+			modules.stochastic_update(backsizevals_mu[isub],backsizevals_sd[isub],backsizevals, True)
 			# grow days out ----------------
 			mu = outgrowdays_mu[isub]
 			sigma = outgrowdays_sd[isub]
@@ -1745,49 +1747,49 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 			for iage in range(len(age_percmort_back_mu[isub][ifile])):				
 				# age mu or fecundity for each individual (mean eggs) -----------------no sex split
 				# ---------------------------------------------------------------------------------
-				stochastic_update(age_mu[isub][ifile][iage],age_sigma[isub][ifile][iage],f_ind[isub][ifile])
+				modules.stochastic_update(age_mu[isub][ifile][iage],age_sigma[isub][ifile][iage],f_ind[isub][ifile])
 								
 				# f leslie --- -----------------no sex split
 				# ------------------------------------------
-				stochastic_update(f_leslie_mu[isub][ifile][iage],f_leslie_std[isub][ifile][iage],f_leslie[isub][ifile])			
+				modules.stochastic_update(f_leslie_mu[isub][ifile][iage],f_leslie_std[isub][ifile][iage],f_leslie[isub][ifile])			
 				
 				# age mort back ----------------
 				# Split if sex ratios given
-				temp_age_mu = sexsplit(age_percmort_back_mu[isub][ifile][iage],sexchromo)
-				temp_age_sd = sexsplit(age_percmort_back_sd[isub][ifile][iage],sexchromo)
+				temp_age_mu = modules.sexsplit(age_percmort_back_mu[isub][ifile][iage],sexchromo)
+				temp_age_sd = modules.sexsplit(age_percmort_back_sd[isub][ifile][iage],sexchromo)
 				temp_store_mu = []
 				for isex in range(len(temp_age_mu)):
-					stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
+					modules.stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
 				# Merge back with ~ 	
 				age_percmort_back[isub][ifile].append('~'.join(np.asarray(temp_store_mu,str)))
 				
 				# age mort out ----------------
 				# Split if sex ratios given
-				temp_age_mu = sexsplit(age_percmort_out_mu[isub][ifile][iage],sexchromo)
-				temp_age_sd = sexsplit(age_percmort_out_sd[isub][ifile][iage],sexchromo)
+				temp_age_mu = modules.sexsplit(age_percmort_out_mu[isub][ifile][iage],sexchromo)
+				temp_age_sd = modules.sexsplit(age_percmort_out_sd[isub][ifile][iage],sexchromo)
 				temp_store_mu = []
 				for isex in range(len(temp_age_mu)):
-					stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
+					modules.stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
 				# Merge back with ~ 	
 				age_percmort_out[isub][ifile].append('~'.join(np.asarray(temp_store_mu,str)))
 				
 				# size mort back  ----------------
 				# Split if sex ratios given
-				temp_age_mu = sexsplit(size_percmort_back_mu[isub][ifile][iage],sexchromo)
-				temp_age_sd = sexsplit(size_percmort_back_sd[isub][ifile][iage],sexchromo)
+				temp_age_mu = modules.sexsplit(size_percmort_back_mu[isub][ifile][iage],sexchromo)
+				temp_age_sd = modules.sexsplit(size_percmort_back_sd[isub][ifile][iage],sexchromo)
 				temp_store_mu = []				
 				for isex in range(len(temp_age_mu)):
-					stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
+					modules.stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
 				# Merge back with ~ 	
 				size_percmort_back[isub][ifile].append('~'.join(np.asarray(temp_store_mu,str)))
 								
 				# size mort out ----------------
 				# Split if sex ratios given
-				temp_age_mu = sexsplit(size_percmort_out_mu[isub][ifile][iage],sexchromo)
-				temp_age_sd = sexsplit(size_percmort_out_sd[isub][ifile][iage],sexchromo)
+				temp_age_mu = modules.sexsplit(size_percmort_out_mu[isub][ifile][iage],sexchromo)
+				temp_age_sd = modules.sexsplit(size_percmort_out_sd[isub][ifile][iage],sexchromo)
 				temp_store_mu = []
 				for isex in range(len(temp_age_mu)):
-					stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
+					modules.stochastic_update(temp_age_mu[isex],temp_age_sd[isex],temp_store_mu)
 				# Merge back with ~ 	
 				size_percmort_out[isub][ifile].append('~'.join(np.asarray(temp_store_mu,str)))
 			
@@ -1795,7 +1797,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	# For one numbers - PopVars
 	# ----------------------------------
 	temp_store_mu = []		
-	stochastic_update(age_percmort_back_mu_egg,age_percmort_back_sd_egg,temp_store_mu)
+	modules.stochastic_update(age_percmort_back_mu_egg,age_percmort_back_sd_egg,temp_store_mu)
 	eggmort_age = temp_store_mu[0]
 	if eggmort_age != 'N':
 		if eggmort_age > 1.:
@@ -1831,9 +1833,9 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	
 	# Mlocus selection is on, Xvars option at end of PatchVars
 	if cdevolveans.split('_')[0] == 'P':
-		validate((len(xy[1]) - int(cdevolveans.split('_')[1].split('X')[1])) != xvars_indexspot, 'PatchVars input file must be ' + str(xvars_indexspot) + ' columns plus the specified number of variables operating in the multiple loci selection model; see example input files.')
+		modules.validate((len(xy[1]) - int(cdevolveans.split('_')[1].split('X')[1])) != xvars_indexspot, 'PatchVars input file must be ' + str(xvars_indexspot) + ' columns plus the specified number of variables operating in the multiple loci selection model; see example input files.')
 	else:
-		validate(len(xy[1]) != xvars_indexspot, 'PatchVars input file is not correct version when implementing multilocus selection or disease, see example input files.')		
+		modules.validate(len(xy[1]) != xvars_indexspot, 'PatchVars input file is not correct version when implementing multilocus selection or disease, see example input files.')		
 					
 	# Store all information in lists by variable name from patchvars
 	Pop,xgridpop,ygridpop,PopTag,K_temp,Kstd_temp,N0_temp,natal_patches,migrate_patches,allefreqfiles_temp,classvarsfiles_temp = [],[],[],[],[],[],[],[],[],[],[]
@@ -1924,13 +1926,13 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 	# -----------------------------------------------------------------------------	
 		
 	# Check Deterministic mature set value either age or size - split by bar and sex options, icdtime = 0 and length of cdclimate just needs to match the split par length
-	FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set=[val for val in process_disp(defaultMature, 0, sexchromo, defaultMature)]
+	FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set=[val for val in modules.process_disp(defaultMature, 0, sexchromo, defaultMature)]
 				
 	# Logistic equation for maturation as a function of size - slope
-	FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = [val for val in process_disp(mat_slope, 0, sexchromo, mat_slope)]
+	FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope = [val for val in modules.process_disp(mat_slope, 0, sexchromo, mat_slope)]
 	
 	# Logistic equation for maturation as a function of size - intercept
-	FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= [val for val in process_disp(mat_int, 0, sexchromo, mat_int)]
+	FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int= [val for val in modules.process_disp(mat_int, 0, sexchromo, mat_int)]
 	
 	K, Kstd, pop_capture_back, N0, allefreqfiles, classvarsfiles, tempdiseaseVarsfile = [],[],[],[],[],[],[]
 	for isub in range(len(K_temp)):
@@ -1952,13 +1954,13 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 			if natal_patches[isub] == 0:
 				N0[isub] = '0'
 		elif int(N0[isub]) > 0 and natal_patches[isub] == 0:
-			logMsg(logfHndl,'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.')
+			modules.logMsg(logfHndl,'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.')
 			N0[isub] = '0'	
 	
 	# --------------------------------------------------------------
 	# Grab initial disease state variables needed for preprocessing
 	# --------------------------------------------------------------
-	tempDiseaseVars = read_disease_vars_files(tempdiseaseVarsfile, datadir,implementdisease,pathogen_load,disease_fitvals)
+	tempDiseaseVars = disease.read_disease_vars_files(tempdiseaseVarsfile, datadir,implementdisease,pathogen_load,disease_fitvals)
 		
 	# ----------------------------------------
 	# Initialize individual subpop, ID, States
@@ -2017,7 +2019,7 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 		# Stick error statement here for multiple files of genes and classvars
 		if len(allelst[isub]) != len(agelst[isub]):
 			stringout = 'Warning: Number of gene files and ClassVars files specified for patch, '+str(isub)+'are not the same. Will continue with initialization using files given using first files.'
-			logMsg(logfHndl,stringout)	
+			modules.logMsg(logfHndl,stringout)	
 	
 		# Storage variables
 		subpopemigration[0].append([0])
@@ -2180,7 +2182,7 @@ def AddIndividuals(SubpopIN,tempN0,tempAllelefile,tempClassVarsfile,datadir,loci
 	# ---------------------------------------------
 	for isub in range(len(tempN0)):
 		if sum(np.asarray(tempN0[isub].split(';'),int)) > 0 and natal_patches[isub] == 0:
-			logMsg(logfHndl,'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.')
+			modules.logMsg(logfHndl,'N0 specified in nonnatal grounds. Initializing N0 at patch '+str(isub+1)+' to 0.')
 			tempN0[isub] = 0
 	
 	# ----------------------------------------

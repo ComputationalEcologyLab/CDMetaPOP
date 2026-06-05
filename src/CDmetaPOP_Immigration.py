@@ -6,10 +6,12 @@
 # --------------------------------------------------------------------------------------------------
 
 # Python specific functions
-import pdb, copy, os, sys, multiprocessing
-from ast import literal_eval 
-from CDmetaPOP_Modules import *
+import sys, copy
+import multiprocessing as mp
 import numpy as np 
+
+# CDmetaPOP functions
+import CDmetaPOP_Modules as modules
 
 # ----------------------------------------------------------
 # Global symbols, if any :))
@@ -33,8 +35,8 @@ def logMsg(outf,msg):
 	if msgVerbose:
 		print(("%s"%(msg)))'''
 		
-	identity = multiprocessing.current_process()._identity
-	name = multiprocessing.current_process().name 
+	identity = mp.current_process()._identity
+	name = mp.current_process().name 
 	# Log all species in multispecies applications, otherwise only log 1 process for mc multiprocessing
 	if not identity or identity[0] == 1 or name[0]=='S':
 		outf.write(msg+ '\n')
@@ -94,8 +96,7 @@ def GetProbArray(offspring,answer,K,natal_patches,patchvals,cdevolveans,gen,plas
 	This function gets indices for F and M specific cdmatrix values
 	In direction cost, this is the row value; xycdmatrix[0] grabs column in original cdmatrix; xycdmatrix[:,0] grabs row vals in original cdmatrix or use xycdmatrix[currentpop][natalpop]
 	'''
-	#if answer == 'immigrator':
-	#	pdb.set_trace()
+
 	# Index into offspring array
 	currentoff = offspring
 	
@@ -565,10 +566,10 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 	
 	# If F Selection is On, then calculation of EHom here for entire population
 	if (cdevolveans.split('_')[0] == 'F' or cdevolveans.split('_')[0] == 'FHindex') and (gen >= burningen_cdevolve) and (timecdevolve.find('Back') != -1):
-		EHom = calc_EHom(SubpopIN)
+		EHom = modules.calc_EHom(SubpopIN)
 	else:
 		EHom = [] # Make empty to pass null into callDiffMortality funcitons
-	#pdb.set_trace()
+	
 	# Decide where everybody moves - loop through subpop, doesn't need to be shuffled.
 	for isub in range(len(SubpopIN)):
 
@@ -599,7 +600,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			# -----------------------------------------------------------------------------------------
 			#if isub + 1 != int(emipop): # If current patch is NOT the same as the individuals 'emipop' == 'Resident'
 			#if outpool['name'][0:4] == 'Age0':
-				#pdb.set_trace()
+				
 			if outpool['name'][0] == 'E' or (outpool['name'][0:4] == 'Age0' and not packans == 'anadromy' and egg_add == 'nonmating'):
 			#if outpool['name'][0] == 'E' or outpool['name'][0:4] == 'Age0':
 			#if outpool['name'][0] == 'E':
@@ -690,7 +691,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 											
 					# If genotype tied to stray rate
 					else:
-						#pdb.set_trace()
+						
 						if outpool_genes[0] == 2: #AA
 							indProb = float(fitvals[isub][0])
 						elif outpool_genes[0] == 1 and outpool_genes[1] == 1: #Aa
@@ -743,7 +744,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						# ----------------------------------------------------------
 						# Check CDEVOLVE Selection Death and spatial mortality Death
 						# ----------------------------------------------------------
-						differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+						differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
 													
 						# Then flip the coin to see if outpool survives its location
 						randcheck = np.random.uniform()
@@ -800,7 +801,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 								# ----------------------------------------------------------
 								# Check CDEVOLVE Selection Death and spatial mortality Death
 								# ----------------------------------------------------------
-								differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+								differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
 																								
 								# Then flip the coin to see if outpool survives its location
 								randcheck = np.random.uniform()
@@ -908,11 +909,11 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 									# Then it makes it back to original pop - or pop it came from
 									iteminlist = int(originalpop)-1
 									namethis = 'I'
-								#pdb.set_trace()	
+									
 								# ----------------------------------------------------------
 								# Check CDEVOLVE Selection Death and spatial mortality Death
 								# ----------------------------------------------------------
-								differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+								differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
 																								
 								# Then flip the coin to see if outpool survives its location
 								randcheck = np.random.uniform()
@@ -988,7 +989,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							# ----------------------------------------------------------
 							# Check CDEVOLVE Selection Death and spatial mortality Death
 							# ----------------------------------------------------------
-							differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+							differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
 																							
 							# Then flip the coin to see if outpool survives its location
 							randcheck = np.random.uniform()
@@ -1028,7 +1029,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# ------------------------------------------------------------
 				else:
 					# Check local dispersal, otherwise resident, not currently implemented
-					#pdb.set_trace()
+					
 					Disp_Patch = Disperse_patch_prob[int(isub)]
 					# Next check if it decides to local dispersal given population and age
 					indexofProb = outpool[sizecall] # Check for age/size 
@@ -1121,7 +1122,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					# ----------------------------------------------------------
 					# Check CDEVOLVE Selection Death and spatial mortality Death
 					# ----------------------------------------------------------
-					differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
+					differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)
 																					
 					# Then flip the coin to see if outpool survives its location
 					randcheck = np.random.uniform()
@@ -1203,7 +1204,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				# -----------------------------------------------------------
 				if outpool['name'][0:4] == 'Age0' and packans == 'anadromy' and indProbans_MgOut:
 					#if outpool['name'][0:4] == 'Age0' and indProbans_MgOut and packans == 'anadromy':
-					#pdb.set_trace()
+					
 					# -------------------------------------------------------------	--------------Then migrate Out				
 					# Get the probability array - call cdmatrix from current pop isub or natal pop to move to migration grounds only
 					probarray = GetProbArray(outpool,'localDispersal',K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut)				
@@ -1219,7 +1220,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						# ----------------------------------------------------------
 						# Check CDEVOLVE Selection Death and spatial mortality Death - Note selection option changed to OUT
 						# ----------------------------------------------------------
-						differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Out',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)													
+						differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Out',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)													
 						# Then flip the coin to see if outpool survives its location
 						randcheck = np.random.uniform()
 						# If outpool did not survive: break from loop, move to next outpool
@@ -1321,7 +1322,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							# ----------------------------------------------------------
 							# Check CDEVOLVE Selection Death and spatial mortality Death
 							# ----------------------------------------------------------
-							differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)													
+							differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)													
 							# Then flip the coin to see if outpool survives its location
 							randcheck = np.random.uniform()
 							# If outpool did not survive: break from loop, move to next outpool
@@ -1368,7 +1369,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						# ------------------------------
 						# Check CDEVOLVE Selection Death
 						# ------------------------------
-						differentialmortality = callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)												
+						differentialmortality = modules.callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,'Back',outpool,fitvals,iteminlist,patchvals,betas_selection,xvars_betas,maxfit,minfit,subpopmort_mat,PopTag,isub,EHom)												
 						# Then flip the coin to see if outpool survives its location
 						randcheck = np.random.uniform()
 						# If outpool did not survive: break from loop, move to next outpool
@@ -1404,7 +1405,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			
 	#End::For loop Subpop
 	#---------------------
-	#pdb.set_trace()
+	
 	# ----------------------------------------------
 	# SubpopIN - sort/rank/pack by Kage options
 	# ----------------------------------------------	
@@ -1431,7 +1432,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 	PackingDeathsAge[gen] = [[] for x in range(0,len(size_mean[0][0]))]
 	PopulationAge[gen] = [[] for x in range(0,len(size_mean[0][0]))]	
 	Kadj_track.append([])
-	#pdb.set_trace()
+	
 	# -------------------
 	# Packing is selected
 	# -------------------
@@ -1490,8 +1491,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				Kpop = Track_KadjEmi[gen][isub+1]
 						
 			if implementcomp == 'Back':
-				#if multiprocessing.current_process().name == "S1":
-				#	pdb.set_trace()	
+
 				# -----------------
 				# Adjustment for K if more than one species
 				# -----------------
@@ -1735,8 +1735,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				Kpop = Track_KadjEmi[gen][isub+1]
 						
 			if implementcomp == 'Back':
-				#if multiprocessing.current_process().name == "S1":
-				#	pdb.set_trace()	
+
 				# -----------------
 				# Adjustment for K if more than one species
 				# -----------------
@@ -1990,8 +1989,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				Kpop = Track_KadjEmi[gen][isub+1]
 			
 			if implementcomp == 'Back':
-				#if multiprocessing.current_process().name == "S1":
-				#	pdb.set_trace()	
+
 				# -----------------
 				# Adjustment for K if more than one species
 				# -----------------
@@ -2167,7 +2165,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						# CDEVOLVE Packing option off
 						else:
 							# Grab a random number of Kused from Nage sample. 
-							#pdb.set_trace()
+							
 							Nage_samp_ind.append(np.random.choice(Nage_index,Kused_new[iage],replace=False).tolist())
 							# Tracking numbers ----------------------------------
 							Track_YYSelectionPackDeaths[gen][isub].append(0)
@@ -2177,7 +2175,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						#Then all the tracking stuff can go here						
 								
 			# Clean up index
-			#pdb.set_trace()
+			
 			Nage_samp_ind = sum(Nage_samp_ind,[])
 				
 			# Append all information to temp SubpopKeep variable
@@ -2273,8 +2271,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				Kpop = Track_KadjEmi[gen][isub+1]
 						
 			if implementcomp == 'Back':
-				#if multiprocessing.current_process().name == "S1":
-				#	pdb.set_trace()	
+
 				# -----------------
 				# Adjustment for K if more than one species
 				# -----------------
@@ -2613,8 +2610,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				Kpop = Track_KadjEmi[gen][isub+1]
 				
 			if implementcomp == 'Back':
-				#if multiprocessing.current_process().name == "S1":
-				#	pdb.set_trace()	
+	
 				# -----------------
 				# Adjustment for K if more than one species
 				# -----------------
@@ -2715,8 +2711,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					sys.exit(-1)
 			Ntself_pop = []
 			# Length of each patch without age 0s
-			#if multiprocessing.current_process().name == "S0":
-				#ForkablePdb().set_trace()	
+
 				# Adjusting N instead of adjusting K
 			for isub in range(0,len(SubpopIN_keep)):
 				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
@@ -2770,8 +2765,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				Nt = Ntself_pop[isub]
 				# Keep track of P for logistic P/K 
 				Pisub = sum(Nt)
-				#if multiprocessing.current_process().name == "S1":
-					#ForkablePdb().set_trace()
+
 				# ----------------------------
 				# Parameters for Second species (comp_coef = alpha2_1)
 				# ----------------------------
@@ -2814,8 +2808,6 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						print('Leslie matrix option does not allow for multiple classvars.')
 						sys.exit(-1)
 					fecund = np.asarray(f_leslie[isub][0], dtype=float) #Import from classvars
-					#if multiprocessing.current_process().name == "S0":
-					#	ForkablePdb().set_trace()	
 									
 					Mb = [] # Create N x N-1 matrix				
 					for idx in range(len(fecund)-1): 
@@ -2852,7 +2844,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					# Add a check here for if length of Nt is not len of fecund
 					if len(Nt) != len(fecund): 
 						print("Check code")
-						pdb.set_trace()
+						sys.exit(-1)
 					
 					# Get total number of deaths for each age class
 					Ntplus1 = np.exp((igr*-1)*(Pisub/Kpop))*(np.dot(M,Nt))
@@ -2979,7 +2971,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 	for iage in range(len(PopulationAge[gen])): 
 		PopulationAge[gen][iage] = sum(PopulationAge[gen][iage])
 		PackingDeathsAge[gen][iage] = sum(PackingDeathsAge[gen][iage])		
-	#pdb.set_trace()	
+		
 	return SubpopIN_keepK
 	
 	# End::DoImmigration()

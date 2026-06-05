@@ -25,12 +25,9 @@ msgVerbose = False
 import time, os, sys, warnings
 from dataclasses import dataclass
 from typing import List
-
-# For parallel processing
 import multiprocessing as mp
 
 # CDmetaPOP functions
-import CDmetaPOP_Modules as modules
 import CDmetaPOP_PreProcess as preprocess
 import CDmetaPOP_mainloop as mainloop
 
