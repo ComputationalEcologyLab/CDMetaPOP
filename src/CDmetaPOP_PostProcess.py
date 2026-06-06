@@ -14,32 +14,6 @@ import CDmetaPOP_Modules as modules
 import CDmetaPOP_Disease as disease
 
 warnings.filterwarnings("ignore")
-	
-# ---------------------------------------------------------------------------------------------------	 
-def w_choice_general(lst):
-	'''
-	w_choice_general()
-	Weighted random draw from a list, probilities do not have to add to one.
-	'''
-	wtotal=sum(x[1] for x in lst)
-	n=np.random.uniform(0,wtotal)
-	count = 0
-	for item, weight in lst:
-		if n < weight:
-			break
-		n = n-weight
-		count = count + 1
-	return item,count
-	
-	#End::w_choice_general()
-
-# ---------------------------------------------------------------------------------------------------
-def count_unique(keys):
-    uniq_keys = np.unique(keys)
-    bins = uniq_keys.searchsorted(keys)
-    return uniq_keys, np.bincount(bins)
-	
-	#End::count_unique()
 
 # ---------------------------------------------------------------------------------------------------	 
 def DoGridOut_general(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot):
@@ -94,7 +68,7 @@ def DoGridOut_general(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot):
 			subpop_cdpop.append(x[ispot+1][0])
 		
 		# Get the number of individuals in each pop
-		unipatches = count_unique(subpop_cdpop)
+		unipatches = modules.count_unique(subpop_cdpop)
 		patchN = []
 		# loop through all the patches
 		for ipatch in range(subpopno):
@@ -280,7 +254,7 @@ def DoGridOut_genalex(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot):
 			subpop_cdpop.append(x[ispot+1][0])
 		
 		# Get the number of individuals in each pop
-		unipatches = count_unique(subpop_cdpop)
+		unipatches = modules.count_unique(subpop_cdpop)
 		patchN = []
 		# loop through all the patches
 		for ipatch in range(subpopno):
@@ -459,7 +433,7 @@ def DoGridOut_structure(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot)
 			subpop_cdpop.append(x[ispot+1][0])
 		
 		# Get the number of individuals in each pop
-		unipatches = count_unique(subpop_cdpop)
+		unipatches = modules.count_unique(subpop_cdpop)
 		patchN = []
 		# loop through all the patches
 		for ipatch in range(subpopno):
@@ -623,7 +597,7 @@ def DoGridOut_genepop(loci,alleles,ithmcrundir,logfHndl,subgridtotal,genespot):
 			subpop_cdpop.append(x[ispot+1][0])
 		
 		# Get the number of individuals in each pop
-		unipatches = count_unique(subpop_cdpop)
+		unipatches = modules.count_unique(subpop_cdpop)
 		patchN = []
 		# loop through all the patches
 		for ipatch in range(subpopno):

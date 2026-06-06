@@ -139,9 +139,27 @@ def w_choice_general(lst):
 			break
 		n = n-weight
 		count = count + 1
+	# The case where all of the values in lst are the same
+	if len(lst) == count:
+		count = count-1
 	return item,count
-	
 	#End::w_choice_general()
+	
+# ---------------------------------------------------------------------------------------------------	 
+def w_choice_item(lst):
+	'''
+	w_choice_item()
+	Weighted random draw from a list, probilities do not have to add to one.
+	'''
+	wtotal=sum(lst)
+	n=np.random.uniform(0,wtotal)
+	for i in range(len(lst)):
+		if n < lst[i]:
+			break
+		n = n-lst[i]
+	return i
+	
+	#End::w_choice_item()
 
 # ---------------------------------------------------------------------------------------------------	 
 def stochastic_update(mu,sigma,list_value,allow_negative=None):

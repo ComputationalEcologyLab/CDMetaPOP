@@ -12,14 +12,6 @@ import numpy as np
 # CDmetaPOP functions
 import CDmetaPOP_Modules as modules
 
-# ---------------------------------------------------------------------------------------------------
-def count_unique(keys):
-    uniq_keys = np.unique(keys)
-    bins = uniq_keys.searchsorted(keys)
-    return uniq_keys, np.bincount(bins)
-	
-	#End::count_unique()
-
 # ---------------------------------------------------------------------------------------------------	
 def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,gen,sizeans,age_mature,noOffspring,size_std,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,SubpopIN_keepAge1plus,PopTag,disease_vars,K):
 
@@ -571,7 +563,7 @@ def DoOffspringClutch(Bearpairs,dtype,noOffspring):
 		# Get just mothers
 		mothers = Bearpairs[:,0]
 		mothers = np.asarray(mothers,dtype=dtype)
-		unimo = count_unique(mothers['name']) # Grabs unique mothers name unimo[0] and the count of that name unimo[1]
+		unimo = modules.count_unique(mothers['name']) # Grabs unique mothers name unimo[0] and the count of that name unimo[1]
 		
 		# For each unique mother, get sum of each instance of that unique mother / count of that unique mother
 		for imo in range(len(unimo[0])):

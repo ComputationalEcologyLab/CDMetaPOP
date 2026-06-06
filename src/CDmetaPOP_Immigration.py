@@ -12,51 +12,6 @@ import numpy as np
 
 # CDmetaPOP functions
 import CDmetaPOP_Modules as modules
-
-# ---------------------------------------------------------------------------------------------------	 
-def w_choice_general(lst):
-	'''
-	w_choice_general()
-	Weighted random draw from a list, probilities do not have to add to one.
-	'''
-	wtotal=sum(x[1] for x in lst)
-	n=np.random.uniform(0,wtotal)
-	count = 0
-	for item, weight in lst:
-		if n < weight:
-			break
-		n = n-weight
-		count = count + 1
-	# The case where all of the values in lst are the same
-	if len(lst) == count:
-		count = count-1
-	return item,count
-	
-	#End::w_choice_general()	
-
-# ---------------------------------------------------------------------------------------------------	 
-def w_choice_item(lst):
-	'''
-	w_choice_item()
-	Weighted random draw from a list, probilities do not have to add to one.
-	'''
-	wtotal=sum(lst)
-	n=np.random.uniform(0,wtotal)
-	for i in range(len(lst)):
-		if n < lst[i]:
-			break
-		n = n-lst[i]
-	return i
-	
-	#End::w_choice_item()
-
-# ---------------------------------------------------------------------------------------------------
-def count_unique(keys):
-    uniq_keys = np.unique(keys)
-    bins = uniq_keys.searchsorted(keys)
-    return uniq_keys, np.bincount(bins)
-	
-	#End::count_unique()
 	
 # ---------------------------------------------------------------------------------------------------	
 def GetProbArray(offspring,answer,K,natal_patches,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXX,cdmatrix_MXY,cdmatrix_MYY,cdmatrix_FYY,fitvals=None):
@@ -698,7 +653,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						if sum(probarray) != 0.0:
 						
 							# Select the w_choice item
-							iteminlist = w_choice_item(probarray)
+							iteminlist = modules.w_choice_item(probarray)
 							namethis = 'S'
 						
 						# If spot was not available to stray to ('Move Deaths')
@@ -764,7 +719,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							if len(probarray) > 1:
 								
 								# Select the w_choice item to move to
-								iteminlist = w_choice_item(probarray)
+								iteminlist = modules.w_choice_item(probarray)
 								namethis = 'I'
 								
 								# ----------------------------------------------------------
@@ -859,7 +814,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 									if sum(probarray_LD) != 0.0:
 									
 										# Select the w_choice item
-										iteminlist = w_choice_item(probarray_LD)
+										iteminlist = modules.w_choice_item(probarray_LD)
 										namethis = 'ID'									
 										
 									# No spots available to move to, then stays in natal patch
@@ -943,7 +898,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 							if sum(probarray) != 0.0:
 								
 								# Select the w_choice item
-								iteminlist = w_choice_item(probarray)
+								iteminlist = modules.w_choice_item(probarray)
 								namethis = 'Z'
 								
 							# If statement to check if there were not spots to disperse to in straying
@@ -1053,7 +1008,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						if sum(probarray_LD) != 0.0:
 							
 							# Select the w_choice item
-							iteminlist = w_choice_item(probarray_LD)
+							iteminlist = modules.w_choice_item(probarray_LD)
 							
 							# Age0s should not turn Es here - RDs
 							if outpool['name'][0:4] == 'Age0':
@@ -1184,7 +1139,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 					if sum(probarray) != 0.0:
 						
 						# Select the w_choice item
-						iteminlist = w_choice_item(probarray)	
+						iteminlist = modules.w_choice_item(probarray)	
 						
 						# ----------------------------------------------------------
 						# Check CDEVOLVE Selection Death and spatial mortality Death - Note selection option changed to OUT
@@ -1286,7 +1241,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 						if sum(probarray) != 0.0:
 							
 							# Select the w_choice item
-							iteminlist = w_choice_item(probarray)	
+							iteminlist = modules.w_choice_item(probarray)	
 							
 							# ----------------------------------------------------------
 							# Check CDEVOLVE Selection Death and spatial mortality Death
@@ -1443,10 +1398,10 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			if sizecall == 'size': # Careful here and use first ClassVars
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(SubpopIN_arr['age'])
+				countages = modules.count_unique(SubpopIN_arr['age'])
 			
 			# ------------------------
 			# Get packing parameters
@@ -1687,10 +1642,10 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			if sizecall == 'size': # Careful here and use first ClassVars
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(SubpopIN_arr['age'])
+				countages = modules.count_unique(SubpopIN_arr['age'])
 			
 			# ------------------------
 			# Get packing parameters
@@ -1941,10 +1896,10 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			if sizecall == 'size': # Careful here and use first ClassVars
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(SubpopIN_arr['age'])
+				countages = modules.count_unique(SubpopIN_arr['age'])
 			
 			# ------------------------
 			# Get packing parameters
@@ -2219,10 +2174,10 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			if sizecall == 'size': # Careful here and use first ClassVars
 				age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_arr[sizecall])
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(SubpopIN_arr['age'])
+				countages = modules.count_unique(SubpopIN_arr['age'])
 			
 			# ------------------------
 			# Get packing parameters
@@ -2685,7 +2640,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 			for isub in range(0,len(SubpopIN_keep)):
 				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
 				thisone = SubpopIN_arr['age']
-				thisone_ages = count_unique(thisone[np.where(thisone!=0)])
+				thisone_ages = modules.count_unique(thisone[np.where(thisone!=0)])
 				# Create Nt from countages
 				Nt = []
 				# Exclude age 0s that were just added
@@ -2724,7 +2679,7 @@ def Immigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,SelectionDeaths
 				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
 				
 				# Count up each uniages - logistic function uses actual ages even if size control is specified.
-				countages = count_unique(SubpopIN_arr['age']) # ages will be 1+
+				countages = modules.count_unique(SubpopIN_arr['age']) # ages will be 1+
 				
 				# K,N for this population
 				Kpop = K[isub]
@@ -3234,7 +3189,7 @@ def DoImmigration(SubpopIN,K,natal_patches,gen,cdevolveans,fitvals,subpopmigrati
 		for isub in range(0,len(SubpopIN)): # list of lists N by age for each patch
 			SubpopIN_arr = np.array(SubpopIN[isub],dtype=dtype)
 			thisone = SubpopIN_arr['age']
-			thisone_ages = count_unique(thisone[np.where(thisone!=0)])
+			thisone_ages = modules.count_unique(thisone[np.where(thisone!=0)])
 			# Create Nt from countages
 			Nt = []
 			# Exclude age 0s that were just added

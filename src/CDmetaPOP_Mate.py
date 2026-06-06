@@ -10,16 +10,9 @@ import sys, copy
 import numpy as np
 
 # CDmetaPOP functions
+import CDmetaPOP_Modules as modules
 import CDmetaPOP_Offspring2 as offspring
 import CDmetaPOP_Mortality as mortality
-
-# ---------------------------------------------------------------------------------------------------
-def count_unique(keys):
-    uniq_keys = np.unique(keys)
-    bins = uniq_keys.searchsorted(keys)
-    return uniq_keys, np.bincount(bins)
-	
-#End::count_unique()	
 	
 # ---------------------------------------------------------------------------------------------------
 def DoSummaryMate(Bearpairs,sourcePop,xycdmatrix,matemoveno,matemovethresh,ScaleMax, ScaleMin, A, B, C,MateDistCD,MateDistCDstd,Female_BreedEvents, AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,femalesmated,gen,outputans):
@@ -89,22 +82,6 @@ def DoSummaryMate(Bearpairs,sourcePop,xycdmatrix,matemoveno,matemovethresh,Scale
 	AaAaMates[gen] = sum(AaAaMates[gen])
 	
 	#END::DoSummaryMate()
-	
-# ---------------------------------------------------------------------------------------------------	 
-def w_choice_item(lst):
-	'''
-	w_choice_item()
-	Weighted random draw from a list, probilities do not have to add to one.
-	'''
-	wtotal=sum(lst)
-	n=np.random.uniform(0,wtotal)
-	for i in range(len(lst)):
-		if n < lst[i]:
-			break
-		n = n-lst[i]
-	return i
-	
-	#End::w_choice_item()
 
 # ---------------------------------------------------------------------------------------------------	
 def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateC,assortmateModel,xycdmatrix,females,males,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat,natal_patches,K,intfemale):
@@ -138,7 +115,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 		# continue to check possible patch locations of female to find a male.
 		while sum(tempprobarray) != 0.0: 		
 			# Select the w_choice item: this is the patch that a male will come from
-			itemselect = w_choice_item(tempprobarray)
+			itemselect = modules.w_choice_item(tempprobarray)
 			
 			# Then select all the males in this patch: add one to index to select out subpop
 			patchindex = np.where(males[sourcePop]== str(itemselect+1))[0]
@@ -207,7 +184,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				# Get the males Hindex and frequency of each
 				female_hindex = np.around(females[intfemale]['hindex'],1)
 				males_hindex = np.around(patchmales['hindex'],1)
-				males_hindex_count = count_unique(males_hindex)
+				males_hindex_count = modules.count_unique(males_hindex)
 				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
 				
 				# Calculate probability
@@ -216,7 +193,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
 				
 				# Take a weigthed draw from the 3 genotypes
-				selectMaleGenotype = w_choice_item(males_hindex_prob)
+				selectMaleGenotype = modules.w_choice_item(males_hindex_prob)
 					
 				# Get selected males of preferential hindex
 				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
@@ -229,7 +206,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				# Get the males Hindex and frequency of each
 				female_hindex = np.around(females[intfemale]['hindex'],1)
 				males_hindex = np.around(patchmales['hindex'],1)
-				males_hindex_count = count_unique(males_hindex)
+				males_hindex_count = modules.count_unique(males_hindex)
 				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
 				
 				# Calculate probability for females with 1.0 (all males except 0.0)
@@ -248,7 +225,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
 				
 				# Take a weigthed draw from the 3 genotypes
-				selectMaleGenotype = w_choice_item(males_hindex_prob)
+				selectMaleGenotype = modules.w_choice_item(males_hindex_prob)
 					
 				# Get selected males of preferential hindex
 				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
@@ -262,7 +239,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 					# Get the males Hindex and frequency of each
 					female_hindex = np.around(females[intfemale]['hindex'],1)
 					males_hindex = np.around(patchmales['hindex'],1)
-					males_hindex_count = count_unique(males_hindex)
+					males_hindex_count = modules.count_unique(males_hindex)
 					males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
 				
 					# Calculate probability for females greater than 0.0 (all males except 0.0)
@@ -278,7 +255,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 					males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
 					
 					# Take a weigthed draw from the 3 genotypes
-					selectMaleGenotype = w_choice_item(males_hindex_prob)
+					selectMaleGenotype = modules.w_choice_item(males_hindex_prob)
 						
 					# Get selected males of preferential hindex
 					patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
@@ -293,14 +270,14 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 					female_genes = females[intfemale]['genes'][0:2]
 					# Get the males Genes and frequency of each
 					males_genes = patchmales['genes'][:,0:2]
-					males_genes_count = count_unique(males_genes[:,0])
+					males_genes_count = modules.count_unique(males_genes[:,0])
 					males_genes_fj = males_genes_count[1]/float(sum(males_genes_count[1]))
 					# Correct for aa (see Equ in M'Gonigle paper) - kronecker's delta = 0 for sneakers (dgs2020)					
 					males_genes_prob = assortmateC ** (males_genes_count[0] > 0) * males_genes_fj
 					# Normalized
 					males_genes_prob = males_genes_prob / sum(males_genes_prob)
 					# Take a weigthed draw from the 3 genotypes
-					selectMaleGenotype = w_choice_item(males_genes_prob)
+					selectMaleGenotype = modules.w_choice_item(males_genes_prob)
 					
 					# Get selected males of preferential hindex
 					patchmales = patchmales[np.where(males_genes[:,0]==males_genes_count[0][selectMaleGenotype])[0]]
@@ -313,7 +290,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				female_hindex = np.around(females[intfemale]['hindex'],1)											 
 				# Get the males Hindex and frequency of each
 				males_hindex = np.around(patchmales['hindex'],1)
-				males_hindex_count = count_unique(males_hindex)
+				males_hindex_count = modules.count_unique(males_hindex)
 				males_hindex_fj = males_hindex_count[1]/float(sum(males_hindex_count[1]))
 									
 				# Calculate probability
@@ -322,7 +299,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 				males_hindex_prob = males_hindex_prob / sum(males_hindex_prob)
 											
 				# Take a weigthed draw from the 3 genotypes
-				selectMaleGenotype = w_choice_item(males_hindex_prob)
+				selectMaleGenotype = modules.w_choice_item(males_hindex_prob)
 					
 				# Get selected males of preferential hindex
 				patchmales = patchmales[males_hindex == males_hindex_count[0][selectMaleGenotype]]
@@ -430,7 +407,7 @@ males,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count
 		while sum(tempprobarray) != 0.0: 	
 		
 			# Select the w_choice item: this is the patch that a male will come from
-			itemselect = w_choice_item(tempprobarray)
+			itemselect = modules.w_choice_item(tempprobarray)
 			
 			# Then select all the males in this patch: add one to index to select out subpop
 			patchindex = np.where(males[sourcePop]== str(itemselect+1))[0]

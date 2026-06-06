@@ -15,51 +15,6 @@ import CDmetaPOP_Modules as modules
 from CDmetaPOP_Offspring2 import DoOffspringVars, AddAge0s
 #import CDmetaPOP_Offspring2 as offspring
 print("Fix this after imputs fixed")
-
-# ---------------------------------------------------------------------------------------------------	 
-def w_choice_general(lst):
-	'''
-	w_choice_general()
-	Weighted random draw from a list, probilities do not have to add to one.
-	'''
-	wtotal=sum(x[1] for x in lst)
-	n=np.random.uniform(0,wtotal)
-	count = 0
-	for item, weight in lst:
-		if n < weight:
-			break
-		n = n-weight
-		count = count + 1
-	# The case where all of the values in lst are the same
-	if len(lst) == count:
-		count = count-1
-	return item,count
-	
-	#End::w_choice_general()	
-
-# ---------------------------------------------------------------------------------------------------
-def count_unique(keys):
-    uniq_keys = np.unique(keys)
-    bins = uniq_keys.searchsorted(keys)
-    return uniq_keys, np.bincount(bins)
-	
-	#End::count_unique()
-	
-# ---------------------------------------------------------------------------------------------------	 
-def w_choice_item(lst):
-	'''
-	w_choice_item()
-	Weighted random draw from a list, probilities do not have to add to one.
-	'''
-	wtotal=sum(lst)
-	n=np.random.uniform(0,wtotal)
-	for i in range(len(lst)):
-		if n < lst[i]:
-			break
-		n = n-lst[i]
-	return i
-	
-	#End::w_choice_item()
 	
 # ---------------------------------------------------------------------------------------------------	
 def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut):
@@ -478,7 +433,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				if sum(probarray) != 0.0:
 					
 					# Select the w_choice item
-					iteminlist = w_choice_item(probarray)
+					iteminlist = modules.w_choice_item(probarray)
 					
 					# ----------------------------------------------------------
 					# Check CDEVOLVE Selection Death and spatial mortality Death
@@ -754,10 +709,10 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			if sizecall == 'size':
 				age_adjusted = np.searchsorted(size_mean_middles, tempSizePatch)
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(tempAgePatch)
+				countages = modules.count_unique(tempAgePatch)
 				age_adjusted = tempAgePatch
 				
 			# ------------------------
@@ -1137,10 +1092,10 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			if sizecall == 'size':
 				age_adjusted = np.searchsorted(size_mean_middles, tempSizePatch)
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(tempAgePatch)
+				countages = modules.count_unique(tempAgePatch)
 				age_adjusted = tempAgePatch
 				
 			# ------------------------
@@ -1557,10 +1512,10 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			if sizecall == 'size':
 				age_adjusted = np.searchsorted(size_mean_middles, tempSizePatch)
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(tempAgePatch)
+				countages = modules.count_unique(tempAgePatch)
 				age_adjusted = tempAgePatch
 				
 			# ------------------------
@@ -1958,10 +1913,10 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			if sizecall == 'size':
 				age_adjusted = np.searchsorted(size_mean_middles, tempSizePatch)
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(tempAgePatch)
+				countages = modules.count_unique(tempAgePatch)
 				age_adjusted = tempAgePatch
 			
 			# Tracking N before packing
@@ -2197,10 +2152,10 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			if sizecall == 'size':
 				age_adjusted = np.searchsorted(size_mean_middles, tempSizePatch)
 				# Count up each unique 'sizes'
-				countages = count_unique(age_adjusted)
+				countages = modules.count_unique(age_adjusted)
 			else:
 				# Count up each uniages
-				countages = count_unique(tempAgePatch)
+				countages = modules.count_unique(tempAgePatch)
 				age_adjusted = tempAgePatch
 			
 			# Tracking N before packing
@@ -2313,7 +2268,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 			for isub in range(0,len(SubpopIN_keep)):
 				SubpopIN_arr = np.array(SubpopIN_keep[isub],dtype=dtype)
 				thisone = SubpopIN_arr['age']
-				thisone_ages = count_unique(thisone[np.where(thisone!=0)])
+				thisone_ages = modules.count_unique(thisone[np.where(thisone!=0)])
 				# Create Nt from countages
 				Nt = []
 				# Exclude age 0s to calculate mortality on present gen (Nt+1) from past gen (Nt)
@@ -2468,7 +2423,7 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 				# Count up each uniages (size not an option for logistic)
 				#countages = count_unique(SubpopIN_arr['age']) # ages will be 1+
 				#age_adjusted = SubpopIN_arr['age']
-				countages = count_unique(tempAgePatch) #CCD
+				countages = modules.count_unique(tempAgePatch) #CCD
 				age_adjusted = tempAgePatch #CCD
 				# K,N for this population
 				Kpop = K[isub]

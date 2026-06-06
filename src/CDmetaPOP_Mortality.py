@@ -9,14 +9,6 @@
 import pdb, sys, numbers
 import numpy as np
 
-# ---------------------------------------------------------------------------------------------------
-def count_unique(keys):
-    uniq_keys = np.unique(keys)
-    bins = uniq_keys.searchsorted(keys)
-    return uniq_keys, np.bincount(bins)
-	
-	#End::count_unique()
-
 # ----------------------------------------------------------------------------------------------	 
 def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Population,AgeDeaths,sizecall,size_mean,size_percmort,SizeDeaths,sexchromo):
 	'''
@@ -61,12 +53,12 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 		if pop_percmort[isub] == 'E' and Npop != 0:
 			# First get the age/size death tracking numbers			
 			age_adjusted_tracking_index = np.searchsorted(size_mean_middles_bin, SubpopIN_arr['size'])
-			countages = count_unique(age_adjusted_tracking_index)
+			countages = modules.count_unique(age_adjusted_tracking_index)
 			for thiscount in countages[0]:
 				SizeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
 			# For age...
 			age_tracking_index = SubpopIN_arr['age']
-			countages = count_unique(age_tracking_index)
+			countages = modules.count_unique(age_tracking_index)
 			for thiscount in countages[0]:
 				# Special case when more age/size groups then bins
 				if thiscount >= len(size_bin):
@@ -126,7 +118,7 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 				# Apply size level mortality
 				# ----------------------------
 				# First check for multiple classfiles, split up 
-				countfiles = count_unique(SubpopIN_keeppop['classfile'])
+				countfiles = modules.count_unique(SubpopIN_keeppop['classfile'])
 				# Storage for keeping individuals
 				N_samp_ind = []
 				# Then for each unique file type
@@ -144,7 +136,7 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 					age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keeppop_thistype['size'])
 					
 					# Count up each unique 'sizes'
-					countages = count_unique(age_adjusted)
+					countages = modules.count_unique(age_adjusted)
 					
 					# Loop through age getting Nage in pop		
 					for iage in range(len(countages[0])):
@@ -234,7 +226,7 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 					age_adjusted = SubpopIN_keeppop_thistype['age']
 				
 					# Count up each uniages
-					countages = count_unique(age_adjusted)
+					countages = modules.count_unique(age_adjusted)
 				
 					# Loop through age getting Nage in pop						
 					for iage in range(len(countages[0])):
@@ -308,12 +300,12 @@ def ConstantMortality_Add(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,gen,Pop
 			else:
 				# Get the ones that died and age_adjusted for tracking
 				age_adjusted_tracking_index = np.searchsorted(size_mean_middles_bin, SubpopIN_arr['size'])
-				countages = count_unique(age_adjusted_tracking_index)
+				countages = modules.count_unique(age_adjusted_tracking_index)
 				for thiscount in countages[0]:
 					SizeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
 				# For age...
 				age_tracking_index = SubpopIN_arr['age']
-				countages = count_unique(age_tracking_index)
+				countages = modules.count_unique(age_tracking_index)
 				for thiscount in countages[0]:
 					# Special case when more age/size groups then bins
 					if thiscount >= len(size_bin):
@@ -384,12 +376,12 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 		if pop_percmort[isub] == 'E' and Npop != 0:
 			# First get the age/size death tracking numbers			
 			age_adjusted_tracking_index = np.searchsorted(size_mean_middles_bin, SubpopIN_arr['size'])
-			countages = count_unique(age_adjusted_tracking_index)
+			countages = modules.count_unique(age_adjusted_tracking_index)
 			for thiscount in countages[0]:
 				SizeDeaths[gen][thiscount].append(countages[1][np.where(thiscount == countages[0])[0][0]])
 			# For age...
 			age_tracking_index = SubpopIN_arr['age']
-			countages = count_unique(age_tracking_index)
+			countages = modules.count_unique(age_tracking_index)
 			for thiscount in countages[0]:
 				# Special case when more age/size groups then bins
 				if thiscount >= len(size_bin):
@@ -439,7 +431,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 				# ------------------------------
 				# Check for multiply class types
 				# ------------------------------
-				countfiles = count_unique(SubpopIN_arr['classfile'])
+				countfiles = modules.count_unique(SubpopIN_arr['classfile'])
 				
 				# Storage for keeping individuals
 				N_samp_ind = []
@@ -462,7 +454,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 					age_adjusted = np.searchsorted(size_mean_middles, SubpopIN_keep_thistype['size'])
 						
 					# Count up each unique 'sizes'
-					countsizes = count_unique(age_adjusted)
+					countsizes = modules.count_unique(age_adjusted)
 					
 					# Loop through size/age getting Nage in pop
 					for isize in range(len(countsizes[0])):
@@ -492,7 +484,7 @@ def ConstantMortality_Multiply(SubpopIN,K,PopDeaths,age_percmort,pop_percmort,ge
 						SubpopIN_arr_sizeclass = SubpopIN_keep_thistype[Nsize_index]
 					
 						# Get ages in this size class
-						countages = count_unique(SubpopIN_arr_sizeclass['age'])
+						countages = modules.count_unique(SubpopIN_arr_sizeclass['age'])
 					
 						# Loop through the ages getting Nage in this size class in this patch...
 						for iage in range(len(countages[0])):

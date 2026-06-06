@@ -16,34 +16,7 @@ from inspect import currentframe, getframeinfo
 
 # CDmetaPOP functions
 import CDmetaPOP_Modules as modules
-import CDmetaPOP_Disease as disease
-
-# ---------------------------------------------------------------------------------------------------
-def count_unique(keys):
-    uniq_keys = np.unique(keys)
-    bins = uniq_keys.searchsorted(keys)
-    return uniq_keys, np.bincount(bins)
-	#End::count_unique()
-
-# ---------------------------------------------------------------------------------------------------	 
-def w_choice_general(lst):
-	'''
-	w_choice_general()
-	Weighted random draw from a list, probilities do not have to add to one.
-	'''
-	wtotal=sum(x[1] for x in lst)
-	n=np.random.uniform(0,wtotal)
-	count = 0
-	for item, weight in lst:
-		if n < weight:
-			break
-		n = n-weight
-		count = count + 1
-	# The case where all of the values in lst are the same
-	if len(lst) == count:
-		count = count-1
-	return item,count
-	#End::w_choice_general()		
+import CDmetaPOP_Disease as disease		
 	
 # ----------------------------------------------------------------------------------
 def loadFile(filename, header_lines=0, delimiter=None, cdpop_inputvars=False): ###
@@ -694,7 +667,7 @@ def InitializeID(K,N,DisVars):
 					speciesID.append(ispec+1)
 					
 					if DisVars['ImpDisease'] != 'N':
-						states.append(w_choice_general(noStatesSplitAsRatioList)[0])
+						states.append(modules.w_choice_general(noStatesSplitAsRatioList)[0])
 					else:
 						states.append(0)
 					
@@ -749,8 +722,8 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 		thisgenefile = speciesID[iind]-1 # Match the speciesID (subtract 1 to start from 0) to the gene file order		
 		for j in range(loci):							
 			# Take a random draw from the w_choice function at jth locus
-			rand1 = w_choice_general(allelst[isub][thisgenefile][j])[0]
-			rand2 = w_choice_general(allelst[isub][thisgenefile][j])[0]			
+			rand1 = modules.w_choice_general(allelst[isub][thisgenefile][j])[0]
+			rand2 = modules.w_choice_general(allelst[isub][thisgenefile][j])[0]			
 			# Append assignment onto indall array - run through each condition for assignment of 1s or 2s or 0s
 			# 	1s = heterozygous at that locus
 			#	2s = homozygous at that locus
@@ -803,7 +776,7 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 		# ---------------
 		# Get age
 		# ---------------		
-		agetemp = w_choice_general(agelst[isub][thisfile])[0]
+		agetemp = modules.w_choice_general(agelst[isub][thisfile])[0]
 		age.append(agetemp)
 		
 		# ---------------------------------
@@ -843,7 +816,7 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 			for iratiolst in range(len(tempratios)):
 				ratiolst.append([tempstrlst[iratiolst],float(tempratios[iratiolst])])
 			#pdb.set_trace()
-			offsex = w_choice_general(ratiolst)[0] 										
+			offsex = modules.w_choice_general(ratiolst)[0] 										
 			sex.append(offsex)
 		# Special case for WrightFisher
 		else: 
