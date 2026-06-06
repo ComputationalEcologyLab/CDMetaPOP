@@ -15,9 +15,9 @@ authorNames = "Erin L Landguth, Casey Day, et al."
 # ------------------------------------------
 # Python specific functions
 import time, os, sys, warnings
+import multiprocessing as mp
 from dataclasses import dataclass
 from typing import List
-import multiprocessing as mp
 
 # CDmetaPOP functions
 import CDmetaPOP_PreProcess as preprocess
