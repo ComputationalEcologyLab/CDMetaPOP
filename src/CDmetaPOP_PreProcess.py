@@ -1074,12 +1074,100 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno_pass,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_prob,Str_patch_prob,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob,Disperse_patch_prob,alldiseaseVars_files,implementdisease,pathogen_load,disease_fitvals_pass,defaultMature_pass,mat_slope_pass,mat_int_pass):
+#def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno_pass,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_prob,Str_patch_prob,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob,Disperse_patch_prob,alldiseaseVars_files,implementdisease,pathogen_load,disease_fitvals_pass,defaultMature_pass,mat_slope_pass,mat_int_pass):
+def DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsizevals_pass, backsizevals_pass, outgrowdays_pass, backgrowdays_pass, fitvals_pass, popmort_back_pass, popmort_out_pass, eggmort_pass, Kstd_pass, popmort_back_sd_pass, popmort_out_sd_pass, eggmort_sd_pass, outsizevals_sd_pass, backsizevals_sd_pass, outgrowdays_sd_pass, backgrowdays_sd_pass, pop_capture_back_pass, pop_capture_out_pass, N0_pass, allefreqfiles_pass, classvarsfiles_pass, PopTag, comp_coef_pass, xvars_betas_pass, outhabvals_pass, backhabvals_pass, MgBack_patch_prob_pass, Disperse_patch_prob_pass, alldiseaseVars_files,  pathogen_load_pass, disease_fitvals_pass):
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
 	'''
 	
+	datadir = args.datadir
+	cdclimgentime = args.cdclimgentime
+	matecdmatfile = args.matecdmatfile
+	dispOutcdmatfile = args.dispOutcdmatfile
+	dispBackcdmatfile = args.dispBackcdmatfile
+	straycdmatfile = args.straycdmatfile
+	matemoveno_pass = args.matemoveno
+	dispmoveOutno = args.dispmoveOutno
+	dispmoveBackno = args.dispmoveBackno
+	StrBackno = args.StrBackno
+	matemovethresh = args.matemovethreshval
+	dispmoveOutthresh = args.dispmoveOutthreshval
+	dispmoveBackthresh = args.dispmoveBackthreshval
+	StrBackthresh = args.StrBackthreshval
+	matemoveparA = args.matemoveparA
+	matemoveparB = args.matemoveparB
+	matemoveparC = args.matemoveparC
+	dispmoveOutparA = args.dispmoveOutparA
+	dispmoveOutparB = args.dispmoveOutparB
+	dispmoveOutparC = args.dispmoveOutparC
+	dispmoveBackparA = args.dispmoveBackparA
+	dispmoveBackparB = args.dispmoveBackparB
+	dispmoveBackparC = args.dispmoveBackparC
+	StrBackparA = args.StrBackparA
+	StrBackparB = args.StrBackparB
+	StrBackparC = args.StrBackparC
+	cdevolveans = args.cdevolveans
+	assortmateModel_pass = args.assortmateModel_pass
+	assortmateC_pass = args.assortmateC_pass
+	subpopmort_pass = args.subpopmort_pass
+	dispLocalcdmatfile = args.dispLocalcdmatfile
+	dispLocalno = args.dispLocalno
+	dispLocalparA = args.dispLocalparA
+	dispLocalparB = args.dispLocalparB
+	dispLocalparC = args.dispLocalparC
+	dispLocalthresh = args.dispLocalthreshval
+	betaFile_selection = args.betaFile_selection
+	plastic_signalresp_pass = args.plastic_signalresp_pass
+	plastic_behaviorresp_pass = args.plastic_behaviorresp_pass
+	plasticans = args.plasticans
+	muterate_pass = args.muterate_pass
+	sexchromo = args.sexchromo
+	implementdisease = args.implementdisease
+	defaultMature_pass = args.defaultMature_pass
+	mat_slope_pass = args.mat_slope_pass
+	mat_int_pass = args.mat_int_pass
+
+
+
+#	icdtime = 
+	MgOut_patch_prob = MgOut_patch_pass
+	Str_patch_prob = Str_patch_pass
+	K = Kmu_pass
+	outsizevals = outsizevals_pass
+	backsizevals = backsizevals_pass
+	outgrowdays = outgrowdays_pass
+	backgrowdays = backgrowdays_pass
+	fitvals = fitvals_pass
+	popmort_back = popmort_back_pass
+	popmort_out = popmort_out_pass
+	eggmort = eggmort_pass
+	Kstd = Kstd_pass
+	popmort_back_sd = popmort_back_sd_pass
+	popmort_out_sd = popmort_out_sd_pass
+	eggmort_sd = eggmort_sd_pass
+	outsizevals_sd = outsizevals_sd_pass
+	backsizevals_sd = backsizevals_sd_pass
+	outgrowdays_sd = outgrowdays_sd_pass
+	backgrowdays_sd = backgrowdays_sd_pass
+	pop_capture_back = pop_capture_back_pass
+	pop_capture_out = pop_capture_out_pass
+#	N0_pass = 
+#	allefreqfiles_pass = 
+#	classvarsfiles_pass = 
+#	PopTag = 
+#	comp_coef_pass = 
+#	xvars_betas_pass = 
+#	outhabvals_pass = 
+#	backhabvals_pass = 
+	MgBack_patch_prob = MgBack_patch_prob_pass
+	Disperse_patch_prob = Disperse_patch_prob_pass
+#	alldiseaseVars_files = 
+	pathogen_load = pathogen_load_pass
+#	disease_fitvals_pass = 
+
+
+
 	# -------------------------------
 	# Extract cdclimate values here
 	# -------------------------------

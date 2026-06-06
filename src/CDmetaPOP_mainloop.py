@@ -570,7 +570,7 @@ def main_loop(inputs, context, XQs, extinctQ, global_extinctQ):
 		# If single species with multiprocessing mc replicates, use with Pool()
 		elif parallel == 'mc':
 			# List comprehension that creates an iterable list of dictionaries to loop through, with an added element of 'ithmcrun' for the mc number
-			mc_args_list = [{**mc_args, 'ithmcrun': ithmcrun} for ithmcrun in range(mcruns)]
+			mc_args_list = [replace(mc_args, ithmcrun=ithmcrun) for ithmcrun in range(mcruns)]
 			# Reset counter to name worker id for every new pool creation
 			shared_counter = mp.Value('i', 0)
 			# Start parallel processing
@@ -815,9 +815,8 @@ def mc_loop(args: MCArgs):
 
 		# Check gen time equal to args.cdclimgentime
 		for icdtime in range(len(args.cdclimgentime)): 
-			if gen == int(args.cdclimgentime[icdtime]):				
-				tupClimate = preprocess.DoCDClimate(args.datadir,icdtime,args.cdclimgentime,args.matecdmatfile,args.dispOutcdmatfile,\
-				args.dispBackcdmatfile,args.straycdmatfile,args.matemoveno,args.dispmoveOutno,args.dispmoveBackno,args.StrBackno,args.matemovethreshval,args.dispmoveOutthreshval,args.dispmoveBackthreshval,args.StrBackthreshval,args.matemoveparA,args.matemoveparB,args.matemoveparC,args.dispmoveOutparA,args.dispmoveOutparB,args.dispmoveOutparC,args.dispmoveBackparA,args.dispmoveBackparB,args.dispmoveBackparC,args.StrBackparA,args.StrBackparB,args.StrBackparC,MgOut_patch_pass,Str_patch_pass,Kmu_pass,outsizevals_pass,backsizevals_pass,outgrowdays_pass,backgrowdays_pass,fitvals_pass,popmort_back_pass,popmort_out_pass,eggmort_pass,Kstd_pass,popmort_back_sd_pass,popmort_out_sd_pass,eggmort_sd_pass,outsizevals_sd_pass,backsizevals_sd_pass,outgrowdays_sd_pass,backgrowdays_sd_pass,pop_capture_back_pass,pop_capture_out_pass,args.cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,args.assortmateModel_pass,args.assortmateC_pass,args.subpopmort_pass,PopTag,args.dispLocalcdmatfile,args.dispLocalno,args.dispLocalparA,args.dispLocalparB,args.dispLocalparC,args.dispLocalthreshval,comp_coef_pass,args.betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,args.plastic_signalresp_pass,args.plastic_behaviorresp_pass,args.plasticans,args.muterate_pass,args.sexchromo,MgBack_patch_prob_pass,Disperse_patch_prob_pass,alldiseaseVars_files,args.implementdisease,pathogen_load_pass,disease_fitvals_pass,args.defaultMature_pass,args.mat_slope_pass,args.mat_int_pass)
+			if gen == int(args.cdclimgentime[icdtime]):
+				tupClimate = preprocess.DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsizevals_pass, backsizevals_pass, outgrowdays_pass, backgrowdays_pass, fitvals_pass, popmort_back_pass, popmort_out_pass, eggmort_pass, Kstd_pass, popmort_back_sd_pass, popmort_out_sd_pass, eggmort_sd_pass, outsizevals_sd_pass, backsizevals_sd_pass, outgrowdays_sd_pass, backgrowdays_sd_pass, pop_capture_back_pass, pop_capture_out_pass, N0_pass, allefreqfiles_pass, classvarsfiles_pass, PopTag, comp_coef_pass, xvars_betas_pass, outhabvals_pass, backhabvals_pass, MgBack_patch_prob_pass, Disperse_patch_prob_pass, alldiseaseVars_files,  pathogen_load_pass, disease_fitvals_pass)
 				# Cdmatrix values
 				cdmatrix_mate, cdmatrix_FXXOut, cdmatrix_MXYOut, cdmatrix_MYYOut, cdmatrix_FYYOut, cdmatrix_FXXBack, cdmatrix_MXYBack, cdmatrix_MYYBack, cdmatrix_FYYBack, cdmatrix_FXXStr, cdmatrix_MXYStr, cdmatrix_MYYStr, cdmatrix_FYYStr, cdmatrix_FXXLD, cdmatrix_MXYLD, cdmatrix_MYYLD, cdmatrix_FYYLD = tupClimate[:17]
 				# Threshold values
