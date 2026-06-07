@@ -4,20 +4,243 @@
 # Created: October 2010
 # Description: This is the function/module file pre processing.
 # --------------------------------------------------------------------------------------------------
-
-from scipy.stats import truncnorm
-from scipy.stats import norm
-import numpy as np 
 		
-# General python imports
-import os,sys,pdb,copy
-from ast import literal_eval 
-from inspect import currentframe, getframeinfo
+# Python specific functions
+import os, sys
+from scipy.stats import norm
+import numpy as np
+from dataclasses import dataclass
+from typing import Any
 
 # CDmetaPOP functions
 import CDmetaPOP_Modules as modules
-import CDmetaPOP_Disease as disease		
-	
+import CDmetaPOP_Disease as disease
+
+@dataclass
+class ClimateData:
+	# --- Matrices ---
+	matecdmatrix: Any
+	FXXdispOutcdmatrix: Any
+	MXYdispOutcdmatrix: Any
+	MYYdispOutcdmatrix: Any
+	FYYdispOutcdmatrix: Any
+	FXXdispBackcdmatrix: Any
+	MXYdispBackcdmatrix: Any
+	MYYdispBackcdmatrix: Any
+	FYYdispBackcdmatrix: Any
+	FXXStrcdmatrix: Any
+	MXYStrcdmatrix: Any
+	MYYStrcdmatrix: Any
+	FYYStrcdmatrix: Any
+	FXXdispLocalcdmatrix: Any
+	MXYdispLocalcdmatrix: Any
+	MYYdispLocalcdmatrix: Any
+	FYYdispLocalcdmatrix: Any
+
+	# --- Thresholds ---
+	matemovethresh: Any
+	FXXdispOutthresh: Any
+	MXYdispOutthresh: Any
+	MYYdispOutthresh: Any
+	FYYdispOutthresh: Any
+	FXXStrthresh: Any
+	MXYStrthresh: Any
+	MYYStrthresh: Any
+	FYYStrthresh: Any
+	FXXdispLocalthresh: Any
+	MXYdispLocalthresh: Any
+	MYYdispLocalthresh: Any
+	FYYdispLocalthresh: Any
+
+	# --- Scaling Limits (Min) ---
+	mate_ScaleMin: Any
+	FXXdispOut_ScaleMin: Any
+	MXYdispOut_ScaleMin: Any
+	MYYdispOut_ScaleMin: Any
+	FYYdispOut_ScaleMin: Any
+	FXXdispBack_ScaleMin: Any
+	MXYdispBack_ScaleMin: Any
+	MYYdispBack_ScaleMin: Any
+	FYYdispBack_ScaleMin: Any
+	FXXStr_ScaleMin: Any
+	MXYStr_ScaleMin: Any
+	MYYStr_ScaleMin: Any
+	FYYStr_ScaleMin: Any
+	FXXdispLocal_ScaleMin: Any
+
+	# --- Scaling Limits (Max) ---
+	mate_ScaleMax: Any
+	FXXdispOut_ScaleMax: Any
+	MXYdispOut_ScaleMax: Any
+	MYYdispOut_ScaleMax: Any
+	FYYdispOut_ScaleMax: Any
+	FXXdispBack_ScaleMax: Any
+	MXYdispBack_ScaleMax: Any
+	MYYdispBack_ScaleMax: Any
+	FYYdispBack_ScaleMax: Any
+	FXXStr_ScaleMax: Any
+	MXYStr_ScaleMax: Any
+	MYYStr_ScaleMax: Any
+	FYYStr_ScaleMax: Any
+	FXXdispLocal_ScaleMax: Any
+
+	# --- Parameter Models (A) ---
+	matemoveparA: Any
+	FXXdispmoveOutparA: Any
+	MXYdispmoveOutparA: Any
+	MYYdispmoveOutparA: Any
+	FYYdispmoveOutparA: Any
+	FXXdispmoveBackparA: Any
+	MXYdispmoveBackparA: Any
+	MYYdispmoveBackparA: Any
+	FYYdispmoveBackparA: Any
+	FXXStrparA: Any
+	MXYStrparA: Any
+	MYYStrparA: Any
+	FYYStrparA: Any
+	FXXdispLocalparA: Any
+	MXYdispLocalparA: Any
+	MYYdispLocalparA: Any
+	FYYdispLocalparA: Any
+
+	# --- Parameter Models (B) ---
+	matemoveparB: Any
+	FXXdispmoveOutparB: Any
+	MXYdispmoveOutparB: Any
+	MYYdispmoveOutparB: Any
+	FYYdispmoveOutparB: Any
+	FXXdispmoveBackparB: Any
+	MXYdispmoveBackparB: Any
+	MYYdispmoveBackparB: Any
+	FYYdispmoveBackparB: Any
+	FXXStrparB: Any
+	MXYStrparB: Any
+	MYYStrparB: Any
+	FYYStrparB: Any
+	FXXdispLocalparB: Any
+	MXYdispLocalparB: Any
+	MYYdispLocalparB: Any
+	FYYdispLocalparB: Any
+
+	# --- Parameter Models (C) ---
+	matemoveparC: Any
+	FXXdispmoveOutparC: Any
+	MXYdispmoveOutparC: Any
+	MYYdispmoveOutparC: Any
+	FYYdispmoveOutparC: Any
+	FXXdispmoveBackparC: Any
+	MXYdispmoveBackparC: Any
+	MYYdispmoveBackparC: Any
+	FYYdispmoveBackparC: Any
+	FXXStrparC: Any
+	MXYStrparC: Any
+	MYYStrparC: Any
+	FYYStrparC: Any
+	FXXdispLocalparC: Any
+	MXYdispLocalparC: Any
+	MYYdispLocalparC: Any
+	FYYdispLocalparC: Any
+
+	# --- Movement Base Settings ---
+	matemoveno: Any
+	FXXdispmoveOutno: Any
+	MXYdispmoveOutno: Any
+	MYYdispmoveOutno: Any
+	FYYdispmoveOutno: Any
+	FXXdispmoveBackno: Any
+	MXYdispmoveBackno: Any
+	MYYdispmoveBackno: Any
+	FYYdispmoveBackno: Any
+	FXXStrno: Any
+	MXYStrno: Any
+	MYYStrno: Any
+	FYYStrno: Any
+	FXXdispLocalno: Any
+	MXYdispLocalno: Any
+	MYYdispLocalno: Any
+	FYYdispLocalno: Any
+
+	# --- Patch & Habitat Growth Probabilities ---
+	tempMgOut_patch_prob: Any
+	tempMgBack_patch_prob: Any
+	tempStr_patch_prob: Any
+	tempDisperse_patch_prob: Any
+	tempoutsize: Any
+	tempbacksize: Any
+	tempoutgrow: Any
+	tempbackgrow: Any
+	tempfitvals: Any
+	tempK: Any
+	tempKstd: Any
+	tempoutsize_sd: Any
+	tempbacksize_sd: Any
+	tempoutgrow_sd: Any
+	tempbackgrow_sd: Any
+	tempouthabvals: Any
+	tempbackhabvals: Any
+
+	# --- Mortality Rates & Deviations ---
+	temppopmort_back: Any
+	temppopmort_out: Any
+	tempeggmort: Any
+	temppopmort_back_sd: Any
+	temppopmort_out_sd: Any
+	tempeggmort_sd: Any
+	temppopCapBack: Any
+	temppopCapOut: Any
+	tempN0: Any
+
+	# --- File References & General Config ---
+	tempAllelefile: Any
+	tempClassVarsfile: Any
+	assortmateModel: Any
+	assortmateC: Any
+	subpopmort_mat: Any
+	tempcompcoef: Any
+	tempbetas_selection: Any
+	tempxvars_betas: Any
+	plastic_signalresp: Any
+	plastic_behaviorresp: Any
+	muterate: Any
+	tupDisease_Vars: Any
+
+	# --- Age & Size Related Mortality ---
+	age_percmort_out: Any
+	age_percmort_out_sd: Any
+	age_percmort_back: Any
+	age_percmort_back_sd: Any
+	size_percmort_out: Any
+	size_percmort_out_sd: Any
+	size_percmort_back: Any
+	size_percmort_back_sd: Any
+
+	# --- Lifecycle & Demographics ---
+	age_MgOUT: Any
+	age_MgBACK: Any
+	age_S: Any
+	age_DispProb: Any
+	age_mature: Any
+	age_mu: Any
+	age_sigma: Any
+	f_leslie: Any
+	f_leslie_std: Any
+	age_cap_out: Any
+	age_cap_back: Any
+
+	# --- Maternal / Genetic Assignments ---
+	FXXmat_set: Any
+	MXYmat_set: Any
+	MYYmat_set: Any
+	FYYmat_set: Any
+	FXXmat_slope: Any
+	MXYmat_slope: Any
+	MYYmat_slope: Any
+	FYYmat_slope: Any
+	FXXmat_int: Any
+	MXYmat_int: Any
+	MYYmat_int: Any
+	FYYmat_int: Any
+
 # ----------------------------------------------------------------------------------
 def loadFile(filename, header_lines=0, delimiter=None, cdpop_inputvars=False): ###
 	'''
@@ -696,7 +919,7 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 	layEggs = []
 	hindex = []
 	whichClassFile = []
-	#pdb.set_trace()		
+			
 	# Just loop through actual individuals, else this can take a long while - carful of indexing
 	for iind in range(len(subpop)):
 		
@@ -745,7 +968,7 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 						tempindall = 0							
 				# Add to genes list
 				genes[iind].append(tempindall)
-		#pdb.set_trace()
+		
 		# ---------------------------------------------
 		# Get AA / aa p value for genetag
 		# ---------------------------------------------
@@ -815,7 +1038,7 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 			tempstrlst = ['FXX','MXY','MYY','FYY']
 			for iratiolst in range(len(tempratios)):
 				ratiolst.append([tempstrlst[iratiolst],float(tempratios[iratiolst])])
-			#pdb.set_trace()
+			
 			offsex = modules.w_choice_general(ratiolst)[0] 										
 			sex.append(offsex)
 		# Special case for WrightFisher
@@ -853,7 +1076,7 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 		# ---------------------------------------------
 		# Set maturity Y or N and get egg lay last year
 		# ---------------------------------------------		
-		#pdb.set_trace()
+		
 		matval = 0.0 # Initialize
 		# Check default age/size for maturity
 		if offsex == 'FXX':
@@ -1074,7 +1297,6 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-#def DoCDClimate(datadir,icdtime,cdclimgentime,matecdmatfile,dispOutcdmatfile,dispBackcdmatfile,straycdmatfile,matemoveno_pass,dispmoveOutno,dispmoveBackno,StrBackno,matemovethresh,dispmoveOutthresh,dispmoveBackthresh,StrBackthresh,matemoveparA,matemoveparB,matemoveparC,dispmoveOutparA,dispmoveOutparB,dispmoveOutparC,dispmoveBackparA,dispmoveBackparB,dispmoveBackparC,StrBackparA,StrBackparB,StrBackparC,MgOut_patch_prob,Str_patch_prob,K,outsizevals,backsizevals,outgrowdays,backgrowdays,fitvals,popmort_back,popmort_out,eggmort,Kstd,popmort_back_sd,popmort_out_sd,eggmort_sd,outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd,pop_capture_back,pop_capture_out,cdevolveans,N0_pass,allefreqfiles_pass,classvarsfiles_pass,assortmateModel_pass,assortmateC_pass,subpopmort_pass,PopTag,dispLocalcdmatfile,dispLocalno,dispLocalparA,dispLocalparB,dispLocalparC,dispLocalthresh,comp_coef_pass,betaFile_selection,xvars_betas_pass,outhabvals_pass,backhabvals_pass,plastic_signalresp_pass,plastic_behaviorresp_pass,plasticans,muterate_pass,sexchromo,MgBack_patch_prob,Disperse_patch_prob,alldiseaseVars_files,implementdisease,pathogen_load,disease_fitvals_pass,defaultMature_pass,mat_slope_pass,mat_int_pass):
 def DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsizevals_pass, backsizevals_pass, outgrowdays_pass, backgrowdays_pass, fitvals_pass, popmort_back_pass, popmort_out_pass, eggmort_pass, Kstd_pass, popmort_back_sd_pass, popmort_out_sd_pass, eggmort_sd_pass, outsizevals_sd_pass, backsizevals_sd_pass, outgrowdays_sd_pass, backgrowdays_sd_pass, pop_capture_back_pass, pop_capture_out_pass, N0_pass, allefreqfiles_pass, classvarsfiles_pass, PopTag, comp_coef_pass, xvars_betas_pass, outhabvals_pass, backhabvals_pass, MgBack_patch_prob_pass, Disperse_patch_prob_pass, alldiseaseVars_files,  pathogen_load_pass, disease_fitvals_pass):
 	'''
 	DoCDCliamte()
@@ -1423,7 +1645,7 @@ def DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsi
 	# Patch based parameters
 	# ----------------------	
 	tempMgBack_patch_prob, tempDisperse_patch_prob, tempStr_patch_prob, tempMgOut_patch_prob, tempoutsize, tempbacksize, tempoutgrow, tempbackgrow, tempoutsize_sd, tempbacksize_sd, tempoutgrow_sd, tempbackgrow_sd, tempfitvals, tempK, tempKstd, temppopmort_back, temppopmort_out, tempeggmort, temppopmort_back_sd, temppopmort_out_sd, tempeggmort_sd, temppopCapOut, temppopCapBack, tempN0, tempAllelefile, tempClassVarsfile, tempcompcoef, tempxvars_betas, tempouthabvals, tempbackhabvals, tempdiseaseVarsfile,tempPathLoad,tempdisease_fitvals = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [],[],[] , []
-	#pdb.set_trace()
+	
 	# Loop through patches
 	for isub in range(len(K)):
 		# For addindividual applications N0 split must have matching classvars and genefile splits
@@ -1464,13 +1686,13 @@ def DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsi
 		tempAllelefile.append(modules.split_or_get(allefreqfiles_pass[isub], icdtime, cdclimgentime))
 		tempClassVarsfile.append(modules.split_or_get(classvarsfiles_pass[isub], icdtime, cdclimgentime))
 		tempcompcoef.append(modules.split_or_get(comp_coef_pass[isub], icdtime, cdclimgentime))
-		#pdb.set_trace()
+		
 		# Disease defense gene fitness
 		if implementdisease != 'N':
 			tempdiseaseVarsfile.append(modules.split_or_get(alldiseaseVars_files[isub], icdtime, cdclimgentime))		
 			tempPathLoad.append(float(modules.split_or_get(pathogen_load[isub], icdtime, cdclimgentime)))
 			tempdisease_fitvals.append([])
-			#pdb.set_trace()
+			
 			for i in range(len(disease_fitvals_pass[isub])): # Loop through 6 genotype combinations
 				diseasefitval = modules.split_or_get(disease_fitvals_pass[isub][i], icdtime, cdclimgentime)  # Split or get based on icdtime
 				tempdisease_fitvals[isub].append(diseasefitval)
@@ -1507,12 +1729,12 @@ def DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsi
 
 		tempouthabvals.append(modules.split_or_get(outhabvals_pass[isub], icdtime, cdclimgentime))
 		tempbackhabvals.append(modules.split_or_get(backhabvals_pass[isub], icdtime, cdclimgentime))
-	#pdb.set_trace()
+	
 	# -----------------------------------------------------
 	# Extract files to parameters - Disease vars
 	# -----------------------------------------------------
 	tupDisease_Vars = disease.read_disease_vars_files(tempdiseaseVarsfile,datadir,implementdisease,tempPathLoad,tempdisease_fitvals)
-	#pdb.set_trace()
+	
 	# -----------------------------------------------------
 	# Class Vars
 	# -----------------------------------------------------
@@ -1525,41 +1747,240 @@ def DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsi
 	# -----------------------------------------------------
 	# Return Variables for mate, dispersion, and other parameters
 	# -----------------------------------------------------
-	tupClimate = matecdmatrix,FXXdispOutcdmatrix,MXYdispOutcdmatrix,MYYdispOutcdmatrix,FYYdispOutcdmatrix,\
-	FXXdispBackcdmatrix,MXYdispBackcdmatrix,MYYdispBackcdmatrix,FYYdispBackcdmatrix,\
-	FXXStrcdmatrix, MXYStrcdmatrix,MYYStrcdmatrix, FYYStrcdmatrix,\
-	FXXdispLocalcdmatrix, MXYdispLocalcdmatrix,MYYdispLocalcdmatrix,FYYdispLocalcdmatrix,\
-	matemovethresh,FXXdispOutthresh,MXYdispOutthresh,MYYdispOutthresh,FYYdispOutthresh,\
-	FXXdispOutthresh,MXYdispOutthresh,MYYdispOutthresh,FYYdispOutthresh,\
-	FXXStrthresh,MXYStrthresh,MYYStrthresh,FYYStrthresh,\
-	FXXdispLocalthresh,MXYdispLocalthresh,MYYdispLocalthresh,FYYdispLocalthresh,\
-	mate_ScaleMin,FXXdispOut_ScaleMin,MXYdispOut_ScaleMin,MYYdispOut_ScaleMin,FYYdispOut_ScaleMin,\
-	FXXdispBack_ScaleMin,MXYdispBack_ScaleMin,MYYdispBack_ScaleMin,FYYdispBack_ScaleMin,\
-	FXXStr_ScaleMin,MXYStr_ScaleMin,MYYStr_ScaleMin,FYYStr_ScaleMin,\
-	FXXdispLocal_ScaleMin,MXYdispBack_ScaleMin,MYYdispBack_ScaleMin,FYYdispBack_ScaleMin,\
-	mate_ScaleMax,FXXdispOut_ScaleMax,MXYdispOut_ScaleMax,MYYdispOut_ScaleMax,FYYdispOut_ScaleMax,\
-	FXXdispBack_ScaleMax,MXYdispBack_ScaleMax,MYYdispBack_ScaleMax,FYYdispBack_ScaleMax,\
-	FXXStr_ScaleMax,MXYStr_ScaleMax,MYYStr_ScaleMax,FYYStr_ScaleMax,\
-	FXXdispLocal_ScaleMax,MXYdispBack_ScaleMax,MYYdispBack_ScaleMax,FYYdispBack_ScaleMax,\
-	matemoveparA,FXXdispmoveOutparA,MXYdispmoveOutparA,MYYdispmoveOutparA,FYYdispmoveOutparA,\
-	FXXdispmoveBackparA,MXYdispmoveBackparA,MYYdispmoveBackparA,FYYdispmoveBackparA,\
-	FXXStrparA,MXYStrparA,MYYStrparA,FYYStrparA,\
-	FXXdispLocalparA,MXYdispLocalparA,MYYdispLocalparA,FYYdispLocalparA,\
-	matemoveparB,FXXdispmoveOutparB,MXYdispmoveOutparB,MYYdispmoveOutparB,FYYdispmoveOutparB,\
-	FXXdispmoveBackparB,MXYdispmoveBackparB,MYYdispmoveBackparB,FYYdispmoveBackparB,\
-	FXXStrparB,MXYStrparB,MYYStrparB,FYYStrparB,\
-	FXXdispLocalparB,MXYdispLocalparB,MYYdispLocalparB,FYYdispLocalparB,\
-	matemoveparC,FXXdispmoveOutparC,MXYdispmoveOutparC,MYYdispmoveOutparC,FYYdispmoveOutparC,\
-	FXXdispmoveBackparC,MXYdispmoveBackparC,MYYdispmoveBackparC,FYYdispmoveBackparC,\
-	FXXStrparC,MXYStrparC,MYYStrparC,FYYStrparC,\
-	FXXdispLocalparC,MXYdispLocalparC,MYYdispLocalparC,FYYdispLocalparC,\
-	matemoveno,FXXdispmoveOutno,MXYdispmoveOutno,MYYdispmoveOutno,FYYdispmoveOutno,\
-	FXXdispmoveBackno,MXYdispmoveBackno,MYYdispmoveBackno,FYYdispmoveBackno,\
-	FXXStrno,MXYStrno,MYYStrno,FYYStrno,\
-	FXXdispLocalno,MXYdispLocalno,MYYdispLocalno,FYYdispLocalno,\
-	tempMgOut_patch_prob,tempStr_patch_prob,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_MgOUT,age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back,tempMgBack_patch_prob,tempDisperse_patch_prob,tupDisease_Vars,FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set,FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope,FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int
+#	tupClimate = matecdmatrix,FXXdispOutcdmatrix,MXYdispOutcdmatrix,MYYdispOutcdmatrix,FYYdispOutcdmatrix,\
+#	FXXdispBackcdmatrix,MXYdispBackcdmatrix,MYYdispBackcdmatrix,FYYdispBackcdmatrix,\
+#	FXXStrcdmatrix, MXYStrcdmatrix,MYYStrcdmatrix, FYYStrcdmatrix,\
+#	FXXdispLocalcdmatrix, MXYdispLocalcdmatrix,MYYdispLocalcdmatrix,FYYdispLocalcdmatrix,\
+#	matemovethresh,FXXdispOutthresh,MXYdispOutthresh,MYYdispOutthresh,FYYdispOutthresh,\
+#	FXXdispOutthresh,MXYdispOutthresh,MYYdispOutthresh,FYYdispOutthresh,\
+#	FXXStrthresh,MXYStrthresh,MYYStrthresh,FYYStrthresh,\
+#	FXXdispLocalthresh,MXYdispLocalthresh,MYYdispLocalthresh,FYYdispLocalthresh,\
+#	mate_ScaleMin,FXXdispOut_ScaleMin,MXYdispOut_ScaleMin,MYYdispOut_ScaleMin,FYYdispOut_ScaleMin,\
+#	FXXdispBack_ScaleMin,MXYdispBack_ScaleMin,MYYdispBack_ScaleMin,FYYdispBack_ScaleMin,\
+#	FXXStr_ScaleMin,MXYStr_ScaleMin,MYYStr_ScaleMin,FYYStr_ScaleMin,\
+#	FXXdispLocal_ScaleMin,MXYdispBack_ScaleMin,MYYdispBack_ScaleMin,FYYdispBack_ScaleMin,\
+#	mate_ScaleMax,FXXdispOut_ScaleMax,MXYdispOut_ScaleMax,MYYdispOut_ScaleMax,FYYdispOut_ScaleMax,\
+#	FXXdispBack_ScaleMax,MXYdispBack_ScaleMax,MYYdispBack_ScaleMax,FYYdispBack_ScaleMax,\
+#	FXXStr_ScaleMax,MXYStr_ScaleMax,MYYStr_ScaleMax,FYYStr_ScaleMax,\
+#	FXXdispLocal_ScaleMax,MXYdispBack_ScaleMax,MYYdispBack_ScaleMax,FYYdispBack_ScaleMax,\
+#	matemoveparA,FXXdispmoveOutparA,MXYdispmoveOutparA,MYYdispmoveOutparA,FYYdispmoveOutparA,\
+#	FXXdispmoveBackparA,MXYdispmoveBackparA,MYYdispmoveBackparA,FYYdispmoveBackparA,\
+#	FXXStrparA,MXYStrparA,MYYStrparA,FYYStrparA,\
+#	FXXdispLocalparA,MXYdispLocalparA,MYYdispLocalparA,FYYdispLocalparA,\
+#	matemoveparB,FXXdispmoveOutparB,MXYdispmoveOutparB,MYYdispmoveOutparB,FYYdispmoveOutparB,\
+#	FXXdispmoveBackparB,MXYdispmoveBackparB,MYYdispmoveBackparB,FYYdispmoveBackparB,\
+#	FXXStrparB,MXYStrparB,MYYStrparB,FYYStrparB,\
+#	FXXdispLocalparB,MXYdispLocalparB,MYYdispLocalparB,FYYdispLocalparB,\
+#	matemoveparC,FXXdispmoveOutparC,MXYdispmoveOutparC,MYYdispmoveOutparC,FYYdispmoveOutparC,\
+#	FXXdispmoveBackparC,MXYdispmoveBackparC,MYYdispmoveBackparC,FYYdispmoveBackparC,\
+#	FXXStrparC,MXYStrparC,MYYStrparC,FYYStrparC,\
+#	FXXdispLocalparC,MXYdispLocalparC,MYYdispLocalparC,FYYdispLocalparC,\
+#	matemoveno,FXXdispmoveOutno,MXYdispmoveOutno,MYYdispmoveOutno,FYYdispmoveOutno,\
+#	FXXdispmoveBackno,MXYdispmoveBackno,MYYdispmoveBackno,FYYdispmoveBackno,\
+#	FXXStrno,MXYStrno,MYYStrno,FYYStrno,\
+#	FXXdispLocalno,MXYdispLocalno,MYYdispLocalno,FYYdispLocalno,\
+#	tempMgOut_patch_prob,tempStr_patch_prob,tempoutsize,tempbacksize,tempoutgrow,tempbackgrow,tempfitvals,tempK,temppopmort_back,temppopmort_out,tempeggmort,tempKstd,temppopmort_back_sd,temppopmort_out_sd,tempeggmort_sd,tempoutsize_sd,tempbacksize_sd,tempoutgrow_sd,tempbackgrow_sd,temppopCapBack,temppopCapOut,tempN0,tempAllelefile,tempClassVarsfile,assortmateModel, assortmateC,subpopmort_mat,tempcompcoef,tempbetas_selection,tempxvars_betas,tempouthabvals,tempbackhabvals,plastic_signalresp,plastic_behaviorresp,muterate,age_percmort_out,age_percmort_out_sd,age_percmort_back,age_percmort_back_sd,size_percmort_out,size_percmort_out_sd,size_percmort_back,size_percmort_back_sd,age_MgOUT,age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie,f_leslie_std,age_cap_out,age_cap_back,tempMgBack_patch_prob,tempDisperse_patch_prob,tupDisease_Vars,FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set,FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope,FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int
 	
-	return tupClimate 
+#	return tupClimate 
+
+	return ClimateData(
+    matecdmatrix=matecdmatrix,
+    FXXdispOutcdmatrix=FXXdispOutcdmatrix,
+    MXYdispOutcdmatrix=MXYdispOutcdmatrix,
+    MYYdispOutcdmatrix=MYYdispOutcdmatrix,
+    FYYdispOutcdmatrix=FYYdispOutcdmatrix,
+    FXXdispBackcdmatrix=FXXdispBackcdmatrix,
+    MXYdispBackcdmatrix=MXYdispBackcdmatrix,
+    MYYdispBackcdmatrix=MYYdispBackcdmatrix,
+    FYYdispBackcdmatrix=FYYdispBackcdmatrix,
+    FXXStrcdmatrix=FXXStrcdmatrix,
+    MXYStrcdmatrix=MXYStrcdmatrix,
+    MYYStrcdmatrix=MYYStrcdmatrix,
+    FYYStrcdmatrix=FYYStrcdmatrix,
+    FXXdispLocalcdmatrix=FXXdispLocalcdmatrix,
+    MXYdispLocalcdmatrix=MXYdispLocalcdmatrix,
+    MYYdispLocalcdmatrix=MYYdispLocalcdmatrix,
+    FYYdispLocalcdmatrix=FYYdispLocalcdmatrix,
+    matemovethresh=matemovethresh,
+    FXXdispOutthresh=FXXdispOutthresh,
+    MXYdispOutthresh=MXYdispOutthresh,
+    MYYdispOutthresh=MYYdispOutthresh,
+    FYYdispOutthresh=FYYdispOutthresh,
+    FXXStrthresh=FXXStrthresh,
+    MXYStrthresh=MXYStrthresh,
+    MYYStrthresh=MYYStrthresh,
+    FYYStrthresh=FYYStrthresh,
+    FXXdispLocalthresh=FXXdispLocalthresh,
+    MXYdispLocalthresh=MXYdispLocalthresh,
+    MYYdispLocalthresh=MYYdispLocalthresh,
+    FYYdispLocalthresh=FYYdispLocalthresh,
+    mate_ScaleMin=mate_ScaleMin,
+    FXXdispOut_ScaleMin=FXXdispOut_ScaleMin,
+    MXYdispOut_ScaleMin=MXYdispOut_ScaleMin,
+    MYYdispOut_ScaleMin=MYYdispOut_ScaleMin,
+    FYYdispOut_ScaleMin=FYYdispOut_ScaleMin,
+    FXXdispBack_ScaleMin=FXXdispBack_ScaleMin,
+    MXYdispBack_ScaleMin=MXYdispBack_ScaleMin,
+    MYYdispBack_ScaleMin=MYYdispBack_ScaleMin,
+    FYYdispBack_ScaleMin=FYYdispBack_ScaleMin,
+    FXXStr_ScaleMin=FXXStr_ScaleMin,
+    MXYStr_ScaleMin=MXYStr_ScaleMin,
+    MYYStr_ScaleMin=MYYStr_ScaleMin,
+    FYYStr_ScaleMin=FYYStr_ScaleMin,
+    FXXdispLocal_ScaleMin=FXXdispLocal_ScaleMin,
+    mate_ScaleMax=mate_ScaleMax,
+    FXXdispOut_ScaleMax=FXXdispOut_ScaleMax,
+    MXYdispOut_ScaleMax=MXYdispOut_ScaleMax,
+    MYYdispOut_ScaleMax=MYYdispOut_ScaleMax,
+    FYYdispOut_ScaleMax=FYYdispOut_ScaleMax,
+    FXXdispBack_ScaleMax=FXXdispBack_ScaleMax,
+    MXYdispBack_ScaleMax=MXYdispBack_ScaleMax,
+    MYYdispBack_ScaleMax=MYYdispBack_ScaleMax,
+    FYYdispBack_ScaleMax=FYYdispBack_ScaleMax,
+    FXXStr_ScaleMax=FXXStr_ScaleMax,
+    MXYStr_ScaleMax=MXYStr_ScaleMax,
+    MYYStr_ScaleMax=MYYStr_ScaleMax,
+    FYYStr_ScaleMax=FYYStr_ScaleMax,
+    FXXdispLocal_ScaleMax=FXXdispLocal_ScaleMax,
+    matemoveparA=matemoveparA,
+    FXXdispmoveOutparA=FXXdispmoveOutparA,
+    MXYdispmoveOutparA=MXYdispmoveOutparA,
+    MYYdispmoveOutparA=MYYdispmoveOutparA,
+    FYYdispmoveOutparA=FYYdispmoveOutparA,
+    FXXdispmoveBackparA=FXXdispmoveBackparA,
+    MXYdispmoveBackparA=MXYdispmoveBackparA,
+    MYYdispmoveBackparA=MYYdispmoveBackparA,
+    FYYdispmoveBackparA=FYYdispmoveBackparA,
+    FXXStrparA=FXXStrparA,
+    MXYStrparA=MXYStrparA,
+    MYYStrparA=MYYStrparA,
+    FYYStrparA=FYYStrparA,
+    FXXdispLocalparA=FXXdispLocalparA,
+    MXYdispLocalparA=MXYdispLocalparA,
+    MYYdispLocalparA=MYYdispLocalparA,
+    FYYdispLocalparA=FYYdispLocalparA,
+    matemoveparB=matemoveparB,
+    FXXdispmoveOutparB=FXXdispmoveOutparB,
+    MXYdispmoveOutparB=MXYdispmoveOutparB,
+    MYYdispmoveOutparB=MYYdispmoveOutparB,
+    FYYdispmoveOutparB=FYYdispmoveOutparB,
+    FXXdispmoveBackparB=FXXdispmoveBackparB,
+    MXYdispmoveBackparB=MXYdispmoveBackparB,
+    MYYdispmoveBackparB=MYYdispmoveBackparB,
+    FYYdispmoveBackparB=FYYdispmoveBackparB,
+    FXXStrparB=FXXStrparB,
+    MXYStrparB=MXYStrparB,
+    MYYStrparB=MYYStrparB,
+    FYYStrparB=FYYStrparB,
+    FXXdispLocalparB=FXXdispLocalparB,
+    MXYdispLocalparB=MXYdispLocalparB,
+    MYYdispLocalparB=MYYdispLocalparB,
+    FYYdispLocalparB=FYYdispLocalparB,
+    matemoveparC=matemoveparC,
+    FXXdispmoveOutparC=FXXdispmoveOutparC,
+    MXYdispmoveOutparC=MXYdispmoveOutparC,
+    MYYdispmoveOutparC=MYYdispmoveOutparC,
+    FYYdispmoveOutparC=FYYdispmoveOutparC,
+    FXXdispmoveBackparC=FXXdispmoveBackparC,
+    MXYdispmoveBackparC=MXYdispmoveBackparC,
+    MYYdispmoveBackparC=MYYdispmoveBackparC,
+    FYYdispmoveBackparC=FYYdispmoveBackparC,
+    FXXStrparC=FXXStrparC,
+    MXYStrparC=MXYStrparC,
+    MYYStrparC=MYYStrparC,
+    FYYStrparC=FYYStrparC,
+    FXXdispLocalparC=FXXdispLocalparC,
+    MXYdispLocalparC=MXYdispLocalparC,
+    MYYdispLocalparC=MYYdispLocalparC,
+    FYYdispLocalparC=FYYdispLocalparC,
+    matemoveno=matemoveno,
+    FXXdispmoveOutno=FXXdispmoveOutno,
+    MXYdispmoveOutno=MXYdispmoveOutno,
+    MYYdispmoveOutno=MYYdispmoveOutno,
+    FYYdispmoveOutno=FYYdispmoveOutno,
+    FXXdispmoveBackno=FXXdispmoveBackno,
+    MXYdispmoveBackno=MXYdispmoveBackno,
+    MYYdispmoveBackno=MYYdispmoveBackno,
+    FYYdispmoveBackno=FYYdispmoveBackno,
+    FXXStrno=FXXStrno,
+    MXYStrno=MXYStrno,
+    MYYStrno=MYYStrno,
+    FYYStrno=FYYStrno,
+    FXXdispLocalno=FXXdispLocalno,
+    MXYdispLocalno=MXYdispLocalno,
+    MYYdispLocalno=MYYdispLocalno,
+    FYYdispLocalno=FYYdispLocalno,
+    tempMgOut_patch_prob=tempMgOut_patch_prob,
+    tempMgBack_patch_prob=tempMgBack_patch_prob,
+    tempStr_patch_prob=tempStr_patch_prob,
+    tempDisperse_patch_prob=tempDisperse_patch_prob,
+    tempoutsize=tempoutsize,
+    tempbacksize=tempbacksize,
+    tempoutgrow=tempoutgrow,
+    tempbackgrow=tempbackgrow,
+    tempfitvals=tempfitvals,
+    tempK=tempK,
+    tempKstd=tempKstd,
+    tempoutsize_sd=tempoutsize_sd,
+    tempbacksize_sd=tempbacksize_sd,
+    tempoutgrow_sd=tempoutgrow_sd,
+    tempbackgrow_sd=tempbackgrow_sd,
+    tempouthabvals=tempouthabvals,
+    tempbackhabvals=tempbackhabvals,
+    temppopmort_back=temppopmort_back,
+    temppopmort_out=temppopmort_out,
+    tempeggmort=tempeggmort,
+    temppopmort_back_sd=temppopmort_back_sd,
+    temppopmort_out_sd=temppopmort_out_sd,
+    tempeggmort_sd=tempeggmort_sd,
+    temppopCapBack=temppopCapBack,
+    temppopCapOut=temppopCapOut,
+    tempN0=tempN0,
+    tempAllelefile=tempAllelefile,
+    tempClassVarsfile=tempClassVarsfile,
+    assortmateModel=assortmateModel,
+    assortmateC=assortmateC,
+    subpopmort_mat=subpopmort_mat,
+    tempcompcoef=tempcompcoef,
+    tempbetas_selection=tempbetas_selection,
+    tempxvars_betas=tempxvars_betas,
+    plastic_signalresp=plastic_signalresp,
+    plastic_behaviorresp=plastic_behaviorresp,
+    muterate=muterate,
+    tupDisease_Vars=tupDisease_Vars,
+    age_percmort_out=age_percmort_out,
+    age_percmort_out_sd=age_percmort_out_sd,
+    age_percmort_back=age_percmort_back,
+    age_percmort_back_sd=age_percmort_back_sd,
+    size_percmort_out=size_percmort_out,
+    size_percmort_out_sd=size_percmort_out_sd,
+    size_percmort_back=size_percmort_back,
+    size_percmort_back_sd=size_percmort_back_sd,
+    age_MgOUT=age_MgOUT,
+    age_MgBACK=age_MgBACK,
+    age_S=age_S,
+    age_DispProb=age_DispProb,
+    age_mature=age_mature,
+    age_mu=age_mu,
+    age_sigma=age_sigma,
+    f_leslie=f_leslie,
+    f_leslie_std=f_leslie_std,
+    age_cap_out=age_cap_out,
+    age_cap_back=age_cap_back,
+    FXXmat_set=FXXmat_set,
+    MXYmat_set=MXYmat_set,
+    MYYmat_set=MYYmat_set,
+    FYYmat_set=FYYmat_set,
+    FXXmat_slope=FXXmat_slope,
+    MXYmat_slope=MXYmat_slope,
+    MYYmat_slope=MYYmat_slope,
+    FYYmat_slope=FYYmat_slope,
+    FXXmat_int=FXXmat_int,
+    MXYmat_int=MXYmat_int,
+    MYYmat_int=MYYmat_int,
+    FYYmat_int=FYYmat_int,
+)
+
 	# End::DoCDClimate()
 
 # ---------------------------------------------------------------------------------------------------	
@@ -1568,7 +1989,7 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	Here update any stochastic variables. Add in Todd and Ng method for unbias draw.
 	Generate correlated deviates
 	'''
-	#pdb.set_trace()
+	
 	# --------------------------------
 	# For the patch specific parameters
 	# Get correlated means
@@ -1868,13 +2289,38 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
-def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHndl,cdevolveans,subpopemigration,subpopimmigration,sizeans,burningen_cdevolve,cor_mat_ans,inheritans_classfiles,sexans,spcNO,ibatch,betaFile_selection,defaultMature,mat_slope,mat_int,sexchromo,eggFreq_mu,eggFreq_sd,implementdisease):
-
+def DoPreProcess(args, gen, logfHndl, subpopemigration, subpopimmigration):
 	'''
 	DoPreProcess()
 	This function does all the pre-processing work before
 	CDPOP begins its time loops.
 	'''
+
+	outdir = args.outdir
+	datadir = args.datadir
+	irun = args.irun
+	ithmcrun = args.ithmcrun
+	xyfilename = args.xyfilename
+	loci = args.loci
+	alleles = args.alleles
+	cdevolveans = args.cdevolveans
+	sizeans = args.sizeans
+	burningen_cdevolve = args.burningen_cdevolve
+	cor_mat_ans = args.cor_mat_ans
+	inheritans_classfiles = args.inheritans_classfiles
+	sexans = args.sexans
+	spcNO = args.spcNO
+	ibatch = args.ibatch
+	betaFile_selection = args.betaFile_selection
+	defaultMature = args.defaultMature_pass
+	mat_slope = args.mat_slope_pass
+	mat_int = args.mat_int_pass
+	sexchromo = args.sexchromo
+	eggFreq_mu = args.eggFreq_mu
+	eggFreq_sd = args.eggFreq_sd
+	implementdisease = args.implementdisease
+
+
 	# ----------------------------
 	# Create directory
 	# ----------------------------	
@@ -2133,7 +2579,7 @@ def DoPreProcess(outdir,datadir,irun,ithmcrun,xyfilename,loci,alleles,gen,logfHn
 					recd = (subpop[indspot],'NA','NA',-9999,-9999,age[indspot],sex[indspot],size[indspot],mature[indspot],mature[indspot],states[indspot],id[indspot],-9999,-9999,capture[indspot],recapture[indspot],layEggs[indspot],hindex[indspot],whichClassFile[indspot],PopTag[isub],speciesID[indspot],np.asarray(genes[indspot]))
 					SubpopIN[isub].append(recd)
 		# Convert to array with dytpe	
-		#pdb.set_trace()
+		
 		SubpopIN[isub] = np.asarray(SubpopIN[isub],dtype=dtype)
 	
 	# Clean up N

@@ -653,10 +653,10 @@ def mc_loop(args: MCArgs):
 	# Timing events: start
 	start_time1 = datetime.datetime.now()
 	
-	# Call function	
-	tupPreProcess = preprocess.DoPreProcess(args.outdir,args.datadir,args.irun,args.ithmcrun,\
-	args.xyfilename,args.loci,args.alleles,0,logfHndl,args.cdevolveans,\
-	subpopemigration,subpopimmigration,args.sizeans,args.burningen_cdevolve,args.cor_mat_ans,args.inheritans_classfiles,args.sexans,args.spcNO,args.ibatch,args.betaFile_selection,args.defaultMature_pass,args.mat_slope_pass,args.mat_int_pass,args.sexchromo,args.eggFreq_mu,args.eggFreq_sd,args.implementdisease)
+	# Call function
+	tupPreProcess = preprocess.DoPreProcess(args, 0, logfHndl, subpopemigration, subpopimmigration)
+
+
 	ithmcrundir = tupPreProcess[0]			
 	fitvals_pass = tupPreProcess[1] # sex ratio check throughout
 	allelst = tupPreProcess[2]
@@ -816,41 +816,291 @@ def mc_loop(args: MCArgs):
 		# Check gen time equal to args.cdclimgentime
 		for icdtime in range(len(args.cdclimgentime)): 
 			if gen == int(args.cdclimgentime[icdtime]):
-				tupClimate = preprocess.DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsizevals_pass, backsizevals_pass, outgrowdays_pass, backgrowdays_pass, fitvals_pass, popmort_back_pass, popmort_out_pass, eggmort_pass, Kstd_pass, popmort_back_sd_pass, popmort_out_sd_pass, eggmort_sd_pass, outsizevals_sd_pass, backsizevals_sd_pass, outgrowdays_sd_pass, backgrowdays_sd_pass, pop_capture_back_pass, pop_capture_out_pass, N0_pass, allefreqfiles_pass, classvarsfiles_pass, PopTag, comp_coef_pass, xvars_betas_pass, outhabvals_pass, backhabvals_pass, MgBack_patch_prob_pass, Disperse_patch_prob_pass, alldiseaseVars_files,  pathogen_load_pass, disease_fitvals_pass)
-				# Cdmatrix values
-				cdmatrix_mate, cdmatrix_FXXOut, cdmatrix_MXYOut, cdmatrix_MYYOut, cdmatrix_FYYOut, cdmatrix_FXXBack, cdmatrix_MXYBack, cdmatrix_MYYBack, cdmatrix_FYYBack, cdmatrix_FXXStr, cdmatrix_MXYStr, cdmatrix_MYYStr, cdmatrix_FYYStr, cdmatrix_FXXLD, cdmatrix_MXYLD, cdmatrix_MYYLD, cdmatrix_FYYLD = tupClimate[:17]
-				# Threshold values
-				thresh_mate, thresh_FXXOut, thresh_MXYOut, thresh_MYYOut, thresh_FYYOut, thresh_FXXBack, thresh_MXYBack, thresh_MYYBack, thresh_FYYBack, thresh_FXXStr, thresh_MXYStr, thresh_MYYStr, thresh_FYYStr, thresh_FXXLD, thresh_MXYLD, thresh_MYYLD, thresh_FYYLD = tupClimate[17:34]						
-				# Scale Min
-				scalemin_mate,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemin_FXXBack,scalemin_MXYBack,scalemin_MYYBack,scalemin_FYYBack,scalemin_FXXStr,scalemin_MXYStr,scalemin_MYYStr,scalemin_FYYStr,scalemin_FXXLD,scalemin_MXYLD,scalemin_MYYLD,scalemin_FYYLD = tupClimate[34:51]
-				# Scale Max
-				scalemax_mate, scalemax_FXXOut, scalemax_MXYOut, scalemax_MYYOut,scalemax_FYYOut ,scalemax_FXXBack,scalemax_MXYBack,scalemax_MYYBack,scalemax_FYYBack,scalemax_FXXStr,scalemax_MXYStr,scalemax_MYYStr,scalemax_FYYStr,scalemax_FXXLD,scalemax_MXYLD,scalemax_MYYLD,scalemax_FYYLD = tupClimate[51:68]
-				# ParA
-				parA_mate,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parA_FXXBack,parA_MXYBack,parA_MYYBack,parA_FYYBack,parA_FXXStr,parA_MXYStr,parA_MYYStr,parA_FYYStr,parA_FXXLD,parA_MXYLD,parA_MYYLD,parA_FYYLD = tupClimate[68:85]
-				# ParB
-				parB_mate,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parB_FXXBack,parB_MXYBack,parB_MYYBack,parB_FYYBack,parB_FXXStr,parB_MXYStr,parB_MYYStr,parB_FYYStr,parB_FXXLD,parB_MXYLD,parB_MYYLD,parB_FYYLD = tupClimate[85:102]
-				# ParC
-				parC_mate,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,parC_FXXBack,parC_MXYBack,parC_MYYBack,parC_FYYBack,parC_FXXStr,parC_MXYStr,parC_MYYStr,parC_FYYStr,parC_FXXLD,parC_MXYLD,parC_MYYLD,parC_FYYLD = tupClimate[102:119]
-				# Movement No
-				moveno_mate,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,moveno_FXXBack,moveno_MXYBack,moveno_MYYBack,moveno_FYYBack,moveno_FXXStr,moveno_MXYStr,moveno_MYYStr,moveno_FYYStr,moveno_FXXLD,moveno_MXYLD,moveno_MYYLD,moveno_FYYLD = tupClimate[119:136]						
-				MgOut_patch_prob = tupClimate[136]
-				Str_patch_prob = tupClimate[137]						
-				# Temp/grow vars (mu)
-				outsizevals_mu,backsizevals_mu,outgrowdays_mu,backgrowdays_mu = tupClimate[138:142]
-				fitvals, K_mu, popmort_back_mu, popmort_out_mu, eggmort_mu, K_std, popmort_back_sd, popmort_out_sd, eggmort_sd = tupClimate[142:151]
-				# Temp/grow vars (sd)
-				outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd = tupClimate[151:155]
-				pop_capture_back, pop_capture_out, tempN0, tempAllelefile, tempClassVarsfile, assortmateModel, assortmateC, subpopmort_mat, comp_coef, betas_selection, xvars_betas = tupClimate[155:166]
-				# Plastic selection vars
-				outhabvals,backhabvals,plastic_signalresp,plastic_behaviorresp = tupClimate[166:170] #ts added, note that plasticans not listed here, but present in tupClimate. in 1.72, present in tupClimate as last piece but not defined down here.
-				muterate = tupClimate[170]						
-				if gen == 0:
-					age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_MgOUT, age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie_mu,f_leslie_std,age_capture_out,age_capture_back = tupClimate[171:190]
-				MgBack_patch_prob, Disperse_patch_prob =  tupClimate[190:192]
-				disease_vars = tupClimate[192]
-				# Matruation vars
-				FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set,FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope,FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int = tupClimate[193:205]
-				
+				climate = preprocess.DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsizevals_pass, backsizevals_pass, outgrowdays_pass, backgrowdays_pass, fitvals_pass, popmort_back_pass, popmort_out_pass, eggmort_pass, Kstd_pass, popmort_back_sd_pass, popmort_out_sd_pass, eggmort_sd_pass, outsizevals_sd_pass, backsizevals_sd_pass, outgrowdays_sd_pass, backgrowdays_sd_pass, pop_capture_back_pass, pop_capture_out_pass, N0_pass, allefreqfiles_pass, classvarsfiles_pass, PopTag, comp_coef_pass, xvars_betas_pass, outhabvals_pass, backhabvals_pass, MgBack_patch_prob_pass, Disperse_patch_prob_pass, alldiseaseVars_files,  pathogen_load_pass, disease_fitvals_pass)
+#				# Cdmatrix values
+#				cdmatrix_mate, cdmatrix_FXXOut, cdmatrix_MXYOut, cdmatrix_MYYOut, cdmatrix_FYYOut, cdmatrix_FXXBack, cdmatrix_MXYBack, cdmatrix_MYYBack, cdmatrix_FYYBack, cdmatrix_FXXStr, cdmatrix_MXYStr, cdmatrix_MYYStr, cdmatrix_FYYStr, cdmatrix_FXXLD, cdmatrix_MXYLD, cdmatrix_MYYLD, cdmatrix_FYYLD = tupClimate[:17]
+#				# Threshold values
+#				thresh_mate, thresh_FXXOut, thresh_MXYOut, thresh_MYYOut, thresh_FYYOut, thresh_FXXBack, thresh_MXYBack, thresh_MYYBack, thresh_FYYBack, thresh_FXXStr, thresh_MXYStr, thresh_MYYStr, thresh_FYYStr, thresh_FXXLD, thresh_MXYLD, thresh_MYYLD, thresh_FYYLD = tupClimate[17:34]						
+#				# Scale Min
+#				scalemin_mate,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemin_FXXBack,scalemin_MXYBack,scalemin_MYYBack,scalemin_FYYBack,scalemin_FXXStr,scalemin_MXYStr,scalemin_MYYStr,scalemin_FYYStr,scalemin_FXXLD,scalemin_MXYLD,scalemin_MYYLD,scalemin_FYYLD = tupClimate[34:51]
+#				# Scale Max
+#				scalemax_mate, scalemax_FXXOut, scalemax_MXYOut, scalemax_MYYOut,scalemax_FYYOut ,scalemax_FXXBack,scalemax_MXYBack,scalemax_MYYBack,scalemax_FYYBack,scalemax_FXXStr,scalemax_MXYStr,scalemax_MYYStr,scalemax_FYYStr,scalemax_FXXLD,scalemax_MXYLD,scalemax_MYYLD,scalemax_FYYLD = tupClimate[51:68]
+#				# ParA
+#				parA_mate,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parA_FXXBack,parA_MXYBack,parA_MYYBack,parA_FYYBack,parA_FXXStr,parA_MXYStr,parA_MYYStr,parA_FYYStr,parA_FXXLD,parA_MXYLD,parA_MYYLD,parA_FYYLD = tupClimate[68:85]
+#				# ParB
+#				parB_mate,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parB_FXXBack,parB_MXYBack,parB_MYYBack,parB_FYYBack,parB_FXXStr,parB_MXYStr,parB_MYYStr,parB_FYYStr,parB_FXXLD,parB_MXYLD,parB_MYYLD,parB_FYYLD = tupClimate[85:102]
+#				# ParC
+#				parC_mate,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,parC_FXXBack,parC_MXYBack,parC_MYYBack,parC_FYYBack,parC_FXXStr,parC_MXYStr,parC_MYYStr,parC_FYYStr,parC_FXXLD,parC_MXYLD,parC_MYYLD,parC_FYYLD = tupClimate[102:119]
+#				# Movement No
+#				moveno_mate,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut,moveno_FXXBack,moveno_MXYBack,moveno_MYYBack,moveno_FYYBack,moveno_FXXStr,moveno_MXYStr,moveno_MYYStr,moveno_FYYStr,moveno_FXXLD,moveno_MXYLD,moveno_MYYLD,moveno_FYYLD = tupClimate[119:136]						
+#				MgOut_patch_prob = tupClimate[136]
+#				Str_patch_prob = tupClimate[137]						
+#				# Temp/grow vars (mu)
+#				outsizevals_mu,backsizevals_mu,outgrowdays_mu,backgrowdays_mu = tupClimate[138:142]
+#				fitvals, K_mu, popmort_back_mu, popmort_out_mu, eggmort_mu, K_std, popmort_back_sd, popmort_out_sd, eggmort_sd = tupClimate[142:151]
+#				# Temp/grow vars (sd)
+#				outsizevals_sd,backsizevals_sd,outgrowdays_sd,backgrowdays_sd = tupClimate[151:155]
+#				pop_capture_back, pop_capture_out, tempN0, tempAllelefile, tempClassVarsfile, assortmateModel, assortmateC, subpopmort_mat, comp_coef, betas_selection, xvars_betas = tupClimate[155:166]
+#				# Plastic selection vars
+#				outhabvals,backhabvals,plastic_signalresp,plastic_behaviorresp = tupClimate[166:170] #ts added, note that plasticans not listed here, but present in tupClimate. in 1.72, present in tupClimate as last piece but not defined down here.
+#				muterate = tupClimate[170]						
+#				if gen == 0:
+#					age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_MgOUT, age_MgBACK,age_S,age_DispProb,age_mature,age_mu,age_sigma,f_leslie_mu,f_leslie_std,age_capture_out,age_capture_back = tupClimate[171:190]
+#				MgBack_patch_prob, Disperse_patch_prob =  tupClimate[190:192]
+#				disease_vars = tupClimate[192]
+#				# Matruation vars
+#				FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set,FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope,FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int = tupClimate[193:205]
+
+				# =====================================================================
+				# 1. Matrices
+				# =====================================================================
+				cdmatrix_mate		  = climate.matecdmatrix
+				cdmatrix_FXXOut		= climate.FXXdispOutcdmatrix
+				cdmatrix_MXYOut		= climate.MXYdispOutcdmatrix
+				cdmatrix_MYYOut		= climate.MYYdispOutcdmatrix
+				cdmatrix_FYYOut		= climate.FYYdispOutcdmatrix
+				cdmatrix_FXXBack	   = climate.FXXdispBackcdmatrix
+				cdmatrix_MXYBack	   = climate.MXYdispBackcdmatrix
+				cdmatrix_MYYBack	   = climate.MYYdispBackcdmatrix
+				cdmatrix_FYYBack	   = climate.FYYdispBackcdmatrix
+				cdmatrix_FXXStr		= climate.FXXStrcdmatrix
+				cdmatrix_MXYStr		= climate.MXYStrcdmatrix
+				cdmatrix_MYYStr		= climate.MYYStrcdmatrix
+				cdmatrix_FYYStr		= climate.FYYStrcdmatrix
+				cdmatrix_FXXLD		 = climate.FXXdispLocalcdmatrix
+				cdmatrix_MXYLD		 = climate.MXYdispLocalcdmatrix
+				cdmatrix_MYYLD		 = climate.MYYdispLocalcdmatrix
+				cdmatrix_FYYLD		 = climate.FYYdispLocalcdmatrix
+
+				# =====================================================================
+				# 2. Threshold values
+				# =====================================================================
+				thresh_mate			= climate.matemovethresh
+				thresh_FXXOut		  = climate.FXXdispOutthresh
+				thresh_MXYOut		  = climate.MXYdispOutthresh
+				thresh_MYYOut		  = climate.MYYdispOutthresh
+				thresh_FYYOut		  = climate.FYYdispOutthresh
+				thresh_FXXBack = climate.FXXdispOutthresh
+				thresh_MXYBack = climate.MXYdispOutthresh
+				thresh_MYYBack = climate.MYYdispOutthresh
+				thresh_FYYBack = climate.FYYdispOutthresh
+				# Maps matching the unique properties sequentially:
+				thresh_FXXStr		  = climate.FXXStrthresh
+				thresh_MXYStr		  = climate.MXYStrthresh
+				thresh_MYYStr		  = climate.MYYStrthresh
+				thresh_FYYStr		  = climate.FYYStrthresh
+				thresh_FXXLD		   = climate.FXXdispLocalthresh
+				thresh_MXYLD		   = climate.MXYdispLocalthresh
+				thresh_MYYLD		   = climate.MYYdispLocalthresh
+				thresh_FYYLD		   = climate.FYYdispLocalthresh
+
+				# =====================================================================
+				# 3. Scale Min
+				# =====================================================================
+				scalemin_mate		  = climate.mate_ScaleMin
+				scalemin_FXXOut		= climate.FXXdispOut_ScaleMin
+				scalemin_MXYOut		= climate.MXYdispOut_ScaleMin
+				scalemin_MYYOut		= climate.MYYdispOut_ScaleMin
+				scalemin_FYYOut		= climate.FYYdispOut_ScaleMin
+				scalemin_FXXBack	   = climate.FXXdispBack_ScaleMin
+				scalemin_MXYBack	   = climate.MXYdispBack_ScaleMin
+				scalemin_MYYBack	   = climate.MYYdispBack_ScaleMin
+				scalemin_FYYBack	   = climate.FYYdispBack_ScaleMin
+				scalemin_MXYLD = climate.MXYdispBack_ScaleMin
+				scalemin_MYYLD = climate.MYYdispBack_ScaleMin
+				scalemin_FYYLD = climate.FYYdispBack_ScaleMin
+				scalemin_FXXStr		= climate.FXXStr_ScaleMin
+				scalemin_MXYStr		= climate.MXYStr_ScaleMin
+				scalemin_MYYStr		= climate.MYYStr_ScaleMin
+				scalemin_FYYStr		= climate.FYYStr_ScaleMin
+				scalemin_FXXLD		 = climate.FXXdispLocal_ScaleMin
+
+				# =====================================================================
+				# 4. Scale Max
+				# =====================================================================
+				scalemax_mate		  = climate.mate_ScaleMax
+				scalemax_FXXOut		= climate.FXXdispOut_ScaleMax
+				scalemax_MXYOut		= climate.MXYdispOut_ScaleMax
+				scalemax_MYYOut		= climate.MYYdispOut_ScaleMax
+				scalemax_FYYOut		= climate.FYYdispOut_ScaleMax
+				scalemax_FXXBack	   = climate.FXXdispBack_ScaleMax
+				scalemax_MXYBack	   = climate.MXYdispBack_ScaleMax
+				scalemax_MYYBack	   = climate.MYYdispBack_ScaleMax
+				scalemax_FYYBack	   = climate.FYYdispBack_ScaleMax
+				scalemax_MXYLD = climate.MXYdispBack_ScaleMax
+				scalemax_MYYLD = climate.MYYdispBack_ScaleMax
+				scalemax_FYYLD = climate.FYYdispBack_ScaleMax
+				scalemax_FXXStr		= climate.FXXStr_ScaleMax
+				scalemax_MXYStr		= climate.MXYStr_ScaleMax
+				scalemax_MYYStr		= climate.MYYStr_ScaleMax
+				scalemax_FYYStr		= climate.FYYStr_ScaleMax
+				scalemax_FXXLD		 = climate.FXXdispLocal_ScaleMax
+
+				# =====================================================================
+				# 5. Parameter Models (A)
+				# =====================================================================
+				parA_mate			  = climate.matemoveparA
+				parA_FXXOut			= climate.FXXdispmoveOutparA
+				parA_MXYOut			= climate.MXYdispmoveOutparA
+				parA_MYYOut			= climate.MYYdispmoveOutparA
+				parA_FYYOut			= climate.FYYdispmoveOutparA
+				parA_FXXBack		   = climate.FXXdispmoveBackparA
+				parA_MXYBack		   = climate.MXYdispmoveBackparA
+				parA_MYYBack		   = climate.MYYdispmoveBackparA
+				parA_FYYBack		   = climate.FYYdispmoveBackparA
+				parA_FXXStr			= climate.FXXStrparA
+				parA_MXYStr			= climate.MXYStrparA
+				parA_MYYStr			= climate.MYYStrparA
+				parA_FYYStr			= climate.FYYStrparA
+				parA_FXXLD			 = climate.FXXdispLocalparA
+				parA_MXYLD			 = climate.MXYdispLocalparA
+				parA_MYYLD			 = climate.MYYdispLocalparA
+				parA_FYYLD			 = climate.FYYdispLocalparA
+
+				# =====================================================================
+				# 6. Parameter Models (B)
+				# =====================================================================
+				parB_mate			  = climate.matemoveparB
+				parB_FXXOut			= climate.FXXdispmoveOutparB
+				parB_MXYOut			= climate.MXYdispmoveOutparB
+				parB_MYYOut			= climate.MYYdispmoveOutparB
+				parB_FYYOut			= climate.FYYdispmoveOutparB
+				parB_FXXBack		   = climate.FXXdispmoveBackparB
+				parB_MXYBack		   = climate.MXYdispmoveBackparB
+				parB_MYYBack		   = climate.MYYdispmoveBackparB
+				parB_FYYBack		   = climate.FYYdispmoveBackparB
+				parB_FXXStr			= climate.FXXStrparB
+				parB_MXYStr			= climate.MXYStrparB
+				parB_MYYStr			= climate.MYYStrparB
+				parB_FYYStr			= climate.FYYStrparB
+				parB_FXXLD			 = climate.FXXdispLocalparB
+				parB_MXYLD			 = climate.MXYdispLocalparB
+				parB_MYYLD			 = climate.MYYdispLocalparB
+				parB_FYYLD			 = climate.FYYdispLocalparB
+
+				# =====================================================================
+				# 7. Parameter Models (C)
+				# =====================================================================
+				parC_mate			  = climate.matemoveparC
+				parC_FXXOut			= climate.FXXdispmoveOutparC
+				parC_MXYOut			= climate.MXYdispmoveOutparC
+				parC_MYYOut			= climate.MYYdispmoveOutparC
+				parC_FYYOut			= climate.FYYdispmoveOutparC
+				parC_FXXBack		   = climate.FXXdispmoveBackparC
+				parC_MXYBack		   = climate.MXYdispmoveBackparC
+				parC_MYYBack		   = climate.MYYdispmoveBackparC
+				parC_FYYBack		   = climate.FYYdispmoveBackparC
+				parC_FXXStr			= climate.FXXStrparC
+				parC_MXYStr			= climate.MXYStrparC
+				parC_MYYStr			= climate.MYYStrparC
+				parC_FYYStr			= climate.FYYStrparC
+				parC_FXXLD			 = climate.FXXdispLocalparC
+				parC_MXYLD			 = climate.MXYdispLocalparC
+				parC_MYYLD			 = climate.MYYdispLocalparC
+				parC_FYYLD			 = climate.FYYdispLocalparC
+
+				# =====================================================================
+				# 8. Movement Numbers
+				# =====================================================================
+				moveno_mate			= climate.matemoveno
+				moveno_FXXOut		  = climate.FXXdispmoveOutno
+				moveno_MXYOut		  = climate.MXYdispmoveOutno
+				moveno_MYYOut		  = climate.MYYdispmoveOutno
+				moveno_FYYOut		  = climate.FYYdispmoveOutno
+				moveno_FXXBack		 = climate.FXXdispmoveBackno
+				moveno_MXYBack		 = climate.MXYdispmoveBackno
+				moveno_MYYBack		 = climate.MYYdispmoveBackno
+				moveno_FYYBack		 = climate.FYYdispmoveBackno
+				moveno_FXXStr		  = climate.FXXStrno
+				moveno_MXYStr		  = climate.MXYStrno
+				moveno_MYYStr		  = climate.MYYStrno
+				moveno_FYYStr		  = climate.FYYStrno
+				moveno_FXXLD		   = climate.FXXdispLocalno
+				moveno_MXYLD		   = climate.MXYdispLocalno
+				moveno_MYYLD		   = climate.MXYdispLocalno
+				moveno_FYYLD		   = climate.FYYdispLocalno
+
+				# =====================================================================
+				# 9. Individual Patch, Size & Mortality Variables
+				# =====================================================================
+				MgOut_patch_prob	   = climate.tempMgOut_patch_prob
+				Str_patch_prob		 = climate.tempStr_patch_prob
+				outsizevals_mu		 = climate.tempoutsize
+				backsizevals_mu		= climate.tempbacksize
+				outgrowdays_mu		 = climate.tempoutgrow
+				backgrowdays_mu		= climate.tempbackgrow
+				fitvals				= climate.tempfitvals
+				K_mu				   = climate.tempK
+				popmort_back_mu		= climate.temppopmort_back
+				popmort_out_mu		 = climate.temppopmort_out
+				eggmort_mu			 = climate.tempeggmort
+				K_std				  = climate.tempKstd
+				popmort_back_sd		= climate.temppopmort_back_sd
+				popmort_out_sd		 = climate.temppopmort_out_sd
+				eggmort_sd			 = climate.tempeggmort_sd
+				outsizevals_sd		 = climate.tempoutsize_sd
+				backsizevals_sd		= climate.tempbacksize_sd
+				outgrowdays_sd		 = climate.tempoutgrow_sd
+				backgrowdays_sd		= climate.tempbackgrow_sd
+				pop_capture_back	   = climate.temppopCapBack
+				pop_capture_out		= climate.temppopCapOut
+				tempN0				 = climate.tempN0
+				tempAllelefile		 = climate.tempAllelefile
+				tempClassVarsfile	  = climate.tempClassVarsfile
+				assortmateModel		= climate.assortmateModel
+				assortmateC			= climate.assortmateC
+				subpopmort_mat		 = climate.subpopmort_mat
+				comp_coef			  = climate.tempcompcoef
+				betas_selection		= climate.tempbetas_selection
+				xvars_betas			= climate.tempxvars_betas
+				outhabvals			 = climate.tempouthabvals
+				backhabvals			= climate.tempbackhabvals
+				plastic_signalresp	 = climate.plastic_signalresp
+				plastic_behaviorresp   = climate.plastic_behaviorresp
+				muterate			   = climate.muterate
+
+				# =====================================================================
+				# 10. Demographic Variables
+				# =====================================================================
+				age_percmort_out_mu	= climate.age_percmort_out
+				age_percmort_out_sd	= climate.age_percmort_out_sd
+				age_percmort_back_mu   = climate.age_percmort_back
+				age_percmort_back_sd   = climate.age_percmort_back_sd
+				size_percmort_out_mu   = climate.size_percmort_out
+				size_percmort_out_sd   = climate.size_percmort_out_sd
+				size_percmort_back_mu  = climate.size_percmort_back
+				size_percmort_back_sd  = climate.size_percmort_back_sd
+				age_MgOUT			  = climate.age_MgOUT
+				age_MgBACK			 = climate.age_MgBACK
+				age_S				  = climate.age_S
+				age_DispProb		   = climate.age_DispProb
+				age_mature			 = climate.age_mature
+				age_mu				 = climate.age_mu
+				age_sigma			  = climate.age_sigma
+				f_leslie_mu			= climate.f_leslie
+				f_leslie_std		   = climate.f_leslie_std
+				age_capture_out		= climate.age_cap_out
+				age_capture_back	   = climate.age_cap_back
+				MgBack_patch_prob	  = climate.tempMgBack_patch_prob
+				Disperse_patch_prob	= climate.tempDisperse_patch_prob
+				disease_vars		   = climate.tupDisease_Vars
+
+				# =====================================================================
+				# 11. Maternal & Maturation Settings
+				# =====================================================================
+				FXXmat_set			 = climate.FXXmat_set
+				MXYmat_set			 = climate.MXYmat_set
+				MYYmat_set			 = climate.MYYmat_set
+				FYYmat_set			 = climate.FYYmat_set
+				FXXmat_slope		   = climate.FXXmat_slope
+				MXYmat_slope		   = climate.MXYmat_slope
+				MYYmat_slope		   = climate.MYYmat_slope
+				FYYmat_slope		   = climate.FYYmat_slope
+				FXXmat_int			 = climate.FXXmat_int
+				MXYmat_int			 = climate.MXYmat_int
+				MYYmat_int			 = climate.MYYmat_int
+				FYYmat_int			 = climate.FYYmat_int
+								
 				# ----------------------------------------
 				# Introduce new individuals
 				# ----------------------------------------
