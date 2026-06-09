@@ -1198,8 +1198,25 @@ def mc_loop(args: MCArgs):
 		# -------------------------------------------
 		# Update stochastic parameters each year here
 		# -------------------------------------------
-		tupStoch = preprocess.DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,args.egg_percmort_mu,args.egg_percmort_sd,cor_mat,age_mu,age_sigma,f_leslie_mu,f_leslie_std,args.sexchromo,disease_vars)
-		K, popmort_back, popmort_out, eggmort_patch, outsizevals, backsizevals, outgrowdays, backgrowdays, age_percmort_out, age_percmort_back, size_percmort_out, size_percmort_back, eggmort_pop, f_ind, f_leslie = tupStoch[:15]
+		stochasticargs = preprocess.DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,args.egg_percmort_mu,args.egg_percmort_sd,cor_mat,age_mu,age_sigma,f_leslie_mu,f_leslie_std,args.sexchromo,disease_vars)
+#		K, popmort_back, popmort_out, eggmort_patch, outsizevals, backsizevals, outgrowdays, backgrowdays, age_percmort_out, age_percmort_back, size_percmort_out, size_percmort_back, eggmort_pop, f_ind, f_leslie = tupStoch[:15]
+
+		K					 = stochasticargs.K
+		popmort_back		  = stochasticargs.popmort_back
+		popmort_out		   = stochasticargs.popmort_out
+		eggmort_patch		 = stochasticargs.eggmort_patch
+		outsizevals		   = stochasticargs.outsizevals
+		backsizevals		  = stochasticargs.backsizevals
+		outgrowdays		   = stochasticargs.outgrowdays
+		backgrowdays		  = stochasticargs.backgrowdays
+		age_percmort_out	  = stochasticargs.age_percmort_out
+		age_percmort_back	 = stochasticargs.age_percmort_back
+		size_percmort_out	 = stochasticargs.size_percmort_out
+		size_percmort_back	= stochasticargs.size_percmort_back
+		eggmort_pop		   = stochasticargs.eggmort_age	  # Maps from eggmort_age
+		f_ind				 = stochasticargs.f_ind
+		f_leslie			  = stochasticargs.f_leslie
+
 		
 		# Print to log
 		stringout = 'DoCDClimate(): '+str(datetime.datetime.now() -start_time1) + ''

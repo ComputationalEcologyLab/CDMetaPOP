@@ -311,6 +311,33 @@ class ClimateData:
 	MYYmat_int: Any
 	FYYmat_int: Any
 
+@dataclass
+class StochasticData:
+	# 1. Environment & Carrying Capacity
+	K: Any
+	
+	# 2. Patch-Level Mortality Metrics
+	popmort_back: Any
+	popmort_out: Any
+	eggmort_patch: Any
+	
+	# 3. Size and Growth Trajectories
+	outsizevals: Any
+	backsizevals: Any
+	outgrowdays: Any
+	backgrowdays: Any
+	
+	# 4. Demographic Mortality (Age & Size Profiles)
+	age_percmort_out: Any
+	age_percmort_back: Any
+	size_percmort_out: Any
+	size_percmort_back: Any
+	eggmort_age: Any
+	
+	# 5. Fitness & Leslie Matrix Factors
+	f_ind: Any
+	f_leslie: Any
+
 # ----------------------------------------------------------------------------------
 def loadFile(filename, header_lines=0, delimiter=None, cdpop_inputvars=False): ###
 	'''
@@ -2355,7 +2382,26 @@ def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu
 		if eggmort_age > 1.:
 			eggmort_age = 1.
 			
-	return K,popmort_back,popmort_out,eggmort_patch,outsizevals,backsizevals,outgrowdays,backgrowdays,age_percmort_out,age_percmort_back,	size_percmort_out,size_percmort_back,eggmort_age,f_ind,f_leslie
+#	return K,popmort_back,popmort_out,eggmort_patch,outsizevals,backsizevals,outgrowdays,backgrowdays,age_percmort_out,age_percmort_back,	size_percmort_out,size_percmort_back,eggmort_age,f_ind,f_leslie
+
+	return StochasticData(
+		K=K,
+		popmort_back=popmort_back,
+		popmort_out=popmort_out,
+		eggmort_patch=eggmort_patch,
+		outsizevals=outsizevals,
+		backsizevals=backsizevals,
+		outgrowdays=outgrowdays,
+		backgrowdays=backgrowdays,
+		age_percmort_out=age_percmort_out,
+		age_percmort_back=age_percmort_back,
+		size_percmort_out=size_percmort_out,
+		size_percmort_back=size_percmort_back,
+		eggmort_age=eggmort_age,
+		f_ind=f_ind,
+		f_leslie=f_leslie,
+	)
+
 	#End::DoStochasticUpdate()
 	
 # ---------------------------------------------------------------------------------------------------	 
