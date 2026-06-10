@@ -462,10 +462,6 @@ males,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count
 	# End::DoSexualNN()		
 
 # ---------------------------------------------------------------------------------------------------	 
-#def DoMate(SubpopIN,MateDistCD,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,BreedYYFemales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,ToTYYFemales,egg_delay,Bearpairs_temp,natal_patches,offno,f_ind,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,constMortans,outputans,Track_DiseaseStates_AddedInds,disease_vars):
-
-#def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, MateDistCD, MateDistCDstd, FAvgMate, MAvgMate, FSDMate, MSDMate, Female_BreedEvents, AAaaMates, AAAAMates, aaaaMates, AAAaMates, aaAaMates, AaAaMates, BreedFemales, BreedMales, BreedYYMales, BreedYYFemales, MatureCount, ImmatureCount, ToTFemales, ToTMales, ToTYYMales, ToTYYFemales, Track_EggDeaths, Track_Births, Track_BirthsMYY, Track_BirthsFYY, Track_DiseaseStates_AddedInds):
-
 def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, tracker):
 
 	MateDistCD = tracker.Track_MateDistCD

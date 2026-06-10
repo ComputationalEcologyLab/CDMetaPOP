@@ -847,7 +847,7 @@ def mc_loop(args: MCArgs):
 	# Timing events: start
 	start_time1 = datetime.datetime.now()
 	
-	modules.GetMetrics(SubpopIN_init,K,Track_N_Init_pop,Track_K,args.loci,args.alleles,0,Track_Ho,Track_Alleles,Track_He,Track_p1,Track_p2,Track_q1,Track_q2,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,Track_N_Init_age,args.sizeans,age_size_mean,ClassSizes_Mean,ClassSizes_Std,Track_N_Init_class,args.packans,RDispersers,IDispersers,xvars_betas_pass,tempbetas_selection,maxfit,minfit,args.cdevolveans,disease_vars_pass,Track_DiseaseStates_pop,Track_DiseaseStates_EnvRes)
+	modules.GetMetrics(SubpopIN_init, K, Track_N_Init_pop, Track_K, args.loci, args.alleles, 0, Track_Ho, Track_Alleles, Track_He, Track_p1, Track_p2, Track_q1, Track_q2, Residors, Strayers1, Strayers2, Immigrators, PopSizes_Mean, PopSizes_Std, AgeSizes_Mean, AgeSizes_Std, Track_N_Init_age, args.sizeans, age_size_mean, ClassSizes_Mean, ClassSizes_Std, Track_N_Init_class, args.packans, RDispersers, IDispersers, xvars_betas_pass, tempbetas_selection, maxfit, minfit, args.cdevolveans, disease_vars_pass, Track_DiseaseStates_pop, Track_DiseaseStates_EnvRes)
 	
 	# Print to log
 	stringout = 'GetMetrics() Initial: '+str(datetime.datetime.now() -start_time1) + ''
@@ -865,8 +865,10 @@ def mc_loop(args: MCArgs):
 	# Timing events: start
 	start_time1 = datetime.datetime.now()
 	
-	modules.DoUpdate(args.packans,SubpopIN_init,K,xgridpop,ygridpop,-1,args.nthfile,ithmcrundir,args.loci,args.alleles,logfHndl,'Initial')
-	
+#	modules.DoUpdate(args.packans,SubpopIN_init,K,xgridpop,ygridpop,-1,args.nthfile,ithmcrundir,args.loci,args.alleles,logfHndl,'Initial')
+	modules.DoUpdate(args, preprocessargs, SubpopIN_init, -1, logfHndl, 'Initial')
+
+
 	# Print to log
 	stringout = 'DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
 	modules.logMsg(logfHndl,stringout)
@@ -1261,11 +1263,6 @@ def mc_loop(args: MCArgs):
 		# Timing events: start
 		start_time1 = datetime.datetime.now()				
 		
-
-#		Bearpairs_temp,noOffspring_temp = mate.DoMate(SubpopIN,K,args.freplace,args.mreplace,moveno_mate,thresh_mate,cdmatrix_mate,Track_MateDistCD,xgridpop,ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,scalemax_mate,scalemin_mate,parA_mate,parB_mate,parC_mate,args.Femalepercent_egg,args.sexans,args.selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,assortmateModel,subpopmort_mat,Track_BreedFemales,Track_BreedMales,Track_BreedYYMales,Track_BreedYYFemales,Track_MatureCount, Track_ImmatureCount,Track_ToTFemales,Track_ToTMales,Track_ToTYYMales,Track_ToTYYFemales,args.egg_delay,Bearpairs_temp,natal_patches,args.offno,f_ind,age_sigma,args.sizeans,args.egg_mean_1,args.egg_mean_2,args.egg_mean_ans,args.equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,args.constMortans,args.outputans,Track_DiseaseStates_AddedInds,disease_vars)
-#		
-#		Bearpairs_temp,noOffspring_temp = mate.DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, Track_MateDistCD, Track_MateDistCDstd, Track_FAvgMate, Track_MAvgMate, Track_FSDMate, Track_MSDMate, Track_BreedEvents, Track_AAaaMates, Track_AAAAMates, Track_aaaaMates, Track_AAAaMates, Track_aaAaMates, Track_AaAaMates, Track_BreedFemales, Track_BreedMales, Track_BreedYYMales, Track_BreedYYFemales, Track_MatureCount, Track_ImmatureCount, Track_ToTFemales, Track_ToTMales, Track_ToTYYMales, Track_ToTYYFemales, Track_EggDeaths, Track_Births, Track_BirthsMYY, Track_BirthsFYY, Track_DiseaseStates_AddedInds)
-
 		Bearpairs_temp,noOffspring_temp = mate.DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, tracker)
 
 		Track_MateDistCD = tracker.Track_MateDistCD
@@ -1313,7 +1310,7 @@ def mc_loop(args: MCArgs):
 
 		# Timing events: start
 		start_time1 = datetime.datetime.now()
-		SubpopIN = modules.DoUpdate(args.packans,SubpopIN,K,xgridpop,ygridpop,gen,args.nthfile,ithmcrundir,args.loci,args.alleles,logfHndl,'Middle',args.growans,args.cdevolveans,fitvals,args.burningen_cdevolve,age_capture_back,pop_capture_back,Track_CaptureCount_Back,Track_CaptureCount_ClassBack,args.sizeans,age_size_mean,Track_N_back_age,args.eggFreq_mu,args.eggFreq_sd,backsizevals,args.sizeLoo,args.sizeR0,args.size_eqn_1,args.size_eqn_2,args.size_eqn_3,backgrowdays,args.plasticans,args.burningen_plastic,args.timeplastic,plastic_signalresp,args.geneswap,backhabvals,args.sexchromo,Track_DiseaseStates_SecondUpdate,Track_DiseaseStates_AfterDeaths_SecondUpdate,disease_vars)
+		SubpopIN = modules.DoUpdate(args, preprocessargs, SubpopIN, gen, logfHndl, 'Middle', args.growans, args.cdevolveans, fitvals, args.burningen_cdevolve, age_capture_back, pop_capture_back, Track_CaptureCount_Back, Track_CaptureCount_ClassBack, args.sizeans, age_size_mean, Track_N_back_age, args.eggFreq_mu, args.eggFreq_sd, backsizevals, args.sizeLoo, args.sizeR0, args.size_eqn_1, args.size_eqn_2, args.size_eqn_3, backgrowdays, args.plasticans, args.burningen_plastic, args.timeplastic, plastic_signalresp, args.geneswap, backhabvals, args.sexchromo, Track_DiseaseStates_SecondUpdate, Track_DiseaseStates_AfterDeaths_SecondUpdate, disease_vars)
 										
 		# Print to log
 		stringout = 'Second DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
@@ -1356,8 +1353,9 @@ def mc_loop(args: MCArgs):
 		# ----------------------------------------------------
 
 		start_time1 = datetime.datetime.now() # Timing events: start
-		SubpopIN = modules.DoUpdate(args.packans,SubpopIN,K,xgridpop,ygridpop,gen,args.nthfile,ithmcrundir,args.loci,args.alleles,logfHndl,args.gridsample,args.growans,args.cdevolveans,fitvals,args.burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,args.sizeans,age_size_mean,Track_N_out_age,args.eggFreq_mu,args.eggFreq_sd,outsizevals,args.sizeLoo,args.sizeR0,args.size_eqn_1,args.size_eqn_2,args.size_eqn_3,outgrowdays,args.plasticans,args.burningen_plastic,args.timeplastic,plastic_signalresp,args.geneswap,outhabvals,args.sexchromo,Track_DiseaseStates_ThirdUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,disease_vars,age_mature,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope)
-	
+#		SubpopIN = modules.DoUpdate(args.packans,SubpopIN,K,xgridpop,ygridpop,gen,args.nthfile,ithmcrundir,args.loci,args.alleles,logfHndl,args.gridsample,args.growans,args.cdevolveans,fitvals,args.burningen_cdevolve,age_capture_out,pop_capture_out,Track_CaptureCount_Out,Track_CaptureCount_ClassOut,args.sizeans,age_size_mean,Track_N_out_age,args.eggFreq_mu,args.eggFreq_sd,outsizevals,args.sizeLoo,args.sizeR0,args.size_eqn_1,args.size_eqn_2,args.size_eqn_3,outgrowdays,args.plasticans,args.burningen_plastic,args.timeplastic,plastic_signalresp,args.geneswap,outhabvals,args.sexchromo,Track_DiseaseStates_ThirdUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,disease_vars,age_mature,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope)
+		SubpopIN = modules.DoUpdate(args, preprocessargs, SubpopIN, gen, logfHndl, args.gridsample, args.growans, args.cdevolveans, fitvals, args.burningen_cdevolve, age_capture_out, pop_capture_out, Track_CaptureCount_Out, Track_CaptureCount_ClassOut, args.sizeans, age_size_mean, Track_N_out_age, args.eggFreq_mu, args.eggFreq_sd, outsizevals, args.sizeLoo, args.sizeR0, args.size_eqn_1, args.size_eqn_2, args.size_eqn_3, outgrowdays, args.plasticans, args.burningen_plastic, args.timeplastic, plastic_signalresp, args.geneswap, outhabvals, args.sexchromo, Track_DiseaseStates_ThirdUpdate, Track_DiseaseStates_AfterDeaths_ThirdUpdate, disease_vars, age_mature, FXXmat_set, FXXmat_int, FXXmat_slope, MXYmat_set, MXYmat_int, MXYmat_slope, MYYmat_set, MYYmat_int, MYYmat_slope, FYYmat_set, FYYmat_int, FYYmat_slope)
+
 		# Print to log
 		stringout = 'Third DoUpdate(): '+str(datetime.datetime.now() -start_time1) + ''
 		modules.logMsg(logfHndl,stringout)
