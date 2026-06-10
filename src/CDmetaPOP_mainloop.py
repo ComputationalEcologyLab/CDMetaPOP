@@ -9,8 +9,7 @@
 import numpy as np 
 import sys, datetime
 import multiprocessing as mp
-from dataclasses import dataclass
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from typing import Any
 
 # CDmetaPOP functions
@@ -1229,8 +1228,11 @@ def mc_loop(args: MCArgs):
 		# Timing events: start
 		start_time1 = datetime.datetime.now()				
 		
-		Bearpairs_temp,noOffspring_temp = mate.DoMate(SubpopIN,K,args.freplace,args.mreplace,moveno_mate,thresh_mate,cdmatrix_mate,Track_MateDistCD,xgridpop,ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,scalemax_mate,scalemin_mate,parA_mate,parB_mate,parC_mate,args.Femalepercent_egg,args.sexans,args.selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,assortmateModel,subpopmort_mat,Track_BreedFemales,Track_BreedMales,Track_BreedYYMales,Track_BreedYYFemales,Track_MatureCount, Track_ImmatureCount,Track_ToTFemales,Track_ToTMales,Track_ToTYYMales,Track_ToTYYFemales,args.egg_delay,Bearpairs_temp,natal_patches,args.offno,f_ind,age_sigma,args.sizeans,args.egg_mean_1,args.egg_mean_2,args.egg_mean_ans,args.equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,args.constMortans,args.outputans,Track_DiseaseStates_AddedInds,disease_vars)
-		
+#		Bearpairs_temp,noOffspring_temp = mate.DoMate(SubpopIN,K,args.freplace,args.mreplace,moveno_mate,thresh_mate,cdmatrix_mate,Track_MateDistCD,xgridpop,ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,scalemax_mate,scalemin_mate,parA_mate,parB_mate,parC_mate,args.Femalepercent_egg,args.sexans,args.selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,assortmateModel,subpopmort_mat,Track_BreedFemales,Track_BreedMales,Track_BreedYYMales,Track_BreedYYFemales,Track_MatureCount, Track_ImmatureCount,Track_ToTFemales,Track_ToTMales,Track_ToTYYMales,Track_ToTYYFemales,args.egg_delay,Bearpairs_temp,natal_patches,args.offno,f_ind,age_sigma,args.sizeans,args.egg_mean_1,args.egg_mean_2,args.egg_mean_ans,args.equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,args.constMortans,args.outputans,Track_DiseaseStates_AddedInds,disease_vars)
+#		
+		Bearpairs_temp,noOffspring_temp = mate.DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, Track_MateDistCD, Track_MateDistCDstd, Track_FAvgMate, Track_MAvgMate, Track_FSDMate, Track_MSDMate, Track_BreedEvents, gen, sourcePop, Track_AAaaMates, Track_AAAAMates, Track_aaaaMates, Track_AAAaMates, Track_aaAaMates, Track_AaAaMates, Track_BreedFemales, Track_BreedMales, Track_BreedYYMales, Track_BreedYYFemales, Track_MatureCount, Track_ImmatureCount, Track_ToTFemales, Track_ToTMales, Track_ToTYYMales, Track_ToTYYFemales, Bearpairs_temp, Track_EggDeaths, noOffspring_temp, Track_Births, Track_BirthsMYY, Track_BirthsFYY, Track_DiseaseStates_AddedInds, disease_vars)
+ 
+
 		# Print to log
 		stringout = 'DoMate() and DoOffspring: '+str(datetime.datetime.now() -start_time1) + ''
 		modules.logMsg(logfHndl,stringout)

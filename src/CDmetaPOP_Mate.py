@@ -462,7 +462,81 @@ males,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count
 	# End::DoSexualNN()		
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,MateDistCD,xgrid,ygrid,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,BreedYYFemales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,ToTYYFemales,egg_delay,Bearpairs_temp,natal_patches,offno,f_ind,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,constMortans,outputans,Track_DiseaseStates_AddedInds,disease_vars):
+#def DoMate(SubpopIN,MateDistCD,MateDistCDstd,FAvgMate,MAvgMate,FSDMate,MSDMate,Female_BreedEvents,gen,sourcePop,ScaleMax,ScaleMin,A,B,C,Femalepercent,sexans,selfing,assortmateC,AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmateModel,subpopmort_mat,BreedFemales,BreedMales,BreedYYMales,BreedYYFemales,MatureCount,ImmatureCount,ToTFemales,ToTMales,ToTYYMales,ToTYYFemales,egg_delay,Bearpairs_temp,natal_patches,offno,f_ind,age_sigma,sizeans,egg_mean_1,egg_mean_2,egg_mean_ans,equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,constMortans,outputans,Track_DiseaseStates_AddedInds,disease_vars):
+
+def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, MateDistCD, MateDistCDstd, FAvgMate, MAvgMate, FSDMate, MSDMate, Female_BreedEvents, gen, sourcePop, AAaaMates, AAAAMates, aaaaMates, AAAaMates, aaAaMates, AaAaMates, BreedFemales, BreedMales, BreedYYMales, BreedYYFemales, MatureCount, ImmatureCount, ToTFemales, ToTMales, ToTYYMales, ToTYYFemales, Bearpairs_temp, Track_EggDeaths, noOffspring_temp, Track_Births, Track_BirthsMYY, Track_BirthsFYY, Track_DiseaseStates_AddedInds, disease_vars):
+
+#MateDistCD = Track_MateDistCD
+#MateDistCDstd = Track_MateDistCDstd
+#FAvgMate = Track_FAvgMate
+#MAvgMate = Track_MAvgMate
+#FSDMate = Track_FSDMate
+#MSDMate = Track_MSDMate
+#Female_BreedEvents = Track_BreedEvents
+#gen = gen
+#sourcePop = sourcePop
+#AAaaMates = Track_AAaaMates
+#AAAAMates = Track_AAAAMates
+#aaaaMates = Track_aaaaMates
+#AAAaMates = Track_AAAaMates
+#aaAaMates = Track_aaAaMates
+#AaAaMates = Track_AaAaMates
+#BreedFemales = Track_BreedFemales
+#BreedMales = Track_BreedMales
+#BreedYYMales = Track_BreedYYMales
+#BreedYYFemales = Track_BreedYYFemales
+#MatureCount = Track_MatureCount
+#ImmatureCount = Track_ImmatureCount
+#ToTFemales = Track_ToTFemales
+#ToTMales = Track_ToTMales
+#ToTYYMales = Track_ToTYYMales
+#ToTYYFemales = Track_ToTYYFemales
+#Bearpairs_temp = Bearpairs_temp
+#Track_EggDeaths = Track_EggDeaths
+#noOffspring_temp = noOffspring_temp
+#Track_Births = Track_Births
+#Track_BirthsMYY = Track_BirthsMYY
+#Track_BirthsFYY = Track_BirthsFYY
+#Track_DiseaseStates_AddedInds = Track_DiseaseStates_AddedInds
+#disease_vars = disease_vars
+
+	xgrid = preprocessargs.xgridpop
+	ygrid = preprocessargs.ygridpop
+	dtype = preprocessargs.dtype
+	natal_patches = preprocessargs.natal_patches
+
+	freplace = args.freplace
+	mreplace = args.mreplace
+	Femalepercent = args.Femalepercent_egg
+	sexans = args.sexans
+	selfing = args.selfing
+	egg_delay = args.egg_delay
+	offno = args.offno
+	sizeans = args.sizeans
+	egg_mean_1 = args.egg_mean_1
+	egg_mean_2 = args.egg_mean_2
+	egg_mean_ans = args.egg_mean_ans
+	equalClutch = args.equalClutch
+	constMortans = args.constMortans
+	outputans = args.outputans
+
+	matemoveno = climateargs.matemoveno
+	matemovethresh = climateargs.matemovethresh
+	xycdmatrix = climateargs.matecdmatrix
+	ScaleMax = climateargs.mate_ScaleMax
+	ScaleMin = climateargs.mate_ScaleMin
+	A = climateargs.matemoveparA
+	B = climateargs.matemoveparB
+	C = climateargs.matemoveparC
+	assortmateC = climateargs.assortmateC
+	assortmateModel = climateargs.assortmateModel
+	subpopmort_mat = climateargs.subpopmort_mat
+	age_sigma = climateargs.age_sigma
+
+	K = stochasticargs.K
+	f_ind = stochasticargs.f_ind
+	eggmort_patch = stochasticargs.eggmort_patch
+	eggmort_pop = stochasticargs.eggmort_age
 
 	'''
 	DoMate()
