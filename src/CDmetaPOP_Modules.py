@@ -900,7 +900,65 @@ def DoMLocusSelection(genes,iteminlist,cdevolveans,betas,xvars,maxfit,minfit):
 
 
 # ---------------------------------------------------------------------------------------------------	 
-def GetMetrics(SubpopIN,K,Population,K_track,loci,alleles,gen,Ho,Alleles,He,p1,p2,q1,q2,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,N_Age,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,packans,RDispersers,IDispersers,xvars_betas,betas_selection,maxfit,minfit,cdevolveans,disease_vars,DiseaseStates_pop,DiseaseStates_EnvRes ):
+#def GetMetrics(args, preprocessargs, SubpopIN, gen, Population,K_track,Ho,Alleles,He,p1,p2,q1,q2,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,N_Age,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,packans,RDispersers,IDispersers,xvars_betas,betas_selection,maxfit,minfit,cdevolveans,disease_vars,DiseaseStates_pop,DiseaseStates_EnvRes ):
+#def GetMetrics(args, preprocessargs, SubpopIN, gen, xvars_betas, betas_selection, Population, K_track, Ho, Alleles, He, p1, p2, q1, q2, Residors, Strayers1, Strayers2, Immigrators, PopSizes_Mean, PopSizes_Std, AgeSizes_Mean, AgeSizes_Std, N_Age, ClassSizes_Mean, ClassSizes_Std, N_Class, RDispersers, IDispersers, maxfit, minfit, DiseaseStates_pop, DiseaseStates_EnvRes):
+def GetMetrics(args, preprocessargs, SubpopIN, gen, xvars_betas, betas_selection, tracker, Residors, Strayers1, Strayers2, Immigrators, IDispersers, RDispersers, PopSizes_Mean, PopSizes_Std, AgeSizes_Mean, AgeSizes_Std, ClassSizes_Mean, ClassSizes_Std):
+
+	Population = tracker.Track_N_Init_pop
+	K_track = tracker.Track_K
+	Ho = tracker.Track_Ho
+	Alleles = tracker.Track_Alleles
+	He = tracker.Track_He
+	p1 = tracker.Track_p1
+	p2 = tracker.Track_p2
+	q1 = tracker.Track_q1
+	q2 = tracker.Track_q2
+	N_Age = tracker.Track_N_Init_age
+	N_Class = tracker.Track_N_Init_class
+	maxfit = tracker.maxfit
+	minfit = tracker.minfit
+	DiseaseStates_pop = tracker.Track_DiseaseStates_pop
+	DiseaseStates_EnvRes = tracker.Track_DiseaseStates_EnvRes
+
+
+	K = preprocessargs.K
+	size_mean = preprocessargs.age_size_mean
+	disease_vars = preprocessargs.tempDiseaseVars 
+
+	loci = args.loci
+	alleles = args.alleles
+	sizecall = args.sizeans
+	packans = args.packans
+	cdevolveans = args.cdevolveans
+
+#Population
+#K_track
+#Ho
+#Alleles
+#He
+#p1
+#p2
+#q1
+#q2
+#Residors
+#Strayers1
+#Strayers2
+#Immigrators
+#PopSizes_Mean
+#PopSizes_Std
+#AgeSizes_Mean
+#AgeSizes_Std
+#N_Age
+#ClassSizes_Mean
+#ClassSizes_Std
+#N_Class
+#RDispersers
+#IDispersers
+#maxfit
+#minfit
+#DiseaseStates_pop
+#DiseaseStates_EnvRes 
+
 	'''
 	GetMetrics()
 	This function summarizes the genotypes and
