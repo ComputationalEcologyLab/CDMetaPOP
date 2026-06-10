@@ -466,8 +466,35 @@ males,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count
 
 #def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, MateDistCD, MateDistCDstd, FAvgMate, MAvgMate, FSDMate, MSDMate, Female_BreedEvents, AAaaMates, AAAAMates, aaaaMates, AAAaMates, aaAaMates, AaAaMates, BreedFemales, BreedMales, BreedYYMales, BreedYYFemales, MatureCount, ImmatureCount, ToTFemales, ToTMales, ToTYYMales, ToTYYFemales, Track_EggDeaths, Track_Births, Track_BirthsMYY, Track_BirthsFYY, Track_DiseaseStates_AddedInds):
 
-def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, MateDistCD, MateDistCDstd, FAvgMate, MAvgMate, FSDMate, MSDMate, Female_BreedEvents, AAaaMates, AAAAMates, aaaaMates, AAAaMates, aaAaMates, AaAaMates, BreedFemales, BreedMales, BreedYYMales, BreedYYFemales, MatureCount, ImmatureCount, ToTFemales, ToTMales, ToTYYMales, ToTYYFemales, Track_EggDeaths, Track_Births, Track_BirthsMYY, Track_BirthsFYY, tracker):
+def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, tracker):
 
+	MateDistCD = tracker.Track_MateDistCD
+	MateDistCDstd = tracker.Track_MateDistCDstd
+	FAvgMate = tracker.Track_FAvgMate
+	MAvgMate = tracker.Track_MAvgMate
+	FSDMate = tracker.Track_FSDMate
+	MSDMate = tracker.Track_MSDMate
+	Female_BreedEvents = tracker.Track_BreedEvents
+	AAaaMates = tracker.Track_AAaaMates
+	AAAAMates = tracker.Track_AAAAMates
+	aaaaMates = tracker.Track_aaaaMates
+	AAAaMates = tracker.Track_AAAaMates
+	aaAaMates = tracker.Track_aaAaMates
+	AaAaMates = tracker.Track_AaAaMates
+	BreedFemales = tracker.Track_BreedFemales
+	BreedMales = tracker.Track_BreedMales
+	BreedYYMales = tracker.Track_BreedYYMales
+	BreedYYFemales = tracker.Track_BreedYYFemales
+	MatureCount = tracker.Track_MatureCount
+	ImmatureCount = tracker.Track_ImmatureCount
+	ToTFemales = tracker.Track_ToTFemales
+	ToTMales = tracker.Track_ToTMales
+	ToTYYMales = tracker.Track_ToTYYMales
+	ToTYYFemales = tracker.Track_ToTYYFemales
+	Track_EggDeaths = tracker.Track_EggDeaths
+	Track_Births = tracker.Track_Births
+	Track_BirthsMYY = tracker.Track_BirthsMYY
+	Track_BirthsFYY = tracker.Track_BirthsFYY
 	Track_DiseaseStates_AddedInds = tracker.Track_DiseaseStates_AddedInds
 
 #MateDistCD = Track_MateDistCD

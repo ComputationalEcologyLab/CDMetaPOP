@@ -168,7 +168,34 @@ class MCArgs:
 
 @dataclass
 class SimulationTracker:
-    Track_DiseaseStates_AddedInds: List[Any] = field(default_factory=list)
+	Track_DiseaseStates_AddedInds: List[Any] = field(default_factory=list)
+	Track_FAvgMate: List[Any] = field(default_factory=list)
+	Track_MateDistCD: List[Any] = field(default_factory=list)
+	Track_MateDistCDstd: List[Any] = field(default_factory=list)
+	Track_MAvgMate: List[Any] = field(default_factory=list)
+	Track_FSDMate: List[Any] = field(default_factory=list)
+	Track_MSDMate: List[Any] = field(default_factory=list)
+	Track_BreedEvents: List[Any] = field(default_factory=list)
+	Track_AAaaMates: List[Any] = field(default_factory=list)
+	Track_AAAAMates: List[Any] = field(default_factory=list)
+	Track_aaaaMates: List[Any] = field(default_factory=list)
+	Track_AAAaMates: List[Any] = field(default_factory=list)
+	Track_aaAaMates: List[Any] = field(default_factory=list)
+	Track_AaAaMates: List[Any] = field(default_factory=list)
+	Track_BreedFemales: List[Any] = field(default_factory=list)
+	Track_BreedMales: List[Any] = field(default_factory=list)
+	Track_BreedYYMales: List[Any] = field(default_factory=list)
+	Track_BreedYYFemales: List[Any] = field(default_factory=list)
+	Track_MatureCount: List[Any] = field(default_factory=list)
+	Track_ImmatureCount: List[Any] = field(default_factory=list)
+	Track_ToTFemales: List[Any] = field(default_factory=list)
+	Track_ToTMales: List[Any] = field(default_factory=list)
+	Track_ToTYYMales: List[Any] = field(default_factory=list)
+	Track_ToTYYFemales: List[Any] = field(default_factory=list)
+	Track_EggDeaths: List[Any] = field(default_factory=list)
+	Track_Births: List[Any] = field(default_factory=list)
+	Track_BirthsMYY: List[Any] = field(default_factory=list)
+	Track_BirthsFYY: List[Any] = field(default_factory=list)
 
 # --------------------------------------------------------------------------------------------------------------------
 def main_loop(inputs, context, XQs, extinctQ, global_extinctQ):
@@ -623,7 +650,8 @@ def mc_loop(args: MCArgs):
 	tracker = SimulationTracker()
 							
 	# DoMate()
-	Track_FAvgMate, Track_MAvgMate, Track_FSDMate, Track_MSDMate, Track_MateDistCD, Track_MateDistCDstd, Track_BreedEvents, Track_AAaaMates, Track_AAAAMates, Track_aaaaMates, Track_AAAaMates, Track_aaAaMates, Track_AaAaMates, Track_BreedFemales, Track_BreedMales, Track_BreedYYMales, Track_BreedYYFemales, Track_MatureCount, Track_ImmatureCount, Track_ToTFemales, Track_ToTMales, Track_ToTYYMales, Track_ToTYYFemales = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+#	Track_FAvgMate, Track_MAvgMate, Track_FSDMate, Track_MSDMate, Track_MateDistCD, Track_MateDistCDstd, Track_BreedEvents, Track_AAaaMates, Track_AAAAMates, Track_aaaaMates, Track_AAAaMates, Track_aaAaMates, Track_AaAaMates, Track_BreedFemales, Track_BreedMales, Track_BreedYYMales, Track_BreedYYFemales, Track_MatureCount, Track_ImmatureCount, Track_ToTFemales, Track_ToTMales, Track_ToTYYMales, Track_ToTYYFemales = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+	Track_MAvgMate, Track_FSDMate, Track_MSDMate, Track_MateDistCD, Track_MateDistCDstd, Track_BreedEvents, Track_AAaaMates, Track_AAAAMates, Track_aaaaMates, Track_AAAaMates, Track_aaAaMates, Track_AaAaMates, Track_BreedFemales, Track_BreedMales, Track_BreedYYMales, Track_BreedYYFemales, Track_MatureCount, Track_ImmatureCount, Track_ToTFemales, Track_ToTMales, Track_ToTYYMales, Track_ToTYYFemales = [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
 	
 	# DoOffspring
 	Track_Births, Track_EggDeaths, Track_BirthsMYY, Track_BirthsFYY, Track_DiseaseStates_AddAge0s = [], [], [], [], []
@@ -1237,7 +1265,39 @@ def mc_loop(args: MCArgs):
 #		Bearpairs_temp,noOffspring_temp = mate.DoMate(SubpopIN,K,args.freplace,args.mreplace,moveno_mate,thresh_mate,cdmatrix_mate,Track_MateDistCD,xgridpop,ygridpop,Track_MateDistCDstd,Track_FAvgMate,Track_MAvgMate,Track_FSDMate,Track_MSDMate,Track_BreedEvents,gen,sourcePop,scalemax_mate,scalemin_mate,parA_mate,parB_mate,parC_mate,args.Femalepercent_egg,args.sexans,args.selfing,assortmateC,Track_AAaaMates,Track_AAAAMates,Track_aaaaMates,Track_AAAaMates,Track_aaAaMates,Track_AaAaMates,assortmateModel,subpopmort_mat,Track_BreedFemales,Track_BreedMales,Track_BreedYYMales,Track_BreedYYFemales,Track_MatureCount, Track_ImmatureCount,Track_ToTFemales,Track_ToTMales,Track_ToTYYMales,Track_ToTYYFemales,args.egg_delay,Bearpairs_temp,natal_patches,args.offno,f_ind,age_sigma,args.sizeans,args.egg_mean_1,args.egg_mean_2,args.egg_mean_ans,args.equalClutch,dtype,eggmort_patch,Track_EggDeaths,eggmort_pop,noOffspring_temp,Track_Births,Track_BirthsMYY,Track_BirthsFYY,args.constMortans,args.outputans,Track_DiseaseStates_AddedInds,disease_vars)
 #		
 #		Bearpairs_temp,noOffspring_temp = mate.DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, Track_MateDistCD, Track_MateDistCDstd, Track_FAvgMate, Track_MAvgMate, Track_FSDMate, Track_MSDMate, Track_BreedEvents, Track_AAaaMates, Track_AAAAMates, Track_aaaaMates, Track_AAAaMates, Track_aaAaMates, Track_AaAaMates, Track_BreedFemales, Track_BreedMales, Track_BreedYYMales, Track_BreedYYFemales, Track_MatureCount, Track_ImmatureCount, Track_ToTFemales, Track_ToTMales, Track_ToTYYMales, Track_ToTYYFemales, Track_EggDeaths, Track_Births, Track_BirthsMYY, Track_BirthsFYY, Track_DiseaseStates_AddedInds)
-		Bearpairs_temp,noOffspring_temp = mate.DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, Track_MateDistCD, Track_MateDistCDstd, Track_FAvgMate, Track_MAvgMate, Track_FSDMate, Track_MSDMate, Track_BreedEvents, Track_AAaaMates, Track_AAAAMates, Track_aaaaMates, Track_AAAaMates, Track_aaAaMates, Track_AaAaMates, Track_BreedFemales, Track_BreedMales, Track_BreedYYMales, Track_BreedYYFemales, Track_MatureCount, Track_ImmatureCount, Track_ToTFemales, Track_ToTMales, Track_ToTYYMales, Track_ToTYYFemales, Track_EggDeaths, Track_Births, Track_BirthsMYY, Track_BirthsFYY, tracker)
+
+		Bearpairs_temp,noOffspring_temp = mate.DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, tracker)
+
+		Track_MateDistCD = tracker.Track_MateDistCD
+		Track_MateDistCDstd = tracker.Track_MateDistCDstd
+		Track_FAvgMate = tracker.Track_FAvgMate
+		Track_MAvgMate = tracker.Track_MAvgMate
+		Track_FSDMate = tracker.Track_FSDMate
+		Track_MSDMate = tracker.Track_MSDMate
+		Track_BreedEvents = tracker.Track_BreedEvents
+		Track_AAaaMates = tracker.Track_AAaaMates
+		Track_AAAAMates = tracker.Track_AAAAMates
+		Track_aaaaMates = tracker.Track_aaaaMates
+		Track_AAAaMates = tracker.Track_AAAaMates
+		Track_aaAaMates = tracker.Track_aaAaMates
+		Track_AaAaMates = tracker.Track_AaAaMates
+		Track_BreedFemales = tracker.Track_BreedFemales
+		Track_BreedMales = tracker.Track_BreedMales
+		Track_BreedYYMales = tracker.Track_BreedYYMales
+		Track_BreedYYFemales = tracker.Track_BreedYYFemales
+		Track_MatureCount = tracker.Track_MatureCount
+		Track_ImmatureCount = tracker.Track_ImmatureCount
+		Track_ToTFemales = tracker.Track_ToTFemales
+		Track_ToTMales = tracker.Track_ToTMales
+		Track_ToTYYMales = tracker.Track_ToTYYMales
+		Track_ToTYYFemales = tracker.Track_ToTYYFemales
+		Track_EggDeaths = tracker.Track_EggDeaths
+		Track_Births = tracker.Track_Births
+		Track_BirthsMYY = tracker.Track_BirthsMYY
+		Track_BirthsFYY = tracker.Track_BirthsFYY
+		Track_DiseaseStates_AddedInds = tracker.Track_DiseaseStates_AddedInds
+
+
 
 		# Print to log
 		stringout = 'DoMate() and DoOffspring: '+str(datetime.datetime.now() -start_time1) + ''
