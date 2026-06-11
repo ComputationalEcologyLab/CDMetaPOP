@@ -1394,7 +1394,44 @@ def ReadXY(xyfilename):
 	#End::ReadXY()
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsizevals_pass, backsizevals_pass, outgrowdays_pass, backgrowdays_pass, fitvals_pass, popmort_back_pass, popmort_out_pass, eggmort_pass, Kstd_pass, popmort_back_sd_pass, popmort_out_sd_pass, eggmort_sd_pass, outsizevals_sd_pass, backsizevals_sd_pass, outgrowdays_sd_pass, backgrowdays_sd_pass, pop_capture_back_pass, pop_capture_out_pass, N0_pass, allefreqfiles_pass, classvarsfiles_pass, PopTag, comp_coef_pass, xvars_betas_pass, outhabvals_pass, backhabvals_pass, MgBack_patch_prob_pass, Disperse_patch_prob_pass, alldiseaseVars_files,  pathogen_load_pass, disease_fitvals_pass):
+#def DoCDClimate(args, icdtime, MgOut_patch_pass, Str_patch_pass, Kmu_pass, outsizevals_pass, backsizevals_pass, outgrowdays_pass, backgrowdays_pass, fitvals_pass, popmort_back_pass, popmort_out_pass, eggmort_pass, Kstd_pass, popmort_back_sd_pass, popmort_out_sd_pass, eggmort_sd_pass, outsizevals_sd_pass, backsizevals_sd_pass, outgrowdays_sd_pass, backgrowdays_sd_pass, pop_capture_back_pass, pop_capture_out_pass, N0_pass, allefreqfiles_pass, classvarsfiles_pass, PopTag, comp_coef_pass, xvars_betas_pass, outhabvals_pass, backhabvals_pass, MgBack_patch_prob_pass, Disperse_patch_prob_pass, alldiseaseVars_files,  pathogen_load_pass, disease_fitvals_pass):
+def DoCDClimate(args, preprocessargs, icdtime):
+
+	MgOut_patch_pass = preprocessargs.MgOut_patch_prob
+	Str_patch_pass = preprocessargs.Str_patch_prob
+	Kmu_pass = preprocessargs.K_temp
+	outsizevals_pass = preprocessargs.outsizevals
+	backsizevals_pass = preprocessargs.backsizevals
+	outgrowdays_pass = preprocessargs.outgrowdays
+	backgrowdays_pass = preprocessargs.backgrowdays
+	fitvals_pass = preprocessargs.fitvals
+	popmort_back_pass = preprocessargs.popmort_back
+	popmort_out_pass = preprocessargs.popmort_out
+	eggmort_pass = preprocessargs.newmortperc
+	Kstd_pass = preprocessargs.Kstd_temp
+	popmort_back_sd_pass = preprocessargs.popmort_back_sd
+	popmort_out_sd_pass = preprocessargs.popmort_out_sd
+	eggmort_sd_pass = preprocessargs.newmortperc_sd
+	outsizevals_sd_pass = preprocessargs.outsizevals_sd
+	backsizevals_sd_pass = preprocessargs.backsizevals_sd
+	outgrowdays_sd_pass = preprocessargs.outgrowdays_sd
+	backgrowdays_sd_pass = preprocessargs.backgrowdays_sd
+	pop_capture_back_pass = preprocessargs.pop_capture_back
+	pop_capture_out_pass = preprocessargs.pop_capture_out
+	N0_pass = preprocessargs.N0_temp
+	allefreqfiles_pass = preprocessargs.allefreqfiles_temp
+	classvarsfiles_pass = preprocessargs.classvarsfiles_temp
+	PopTag = preprocessargs.PopTag
+	comp_coef_pass = preprocessargs.comp_coef_temp
+	xvars_betas_pass = preprocessargs.xvars
+	outhabvals_pass = preprocessargs.outhabvals
+	backhabvals_pass = preprocessargs.backhabvals
+	MgBack_patch_prob_pass = preprocessargs.MgBack_patch_prob
+	Disperse_patch_prob_pass = preprocessargs.Disperse_patch_prob
+	alldiseaseVars_files = preprocessargs.alldiseasepars_files
+	pathogen_load_pass = preprocessargs.pathogen_load
+	disease_fitvals_pass = preprocessargs.disease_fitvals
+
 	'''
 	DoCDCliamte()
 	Reads in cost distance matrices and converts to probabilities.
