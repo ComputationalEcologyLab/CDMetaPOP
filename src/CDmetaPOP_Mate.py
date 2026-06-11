@@ -462,7 +462,7 @@ males,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count
 	# End::DoSexualNN()		
 
 # ---------------------------------------------------------------------------------------------------	 
-def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, tracker):
+def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, tracker):
 
 	MateDistCD = tracker.Track_MateDistCD
 	MateDistCDstd = tracker.Track_MateDistCDstd
@@ -559,6 +559,8 @@ def DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sou
 	assortmateModel = climateargs.assortmateModel
 	subpopmort_mat = climateargs.subpopmort_mat
 	age_sigma = climateargs.age_sigma
+	disease_vars = climateargs.tupDisease_Vars
+
 
 	K = stochasticargs.K
 	f_ind = stochasticargs.f_ind

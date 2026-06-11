@@ -2118,7 +2118,47 @@ def DoCDClimate(args, preprocessargs, icdtime):
 	# End::DoCDClimate()
 
 # ---------------------------------------------------------------------------------------------------	
-def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_percmort_back_mu_egg,age_percmort_back_sd_egg,cor_mat,age_mu, age_sigma,f_leslie_mu,f_leslie_std,sexchromo,disease_vars):	
+#def DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,age_percmort_back_mu_egg,age_percmort_back_sd_egg,cor_mat,age_mu, age_sigma,f_leslie_mu,f_leslie_std,sexchromo,disease_vars):	
+def DoStochasticUpdate(args, preprocessargs, climateargs):	
+
+	cor_mat = preprocessargs.cor_mat
+
+	age_percmort_back_mu_egg = args.egg_percmort_mu
+	age_percmort_back_sd_egg = args.egg_percmort_sd
+	sexchromo = args.sexchromo
+
+	K_mu = climateargs.tempK
+	K_std = climateargs.tempKstd
+	popmort_back_mu = climateargs.temppopmort_back
+	popmort_back_sd = climateargs.temppopmort_back_sd
+	popmort_out_mu = climateargs.temppopmort_out
+	popmort_out_sd = climateargs.temppopmort_out_sd
+	eggmort_mu = climateargs.tempeggmort
+	eggmort_sd = climateargs.tempeggmort_sd
+	outsizevals_mu = climateargs.tempoutsize
+	outsizevals_sd = climateargs.tempoutsize_sd
+	backsizevals_mu = climateargs.tempbacksize
+	backsizevals_sd = climateargs.tempbacksize_sd
+	outgrowdays_mu = climateargs.tempoutgrow
+	outgrowdays_sd = climateargs.tempoutgrow_sd
+	backgrowdays_mu = climateargs.tempbackgrow
+	backgrowdays_sd = climateargs.tempbackgrow_sd
+	age_percmort_out_mu = climateargs.age_percmort_out
+	age_percmort_out_sd = climateargs.age_percmort_out_sd
+	age_percmort_back_mu = climateargs.age_percmort_back
+	age_percmort_back_sd = climateargs.age_percmort_back_sd
+	size_percmort_out_mu = climateargs.size_percmort_out
+	size_percmort_out_sd = climateargs.size_percmort_out_sd
+	size_percmort_back_mu = climateargs.size_percmort_back
+	size_percmort_back_sd = climateargs.size_percmort_back_sd
+	age_mu = climateargs.age_mu
+	age_sigma = climateargs.age_sigma
+	f_leslie_mu = climateargs.f_leslie
+	f_leslie_std = climateargs.f_leslie_std
+	disease_vars = climateargs.tupDisease_Vars
+
+
+
 	'''
 	Here update any stochastic variables. Add in Todd and Ng method for unbias draw.
 	Generate correlated deviates

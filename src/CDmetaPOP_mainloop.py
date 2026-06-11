@@ -1276,7 +1276,8 @@ def mc_loop(args: MCArgs):
 		# Update stochastic parameters each year here
 		# -------------------------------------------
 #		stochasticargs = preprocess.DoStochasticUpdate(K_mu,K_std,popmort_back_mu,popmort_back_sd,popmort_out_mu,popmort_out_sd,eggmort_mu,eggmort_sd,outsizevals_mu,outsizevals_sd,backsizevals_mu,backsizevals_sd,outgrowdays_mu,outgrowdays_sd,backgrowdays_mu,backgrowdays_sd,age_percmort_out_mu,age_percmort_out_sd,age_percmort_back_mu,age_percmort_back_sd,size_percmort_out_mu,size_percmort_out_sd,size_percmort_back_mu,size_percmort_back_sd,args.egg_percmort_mu,args.egg_percmort_sd,cor_mat,age_mu,age_sigma,f_leslie_mu,f_leslie_std,args.sexchromo,disease_vars)
-		stochasticargs = preprocess.DoStochasticUpdate(K_mu, K_std, popmort_back_mu, popmort_back_sd, popmort_out_mu, popmort_out_sd, eggmort_mu, eggmort_sd, outsizevals_mu, outsizevals_sd, backsizevals_mu, backsizevals_sd, outgrowdays_mu, outgrowdays_sd, backgrowdays_mu, backgrowdays_sd, age_percmort_out_mu, age_percmort_out_sd, age_percmort_back_mu, age_percmort_back_sd, size_percmort_out_mu, size_percmort_out_sd, size_percmort_back_mu, size_percmort_back_sd, args.egg_percmort_mu, args.egg_percmort_sd, cor_mat, age_mu, age_sigma, f_leslie_mu, f_leslie_std, args.sexchromo, disease_vars)
+		stochasticargs = preprocess.DoStochasticUpdate(args, preprocessargs, climateargs)
+
 #		K, popmort_back, popmort_out, eggmort_patch, outsizevals, backsizevals, outgrowdays, backgrowdays, age_percmort_out, age_percmort_back, size_percmort_out, size_percmort_back, eggmort_pop, f_ind, f_leslie = tupStoch[:15]
 
 		K					 = stochasticargs.K
@@ -1307,7 +1308,7 @@ def mc_loop(args: MCArgs):
 		# Timing events: start
 		start_time1 = datetime.datetime.now()				
 		
-		Bearpairs_temp,noOffspring_temp = mate.DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, disease_vars, tracker)
+		Bearpairs_temp,noOffspring_temp = mate.DoMate(preprocessargs, args, climateargs, stochasticargs, SubpopIN, gen, sourcePop, Bearpairs_temp, noOffspring_temp, tracker)
 
 		Track_MateDistCD = tracker.Track_MateDistCD
 		Track_MateDistCDstd = tracker.Track_MateDistCDstd
@@ -1337,8 +1338,6 @@ def mc_loop(args: MCArgs):
 		Track_BirthsMYY = tracker.Track_BirthsMYY
 		Track_BirthsFYY = tracker.Track_BirthsFYY
 		Track_DiseaseStates_AddedInds = tracker.Track_DiseaseStates_AddedInds
-
-
 
 		# Print to log
 		stringout = 'DoMate() and DoOffspring: '+str(datetime.datetime.now() -start_time1) + ''
