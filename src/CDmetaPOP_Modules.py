@@ -902,7 +902,7 @@ def DoMLocusSelection(genes,iteminlist,cdevolveans,betas,xvars,maxfit,minfit):
 # ---------------------------------------------------------------------------------------------------	 
 #def GetMetrics(args, preprocessargs, SubpopIN, gen, Population,K_track,Ho,Alleles,He,p1,p2,q1,q2,Residors,Strayers1,Strayers2,Immigrators,PopSizes_Mean,PopSizes_Std,AgeSizes_Mean,AgeSizes_Std,N_Age,sizecall,size_mean,ClassSizes_Mean,ClassSizes_Std,N_Class,packans,RDispersers,IDispersers,xvars_betas,betas_selection,maxfit,minfit,cdevolveans,disease_vars,DiseaseStates_pop,DiseaseStates_EnvRes ):
 #def GetMetrics(args, preprocessargs, SubpopIN, gen, xvars_betas, betas_selection, Population, K_track, Ho, Alleles, He, p1, p2, q1, q2, Residors, Strayers1, Strayers2, Immigrators, PopSizes_Mean, PopSizes_Std, AgeSizes_Mean, AgeSizes_Std, N_Age, ClassSizes_Mean, ClassSizes_Std, N_Class, RDispersers, IDispersers, maxfit, minfit, DiseaseStates_pop, DiseaseStates_EnvRes):
-def GetMetrics(args, preprocessargs, SubpopIN, gen, xvars_betas, betas_selection, tracker, Residors, Strayers1, Strayers2, Immigrators, IDispersers, RDispersers, PopSizes_Mean, PopSizes_Std, AgeSizes_Mean, AgeSizes_Std, ClassSizes_Mean, ClassSizes_Std):
+def GetMetrics(args, preprocessargs, SubpopIN, gen, xvars_betas, betas_selection, tracker):
 
 	Population = tracker.Track_N_Init_pop
 	K_track = tracker.Track_K
@@ -920,6 +920,18 @@ def GetMetrics(args, preprocessargs, SubpopIN, gen, xvars_betas, betas_selection
 	DiseaseStates_pop = tracker.Track_DiseaseStates_pop
 	DiseaseStates_EnvRes = tracker.Track_DiseaseStates_EnvRes
 
+	Residors = tracker.Residors
+	Strayers1 = tracker.Strayers1
+	Strayers2 = tracker.Strayers2
+	Immigrators = tracker.Immigrators
+	IDispersers = tracker.IDispersers
+	RDispersers = tracker.RDispersers
+	PopSizes_Mean = tracker.PopSizes_Mean
+	PopSizes_Std = tracker.PopSizes_Std
+	AgeSizes_Mean = tracker.AgeSizes_Mean
+	AgeSizes_Std = tracker.AgeSizes_Std
+	ClassSizes_Mean = tracker.ClassSizes_Mean
+	ClassSizes_Std = tracker.ClassSizes_Std
 
 	K = preprocessargs.K
 	size_mean = preprocessargs.age_size_mean
