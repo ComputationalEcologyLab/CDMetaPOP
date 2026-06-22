@@ -34,18 +34,18 @@ example_files -> test example files
 - DiseaseExamples
     - Adaptive_Run06 - Demonstrates genetic adaptation to disease via resistance and tolerance.
     - OnePatch_SIDP - SIR simulations to match simple theoretical patterns. 
-  
+environment.yml file -> conda environment file to run CDMetaPOP simulations in conda
 ---------------------------------------
 Requirements and Pre-requisite Software
 ---------------------------------------
 
 1. Baseline Requirements. CDMetaPOP requires the Python3.8.x interpreter, NumPy package, and SciPy package. Remember that Python modules usually require particular Python interpreters, so be sure the version ID for any external Python module or package (e.g. NumPy or others) matches the version of your Python interpreter (normally v3.8.x). To avoid Python installation errors, we highly recommend installing Python from any number of the freely available bundlers that include the NumPy and SciPy packages, e.g., Anaconda (recommended), Canopy, ActiveState.
 
-2. Example Python installation using 'conda'. First, download the Anaconda software at https://www.anaconda.com/download. Then open an Anaconda prompt (Windows) or run conda from the terminal (Mac, Linux) and run the following.
+2. Example Python installation using 'conda'. First, download the Anaconda software at https://www.anaconda.com/download or just the conda package installer. Then open an Anaconda prompt (Windows) or run conda from the terminal (Mac, Linux) and run the following. Make sure the environment.yml file is in your working directory.
 
-`conda create --name <env_name> python=<version> package1 package2=<version>`
+`conda env create -f environment.yml`
 
-`conda activate <env_name>`
+`conda activate cdmetapop`
 
 `_Run-your-CDMetaPOP-code_` (see example below)
 
