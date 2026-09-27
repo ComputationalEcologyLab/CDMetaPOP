@@ -1,3 +1,49 @@
+Changes in adding_MultipleCompartmentsDisease branch 2026.09.25 ell
+0) Checking model dynamics with S -> V -> I -> R first. Where S and V are both able to transition to I -> i.e., multiple S states. 
+-> added validate(pathogen_load > 1.0, 'Pathogen load must be scaled from 0 to 1') to moveStates()
+#concentration = pathogen_load / total_pop
+concentration = pathogen_load
+***Removed this, ask team about updateEnvRes
+	a) Commented out: 
+	# Check for multiple S transitions - not possible currently
+	#validate(len(possible_state_transitions) > 1 and current_state == 0, 'S cannot transition to more than 1 compartment at this time.')
+	b) Adding in multiple Susceptible indexes '0;1'
+		-> in read_disease_vars_files: turn SusCompartment and infectCompartment into lists of lists. 
+		#SusCompartment.append(df.iloc[1,3])		SusCompartment.append(np.asarray(df.iloc[1,3].split(';'),int).tolist())
+		#infectCompartment.append(df.iloc[1,4])
+		***Note that death states is still 1		
+		-> Checking downstream:
+			Commented out validate checks ln 76
+		-> in moveStates, check through compartment dtype moved to list
+			#susceptible_state = int(disease_vars['SusComp'][isub])
+			susceptible_state = disease_vars['SusComp'][isub] 
+			#infected_state = int(disease_vars['InfComp'][isub])
+			infected_state = disease_vars['InfComp'][isub]
+			-> Checking all susceptible_state and infected_state calls
+			if the current_state is in susceptible_state list, return a True:
+				#if disease_vars['TransMode'][isub] == 'Indirect' and current_state == susceptible_state:
+				if disease_vars['TransMode'][isub] == 'Indirect' and current_state in susceptible_state:
+				# Within the has_resistance and has_tolerance loop
+				#if pathogen_state_idx == config_from_state and infected_state == config_to_state:
+				if pathogen_state_idx == config_from_state and config_to_state in infected_state:
+			-> For indirect_foi, make this a list now
+				#indirect_foi = concentration * rates_from_pathogen[infected_state]
+				indirect_foi = [concentration*rates_from_pathogen[i] for i in infected_state]
+			-> Update transition section to first check for S or other state, then check what state the evaluated next_state is (S or I)
+			-> Last section of code for when direct transmission is turned off
+		-> updateEnvRes() ***Check with team on P scale
+		-> DoOut_AllTimeDiseasePatch() ***rt is commented out, need Baylor here
+			
+				
+	
+	
+1) Checking multiple I compartments 
+	a) Need to properly read in split(';') first, similar to InitCond
+		#infectCompartment.append(df.iloc[1,4])
+		infectCompartment.append(np.asarray(df.iloc[1,4].split(';'),int).tolist())
+	b) Then some changes to checks and validate sections on line 72 of _Disease()
+	c)
+
 Commit 5/19/2026 - Casey update to fix Kadj tracking for packing_1 option.
 Also updated user manual to include 'Developing your own simulations' section.
 
