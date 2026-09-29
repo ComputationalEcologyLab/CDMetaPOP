@@ -40,8 +40,12 @@ def read_disease_vars_files(filelist, datadir,implementdisease,pathogen_load,dis
 			noStates.append(int(df.iloc[1,0]))
 			InitCond.append(np.asarray(df.iloc[1,1].split(';'),float).tolist())
 			TranRates_Files.append(df.iloc[1,2])
-			SusCompartment.append(df.iloc[1,3])
-			infectCompartment.append(df.iloc[1,4])
+			
+			#SusCompartment.append(df.iloc[1,3])
+			SusCompartment.append(np.asarray(df.iloc[1,3].split(';'),int).tolist())
+			#infectCompartment.append(df.iloc[1,4])
+			infectCompartment.append(np.asarray(df.iloc[1,4].split(';'),int).tolist())
+			
 			deathCompartment.append(df.iloc[1,5])
 			offspringTransmissionAns.append(df.iloc[1,6])
 			StartDiseaseWhen.append(int(df.iloc[1,7]))
@@ -53,7 +57,7 @@ def read_disease_vars_files(filelist, datadir,implementdisease,pathogen_load,dis
 			df1 = pd.read_csv(datadir+TranRates_Files[isub],header=None)
 			TranRates.append(np.asarray(df1,dtype=str).tolist())
 			TranRates_copy.append(np.asarray(df1,dtype=str).tolist())
-			#pdb.set_trace()		
+				
 			# Error Checks
 			if RDefense[isub] != 'N':
 				validate(len(RDefense[isub].split(';')[0].split('_')) != 2, 'Resistant disease defense option is in incorrect format. Specify N or state to state.')
@@ -68,8 +72,9 @@ def read_disease_vars_files(filelist, datadir,implementdisease,pathogen_load,dis
 			validate(not(offspringTransmissionAns[isub].lower() != 'susceptible' or offspringTransmissionAns[isub].split(';')[0].lower()) != 'vertical' , 'Incorrect option used for offspring transmission rules.')
 			if deathCompartment[isub] != 'N':
 				validate(noStates[isub] <= int(deathCompartment[isub]), 'Specific compartments (death) must be less than total number of states.')
-			validate(noStates[isub] <= int(infectCompartment[isub]), 'Specific compartments (infect) must be less than total number of states.')
-			validate(noStates[isub] <= int(SusCompartment[isub]), 'Specific compartments (susceptible) must be less than total number of states.')
+
+			#validate(noStates[isub] <= int(len(infectCompartment[isub])), 'Specific compartments (infect) must be less than total number of states.')
+			#validate(noStates[isub] <= int(SusCompartment[isub]), 'Specific compartments (susceptible) must be less than total number of states.')
 
 	else: # No disease, but initialize with one state
 		for isub in range(len(filelist)):
@@ -108,8 +113,10 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 	# --- 1. Setup and variable initialize ---
 	individual = SubpopIN[isub][iind]
 	current_state = individual['states']
-	susceptible_state = int(disease_vars['SusComp'][isub]) # Currently only one allowed
-	infected_state = int(disease_vars['InfComp'][isub]) # Currently only one allowed
+	#susceptible_state = int(disease_vars['SusComp'][isub])
+	susceptible_state = disease_vars['SusComp'][isub] 
+	#infected_state = int(disease_vars['InfComp'][isub])
+	infected_state = disease_vars['InfComp'][isub] 	
 	has_resistance = disease_vars['ResDefense'][isub].lower() != 'n'
 	has_tolerance = disease_vars['TolDefense'][isub].lower() != 'n'
 	total_pop = sum(countstates_inthispatch)
@@ -134,13 +141,15 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 								
 	# --- 3. Calculate Indirect Force of Infection ($S \to I$) ---
 	indirect_foi = 0.0
-	if disease_vars['TransMode'][isub] == 'Indirect' and current_state == susceptible_state:
-		#pdb.set_trace()		
+	#if disease_vars['TransMode'][isub] == 'Indirect' and current_state == susceptible_state:
+	if disease_vars['TransMode'][isub] == 'Indirect' and current_state in susceptible_state:
+			
 		# Base transition rate from environment (pathogen) to host states - column
 		rates_from_pathogen = [row[pathogen_state_idx] for row in disease_vars['TransRates'][isub]]
 				
 		# Get the pathogen load in this patch
 		pathogen_load = disease_vars['PathLoad'][isub]
+		#validate(pathogen_load > 1.0, 'Pathogen load must be scaled from 0 to 1')
 		
 		# Check for disease defense upgrades - CLocus
 		if has_resistance: 
@@ -149,7 +158,8 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 			for effect in defense_config.split(';'): 
 				config_from_state, config_to_state = map(int, effect.split('_'))
 				# If pstate to infected state match
-				if pathogen_state_idx == config_from_state and infected_state == config_to_state:
+				#if pathogen_state_idx == config_from_state and infected_state == config_to_state:
+				if pathogen_state_idx == config_from_state and config_to_state in infected_state:
 					# Get index for effect into the disease_vars 
 					defense_vals_idx = defense_config.split(';').index(effect)					
 					if Clocus[0] == 2:
@@ -165,7 +175,8 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 			for effect in defense_config.split(';'): 
 				config_from_state, config_to_state = map(int, effect.split('_'))
 				# If pstate to infected state match
-				if pathogen_state_idx == config_from_state and infected_state == config_to_state:
+				#if pathogen_state_idx == config_from_state and infected_state == config_to_state:
+				if pathogen_state_idx == config_from_state and config_to_state in infected_state:
 					# Get index for effect into the disease_vars 
 					defense_vals_idx = defense_config.split(';').index(effect)					
 					if Dlocus[0] == 2:
@@ -178,14 +189,16 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 		# Calculate force of infection from environmental pathogen load	
 		if total_pop > 0:
 			concentration = pathogen_load / total_pop
-			indirect_foi = concentration * rates_from_pathogen[infected_state]
+			#concentration = pathogen_load
+			#indirect_foi = concentration * rates_from_pathogen[infected_state]
+			indirect_foi = [i * concentration for i in rates_from_pathogen]
 		
 	# --- 4. Evaluate Possible State Transitions ---
     # Index values that this state could move to (non zero entries)
 	possible_state_transitions = np.where(np.asarray(rates_from_current_state) > 0)[0]
 	
 	# Check for multiple S transitions - not possible currently
-	validate(len(possible_state_transitions) > 1 and current_state == 0, 'S cannot transition to more than 1 compartment at this time.')
+	#validate(len(possible_state_transitions) > 1 and current_state == 0, 'S cannot transition to more than 1 compartment at this time.')
 	
 	# Shuffle the possible_state_transitions and loop through these possible moves
 	random.shuffle(possible_state_transitions)
@@ -230,12 +243,18 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 										
 		# Calculate the final probability of this transition occurring
 		transition_prob = 0.0
-		if current_state == susceptible_state:
-			# For S -> I, force of infection depends on proportion of infected individuals
-			if total_pop > 0:
-				proportion_infected = countstates_inthispatch[infected_state] / total_pop					
-				direct_foi = proportion_infected * rate
-				transition_prob = direct_foi + indirect_foi						
+		
+		# Check if Susceptible state
+		if current_state in susceptible_state:
+			# For S -> S or S -> not Is, fixed probability
+			transition_prob = rate 		
+			# Check S -> I, force of infection depends on proportion of infected individuals
+			if next_state in infected_state:
+				if total_pop > 0:
+					proportion_infected = countstates_inthispatch[next_state] / total_pop					
+					direct_foi = proportion_infected * transition_prob
+					transition_prob = direct_foi + indirect_foi[next_state]
+		# All other non susceptible states
 		else:					
 			# For other transitions (e.g., I -> R), rate is a fixed probability
 			transition_prob = rate 		
@@ -243,28 +262,30 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 		if random.uniform(0, 1) <= transition_prob:
 			individual['states'] = next_state
 			return # Transition occurred, so we exit the function
-		
+	
 	# --- 5. Handle Case of No Direct Transitions but Possible Indirect Infection ---
 	# This executes only if the loop above completes without a transition
-	if len(possible_state_transitions) == 0 and indirect_foi > 0 and current_state == susceptible_state:
-		if random.uniform(0, 1) <= indirect_foi:
-			individual['states'] = infected_state
-			
+	if len(possible_state_transitions) == 0 and sum(indirect_foi) > 0 and current_state in susceptible_state:
+		# Grab a random index from indirect_foi that is greater than zero
+		valid_indices = [i for i, rate in enumerate(rates_from_pathogen) if rate > 0] 
+		if valid_indices:
+			random_index_indirect_foi = random.choice(valid_indices)
+			if random.uniform(0, 1) <= indirect_foi[random_index_indirect_foi]:
+				individual['states'] = random_index_indirect_foi
+		else:
+			random_index_indirect_foi = None
+					
 	# End::moveStates()
 	
 # ---------------------------------------------------------------------------
 def updateEnvRes(disease_vars,isub,countstates_inthispatch):
 	'''If indirect transmission then update contaminant in environment'''
-	#pdb.set_trace()
+	
 	# Get P variables
 	p_state = disease_vars['noStates'][isub] # assume this is the last state
 	pathogen_load_atthispatch = disease_vars['PathLoad'][isub]
 	TOpState_FROMiStates = disease_vars['TransRates'][isub][p_state] # These rates are used to update the pathogen load
-	#FROMpState_TOiStates = [row[p_state] for row in disease_vars['TransRates'][isub]] # These rates are used in the force of infection
 	
-	# Get the compartment(s) involved in infection - currently only 1 allowed
-	infected_state = int(disease_vars['InfComp'][isub]) # index into infected state
-	#pdb.set_trace()
 	transition_rates_pstate = np.where(np.asarray(TOpState_FROMiStates) != 0)[0]
 	tplus1_pathogen_load_atthispatch = []
 	for iP in transition_rates_pstate:
@@ -477,6 +498,7 @@ def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_Disea
 		# 1. Calculate Rt - Note labeled rt but this is really effective contact rate.
 		for j in range(nosubpops+1):
 			rt = 0.0
+			'''
 			try:
 				# Get Sus Index
 				SusIndex = int(disease_vars['SusComp'][0])
@@ -493,6 +515,7 @@ def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_Disea
 					rt = (delta_inew / (float(i_start) * s_before)) * N_ImmiMortality[i][j]
 			except IndexError:
 				pass # Failsafe if states are empty
+			'''
 			outputfile.write(str(round(rt, 4))+'|')
 
 		# Final line break for the row
