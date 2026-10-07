@@ -258,7 +258,8 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 	Indgenes = Ind['genes']
 	# If cdevolve is on
 	if cdevolveans != 'N':
-		# Then the first l loci are for selection, next for plastic region
+		selloci = getSelLoci(cdevolveans)
+		'''# Then the first l loci are for selection, next for plastic region
 		if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 			selloci = int(cdevolveans.split('_')[2].split('L')[1])
 		elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
@@ -267,7 +268,7 @@ def updatePlasticGenes(Ind,cdevolveans,gen,geneswap,burningen_plastic,patchTemp,
 			selloci = 2
 		else:
 			print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-			sys.exit(-1)
+			sys.exit(-1)'''
 	# If selection is not on
 	else:
 		selloci = 0 # zero loci in selection
@@ -324,6 +325,12 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	It calculates both selection and spatial mortality togethers
 	'''
 	#pdb.set_trace()
+	# Grab the correct timing for implement selection to help deal with age specific timing e.g., Out_3:Back_5
+	for idx in timecdevolve.split(':'):
+		if idx.split('_')[0] == OutorBack:
+			seltiming = idx
+			break
+	
 	# CDEVOLVE - No
 	# -------------
 	if cdevolveans == 'N':
@@ -332,9 +339,9 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	# CDEVOLVE - Do1LocusSelection
 	# ----------------------------
 	elif (cdevolveans == '1' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
-		if len(timecdevolve.split(':')) > 1: # User indicated age check		
+		if len(seltiming.split('_')) > 1: # User indicated age check		
 			# Check if individual's age matches user specified selection age
-			if outpool['age'] != int(timecdevolve.split(':')[1]):
+			if outpool['age'] != int(seltiming.split('_')[1]):
 				differentialmortality = 0.0
 			else:
 				# for option 3 in which has to be mature
@@ -354,9 +361,9 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	# CDEVOLVE - Do2LocusSelection
 	# ----------------------------
 	elif (cdevolveans == '2' or cdevolveans == '2_mat') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
-		if len(timecdevolve.split(':')) > 1: # User indicated age check	
+		if len(seltiming.split('_')) > 1: # User indicated age check	
 			# Check if individual's age matches user specified selection age
-			if outpool['age'] != int(timecdevolve.split(':')[1]):
+			if outpool['age'] != int(seltiming.split('_')[1]):
 				differentialmortality = 0.0
 			else:
 				# for option 3 in which has to be mature
@@ -376,9 +383,9 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	# CDEVOLVE - DoHindexSelection
 	# ----------------------------
 	elif (cdevolveans.split('_')[0] == 'Hindex') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
-		if len(timecdevolve.split(':')) > 1: # User indicated age check						
+		if len(seltiming.split('_')) > 1: # User indicated age check						
 			# Check if individual's age matches user specified selection age
-			if outpool['age'] != int(timecdevolve.split(':')[1]):
+			if outpool['age'] != int(seltiming.split('_')[1]):
 				differentialmortality = 0.0
 			else:
 				# Call Hindex selection model
@@ -390,9 +397,9 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	# CDEVOLVE - DoFSelection
 	# -----------------------
 	elif (cdevolveans.split('_')[0] == 'F') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
-		if len(timecdevolve.split(':')) > 1: # User indicated age check	
+		if len(seltiming.split('_')) > 1: # User indicated age check	
 			# Check if individual's age matches user specified selection age
-			if outpool['age'] != int(timecdevolve.split(':')[1]):
+			if outpool['age'] != int(seltiming.split('_')[1]):
 				differentialmortality = 0.0
 			else:
 				# Call 2-locus selection model
@@ -404,9 +411,9 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	# CDEVOLVE - DoFHindexSelection (inbreeding and outbreeding)
 	# ----------------------------------------------------------
 	elif (cdevolveans.split('_')[0] == 'FHindex') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
-		if len(timecdevolve.split(':')) > 1: # User indicated age check							
+		if len(seltiming.split('_')) > 1: # User indicated age check							
 			# Check if individual's age matches user specified selection age
-			if outpool['age'] != int(timecdevolve.split(':')[1]):
+			if outpool['age'] != int(seltiming.split('_')[1]):
 				differentialmortality = 0.0
 			else:
 				# Call Hindex selection model
@@ -418,10 +425,9 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	# CDEVOLVE - DoMLocusSelection
 	# ----------------------------
 	elif (cdevolveans.split('_')[0] == 'P') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
-		if len(timecdevolve.split(':')) > 1: # User indicated age check			
-			
+		if len(seltiming.split('_')) > 1: # User indicated age check						
 			# Check if individual's age matches user specified selection age
-			if outpool['age'] != int(timecdevolve.split(':')[1]):
+			if outpool['age'] != int(seltiming.split('_')[1]):
 				differentialmortality = 0.0
 			else:
 				# Call Hindex selection model
@@ -433,9 +439,9 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	# CDEVOLVE - runtiming
 	# ----------------------------
 	elif (cdevolveans.split('_')[0] == 'runtiming') and (gen >= burningen_cdevolve) and (timecdevolve.find(OutorBack) != -1):
-		if len(timecdevolve.split(':')) > 1: # User indicated age check						
+		if len(seltiming.split('_')) > 1: # User indicated age check						
 			# Check if individual's age matches user specified selection age
-			if outpool['age'] != int(timecdevolve.split(':')[1]):
+			if outpool['age'] != int(seltiming.split('_')[1]):
 				differentialmortality = 0.0
 			else:
 				# Call Hindex selection model
@@ -470,6 +476,42 @@ def callDiffMortality(cdevolveans,gen,burningen_cdevolve,timecdevolve,OutorBack,
 	
 	return differentialmortality_Total
 	# END::callCDEVOLVE()
+
+
+
+# ---------------------------------------------------------------------------------------------------	
+def getSelLoci(cdevolveans):
+	''' This function identifies and returns the loci under selection for the plastic module'''
+	# Selection off 
+	if cdevolveans == 'N':
+		return 0
+
+	# Grab prefix, e.g., for Hindex_ or F_
+	prefix = cdevolveans.split('_')[0]
+
+	# Multilocus # e.g. P_X1_L2_A2_ModelX keeps 2 loci
+	if prefix == 'P':
+		return int(cdevolveans.split('_')[2].split('L')[1])
+
+	# One-locus models spatial selection, hindex, fhindex, maturation, growth, straying and runtiming 
+	if cdevolveans in ['1', 'M', 'G', '1_mat', '1_G_ind', '1_G_link', 'stray', 'runtiming'] \
+		or prefix in ['Hindex', 'FHindex']:
+		return 1
+
+	# Two-locus models - selection, or maturation and growth, split across the first two loci
+	if cdevolveans in ['2', 'MG', 'MG_ind', 'MG_link', '2_mat']:
+		return 2
+	
+	# F uses homozygosity, so no selection loci needed *********** Check with Erin ************
+	if prefix == 'F':
+		return 0
+	
+	# Anything else is not a recognized answer. 
+	print('CDEVOLVEANS not entered correctly; getSelLoci() does not recognize: ' + str(cdevolveans))
+	sys.exit(-1)
+
+	# End::getSelLoci()
+
 
 
 
@@ -1264,7 +1306,8 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 	if plasticans != 'N':		
 		# If cdevolve is on
 		if cdevolveans != 'N':
-			# Then the first l loci are for selection, next for plastic region
+			selloci = getSelLoci(cdevolveans)
+			'''# Then the first l loci are for selection, next for plastic region
 			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 				selloci = int(cdevolveans.split('_')[2].split('L')[1])
 			elif cdevolveans in {'1', 'M', 'G', '1_mat', '1_G_ind', '1_G_link', 'stray', 'Hindex', 'FHindex'}:
@@ -1273,7 +1316,7 @@ def InheritGenes(gen,offspring,loci,muterate,mtdna,mutationans,K,dtype,geneswap,
 				selloci = 2
 			else:
 				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-				sys.exit(-1)
+				sys.exit(-1)'''
 		# If selection is not on
 		else:
 			selloci = 0 # zero loci in selection
