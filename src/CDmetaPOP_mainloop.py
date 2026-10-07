@@ -171,19 +171,27 @@ def main_loop(spcNO,fileans,irun,datadir,sizeans,constMortans,mcruns,looptime,nt
 			logMsg(logfHndl,'Warning: Using multiplicative mortality option, double check for patch and class values when 0%')
 				
 		# Check on cdevolve answer input
-		valid_values = ['1', '2', '1_mat', '2_mat', 'N', 'M', 'G', 'MG_ind', 'MG_link', 'stray', '1_G_ind', '1_G_link', 'Hindex', 'F', 'Plastic', 'Multilocus','runtiming']
-		validate(cdevolveans not in valid_values, 'Check CDEvolve answer options.')
+		valid_exact = ['1', '2', '1_mat', '2_mat', 'N', 'M', 'G', 'MG','MG_ind', 'MG_link', 'stray', '1_G_ind', '1_G_link', 'Hindex', 'F', 'Plastic', 'Multilocus','runtiming']
+		# Some cdevolve answers must be split on underscore for prefix
+		valid_prefix = ['Hindex', 'FHindex','F', 'P']
+		validate(cdevolveans not in valid_exact and cdevolveans.split('_')[0] not in valid_prefix, 'Check CDEvolve answer options.')
 		
 		# For mature and size ans
 		valid_values = ['M', 'MG_ind', 'MG_link', 'G', '1_G_ind', '1_G_link']
 		validate(cdevolveans in valid_values and sizeans != 'Y','CDEVOLVE answer is M or G and size answer must be Y.')
 				
-		# For Hindex answer and each function
-		validate('Hindex' in cdevolveans and 'Gauss' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 6, 'CDEVOLVE answer is Hindex and 6 parameters for the Gaussian function must be specified, see user manual and example files.')
-		validate('Hindex' in cdevolveans and 'Para' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 3 parameters for the Parabolic function must be specified, see user manual and example files.')
-		validate('Hindex' in cdevolveans and 'Step' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 3 parameters for the Step function must be specified, see user manual and example files.')
-		validate('Hindex' in cdevolveans and 'Linear' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 2 parameters for the Linear function must be specified, see user manual and example files.')
-				
+		# For Hindex answer and each function, must match Hindex exactly otherwise triggers use of FHindex
+		isHindex = cdevolveans.split('_')[0] == 'Hindex'
+		validate(isHindex and 'Gauss' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 6, 'CDEVOLVE answer is Hindex and 6 parameters for the Gaussian function must be specified, see user manual and example files.')
+		validate(isHindex and 'Para' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 3 parameters for the Parabolic function must be specified, see user manual and example files.')
+		validate(isHindex and 'Step' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 3, 'CDEVOLVE answer is Hindex and 3 parameters for the Step function must be specified, see user manual and example files.')
+		validate(isHindex and 'Linear' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 2, 'CDEVOLVE answer is Hindex and 2 parameters for the Linear function must be specified, see user manual and example files.')
+		
+		# For Hindex answer and each function, must match Hindex exactly otherwise triggers use of FHindex
+		isF = cdevolveans.split('_')[0] == 'F'
+		validate(isF and 'Linear' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 2, 'CDEVOLVE answer is F and 2 parameters for the Linear function must be specified, see user manual and example files.')
+		validate(isF and 'Logistic' in cdevolveans and len(cdevolveans.split('_')[2].split(':')) != 2, 'CDEVOLVE answer is F and 2 parameters for the Logistic function must be specified, see user manual and example files.')
+		
 		# If cdevolve is turned on must have 2 alleles
 		validate((cdevolveans != 'N' or plasticans != 'N') and alleles[0] != 2,'More than 2 alleles per locus specified. CDEVOLVE Or plastic on and 2 alleles should be used needed.')
 

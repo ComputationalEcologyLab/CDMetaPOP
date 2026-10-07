@@ -1,3 +1,12 @@
+Committed 10/7/2026
+v3.12.2026.10.7 ccd
+Bug fixes and QoL updates
+0)validation function for Hindex and other options not working correctly
+1)Added validate_prefix vs validate_exact
+2)Added function to grab which locus is under selection in modules.py instead of repeating the same code block. Left old code chunks in ''' for now.
+3)Added ncores to all disease example popvars files
+4)Kadj tracking fix for packing_1 option.
+5)Updated user manual to include 'Developing your own simulations' section.
 Changes in adding_MultipleCompartmentsDisease branch 2026.09.25 ell
 0) Checking model dynamics with S -> V -> I -> R first. Where S and V are both able to transition to I -> i.e., multiple S states. 
 -> added validate(pathogen_load > 1.0, 'Pathogen load must be scaled from 0 to 1') to moveStates()
@@ -125,8 +134,6 @@ defaultMature_pass,mat_slope_pass,mat_int_pass read into cdclimate, calls added 
 d) These variables read out of cdclimate and into main loop FXXmat_set, MXYmat_set, MYYmat_set, FYYmat_set,FXXmat_slope,MXYmat_slope,MYYmat_slope,FYYmat_slope,FXXmat_int,MXYmat_int,MYYmat_int,FYYmat_int	
 	
 
-<<<<<<< Updated upstream
-=======
 
 Changes v3.08.1.2025.07.22 ccd
 0) Replace all in1d() functions with isin() due to numpy deprecation.
@@ -608,7 +615,6 @@ Casey changes for v2.77
 2) Added ability to have density-independent mortality if logistic is selected, but only for the season when logistic is not applied (DoMortality line 625).
 # Need to update test input files
 
->>>>>>> Stashed changes
 Chnages v2.77.2024.10.11
 0) Index error with different combinations of 0;0|15;15 -> 0|15;15 throws index error ***
 

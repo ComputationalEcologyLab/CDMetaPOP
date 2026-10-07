@@ -130,7 +130,8 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 	Indgenes = currentoff['genes']
 	# If cdevolve is on
 	if cdevolveans != 'N':
-		# Then the first l loci are for selection, next for plastic region
+		selloci = getSelLoci(cdevolveans)
+		'''# Then the first l loci are for selection, next for plastic region
 		if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 			selloci = int(cdevolveans.split('_')[2].split('L')[1])
 		elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex' or cdevolveans == 'FHindex' or cdevolveans == 'runtiming':
@@ -139,10 +140,11 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 			selloci = 2
 		else:
 			print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-			sys.exit(-1)
+			sys.exit(-1)'''
 	# If selection is not on
 	else:
 		selloci = 0 # zero loci in selection
+	
 	# Get number of plastic loci
 	plaloci = 1
 	# Get index for plastic region
@@ -156,7 +158,8 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 		Indgenes = currentoff['genes']
 		# If cdevolve is on
 		if cdevolveans != 'N':
-			# Then the first l loci are for selection, next for plastic region
+			selloci = getSelLoci(cdevolveans)
+			'''# Then the first l loci are for selection, next for plastic region
 			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 				selloci = int(cdevolveans.split('_')[2].split('L')[1])
 			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
@@ -165,10 +168,11 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 				selloci = 2
 			else:
 				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-				sys.exit(-1)
+				sys.exit(-1)'''
 		# If selection is not on
 		else:
 			selloci = 0 # zero loci in selection
+				
 		# Get number of plastic loci
 		plaloci = 1
 		# Get index for plastic region
@@ -191,7 +195,7 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 		Indgenes = currentoff['genes']
 		# If cdevolve is on
 		if cdevolveans != 'N':
-			# Then the first l loci are for selection, next for plastic region
+			'''# Then the first l loci are for selection, next for plastic region
 			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 				selloci = int(cdevolveans.split('_')[2].split('L')[1])
 			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
@@ -200,7 +204,8 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 				selloci = 2
 			else:
 				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-				sys.exit(-1)
+				sys.exit(-1)'''
+			selloci = getSelLoci(cdevolveans)
 		# If selection is not on
 		else:
 			selloci = 0 # zero loci in selection
@@ -227,7 +232,8 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 		Indgenes = currentoff['genes']
 		# If cdevolve is on
 		if cdevolveans != 'N':
-			# Then the first l loci are for selection, next for plastic region
+			selloci = getSelLoci(cdevolveans)
+			'''# Then the first l loci are for selection, next for plastic region
 			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 				selloci = int(cdevolveans.split('_')[2].split('L')[1])
 			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
@@ -236,7 +242,7 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 				selloci = 2
 			else:
 				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-				sys.exit(-1)
+				sys.exit(-1)'''
 		# If selection is not on
 		else:
 			selloci = 0 # zero loci in selection
@@ -274,7 +280,8 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 		Indgenes = currentoff['genes']
 		# If cdevolve is on
 		if cdevolveans != 'N':
-			# Then the first l loci are for selection, next for plastic region
+			selloci = getSelLoci(cdevolveans)
+			'''# Then the first l loci are for selection, next for plastic region
 			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 				selloci = int(cdevolveans.split('_')[2].split('L')[1])
 			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
@@ -283,7 +290,7 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 				selloci = 2
 			else:
 				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-				sys.exit(-1)
+				sys.exit(-1)'''
 		# If selection is not on
 		else:
 			selloci = 0 # zero loci in selection
@@ -309,7 +316,8 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 		Indgenes = currentoff['genes']
 		# If cdevolve is on
 		if cdevolveans != 'N':
-			# Then the first l loci are for selection, next for plastic region
+			selloci = getSelLoci(cdevolveans)
+			'''# Then the first l loci are for selection, next for plastic region
 			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 				selloci = int(cdevolveans.split('_')[2].split('L')[1])
 			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
@@ -318,7 +326,7 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 				selloci = 2
 			else:
 				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-				sys.exit(-1)
+				sys.exit(-1)'''
 		# If selection is not on
 		else:
 			selloci = 0 # zero loci in selection
@@ -344,7 +352,8 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 		Indgenes = currentoff['genes']
 		# If cdevolve is on
 		if cdevolveans != 'N':
-			# Then the first l loci are for selection, next for plastic region
+			selloci = getSelLoci(cdevolveans)
+			'''# Then the first l loci are for selection, next for plastic region
 			if cdevolveans.split('_')[0] == 'P': # This is for multilocus selection, not currently implemented, to be moved over from cdpop
 				selloci = int(cdevolveans.split('_')[2].split('L')[1])
 			elif cdevolveans == '1' or cdevolveans == 'M' or cdevolveans == 'G' or cdevolveans == '1_mat' or cdevolveans == '1_G_ind' or cdevolveans == '1_G_link' or cdevolveans == 'stray' or cdevolveans == 'Hindex':
@@ -353,7 +362,7 @@ def GetProbArray(offspring,currentsubpop,K,migrate,patchvals,cdevolveans,gen,pla
 				selloci = 2
 			else:
 				print('CDEVOLVEANS not entered correctly; DoUpdate() error.')
-				sys.exit(-1)
+				sys.exit(-1)'''
 		# If selection is not on
 		else:
 			selloci = 0 # zero loci in selection
