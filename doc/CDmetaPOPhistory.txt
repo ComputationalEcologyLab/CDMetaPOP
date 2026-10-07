@@ -1,5 +1,12 @@
-Commit 5/19/2026 - Casey update to fix Kadj tracking for packing_1 option.
-Also updated user manual to include 'Developing your own simulations' section.
+Committed 10/7/2026
+v3.12.2026.10.7 ccd
+Bug fixes and QoL updates
+0)validation function for Hindex and other options not working correctly
+1)Added validate_prefix vs validate_exact
+2)Added function to grab which locus is under selection in modules.py instead of repeating the same code block. Left old code chunks in ''' for now.
+3)Added ncores to all disease example popvars files
+4)Kadj tracking fix for packing_1 option.
+5)Updated user manual to include 'Developing your own simulations' section.
 
 Changes v3.11.2026.5.15 ell and ccd reviewed
 Changes addint_rt 2026.05.15 ell
