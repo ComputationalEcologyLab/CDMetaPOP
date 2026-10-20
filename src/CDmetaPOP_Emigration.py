@@ -2781,9 +2781,9 @@ def Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths
 	# Call AddAge0() and InheritGenes() and track numbers
 	# ---------------------------------------------------
 	if (cdevolveans.split('_')[0] == 'F' or cdevolveans.split('_')[0] == 'FHindex') and ('Eggs' in timecdevolve) and (burningen_cdevolve <= gen):
-		SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,disease_vars,Track_DiseaseStates_AddAge0s,EHom)
+		SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,disease_vars,Track_DiseaseStates_AddAge0s,betas_selection,xvars_betas,maxfit,minfit,EHom)
 	else:
-		SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,disease_vars,Track_DiseaseStates_AddAge0s)
+		SubpopIN_keepK = AddAge0s(SubpopIN_keepAge1plus,K,offspring,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,disease_vars,Track_DiseaseStates_AddAge0s,betas_selection,xvars_betas,maxfit,minfit)
 	del offspring
 	
 	# ---------------
@@ -2817,12 +2817,8 @@ def CalculateDispersalMetrics(OffDisperseIN,FDispDistCD,MDispDistCD,FDispDistCDs
 	
 	# Store the average dispersal distance offspring went
 	# temp variable to store offspring dispersal distance
-	FtempAvgDispDistED = []
-	MtempAvgDispDistED = []
-	FtempAvgDispDistCD = []
-	MtempAvgDispDistCD = []
-	Fcount = 0
-	Mcount = 0
+	FtempAvgDispDistED = MtempAvgDispDistED = FtempAvgDispDistCD = MtempAvgDispDistCD = []
+	Fcount = Mcount = 0
 	subpopmigration.append([]) # This adds a spot for next generation
 	
 	# Loop through each subpop
@@ -2830,6 +2826,7 @@ def CalculateDispersalMetrics(OffDisperseIN,FDispDistCD,MDispDistCD,FDispDistCDs
 		
 		# Extract the disperser type
 		miIndex = np.asarray([i for i, val in enumerate(OffDisperseIN[isub]['name']) if 'E' in val and 'EO' not in val])
+		
 		if len(miIndex) != 0:
 			Ind = OffDisperseIN[isub][miIndex]
 		else:
@@ -2885,7 +2882,7 @@ def CalculateDispersalMetrics(OffDisperseIN,FDispDistCD,MDispDistCD,FDispDistCDs
 					cdval = (1. - probval)*(scalemax_FXXOut-scalemin_FXXOut)+scalemin_FXXOut
 				# If pareto
 				elif moveno_FXXOut == '10':
-					if probval == max(Fxycdmatrix[isub]):
+					if probval == max(cdmatrix_FXXOut[isub]):
 						cdval = 0.0
 					else:
 						cdval = pow(((float(parA_FXXOut)*float(parB_FXXOut)**float(parA_FXXOut))/probval),(1/(float(parA_FXXOut)+1))) - float(parB_FXXOut)
@@ -2922,7 +2919,7 @@ def CalculateDispersalMetrics(OffDisperseIN,FDispDistCD,MDispDistCD,FDispDistCDs
 					cdval = (1. - probval)*(scalemax_MXYOut-scalemin_MXYOut)+scalemin_MXYOut
 				# If pareto
 				elif moveno_MXYOut == '10':
-					if probval == max(Mxycdmatrix[isub]):
+					if probval == max(cdmatrix_MXYOut[isub]):
 						cdval = 0.0
 					else:
 						cdval = pow(((float(parA_MXYOut)*float(parB_MXYOut)**float(parA_MXYOut))/probval),(1/(float(parA_MXYOut)+1))) - float(parB_MXYOut)
@@ -2987,7 +2984,6 @@ def DoEmigration(SubpopIN,K,gen,FDispDistCD,MDispDistCD,cdevolveans,fitvals,FDis
 
 		SubpopIN = Emigration(SubpopIN,K,gen,cdevolveans,fitvals,SelectionDeaths,DisperseDeaths,burningen_cdevolve,Prob,ProbSuccess,AdultNoMg,ProbAge,Population,sourcePop,dtype,setmigrate,sizecall,size_mean,PackingDeaths,PopulationAge,loci,muterate,mtdna,mutationans,packans,PackingDeathsAge,packpar1,timecdevolve,migrate,patchvals,PopTag,subpopmort_mat,Track_YYSelectionPackDeathsEmi,Track_WildSelectionPackDeathsEmi,plasticans,burningen_plastic,timeplastic,plastic_behaviorresp,noOffspring[0],Bearpairs[0],size_std,Femalepercent,age_mature,noalleles,geneswap,allelst,assortmateModel,inheritans_classfiles,eggFreq_mu,eggFreq_sd,sexans,N_beforePack_pop,N_beforePack_age,SelectionDeaths_Age0s,comp_coef,XQs,Kadj_track,Track_KadjImmi,startcomp,spcNO,implementcomp,betas_selection,xvars_betas,maxfit,minfit,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,egg_add,age_percmort, f_leslie,f_leslie_std,disease_vars,Track_DiseaseStates_AddAge0s)
 
-		
 		# Calculate Dispersal Metrics for movers out
 		if outans == 'Y':
 			CalculateDispersalMetrics(SubpopIN,FDispDistCD,MDispDistCD,FDispDistCDstd,MDispDistCDstd,subpopmigration,gen,cdmatrix_FXXOut,cdmatrix_MXYOut,cdmatrix_MYYOut,cdmatrix_FYYOut,thresh_FXXOut,thresh_MXYOut,thresh_MYYOut,thresh_FYYOut,scalemin_FXXOut,scalemin_MXYOut,scalemin_MYYOut,scalemin_FYYOut,scalemax_FXXOut,scalemax_MXYOut,scalemax_MYYOut,scalemax_FYYOut,parA_FXXOut,parA_MXYOut,parA_MYYOut,parA_FYYOut,parB_FXXOut,parB_MXYOut,parB_MYYOut,parB_FYYOut,parC_FXXOut,parC_MXYOut,parC_MYYOut,parC_FYYOut,moveno_FXXOut,moveno_MXYOut,moveno_MYYOut,moveno_FYYOut)

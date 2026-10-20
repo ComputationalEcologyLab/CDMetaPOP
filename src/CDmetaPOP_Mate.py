@@ -389,7 +389,7 @@ def DoSexual(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortm
 
 # ---------------------------------------------------------------------------------------------------	
 def DoSexualNN(AAaaMates,AAAAMates,aaaaMates,AAAaMates,aaAaMates,AaAaMates,assortmate,nomales,xycdmatrix,females,\
-males,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count=None):
+males,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat,natal_patches,K,count=None):
 	'''
 	DoSexualNN()
 	This function is the mating function for
@@ -824,7 +824,7 @@ def DoMate(SubpopIN,K,freplace,mreplace,matemoveno,matemovethresh,xycdmatrix,Mat
 				if femalepop in np.where(np.asarray(natal_patches)==1)[0]:					
 
 					# Get probability function of user defined input number
-					Bearpairs,tempmales = DoSexualNN(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,nomales,xycdmatrix,females,tempmales,Bearpairs,femalesmated,subpop,selfing,subpopmort_mat,natal_patches,K,count)
+					Bearpairs,tempmales = DoSexualNN(AAaaMates[gen],AAAAMates[gen],aaaaMates[gen],AAAaMates[gen],aaAaMates[gen],AaAaMates[gen],assortmateC,assortmateModel,nomales,xycdmatrix,females,tempmales,Bearpairs,femalesmated,sourcePop,selfing,subpopmort_mat,natal_patches,K,count)
 					
 					# Pairing occured	
 					if not isinstance(Bearpairs[count][0],int):

@@ -1048,7 +1048,7 @@ def InitializeVars(sexratio,agelst,loci,alleles,allelst,age_size_mean,age_size_s
 			else:
 				if tempEggFreq < 1: # If egg laying is less than 1 event per year
 					randegglay = np.random.uniform()
-					if randegglay < eggFreq:
+					if randegglay < tempEggFreq:
 						layEggs.append(1)
 					else:
 						layEggs.append(0)

@@ -188,7 +188,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,gen,sizeans,age_
 					if disease_vars['OffAns'][patchindex].lower() == 'susceptible':
 						# Make all S state = 0
 						initialOffState = 0
-					elif disease_vars['OffAns'][patchindex].split(';')[0].lower() == 'vertical':
+					elif disease_vars['OffAns'][patchindex].split(':')[0].lower() == 'vertical':
 						# Is mother infected
 						if str(Bearpairs[i][0]['states']) == disease_vars['InfComp'][patchindex]:
 							# Get vertical transmission rate
@@ -358,7 +358,7 @@ def DoOffspringVars(Bearpairs,Femalepercent,sourcePop,size_mean,gen,sizeans,age_
 					else:
 						if tempEggFreq < 1: # If egg laying is less than 1 event per year
 							randegglay = np.random.uniform()
-							if randegglay < eggFreq:
+							if randegglay < tempEggFreq:
 								offlayeggs = 1
 							else:
 								offlayeggs = 0
@@ -472,9 +472,6 @@ def DoOffspringNormal(Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_2,
 	
 	# If size control then use parameters for length age_mu and CV
 	if sizecall == 'size':
-		if i == 0:
-			stringout = 'Warning: size control specified with offspring number that does not have standard deviation, using sigma from Agevars file.'
-			#logMsg(logfHndl,stringout)
 		if egg_mean_ans == 'linear':
 			litter_mu = egg_mean_1 + egg_mean_2 * Bearpairs[0]['size']
 		elif egg_mean_ans == 'exp':
@@ -623,7 +620,7 @@ def DoOffspringNo(offno,Bearpairs,age_mu,age_sigma,sizecall,egg_mean_1,egg_mean_
 	# End::DoOffspring()
 	
 # ---------------------------------------------------------------------------------------------------
-def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,disease_vars,Track_DiseaseStates_AddAge0s,EHom=None):
+def AddAge0s(SubpopIN_keepAge1plus,K,SubpopIN_Age0,gen,Population,loci,muterate,mtdna,mutationans,dtype,geneswap,allelst,PopulationAge,sizecall,size_mean,cdevolveans,burningen_cdevolve,timecdevolve,fitvals,SelectionDeaths_Age0s,assortmateModel,patchvals,packans,noalleles,plasticans,sexans,eggFreq_mu,eggFreq_sd,FXXmat_set,FXXmat_int,FXXmat_slope,MXYmat_set,MXYmat_int,MXYmat_slope,MYYmat_set,MYYmat_int,MYYmat_slope,FYYmat_set,FYYmat_int,FYYmat_slope,sexchromo,egg_add,disease_vars,Track_DiseaseStates_AddAge0s,betas_selection,xvars_betas,maxfit,minfit,EHom=None):
 
 	'''
 	Add in the Age 0 population.
