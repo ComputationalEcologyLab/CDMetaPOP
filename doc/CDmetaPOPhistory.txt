@@ -1,3 +1,28 @@
+v3.12.2026.10.12 branch erin_cdist_tracking ell
+Bug fixes 
+0) issue #48: offspring2.py line 191 changed spilt deliminator to ':' 
+1) issue #48: Disease.py added .lower() for 'indirect' checks on line 126, 145 
+2) issue #48: for the 1.0 vs 0.9999 order sum, updated line 68 validate(not np.isclose(np.sum(InitCond[isub]),1.0), 'Initial conditions for disease states must sum to 1.')
+3) issue #48:can't replicate index error line 256***
+4) issue #34: changed to tempEggFreq
+5) issue #29: changed to cdmatrix_MXYOut
+6) issue #30: changed to cdmatrix_FXXOut
+7) issue #31: deleted unused function test_patchlevel_diseasestates_update
+8) issue #32: changed to sourcePop
+9) issue #33: changed to sourcePop
+10) issue #35: deleted code section
+		if i == 0:
+			stringout = 'Warning: size control specified with offspring number that does not have standard deviation, using sigma from Agevars file.'
+			#logMsg(logfHndl,stringout)
+11) issue #36: added betas_selection,xvars_betas,maxfit,minfit to Offspring2 and Emigration
+12) issue #37: changed to Changed to tempEggFreq
+
+cdist work
+0)Skipping the Mate.py -> only runs when specified. But should check at end if changes made in dispersal modules ***
+1) In Emigration.py -> FDispDistCD -> CalculateDispersalMetrics -> summaryOutput has to be 'Y' -> sex has to be FXX or MXY -> only calculates if moveno is 1,2,5,7,8,10. 
+-> I haven't changed anything, opened a discussion with cday and dalo. 
+
+
 Committed 10/7/2026
 v3.12.2026.10.7 ccd
 Bug fixes and QoL updates

@@ -65,7 +65,7 @@ def read_disease_vars_files(filelist, datadir,implementdisease,pathogen_load,dis
 				validate(len(TDefense[isub].split(';')[0].split('_')) != 2, 'Tolerant disease defense option is in incorrect format. Specify N or state to state.')
 			validate(TransMode[isub].lower() != 'direct' and TransMode[isub].lower() !='indirect', 'Transmission mode can be direct or indirect.')
 			validate(noStates[isub] != len(InitCond[isub]), 'Number of Disease States must equal Initial Conditions specified.')
-			validate(sum(InitCond[isub]) != 1.0, 'Initial conditions for disease states must sum to 1.')		
+			validate(not np.isclose(np.sum(InitCond[isub]),1.0), 'Initial conditions for disease states must sum to 1.')		
 			validate((TransMode[isub].lower() == 'direct') and ((len(TranRates[isub]) or len(TranRates[isub][0])) != noStates[isub]), 'Transition matrix must be number of States x number of States if direct transmission is specified.')
 			validate((TransMode[isub].lower() == 'indirect') and ((len(TranRates[isub]) or len(TranRates[isub][0])) != noStates[isub]+1), 'Transition matrix must be number of States + 1 x number of States + 1 if indirect transmission is specified.')
 			
@@ -123,7 +123,7 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 	# Grab transition rates for this state (columns)
 	rates_from_current_state = [row[current_state] for row in disease_vars['TransRates'][isub]]
 	# Delete any P states - not a host transition option - only if Indirect is on
-	if disease_vars['TransMode'][isub] == 'Indirect':
+	if disease_vars['TransMode'][isub].lower() == 'indirect':
 		# Pathogen state is assumed to be the last one in the transition matrix
 		pathogen_state_idx = disease_vars['noStates'][isub]		
 		del rates_from_current_state[pathogen_state_idx]   
@@ -142,7 +142,7 @@ def moveStates(SubpopIN,isub,iind,countstates_inthispatch,disease_vars,gen):
 	# --- 3. Calculate Indirect Force of Infection ($S \to I$) ---
 	indirect_foi = 0.0
 	#if disease_vars['TransMode'][isub] == 'Indirect' and current_state == susceptible_state:
-	if disease_vars['TransMode'][isub] == 'Indirect' and current_state in susceptible_state:
+	if disease_vars['TransMode'][isub].lower() == 'indirect' and current_state in susceptible_state:
 			
 		# Base transition rate from environment (pathogen) to host states - column
 		rates_from_pathogen = [row[pathogen_state_idx] for row in disease_vars['TransRates'][isub]]
@@ -318,71 +318,6 @@ def removeDStates(SubpopIN,isub,disease_vars,gen):
 	SubpopIN[isub] = SubpopIN[isub][keep_these_inds]
 	
 	# End::removeDStates()
-
-# ---------------------------------------------------------------------------
-def test_patchlevel_diseasestates_update(gen,startdisease,gridsample,implementdisease,disease_vars,temp_tracking_eqn,SubpopIN_thissub,isub,countstates_inthispatch,noStates,diseaserates_inthispatch):
-	'''
-	This function is only for testing and getting the patch level state transitions
-	In DoUpdate, after first Disease Process call in patch loop add:
-	# Testing patch-level disease state updates
-	#temp_tracking_eqn = [] -> this goes before patch loop
-	#temp_tracking_eqn.append([])			#test_patchlevel_diseasestates_update(gen,startdisease,gridsample,implementdisease,disease_vars,temp_tracking_eqn,SubpopIN[isub],isub,countstates_inthispatch,noStates,diseaserates_inthispatch)
-	'''
-	
-	if gen >= startdisease and ((gridsample == 'Middle' and implementdisease in ['Both','Back']) or (gridsample == 'Sample' and implementdisease in ['Both','Out'])):	
-				
-		if sum(countstates_inthispatch) == 0: # if population is 0 in this patch
-			temp_tracking_eqn[isub].append(countstates_inthispatch)
-									
-		else:				
-			'''
-			# S to I: S*I*a/N
-			StoI = countstates_inthispatch[0]*countstates_inthispatch[1]*diseaserates_inthispatch[0]/sum(countstates_inthispatch)
-			# I to R: I*b - same idea
-			ItoR = countstates_inthispatch[1]*diseaserates_inthispatch[1]
-			
-			# Then update next states
-			Stplus1 = countstates_inthispatch[0] - round(StoI)
-			Itplus1 = round(StoI)+countstates_inthispatch[1] - round(ItoR)
-			Rtplus1 = countstates_inthispatch[2] + round(ItoR)
-			temp_tracking_eqn[isub].append([Stplus1,Itplus1,Rtplus1])
-			'''
-			temp_xij_thatmove_eqn = []					
-			# Generalized code of the above lines (for any number of states)
-			for irate in range(len(diseaserates_inthispatch)):						
-				
-				# Get this transition rate
-				thisRate = diseaserates_inthispatch[irate]
-				
-				# Assume first one is the transmission process
-				if irate == 0: 
-					SitoSj = countstates_inthispatch[irate]*countstates_inthispatch[irate+1]*thisRate/sum(countstates_inthispatch)
-				else:
-					SitoSj = thisRate*countstates_inthispatch[irate]
-				
-				temp_xij_thatmove_eqn.append(round(SitoSj))
-								
-			# Then update new disease state counts
-			for istate in range(len(countstates_inthispatch)):						
-				
-				if istate == 0: # First State is the S*I*a/N
-					thisStateChange = temp_xij_thatmove_eqn[istate]
-					Stplus1 = countstates_inthispatch[istate] - thisStateChange
-				
-				elif istate == len(countstates_inthispatch)-1: # Last one					
-					Stplus1 = returnthisStateChange + countstates_inthispatch[istate]
-				
-				else:
-					thisStateChange = temp_xij_thatmove_eqn[istate]
-					Stplus1 = returnthisStateChange + countstates_inthispatch[istate] - thisStateChange
-					
-				temp_tracking_eqn[isub].append(Stplus1)
-				returnthisStateChange = thisStateChange
-			
-	else:
-		temp_tracking_eqn[isub].append(countstates_inthispatch)
-		
-	#End::test_patchlevel_diseasestates_update()
 
 # ---------------------------------------------------------------------------
 def DoOut_AllTimeDiseasePatch(K_track,N_Init,Track_DiseaseStates_pop,Track_DiseaseStates_SecondUpdate,N_Emigration,N_EmiMortality, Track_DiseaseStates_ThirdUpdate,N_Immigration,N_ImmiMortality,ithmcrundir,Track_DiseaseStates_AddAge0s,Track_DiseaseStates_AddedInds,Track_DiseaseStates_AfterDeaths_SecondUpdate,Track_DiseaseStates_AfterDeaths_ThirdUpdate,Track_DiseaseStates_EnvRes,disease_vars):
